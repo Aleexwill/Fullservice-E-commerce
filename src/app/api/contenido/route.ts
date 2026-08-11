@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getContent, updateContent } from '@/lib/content-store';
+import { revalidateTag } from 'next/cache';
+import { getContent, updateContent, CONTENT_CACHE_TAG } from '@/lib/content-store';
 
 export async function GET() {
   try { return NextResponse.json(await getContent()); }
@@ -7,6 +8,12 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
-  try { const body = await req.json(); return NextResponse.json(await updateContent(body)); }
-  catch { return NextResponse.json({ error: 'Error al guardar' }, { status: 500 }); }
+  try {
+    const body = await req.json();
+    const content = await updateContent(body);
+    revalidateTag(CONTENT_CACHE_TAG);
+    return NextResponse.json(content);
+  } catch {
+    return NextResponse.json({ error: 'Error al guardar' }, { status: 500 });
+  }
 }

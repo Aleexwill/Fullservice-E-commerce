@@ -11,7 +11,7 @@ interface Value { title: string; description: string; }
 
 interface Content {
   hero: { badge: string; title: string; highlight: string; subtitle: string; ctaPrimary: string; ctaSecondary: string; stats: Stat[] };
-  about: { title: string; description: string; image: string; values: Value[] };
+  about: { title: string; description: string; mission: string; vision: string; image: string; values: Value[] };
   testimonials: Testimonial[];
   banners: Banner[];
   branding: { logo: string; logoWhite: string; favicon: string; ogImage: string; primaryColor: string; accentColor: string };
@@ -102,6 +102,8 @@ export default function AdminContenidoPage() {
           <h2 className="font-display text-h3 text-arctic">Seccion Nosotros</h2>
           <F label="Titulo" v={content.about.title} c={(v) => u('about', 'title', v)} />
           <div><label className="label mb-1 block">Descripcion</label><textarea value={content.about.description} onChange={(e) => u('about', 'description', e.target.value)} className="input min-h-[80px]" rows={3} /></div>
+          <div><label className="label mb-1 block">Mision</label><textarea value={content.about.mission} onChange={(e) => u('about', 'mission', e.target.value)} className="input min-h-[80px]" rows={3} /></div>
+          <div><label className="label mb-1 block">Vision</label><textarea value={content.about.vision} onChange={(e) => u('about', 'vision', e.target.value)} className="input min-h-[80px]" rows={3} /></div>
           <F label="Imagen (URL)" v={content.about.image} c={(v) => u('about', 'image', v)} />
           {content.about.image && <img src={content.about.image} alt="" className="h-32 rounded-md object-cover" />}
           <div>
