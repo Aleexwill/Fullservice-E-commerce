@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { fetchJson } from '@/lib/utils';
 import {
   Save,
   Loader2,
@@ -37,7 +38,7 @@ export default function AdminConfigPage() {
   const [activeTab, setActiveTab] = useState('general');
 
   useEffect(() => {
-    fetch('/api/config').then((r) => r.json()).then((d) => { setSettings(d); setLoading(false); }).catch(() => setLoading(false));
+    fetchJson<SiteSettings>('/api/config').then((d) => { setSettings(d); setLoading(false); });
   }, []);
 
   const handleSave = async () => {

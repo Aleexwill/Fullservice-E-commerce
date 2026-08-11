@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { fetchJson } from '@/lib/utils';
 import {
   Plus,
   Search,
@@ -41,9 +42,8 @@ export default function AdminProductosPage() {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
-    fetch(`/api/productos?${params.toString()}`)
-      .then((r) => r.json())
-      .then((data) => {
+    fetchJson(`/api/productos?${params.toString()}`)
+      .then((data: any) => {
         setProducts(data.products || []);
         setTotal(data.total || 0);
         setLoading(false);

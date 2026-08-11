@@ -19,3 +19,18 @@ export function formatWhatsAppUrl(phone: string, message?: string): string {
   const base = `https://wa.me/${cleanPhone}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
+
+/**
+ * fetch + parse JSON, devolviendo null ante cualquier respuesta no-ok
+ * (401, 404, 500, etc.) en vez de propagar el body de error como si
+ * fuera el dato esperado.
+ */
+export async function fetchJson<T = unknown>(input: RequestInfo | URL, init?: RequestInit): Promise<T | null> {
+  try {
+    const res = await fetch(input, init);
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}

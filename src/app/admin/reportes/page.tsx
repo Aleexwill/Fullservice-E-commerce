@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { fetchJson } from '@/lib/utils';
 import {
   TrendingUp, Package, ShoppingCart, Users, DollarSign, CheckCircle2, Clock,
   BarChart3, RefreshCw, ArrowRight, Star, Calculator, Wrench, Eye, FileText,
@@ -26,11 +27,11 @@ export default function AdminReportesPage() {
   const fetchAll = () => {
     setLoading(true);
     Promise.all([
-      fetch('/api/productos/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/pedidos/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/presupuestos/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/leads/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/analytics').then((r) => r.json()).catch(() => null),
+      fetchJson<ProductStats>('/api/productos/stats'),
+      fetchJson<OrderStats>('/api/pedidos/stats'),
+      fetchJson<PresupuestoStats>('/api/presupuestos/stats'),
+      fetchJson<LeadStats>('/api/leads/stats'),
+      fetchJson<AnalyticsData>('/api/analytics'),
     ]).then(([p, o, pr, l, a]) => { setProducts(p); setOrders(o); setPresupuestos(pr); setLeads(l); setAnalytics(a); setLoading(false); }).catch(() => setLoading(false));
   };
 

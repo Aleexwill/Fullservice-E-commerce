@@ -20,13 +20,24 @@ function isPublicApi(pathname: string, method: string): boolean {
   return false;
 }
 
+async function getSession(token: string | undefined) {
+  // Falla "cerrado": cualquier error al verificar (ej. SESSION_SECRET
+  // no configurado) se trata como "sin sesión", nunca deja pasar la
+  // request ni tumba el middleware con una excepción sin manejar.
+  try {
+    return await verifySessionToken(token);
+  } catch {
+    return null;
+  }
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
   if (pathname.startsWith('/api/')) {
     if (isPublicApi(pathname, request.method)) return NextResponse.next();
-    const session = await verifySessionToken(token);
+    const session = await getSession(token);
     if (!session) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     }
@@ -35,7 +46,7 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login') return NextResponse.next();
-    const session = await verifySessionToken(token);
+    const session = await getSession(token);
     if (!session) {
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);

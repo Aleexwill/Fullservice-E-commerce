@@ -6,6 +6,7 @@ import {
   Package, DollarSign, AlertTriangle, Star, TrendingUp, Plus, ArrowRight, Layers, Tag,
   ShoppingCart, Calculator, Users, Wrench, CheckCircle2, Clock, FileText, Eye,
 } from 'lucide-react';
+import { fetchJson } from '@/lib/utils';
 
 interface ProductStats { total: number; active: number; totalStock: number; totalValue: number; outOfStock: number; featured: number; categoriesCount: number; brandsCount: number; }
 interface OrderStats { total: number; byStatus: Record<string, number>; totalRevenue: number; paidRevenue: number; }
@@ -25,13 +26,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/productos/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/pedidos/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/presupuestos/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/leads/stats').then((r) => r.json()).catch(() => null),
-      fetch('/api/analytics').then((r) => r.json()).catch(() => null),
+      fetchJson('/api/productos/stats'),
+      fetchJson('/api/pedidos/stats'),
+      fetchJson('/api/presupuestos/stats'),
+      fetchJson('/api/leads/stats'),
+      fetchJson('/api/analytics'),
     ]).then(([p, o, pr, l, a]) => {
-      setProducts(p); setOrders(o); setPresupuestos(pr); setLeads(l); setAnalytics(a); setLoading(false);
+      setProducts(p as ProductStats); setOrders(o as OrderStats); setPresupuestos(pr as PresupuestoStats); setLeads(l as LeadStats); setAnalytics(a as AnalyticsData); setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
 
