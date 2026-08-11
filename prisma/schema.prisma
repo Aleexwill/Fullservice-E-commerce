@@ -126,3 +126,83 @@ model Presupuesto {
   @@index([status])
   @@index([createdAt])
 }
+
+// ============================================================
+// PORTFOLIO (proyectos)
+// ============================================================
+
+model Portfolio {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("") @db.Text
+  category    String
+  location    String   @default("")
+  duration    String   @default("")
+  year        String   @default("")
+  client      String   @default("")
+  image       String   @default("")
+  gallery     String[]
+  badge       String   @default("neutral")
+  size        String   @default("small")
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([category])
+}
+
+// ============================================================
+// SERVICIOS (CMS de servicios ofrecidos)
+// ============================================================
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("") @db.Text
+  category    String
+  icon        String   @default("")
+  features    String[]
+  image       String   @default("")
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([category])
+}
+
+// ============================================================
+// CONFIGURACIÓN DEL SITIO (singleton)
+// ============================================================
+
+model SiteSettings {
+  id        String   @id @default("singleton")
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+model SiteContent {
+  id        String   @id @default("singleton")
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String   @default("")
+  userAgent String   @default("")
+  timestamp DateTime @default(now())
+
+  @@index([path])
+  @@index([timestamp])
+}

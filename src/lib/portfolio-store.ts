@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import { prisma } from './prisma';
+import type { Portfolio as PrismaPortfolio } from '@prisma/client';
 
 export interface Project {
   id: string;
@@ -21,29 +21,58 @@ export interface Project {
   updatedAt: string;
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'portfolio.json');
-function ensure() { const d = path.dirname(DATA_FILE); if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf-8'); }
-function save(data: Project[]) { ensure(); fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8'); }
-
-export function getAllProjects(): Project[] { ensure(); return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); }
-export function getProjectById(id: string): Project | null { return getAllProjects().find((p) => p.id === id) || null; }
-
-export function createProject(data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Project {
-  const all = getAllProjects();
-  const project: Project = { ...data, id: Date.now().toString(36) + Math.random().toString(36).substring(2, 8), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  all.push(project);
-  save(all);
-  return project;
+function toProject(p: PrismaPortfolio): Project {
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    category: p.category,
+    location: p.location,
+    duration: p.duration,
+    year: p.year,
+    client: p.client,
+    image: p.image,
+    gallery: p.gallery,
+    badge: p.badge as Project['badge'],
+    size: p.size as Project['size'],
+    isActive: p.isActive,
+    isFeatured: p.isFeatured,
+    order: p.order,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+  };
 }
 
-export function updateProject(id: string, data: Partial<Project>): Project | null {
-  const all = getAllProjects(); const idx = all.findIndex((p) => p.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...data, id: all[idx].id, createdAt: all[idx].createdAt, updatedAt: new Date().toISOString() };
-  save(all); return all[idx];
+export async function getAllProjects(): Promise<Project[]> {
+  const all = await prisma.portfolio.findMany({ orderBy: { order: 'asc' } });
+  return all.map(toProject);
 }
 
-export function deleteProject(id: string): boolean {
-  const all = getAllProjects(); const idx = all.findIndex((p) => p.id === id);
-  if (idx === -1) return false; all.splice(idx, 1); save(all); return true;
+export async function getProjectById(id: string): Promise<Project | null> {
+  const p = await prisma.portfolio.findUnique({ where: { id } });
+  return p ? toProject(p) : null;
+}
+
+export async function createProject(data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> {
+  const p = await prisma.portfolio.create({ data });
+  return toProject(p);
+}
+
+export async function updateProject(id: string, data: Partial<Project>): Promise<Project | null> {
+  const { id: _id, createdAt: _createdAt, ...rest } = data;
+  try {
+    const p = await prisma.portfolio.update({ where: { id }, data: rest });
+    return toProject(p);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteProject(id: string): Promise<boolean> {
+  try {
+    await prisma.portfolio.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -3,7 +3,7 @@ import { getAllServices, createService } from '@/lib/services-store';
 
 export async function GET(req: NextRequest) {
   try {
-    let services = getAllServices();
+    let services = await getAllServices();
     const { searchParams } = new URL(req.url);
     if (searchParams.get('active') === 'true') services = services.filter((s) => s.isActive);
     const cat = searchParams.get('category');
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     if (!body.title) return NextResponse.json({ error: 'Titulo obligatorio' }, { status: 400 });
-    const svc = createService({
+    const svc = await createService({
       title: body.title, description: body.description || '', category: body.category || 'mantenimiento',
       icon: body.icon || 'Wrench', features: body.features || [], image: body.image || '',
       isActive: body.isActive !== false, isFeatured: Boolean(body.isFeatured), order: body.order || 0,

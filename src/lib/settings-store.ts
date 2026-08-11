@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import { prisma } from './prisma';
 
 export interface SiteSettings {
   general: {
@@ -49,7 +48,7 @@ export interface SiteSettings {
   };
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'settings.json');
+const SINGLETON_ID = 'singleton';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   general: {
@@ -99,38 +98,33 @@ const DEFAULT_SETTINGS: SiteSettings = {
   },
 };
 
-function ensureDataFile(): void {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(DEFAULT_SETTINGS, null, 2), 'utf-8');
-  }
-}
-
-export function getSettings(): SiteSettings {
-  ensureDataFile();
-  const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-  const saved = JSON.parse(raw);
-  // Merge with defaults to handle new fields
-  return deepMerge(DEFAULT_SETTINGS, saved);
-}
-
-export function updateSettings(data: Partial<SiteSettings>): SiteSettings {
-  const current = getSettings();
-  const updated = deepMerge(current, data);
-  ensureDataFile();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(updated, null, 2), 'utf-8');
-  return updated;
-}
-
-function deepMerge(target: any, source: any): any {
-  const output = { ...target };
-  for (const key of Object.keys(source)) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      output[key] = deepMerge(target[key] || {}, source[key]);
-    } else if (source[key] !== undefined) {
-      output[key] = source[key];
+function deepMerge<T>(target: T, source: unknown): T {
+  const output: Record<string, unknown> = { ...(target as Record<string, unknown>) };
+  const src = source as Record<string, unknown>;
+  for (const key of Object.keys(src)) {
+    const sourceVal = src[key];
+    if (sourceVal && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
+      output[key] = deepMerge((target as Record<string, unknown>)[key] || {}, sourceVal);
+    } else if (sourceVal !== undefined) {
+      output[key] = sourceVal;
     }
   }
-  return output;
+  return output as T;
+}
+
+export async function getSettings(): Promise<SiteSettings> {
+  const row = await prisma.siteSettings.findUnique({ where: { id: SINGLETON_ID } });
+  if (!row) return DEFAULT_SETTINGS;
+  return deepMerge(DEFAULT_SETTINGS, row.data);
+}
+
+export async function updateSettings(data: Partial<SiteSettings>): Promise<SiteSettings> {
+  const current = await getSettings();
+  const updated = deepMerge(current, data);
+  await prisma.siteSettings.upsert({
+    where: { id: SINGLETON_ID },
+    create: { id: SINGLETON_ID, data: updated },
+    update: { data: updated },
+  });
+  return updated;
 }

@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import { prisma } from './prisma';
+import type { Service as PrismaService } from '@prisma/client';
 
 export interface Service {
   id: string;
@@ -16,28 +16,53 @@ export interface Service {
   updatedAt: string;
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'services.json');
-function ensure() { const d = path.dirname(DATA_FILE); if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf-8'); }
-function save(data: Service[]) { ensure(); fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8'); }
-
-export function getAllServices(): Service[] { ensure(); return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); }
-export function getServiceById(id: string): Service | null { return getAllServices().find((s) => s.id === id) || null; }
-
-export function createService(data: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>): Service {
-  const all = getAllServices();
-  const svc: Service = { ...data, id: Date.now().toString(36) + Math.random().toString(36).substring(2, 8), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  all.push(svc);
-  save(all); return svc;
+function toService(s: PrismaService): Service {
+  return {
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    category: s.category,
+    icon: s.icon,
+    features: s.features,
+    image: s.image,
+    isActive: s.isActive,
+    isFeatured: s.isFeatured,
+    order: s.order,
+    createdAt: s.createdAt.toISOString(),
+    updatedAt: s.updatedAt.toISOString(),
+  };
 }
 
-export function updateService(id: string, data: Partial<Service>): Service | null {
-  const all = getAllServices(); const idx = all.findIndex((s) => s.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...data, id: all[idx].id, createdAt: all[idx].createdAt, updatedAt: new Date().toISOString() };
-  save(all); return all[idx];
+export async function getAllServices(): Promise<Service[]> {
+  const all = await prisma.service.findMany({ orderBy: { order: 'asc' } });
+  return all.map(toService);
 }
 
-export function deleteService(id: string): boolean {
-  const all = getAllServices(); const idx = all.findIndex((s) => s.id === id);
-  if (idx === -1) return false; all.splice(idx, 1); save(all); return true;
+export async function getServiceById(id: string): Promise<Service | null> {
+  const s = await prisma.service.findUnique({ where: { id } });
+  return s ? toService(s) : null;
+}
+
+export async function createService(data: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>): Promise<Service> {
+  const s = await prisma.service.create({ data });
+  return toService(s);
+}
+
+export async function updateService(id: string, data: Partial<Service>): Promise<Service | null> {
+  const { id: _id, createdAt: _createdAt, ...rest } = data;
+  try {
+    const s = await prisma.service.update({ where: { id }, data: rest });
+    return toService(s);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteService(id: string): Promise<boolean> {
+  try {
+    await prisma.service.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }
