@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { BarChart3, Eye, TrendingUp, Clock, Globe, ArrowUp, RefreshCw, Monitor } from 'lucide-react';
+import { fetchJson } from '@/lib/utils';
 
 interface Analytics {
   totalViews: number; todayViews: number; weekViews: number; maxDailyViews: number;
@@ -24,7 +25,7 @@ export default function AdminAnalyticsPage() {
 
   const refresh = () => {
     setLoading(true);
-    fetch('/api/analytics').then((r) => r.json()).then((d) => { setData(d); setLoading(false); }).catch(() => setLoading(false));
+    fetchJson<Analytics>('/api/analytics').then((d) => { setData(d); setLoading(false); });
   };
 
   useEffect(() => { refresh(); }, []);

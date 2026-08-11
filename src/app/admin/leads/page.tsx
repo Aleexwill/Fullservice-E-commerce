@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { fetchJson } from '@/lib/utils';
 import {
   Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, MessageSquare,
   Clock, ChevronRight, AlertTriangle, Star, Loader2, Users, LayoutGrid, List,
@@ -84,7 +85,7 @@ export default function AdminLeadsCRM() {
     setLoading(true);
     const p = new URLSearchParams();
     if (search) p.set('search', search);
-    fetch(`/api/leads?${p}`).then((r) => r.json()).then((d) => { setLeads(d.leads || []); setLoading(false); }).catch(() => setLoading(false));
+    fetchJson<any>(`/api/leads?${p}`).then((d) => { setLeads(d?.leads || []); setLoading(false); });
   }, [search]);
 
   useEffect(() => { fetchLeads(); }, [fetchLeads]);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { fetchJson } from '@/lib/utils';
 import {
   Search,
   RefreshCw,
@@ -74,9 +75,8 @@ export default function AdminPedidosPage() {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (filterStatus) params.set('status', filterStatus);
-    fetch(`/api/pedidos?${params}`)
-      .then((r) => r.json())
-      .then((d) => { setOrders(d.orders || []); setTotal(d.total || 0); setLoading(false); })
+    fetchJson<any>(`/api/pedidos?${params}`)
+      .then((d) => { setOrders(d?.orders || []); setTotal(d?.total || 0); setLoading(false); })
       .catch(() => setLoading(false));
   }, [search, filterStatus]);
 

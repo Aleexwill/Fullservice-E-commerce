@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { fetchJson } from '@/lib/utils';
 import {
   TrendingUp, Wrench, DollarSign, CheckCircle2, Clock, FileText, RefreshCw,
   ArrowLeft, Calculator, HardHat, Factory, AlertTriangle, BarChart3, Users, Star,
@@ -45,7 +46,7 @@ export default function ReporteServiciosPage() {
 
   const fetchData = () => {
     setLoading(true);
-    fetch('/api/presupuestos/stats').then((r) => r.json()).then((d) => { setStats(d); setLoading(false); }).catch(() => setLoading(false));
+    fetchJson<PresupuestoStats>('/api/presupuestos/stats').then((d) => { setStats(d); setLoading(false); });
   };
 
   useEffect(() => { fetchData(); }, []);

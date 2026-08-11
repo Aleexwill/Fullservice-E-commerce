@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { fetchJson } from '@/lib/utils';
 import {
   TrendingUp, Package, ShoppingCart, DollarSign, AlertTriangle, Star, CheckCircle2,
   Clock, BarChart3, RefreshCw, ArrowLeft, Truck, XCircle, Layers, Tag,
@@ -35,8 +36,8 @@ export default function ReporteEcommercePage() {
   const fetchAll = () => {
     setLoading(true);
     Promise.all([
-      fetch('/api/productos/stats').then((r) => r.json()),
-      fetch('/api/pedidos/stats').then((r) => r.json()),
+      fetchJson<ProductStats>('/api/productos/stats'),
+      fetchJson<OrderStats>('/api/pedidos/stats'),
     ]).then(([p, o]) => { setProducts(p); setOrders(o); setLoading(false); }).catch(() => setLoading(false));
   };
 

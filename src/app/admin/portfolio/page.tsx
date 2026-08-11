@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star, FolderOpen, X, Save, Loader2, MapPin, Calendar, User, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { fetchJson } from '@/lib/utils';
 
 interface Project {
   id: string; title: string; description: string; category: string; location: string;
@@ -20,7 +21,7 @@ export default function AdminPortfolioPage() {
 
   const fetch_ = useCallback(() => {
     setLoading(true);
-    fetch('/api/portfolio').then((r) => r.json()).then((d) => { setProjects(d.projects || []); setLoading(false); }).catch(() => setLoading(false));
+    fetchJson<any>('/api/portfolio').then((d) => { setProjects(d?.projects || []); setLoading(false); });
   }, []);
 
   useEffect(() => { fetch_(); }, [fetch_]);

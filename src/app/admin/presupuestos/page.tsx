@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Search, RefreshCw, Plus, Eye, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, DollarSign, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Filter } from 'lucide-react';
+import { fetchJson } from '@/lib/utils';
 
 interface Presupuesto {
   id: string; code: string; status: string; serviceType: string; serviceTitle: string;
@@ -54,7 +55,7 @@ export default function AdminPresupuestosPage() {
     if (search) p.set('search', search);
     if (filterStatus) p.set('status', filterStatus);
     if (filterType) p.set('type', filterType);
-    fetch(`/api/presupuestos?${p}`).then((r) => r.json()).then((d) => { setItems(d.presupuestos || []); setLoading(false); }).catch(() => setLoading(false));
+    fetchJson<any>(`/api/presupuestos?${p}`).then((d) => { setItems(d?.presupuestos || []); setLoading(false); });
   }, [search, filterStatus, filterType]);
 
   useEffect(() => { fetchData(); }, [fetchData]);

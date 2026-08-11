@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Wrench, X, Save, GripVertical, RefreshCw } from 'lucide-react';
+import { fetchJson } from '@/lib/utils';
 
 interface Service {
   id: string; title: string; description: string; category: string; icon: string;
@@ -21,7 +22,7 @@ export default function AdminServiciosPage() {
 
   const fetch_ = useCallback(() => {
     setLoading(true);
-    fetch('/api/servicios-cms').then((r) => r.json()).then((d) => { setServices(d.services || []); setLoading(false); }).catch(() => setLoading(false));
+    fetchJson<any>('/api/servicios-cms').then((d) => { setServices(d?.services || []); setLoading(false); });
   }, []);
 
   useEffect(() => { fetch_(); }, [fetch_]);

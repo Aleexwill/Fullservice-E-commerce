@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Save, Loader2, CheckCircle2, X, Plus, PenSquare, Image as ImageIcon, MessageSquare, BarChart3, Palette, FileText, Trash2, Star } from 'lucide-react';
+import { fetchJson } from '@/lib/utils';
 
 interface Testimonial { id: string; name: string; role: string; company: string; text: string; rating: number; avatar: string; isActive: boolean; }
 interface Banner { id: string; title: string; subtitle: string; image: string; link: string; position: string; isActive: boolean; }
@@ -24,7 +25,7 @@ export default function AdminContenidoPage() {
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState('hero');
 
-  useEffect(() => { fetch('/api/contenido').then((r) => r.json()).then((d) => { setContent(d); setLoading(false); }).catch(() => setLoading(false)); }, []);
+  useEffect(() => { fetchJson<Content>('/api/contenido').then((d) => { setContent(d); setLoading(false); }); }, []);
 
   const save = async () => {
     if (!content) return; setSaving(true); setSaved(false);
