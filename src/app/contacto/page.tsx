@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -33,6 +33,14 @@ const subjectsServicios = [
 type FormType = 'general' | 'ecommerce' | 'servicios';
 
 export default function ContactoPage() {
+  return (
+    <Suspense fallback={null}>
+      <ContactoPageContent />
+    </Suspense>
+  );
+}
+
+function ContactoPageContent() {
   const searchParams = useSearchParams();
 
   const tipoParam = searchParams.get('tipo');

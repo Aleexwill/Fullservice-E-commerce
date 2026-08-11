@@ -47,13 +47,23 @@ export async function POST(request: NextRequest) {
         name: body.customer.name,
         email: body.customer.email || '',
         phone: body.customer.phone || '',
+        company: body.customer.company || '',
+        position: body.customer.position || '',
+        avatar: body.customer.avatar || '',
       },
       subject: body.subject,
       message: body.message || '',
       serviceInterest: body.serviceInterest || '',
       estimatedValue: body.estimatedValue ? Number(body.estimatedValue) : null,
+      tags: [],
+      activities: [],
+      tasks: [],
       notes: [],
       assignedTo: body.assignedTo || '',
+      lastContactedAt: '',
+      nextFollowUp: '',
+      lostReason: '',
+      leadType: body.leadType || 'general',
     });
 
     return NextResponse.json(lead, { status: 201 });
