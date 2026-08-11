@@ -165,9 +165,9 @@ export function ServicesSection() {
    CTA SECTION
    ============================================================ */
 
-export function CtaSection() {
+export function CtaSection({ whatsapp }: { whatsapp?: string } = {}) {
   const whatsappUrl = formatWhatsAppUrl(
-    siteConfig.whatsapp,
+    whatsapp || siteConfig.whatsapp,
     'Hola, me gustaria pedir un presupuesto.'
   );
 

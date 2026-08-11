@@ -10,6 +10,7 @@ import {
   Linkedin,
 } from 'lucide-react';
 import { siteConfig } from '@/config/site';
+import type { SiteSettings } from '@/lib/settings-store';
 
 const footerLinks = {
   servicios: [
@@ -32,7 +33,21 @@ const footerLinks = {
   ],
 };
 
-export function Footer() {
+export function Footer({ settings }: { settings?: SiteSettings }) {
+  const description = settings?.general.siteDescription || siteConfig.description;
+  const social = {
+    facebook: settings?.social.facebook || siteConfig.social.facebook,
+    instagram: settings?.social.instagram || siteConfig.social.instagram,
+    linkedin: settings?.social.linkedin || siteConfig.social.linkedin,
+  };
+  const address = settings?.contact.address
+    ? `${settings.contact.address}, ${settings.contact.city}`
+    : `${siteConfig.address.street}, ${siteConfig.address.city}`;
+  const phone = settings?.contact.phone || siteConfig.phone;
+  const email = settings?.contact.email || siteConfig.email;
+  const openingHours = settings?.business.openingHours.weekdays || siteConfig.openingHours;
+  const siteName = settings?.general.siteName || siteConfig.name;
+
   return (
     <footer className="border-t border-steel-900/30 bg-[#080D18]">
       {/* Links */}
@@ -56,11 +71,11 @@ export function Footer() {
               </div>
             </Link>
             <p className="mb-4 font-body text-body-sm text-steel-500 leading-relaxed">
-              {siteConfig.description}
+              {description}
             </p>
             <div className="flex gap-3">
               <a
-                href={siteConfig.social.facebook}
+                href={social.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded p-2 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
@@ -69,7 +84,7 @@ export function Footer() {
                 <Facebook className="h-4 w-4" />
               </a>
               <a
-                href={siteConfig.social.instagram}
+                href={social.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded p-2 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
@@ -78,7 +93,7 @@ export function Footer() {
                 <Instagram className="h-4 w-4" />
               </a>
               <a
-                href={siteConfig.social.linkedin}
+                href={social.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded p-2 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
@@ -135,25 +150,23 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2 font-body text-body-sm text-steel-500">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>
-                  {siteConfig.address.street}, {siteConfig.address.city}
-                </span>
+                <span>{address}</span>
               </li>
               <li className="flex items-center gap-2 font-body text-body-sm text-steel-500">
                 <Phone className="h-4 w-4 shrink-0" />
-                <a href={`tel:${siteConfig.phone}`} className="hover:text-arctic">
-                  {siteConfig.phone}
+                <a href={`tel:${phone}`} className="hover:text-arctic">
+                  {phone}
                 </a>
               </li>
               <li className="flex items-center gap-2 font-body text-body-sm text-steel-500">
                 <Mail className="h-4 w-4 shrink-0" />
-                <a href={`mailto:${siteConfig.email}`} className="hover:text-arctic">
-                  {siteConfig.email}
+                <a href={`mailto:${email}`} className="hover:text-arctic">
+                  {email}
                 </a>
               </li>
               <li className="flex items-center gap-2 font-body text-body-sm text-steel-500">
                 <Clock className="h-4 w-4 shrink-0" />
-                <span>{siteConfig.openingHours}</span>
+                <span>{openingHours}</span>
               </li>
             </ul>
           </div>
@@ -164,7 +177,7 @@ export function Footer() {
       <div className="border-t border-steel-900/30">
         <div className="container-main flex flex-col items-center justify-between gap-2 py-4 sm:flex-row">
           <p className="font-mono text-caption text-steel-700">
-            &copy; {new Date().getFullYear()} {siteConfig.name}. Todos los
+            &copy; {new Date().getFullYear()} {siteName}. Todos los
             derechos reservados.
           </p>
           <div className="flex gap-4">

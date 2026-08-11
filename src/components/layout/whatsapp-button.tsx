@@ -3,10 +3,11 @@
 import { MessageCircle } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
+import type { SiteSettings } from '@/lib/settings-store';
 
-export function WhatsAppButton() {
+export function WhatsAppButton({ settings }: { settings?: SiteSettings }) {
   const whatsappUrl = formatWhatsAppUrl(
-    siteConfig.whatsapp,
+    settings?.contact.whatsapp || siteConfig.whatsapp,
     'Hola, me gustaria consultar sobre sus servicios.'
   );
 

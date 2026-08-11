@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/footer';
 import { WhatsAppButton } from '@/components/layout/whatsapp-button';
 import { PageTracker } from '@/components/layout/page-tracker';
 import { siteConfig } from '@/config/site';
+import { getCachedSettings } from '@/lib/settings-store';
 import '@/styles/globals.css';
 
 // Barlow Condensed — Display / Títulos
@@ -31,58 +32,62 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: `${siteConfig.name} — Mantenimiento · Limpieza · Servicios`,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  openGraph: {
-    type: 'website',
-    locale: 'es_PY',
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getCachedSettings();
+  const title = settings.seo.metaTitle || `${siteConfig.name} — Mantenimiento · Limpieza · Servicios`;
+  const description = settings.seo.metaDescription || siteConfig.description;
+
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: {
+      default: title,
+      template: `%s | ${settings.general.siteName || siteConfig.name}`,
+    },
+    description,
+    openGraph: {
+      type: 'website',
+      locale: 'es_PY',
+      url: siteConfig.url,
+      siteName: settings.general.siteName || siteConfig.name,
+      title,
+      description,
+      images: settings.seo.ogImage ? [settings.seo.ogImage] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: settings.general.siteName || siteConfig.name,
+      description,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true },
+    },
+  };
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getCachedSettings();
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: settings.general.siteName || siteConfig.name,
+    description: settings.general.siteDescription || siteConfig.description,
     url: siteConfig.url,
-    siteName: siteConfig.name,
-    title: `${siteConfig.name} — Mantenimiento · Limpieza · Servicios`,
-    description: siteConfig.description,
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: siteConfig.name,
-    description: siteConfig.description,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true },
-  },
-  icons: {
-    icon: '/favicon.ico',
-  },
-};
+    telephone: settings.contact.phone || siteConfig.phone,
+    email: settings.contact.email || siteConfig.email,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: settings.contact.address || siteConfig.address.street,
+      addressLocality: settings.contact.city || siteConfig.address.city,
+      addressCountry: siteConfig.address.country,
+    },
+    openingHours: 'Mo-Fr 08:00-18:00, Sa 08:00-13:00',
+    priceRange: '$$',
+    sameAs: Object.values(settings.social).filter(Boolean),
+  };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: siteConfig.name,
-  description: siteConfig.description,
-  url: siteConfig.url,
-  telephone: siteConfig.phone,
-  email: siteConfig.email,
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: siteConfig.address.street,
-    addressLocality: siteConfig.address.city,
-    addressRegion: siteConfig.address.state,
-    postalCode: siteConfig.address.zip,
-    addressCountry: siteConfig.address.country,
-  },
-  openingHours: 'Mo-Fr 08:00-18:00, Sa 08:00-13:00',
-  priceRange: '$$',
-  sameAs: Object.values(siteConfig.social),
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="es"
@@ -95,10 +100,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-body text-arctic bg-carbon antialiased">
-        <Navbar />
+        <Navbar settings={settings} />
         <main className="min-h-screen">{children}</main>
-        <Footer />
-        <WhatsAppButton />
+        <Footer settings={settings} />
+        <WhatsAppButton settings={settings} />
         <PageTracker />
       </body>
     </html>

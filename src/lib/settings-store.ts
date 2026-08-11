@@ -1,5 +1,8 @@
+import { unstable_cache } from 'next/cache';
 import { prisma } from './prisma';
 import type { Prisma } from '@prisma/client';
+
+export const SETTINGS_CACHE_TAG = 'site-settings';
 
 export interface SiteSettings {
   general: {
@@ -118,6 +121,24 @@ export async function getSettings(): Promise<SiteSettings> {
   if (!row) return DEFAULT_SETTINGS;
   return deepMerge(DEFAULT_SETTINGS, row.data);
 }
+
+/**
+ * Igual que getSettings() pero cacheado (60s) y resiliente ante fallas de DB
+ * (build-time o un hiccup de Neon) — usada en layout/páginas públicas donde
+ * un fallback a los defaults es preferible a romper el build/render entero
+ * de todo el sitio por un dato no crítico (SEO, navbar, footer).
+ */
+export const getCachedSettings = unstable_cache(
+  async () => {
+    try {
+      return await getSettings();
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  },
+  ['site-settings'],
+  { tags: [SETTINGS_CACHE_TAG], revalidate: 60 }
+);
 
 export async function updateSettings(data: Partial<SiteSettings>): Promise<SiteSettings> {
   const current = await getSettings();
