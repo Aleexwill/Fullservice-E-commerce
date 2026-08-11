@@ -1,5 +1,8 @@
+import { unstable_cache } from 'next/cache';
 import { prisma } from './prisma';
 import type { Prisma } from '@prisma/client';
+
+export const CONTENT_CACHE_TAG = 'site-content';
 
 export interface SiteContent {
   hero: {
@@ -14,6 +17,8 @@ export interface SiteContent {
   about: {
     title: string;
     description: string;
+    mission: string;
+    vision: string;
     image: string;
     values: { title: string; description: string }[];
   };
@@ -69,6 +74,8 @@ const DEFAULT_CONTENT: SiteContent = {
   about: {
     title: 'Sobre Full Service & Clean',
     description: 'Somos una empresa paraguaya dedicada a brindar soluciones integrales en mantenimiento, limpieza y servicios profesionales.',
+    mission: 'Brindar soluciones integrales de mantenimiento, construcción y ferretería con calidad profesional, cumpliendo siempre los plazos y presupuestos acordados con nuestros clientes.',
+    vision: 'Ser la empresa de referencia en servicios integrales del Paraguay, reconocida por la calidad de nuestro trabajo y la confianza que generamos en cada proyecto.',
     image: '',
     values: [
       { title: 'Calidad', description: 'Materiales de primera y mano de obra certificada' },
@@ -111,6 +118,23 @@ export async function getContent(): Promise<SiteContent> {
   if (!row) return DEFAULT_CONTENT;
   return deepMerge(DEFAULT_CONTENT, row.data);
 }
+
+/**
+ * Igual que getContent() pero cacheada (60s) y resiliente ante fallas de DB
+ * — usada en la home pública, donde un fallback a los defaults es preferible
+ * a romper el render de toda la página.
+ */
+export const getCachedContent = unstable_cache(
+  async () => {
+    try {
+      return await getContent();
+    } catch {
+      return DEFAULT_CONTENT;
+    }
+  },
+  ['site-content'],
+  { tags: [CONTENT_CACHE_TAG], revalidate: 60 }
+);
 
 export async function updateContent(data: Partial<SiteContent>): Promise<SiteContent> {
   const current = await getContent();
