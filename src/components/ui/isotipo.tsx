@@ -3,6 +3,8 @@ import Image from 'next/image';
 interface IsotipoProps {
   size?: number;
   className?: string;
+  /** No-op: el isotipo es una imagen PNG, no puede tintarse por color. Se acepta para no romper llamadas existentes. */
+  color?: string;
 }
 
 /**

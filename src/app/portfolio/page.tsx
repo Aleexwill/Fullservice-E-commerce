@@ -27,8 +27,22 @@ const categories: { id: ProjectCategory; label: string }[] = [
   { id: 'mantenimiento', label: 'Mantenimiento' },
 ];
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  category: ProjectCategory;
+  location: string;
+  duration: string;
+  year: string;
+  client: string;
+  badge: 'blue' | 'green' | 'yellow';
+  size: 'large' | 'normal';
+  image: string;
+}
+
 // Hardcoded fallback projects (used when API has no data yet)
-const defaultProjects = [
+const defaultProjects: Project[] = [
   { id: '1', title: 'Remodelacion completa oficinas corporativas', description: 'Remodelacion integral de 800m2 de oficinas. Incluyo demolicion parcial, nueva distribucion, instalacion electrica, pintura y acabados.', category: 'civil', location: 'Asuncion, Paraguay', duration: '3 meses', year: '2025', client: 'Empresa multinacional', badge: 'blue', size: 'large', image: '' },
   { id: '2', title: 'Nave industrial 1200m2', description: 'Diseno, fabricacion y montaje de estructura metalica para nave industrial. Incluyo cubierta, cerramientos laterales y portones.', category: 'metalurgica', location: 'Luque, Paraguay', duration: '4 meses', year: '2025', client: 'Industria alimenticia', badge: 'green', size: 'large', image: '' },
   { id: '3', title: 'Mantenimiento preventivo edificio comercial', description: 'Contrato anual de mantenimiento preventivo para edificio de 12 pisos.', category: 'mantenimiento', location: 'San Lorenzo, Paraguay', duration: '12 meses', year: '2024-2025', client: 'Administracion de edificio', badge: 'yellow', size: 'normal', image: '' },

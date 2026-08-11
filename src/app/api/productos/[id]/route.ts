@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const product = getProductById(params.id);
+    const product = await getProductById(params.id);
     if (!product) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
     }
@@ -24,7 +24,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    const product = updateProduct(params.id, {
+    const product = await updateProduct(params.id, {
       ...body,
       price: body.price !== undefined ? Number(body.price) : undefined,
       compareAtPrice: body.compareAtPrice !== undefined
@@ -49,7 +49,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const deleted = deleteProduct(params.id);
+    const deleted = await deleteProduct(params.id);
     if (!deleted) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
     }

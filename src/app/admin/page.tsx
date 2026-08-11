@@ -9,7 +9,7 @@ import {
 
 interface ProductStats { total: number; active: number; totalStock: number; totalValue: number; outOfStock: number; featured: number; categoriesCount: number; brandsCount: number; }
 interface OrderStats { total: number; byStatus: Record<string, number>; totalRevenue: number; paidRevenue: number; }
-interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; approvedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; }
+interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; approvedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; byStatus: Record<string, number>; }
 interface LeadStats { total: number; newLeads: number; converted: number; conversionRate: number; totalEstimated: number; }
 interface AnalyticsData { totalViews: number; todayViews: number; weekViews: number; }
 

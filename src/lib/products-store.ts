@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import { prisma } from './prisma';
+import type { Product as PrismaProduct } from '@prisma/client';
 
 export interface Product {
   id: string;
@@ -24,77 +24,84 @@ export interface Product {
   updatedAt: string;
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'products.json');
-
-function ensureDataFile(): void {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2), 'utf-8');
-  }
-}
-
-export function getAllProducts(): Product[] {
-  ensureDataFile();
-  const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as Product[];
-}
-
-export function getProductById(id: string): Product | null {
-  const products = getAllProducts();
-  return products.find((p) => p.id === id) || null;
-}
-
-export function createProduct(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Product {
-  const products = getAllProducts();
-
-  const product: Product = {
-    ...data,
-    id: generateId(),
-    slug: data.slug || slugify(data.name),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+function toProduct(p: PrismaProduct): Product {
+  return {
+    id: p.id,
+    sku: p.sku,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    shortDescription: p.shortDescription,
+    category: p.category,
+    brand: p.brand,
+    price: Number(p.price),
+    compareAtPrice: p.compareAtPrice === null ? null : Number(p.compareAtPrice),
+    stock: p.stock,
+    images: p.images,
+    specifications: (p.specifications as Record<string, string>) ?? {},
+    tags: p.tags,
+    isFeatured: p.isFeatured,
+    isActive: p.isActive,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
   };
-
-  products.push(product);
-  saveProducts(products);
-  return product;
 }
 
-export function updateProduct(id: string, data: Partial<Product>): Product | null {
-  const products = getAllProducts();
-  const index = products.findIndex((p) => p.id === id);
-  if (index === -1) return null;
-
-  products[index] = {
-    ...products[index],
-    ...data,
-    id: products[index].id, // never overwrite id
-    createdAt: products[index].createdAt, // never overwrite createdAt
-    updatedAt: new Date().toISOString(),
-  };
-
-  saveProducts(products);
-  return products[index];
+export async function getAllProducts(): Promise<Product[]> {
+  const products = await prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
+  return products.map(toProduct);
 }
 
-export function deleteProduct(id: string): boolean {
-  const products = getAllProducts();
-  const index = products.findIndex((p) => p.id === id);
-  if (index === -1) return false;
-
-  products.splice(index, 1);
-  saveProducts(products);
-  return true;
+export async function getProductById(id: string): Promise<Product | null> {
+  const p = await prisma.product.findUnique({ where: { id } });
+  return p ? toProduct(p) : null;
 }
 
-export function getProductStats() {
-  const products = getAllProducts();
+export async function createProduct(
+  data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Product> {
+  const p = await prisma.product.create({
+    data: {
+      ...data,
+      slug: data.slug || slugify(data.name),
+      compareAtPrice: data.compareAtPrice ?? undefined,
+    },
+  });
+  return toProduct(p);
+}
+
+export async function updateProduct(id: string, data: Partial<Product>): Promise<Product | null> {
+  const { id: _id, createdAt: _createdAt, ...rest } = data;
+  try {
+    const p = await prisma.product.update({
+      where: { id },
+      data: {
+        ...rest,
+        compareAtPrice: rest.compareAtPrice ?? undefined,
+      },
+    });
+    return toProduct(p);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteProduct(id: string): Promise<boolean> {
+  try {
+    await prisma.product.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getProductStats() {
+  const products = await prisma.product.findMany();
   const active = products.filter((p) => p.isActive);
   const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
-  const totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0);
+  const totalValue = products.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
   const outOfStock = products.filter((p) => p.stock === 0).length;
   const featured = products.filter((p) => p.isFeatured).length;
   const categories = [...new Set(products.map((p) => p.category))];
@@ -112,17 +119,6 @@ export function getProductStats() {
     categories,
     brands,
   };
-}
-
-// --- Helpers ---
-
-function saveProducts(products: Product[]): void {
-  ensureDataFile();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(products, null, 2), 'utf-8');
-}
-
-function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
 }
 
 function slugify(text: string): string {

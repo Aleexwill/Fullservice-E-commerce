@@ -3,7 +3,7 @@ import { getAllPresupuestos, createPresupuesto } from '@/lib/presupuestos-store'
 
 export async function GET(req: NextRequest) {
   try {
-    let data = getAllPresupuestos();
+    let data = await getAllPresupuestos();
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search');
     if (search) { const q = search.toLowerCase(); data = data.filter((p) => p.customer.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.serviceTitle.toLowerCase().includes(q)); }
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     if (!body.customer?.name || !body.serviceTitle) return NextResponse.json({ error: 'Nombre y servicio obligatorios' }, { status: 400 });
-    const p = createPresupuesto({
+    const p = await createPresupuesto({
       status: body.status || 'nuevo', serviceType: body.serviceType || 'otro', serviceTitle: body.serviceTitle,
       customer: { name: body.customer.name, email: body.customer.email || '', phone: body.customer.phone || '', company: body.customer.company || '', address: body.customer.address || '' },
       description: body.description || '', details: body.details || '',

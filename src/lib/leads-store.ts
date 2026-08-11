@@ -1,5 +1,6 @@
-import fs from 'fs';
-import path from 'path';
+import { prisma } from './prisma';
+import type { Lead as PrismaLead } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 export type LeadStatus = 'new' | 'contacted' | 'in_progress' | 'quoted' | 'negotiation' | 'converted' | 'lost';
 export type LeadSource = 'contact_form' | 'whatsapp' | 'phone' | 'referral' | 'walk_in' | 'social_media' | 'website' | 'other';
@@ -52,89 +53,75 @@ export interface Lead {
   updatedAt: string;
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'leads.json');
-
-function ensureDataFile(): void {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
-}
-
-function save(leads: Lead[]): void {
-  ensureDataFile();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(leads, null, 2), 'utf-8');
-}
-
-function migrateOldLead(l: any): Lead {
+function toLead(l: PrismaLead): Lead {
   return {
-    ...l,
-    customer: {
-      name: l.customer?.name || '',
-      email: l.customer?.email || '',
-      phone: l.customer?.phone || '',
-      company: l.customer?.company || '',
-      position: l.customer?.position || '',
-      avatar: l.customer?.avatar || '',
-    },
-    tags: l.tags || [],
-    activities: l.activities || [],
-    tasks: l.tasks || [],
-    notes: l.notes || [],
-    lastContactedAt: l.lastContactedAt || '',
-    nextFollowUp: l.nextFollowUp || '',
-    lostReason: l.lostReason || '',
-    leadType: l.leadType || 'general',
+    id: l.id,
+    status: l.status as LeadStatus,
+    priority: l.priority as LeadPriority,
+    source: l.source as LeadSource,
+    customer: l.customer as Lead['customer'],
+    subject: l.subject,
+    message: l.message,
+    serviceInterest: l.serviceInterest,
+    estimatedValue: l.estimatedValue === null ? null : Number(l.estimatedValue),
+    tags: l.tags,
+    activities: l.activities as unknown as Activity[],
+    tasks: l.tasks as unknown as LeadTask[],
+    notes: l.notes as Lead['notes'],
+    assignedTo: l.assignedTo,
+    lastContactedAt: l.lastContactedAt,
+    nextFollowUp: l.nextFollowUp,
+    lostReason: l.lostReason,
+    leadType: l.leadType,
+    createdAt: l.createdAt.toISOString(),
+    updatedAt: l.updatedAt.toISOString(),
   };
 }
 
-export function getAllLeads(): Lead[] {
-  ensureDataFile();
-  const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-  return raw.map(migrateOldLead);
+export async function getAllLeads(): Promise<Lead[]> {
+  const leads = await prisma.lead.findMany({ orderBy: { createdAt: 'desc' } });
+  return leads.map(toLead);
 }
 
-export function getLeadById(id: string): Lead | null {
-  return getAllLeads().find((l) => l.id === id) || null;
+export async function getLeadById(id: string): Promise<Lead | null> {
+  const l = await prisma.lead.findUnique({ where: { id } });
+  return l ? toLead(l) : null;
 }
 
-export function createLead(data: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>): Lead {
-  const leads = getAllLeads();
-  const lead: Lead = {
-    ...data,
-    customer: {
-      name: data.customer?.name || '',
-      email: data.customer?.email || '',
-      phone: data.customer?.phone || '',
-      company: data.customer?.company || '',
-      position: data.customer?.position || '',
-      avatar: data.customer?.avatar || '',
-    },
-    tags: data.tags || [],
-    activities: [
-      { id: Date.now().toString(36), type: 'system', text: 'Lead creado', createdAt: new Date().toISOString() },
-      ...(data.activities || []),
-    ],
-    tasks: data.tasks || [],
-    notes: data.notes || [],
-    lastContactedAt: data.lastContactedAt || '',
-    nextFollowUp: data.nextFollowUp || '',
-    lostReason: data.lostReason || '',
-    leadType: data.leadType || 'general',
-    id: Date.now().toString(36) + Math.random().toString(36).substring(2, 8),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+export async function createLead(data: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>): Promise<Lead> {
+  const customer = {
+    name: data.customer?.name || '',
+    email: data.customer?.email || '',
+    phone: data.customer?.phone || '',
+    company: data.customer?.company || '',
+    position: data.customer?.position || '',
+    avatar: data.customer?.avatar || '',
   };
-  leads.push(lead);
-  save(leads);
-  return lead;
+  const activities: Activity[] = [
+    { id: Date.now().toString(36), type: 'system', text: 'Lead creado', createdAt: new Date().toISOString() },
+    ...(data.activities || []),
+  ];
+
+  const l = await prisma.lead.create({
+    data: {
+      ...data,
+      customer,
+      activities: activities as unknown as Prisma.InputJsonValue,
+      tasks: (data.tasks || []) as unknown as Prisma.InputJsonValue,
+      notes: (data.notes || []) as unknown as Prisma.InputJsonValue,
+      tags: data.tags || [],
+      estimatedValue: data.estimatedValue ?? undefined,
+      leadType: data.leadType || 'general',
+    },
+  });
+  return toLead(l);
 }
 
-export function updateLead(id: string, data: Partial<Lead>): Lead | null {
-  const leads = getAllLeads();
-  const idx = leads.findIndex((l) => l.id === id);
-  if (idx === -1) return null;
+export async function updateLead(id: string, data: Partial<Lead>): Promise<Lead | null> {
+  const old = await prisma.lead.findUnique({ where: { id } });
+  if (!old) return null;
 
-  const old = leads[idx];
+  let activities = old.activities as unknown as Activity[];
   if (data.status && data.status !== old.status) {
     const act: Activity = {
       id: Date.now().toString(36) + 'sc',
@@ -143,77 +130,99 @@ export function updateLead(id: string, data: Partial<Lead>): Lead | null {
       metadata: { from: old.status, to: data.status },
       createdAt: new Date().toISOString(),
     };
-    old.activities = [...(old.activities || []), act];
+    activities = [...activities, act];
   }
 
-  leads[idx] = { ...old, ...data, id: old.id, createdAt: old.createdAt, activities: old.activities, updatedAt: new Date().toISOString() };
-  save(leads);
-  return leads[idx];
+  const { id: _id, createdAt: _createdAt, activities: _activities, ...rest } = data;
+  const l = await prisma.lead.update({
+    where: { id },
+    data: {
+      ...rest,
+      activities: activities as unknown as Prisma.InputJsonValue,
+      estimatedValue: rest.estimatedValue ?? undefined,
+    } as unknown as Prisma.LeadUncheckedUpdateInput,
+  });
+  return toLead(l);
 }
 
-export function addActivityToLead(id: string, type: ActivityType, text: string, metadata?: Record<string, string>): Lead | null {
-  const leads = getAllLeads();
-  const idx = leads.findIndex((l) => l.id === id);
-  if (idx === -1) return null;
-  const act: Activity = { id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5), type, text, metadata, createdAt: new Date().toISOString() };
-  leads[idx].activities = [...(leads[idx].activities || []), act];
-  if (type === 'call' || type === 'email' || type === 'whatsapp' || type === 'meeting') {
-    leads[idx].lastContactedAt = new Date().toISOString();
-  }
-  leads[idx].updatedAt = new Date().toISOString();
-  save(leads);
-  return leads[idx];
+export async function addActivityToLead(
+  id: string,
+  type: ActivityType,
+  text: string,
+  metadata?: Record<string, string>
+): Promise<Lead | null> {
+  const old = await prisma.lead.findUnique({ where: { id } });
+  if (!old) return null;
+  const act: Activity = {
+    id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
+    type,
+    text,
+    metadata,
+    createdAt: new Date().toISOString(),
+  };
+  const activities = [...(old.activities as unknown as Activity[]), act];
+  const isContact = type === 'call' || type === 'email' || type === 'whatsapp' || type === 'meeting';
+
+  const l = await prisma.lead.update({
+    where: { id },
+    data: {
+      activities: activities as unknown as Prisma.InputJsonValue,
+      lastContactedAt: isContact ? new Date().toISOString() : old.lastContactedAt,
+    },
+  });
+  return toLead(l);
 }
 
-export function addNoteToLead(id: string, text: string): Lead | null {
-  const leads = getAllLeads();
-  const idx = leads.findIndex((l) => l.id === id);
-  if (idx === -1) return null;
+export async function addNoteToLead(id: string, text: string): Promise<Lead | null> {
+  const old = await prisma.lead.findUnique({ where: { id } });
+  if (!old) return null;
   const note = { id: Date.now().toString(36) + Math.random().toString(36).substring(2, 6), text, createdAt: new Date().toISOString() };
-  leads[idx].notes.push(note);
-  const act: Activity = { id: note.id + 'a', type: 'note', text: `Nota: ${text.substring(0, 80)}${text.length > 80 ? '...' : ''}`, createdAt: new Date().toISOString() };
-  leads[idx].activities = [...(leads[idx].activities || []), act];
-  leads[idx].updatedAt = new Date().toISOString();
-  save(leads);
-  return leads[idx];
+  const notes = [...(old.notes as unknown as Lead['notes']), note];
+  const act: Activity = {
+    id: note.id + 'a',
+    type: 'note',
+    text: `Nota: ${text.substring(0, 80)}${text.length > 80 ? '...' : ''}`,
+    createdAt: new Date().toISOString(),
+  };
+  const activities = [...(old.activities as unknown as Activity[]), act];
+
+  const l = await prisma.lead.update({ where: { id }, data: { notes: notes as unknown as Prisma.InputJsonValue, activities: activities as unknown as Prisma.InputJsonValue } });
+  return toLead(l);
 }
 
-export function addTaskToLead(id: string, text: string, dueDate: string): Lead | null {
-  const leads = getAllLeads();
-  const idx = leads.findIndex((l) => l.id === id);
-  if (idx === -1) return null;
+export async function addTaskToLead(id: string, text: string, dueDate: string): Promise<Lead | null> {
+  const old = await prisma.lead.findUnique({ where: { id } });
+  if (!old) return null;
   const task: LeadTask = { id: Date.now().toString(36), text, dueDate, completed: false, createdAt: new Date().toISOString() };
-  leads[idx].tasks = [...(leads[idx].tasks || []), task];
+  const tasks = [...(old.tasks as unknown as LeadTask[]), task];
   const act: Activity = { id: task.id + 'ta', type: 'task', text: `Tarea creada: ${text}`, createdAt: new Date().toISOString() };
-  leads[idx].activities = [...(leads[idx].activities || []), act];
-  leads[idx].updatedAt = new Date().toISOString();
-  save(leads);
-  return leads[idx];
+  const activities = [...(old.activities as unknown as Activity[]), act];
+
+  const l = await prisma.lead.update({ where: { id }, data: { tasks: tasks as unknown as Prisma.InputJsonValue, activities: activities as unknown as Prisma.InputJsonValue } });
+  return toLead(l);
 }
 
-export function toggleTask(id: string, taskId: string): Lead | null {
-  const leads = getAllLeads();
-  const idx = leads.findIndex((l) => l.id === id);
-  if (idx === -1) return null;
-  const tIdx = (leads[idx].tasks || []).findIndex((t) => t.id === taskId);
-  if (tIdx === -1) return null;
-  leads[idx].tasks[tIdx].completed = !leads[idx].tasks[tIdx].completed;
-  leads[idx].updatedAt = new Date().toISOString();
-  save(leads);
-  return leads[idx];
+export async function toggleTask(id: string, taskId: string): Promise<Lead | null> {
+  const old = await prisma.lead.findUnique({ where: { id } });
+  if (!old) return null;
+  const tasks = (old.tasks as unknown as LeadTask[]).map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+  if (!tasks.some((t) => t.id === taskId)) return null;
+
+  const l = await prisma.lead.update({ where: { id }, data: { tasks: tasks as unknown as Prisma.InputJsonValue } });
+  return toLead(l);
 }
 
-export function deleteLead(id: string): boolean {
-  const leads = getAllLeads();
-  const idx = leads.findIndex((l) => l.id === id);
-  if (idx === -1) return false;
-  leads.splice(idx, 1);
-  save(leads);
-  return true;
+export async function deleteLead(id: string): Promise<boolean> {
+  try {
+    await prisma.lead.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-export function getLeadStats() {
-  const leads = getAllLeads();
+export async function getLeadStats() {
+  const leads = await prisma.lead.findMany();
   const byStatus: Record<string, number> = {};
   const bySource: Record<string, number> = {};
   const byPriority: Record<string, number> = {};
@@ -225,8 +234,9 @@ export function getLeadStats() {
     bySource[l.source] = (bySource[l.source] || 0) + 1;
     byPriority[l.priority] = (byPriority[l.priority] || 0) + 1;
     if (l.estimatedValue) {
-      totalEstimated += l.estimatedValue;
-      valueByStatus[l.status] = (valueByStatus[l.status] || 0) + l.estimatedValue;
+      const v = Number(l.estimatedValue);
+      totalEstimated += v;
+      valueByStatus[l.status] = (valueByStatus[l.status] || 0) + v;
     }
   });
 
