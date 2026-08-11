@@ -3,7 +3,7 @@ import { getAllLeads, createLead } from '@/lib/leads-store';
 
 export async function GET(request: NextRequest) {
   try {
-    const leads = getAllLeads();
+    const leads = await getAllLeads();
     const { searchParams } = new URL(request.url);
     let filtered = [...leads];
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Nombre y asunto son obligatorios' }, { status: 400 });
     }
 
-    const lead = createLead({
+    const lead = await createLead({
       status: body.status || 'new',
       priority: body.priority || 'medium',
       source: body.source || 'contact_form',

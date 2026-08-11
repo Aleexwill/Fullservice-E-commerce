@@ -1,5 +1,6 @@
-import fs from 'fs';
-import path from 'path';
+import { prisma } from './prisma';
+import type { Presupuesto as PrismaPresupuesto } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 export type PresupuestoStatus = 'nuevo' | 'en_revision' | 'cotizado' | 'aprobado' | 'en_ejecucion' | 'completado' | 'rechazado';
 export type ServiceType = 'mantenimiento' | 'civil' | 'metalurgica' | 'otro';
@@ -38,58 +39,103 @@ export interface Presupuesto {
   updatedAt: string;
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'presupuestos.json');
-function ensure() { const d = path.dirname(DATA_FILE); if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf-8'); }
-function save(data: Presupuesto[]) { ensure(); fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8'); }
-
-export function getAllPresupuestos(): Presupuesto[] { ensure(); return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); }
-export function getPresupuestoById(id: string): Presupuesto | null { return getAllPresupuestos().find((p) => p.id === id) || null; }
-
-export function createPresupuesto(data: Omit<Presupuesto, 'id' | 'code' | 'createdAt' | 'updatedAt'>): Presupuesto {
-  const all = getAllPresupuestos();
-  const seq = all.length + 1;
-  const p: Presupuesto = {
-    ...data,
-    id: Date.now().toString(36) + Math.random().toString(36).substring(2, 8),
-    code: `PRES-${String(seq).padStart(4, '0')}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+function toPresupuesto(p: PrismaPresupuesto): Presupuesto {
+  return {
+    id: p.id,
+    code: p.code,
+    status: p.status as PresupuestoStatus,
+    serviceType: p.serviceType as ServiceType,
+    serviceTitle: p.serviceTitle,
+    customer: p.customer as Presupuesto['customer'],
+    description: p.description,
+    details: p.details,
+    estimatedValue: p.estimatedValue === null ? null : Number(p.estimatedValue),
+    finalValue: p.finalValue === null ? null : Number(p.finalValue),
+    estimatedDuration: p.estimatedDuration,
+    priority: p.priority as Presupuesto['priority'],
+    source: p.source,
+    notes: p.notes as unknown as PresupuestoNote[],
+    attachments: p.attachments,
+    assignedTo: p.assignedTo,
+    scheduledDate: p.scheduledDate,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
   };
-  all.push(p);
-  save(all);
-  return p;
 }
 
-export function updatePresupuesto(id: string, data: Partial<Presupuesto>): Presupuesto | null {
-  const all = getAllPresupuestos();
-  const idx = all.findIndex((p) => p.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...data, id: all[idx].id, code: all[idx].code, createdAt: all[idx].createdAt, updatedAt: new Date().toISOString() };
-  save(all);
-  return all[idx];
+export async function getAllPresupuestos(): Promise<Presupuesto[]> {
+  const all = await prisma.presupuesto.findMany({ orderBy: { createdAt: 'desc' } });
+  return all.map(toPresupuesto);
 }
 
-export function addNoteToPresupuesto(id: string, text: string): Presupuesto | null {
-  const all = getAllPresupuestos();
-  const idx = all.findIndex((p) => p.id === id);
-  if (idx === -1) return null;
-  all[idx].notes.push({ id: Date.now().toString(36), text, createdAt: new Date().toISOString() });
-  all[idx].updatedAt = new Date().toISOString();
-  save(all);
-  return all[idx];
+export async function getPresupuestoById(id: string): Promise<Presupuesto | null> {
+  const p = await prisma.presupuesto.findUnique({ where: { id } });
+  return p ? toPresupuesto(p) : null;
 }
 
-export function deletePresupuesto(id: string): boolean {
-  const all = getAllPresupuestos();
-  const idx = all.findIndex((p) => p.id === id);
-  if (idx === -1) return false;
-  all.splice(idx, 1);
-  save(all);
-  return true;
+export async function createPresupuesto(
+  data: Omit<Presupuesto, 'id' | 'code' | 'createdAt' | 'updatedAt'>
+): Promise<Presupuesto> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const count = await prisma.presupuesto.count();
+    const code = `PRES-${String(count + 1 + attempt).padStart(4, '0')}`;
+    try {
+      const p = await prisma.presupuesto.create({
+        data: {
+          ...data,
+          code,
+          estimatedValue: data.estimatedValue ?? undefined,
+          finalValue: data.finalValue ?? undefined,
+        } as unknown as Prisma.PresupuestoUncheckedCreateInput,
+      });
+      return toPresupuesto(p);
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') continue;
+      throw e;
+    }
+  }
+  throw new Error('No se pudo generar un código de presupuesto único');
 }
 
-export function getPresupuestoStats() {
-  const all = getAllPresupuestos();
+export async function updatePresupuesto(id: string, data: Partial<Presupuesto>): Promise<Presupuesto | null> {
+  const { id: _id, code: _code, createdAt: _createdAt, ...rest } = data;
+  try {
+    const p = await prisma.presupuesto.update({
+      where: { id },
+      data: {
+        ...rest,
+        estimatedValue: rest.estimatedValue ?? undefined,
+        finalValue: rest.finalValue ?? undefined,
+      } as unknown as Prisma.PresupuestoUncheckedUpdateInput,
+    });
+    return toPresupuesto(p);
+  } catch {
+    return null;
+  }
+}
+
+export async function addNoteToPresupuesto(id: string, text: string): Promise<Presupuesto | null> {
+  const old = await prisma.presupuesto.findUnique({ where: { id } });
+  if (!old) return null;
+  const notes = [...(old.notes as unknown as PresupuestoNote[]), { id: Date.now().toString(36), text, createdAt: new Date().toISOString() }];
+  const p = await prisma.presupuesto.update({
+    where: { id },
+    data: { notes: notes as unknown as Prisma.InputJsonValue },
+  });
+  return toPresupuesto(p);
+}
+
+export async function deletePresupuesto(id: string): Promise<boolean> {
+  try {
+    await prisma.presupuesto.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getPresupuestoStats() {
+  const all = await prisma.presupuesto.findMany();
   const byStatus: Record<string, number> = {};
   const byType: Record<string, number> = {};
   const byPriority: Record<string, number> = {};
@@ -99,8 +145,8 @@ export function getPresupuestoStats() {
     byStatus[p.status] = (byStatus[p.status] || 0) + 1;
     byType[p.serviceType] = (byType[p.serviceType] || 0) + 1;
     byPriority[p.priority] = (byPriority[p.priority] || 0) + 1;
-    if (p.estimatedValue) totalEstimated += p.estimatedValue;
-    if (p.finalValue) totalFinal += p.finalValue;
+    if (p.estimatedValue) totalEstimated += Number(p.estimatedValue);
+    if (p.finalValue) totalFinal += Number(p.finalValue);
     if (p.status === 'completado') completedCount++;
     if (p.status === 'aprobado' || p.status === 'en_ejecucion' || p.status === 'completado') approvedCount++;
   });

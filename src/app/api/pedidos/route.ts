@@ -3,7 +3,7 @@ import { getAllOrders, createOrder } from '@/lib/orders-store';
 
 export async function GET(request: NextRequest) {
   try {
-    const orders = getAllOrders();
+    const orders = await getAllOrders();
     const { searchParams } = new URL(request.url);
     let filtered = [...orders];
 
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     const subtotal = items.reduce((s: number, i: any) => s + i.total, 0);
 
-    const order = createOrder({
+    const order = await createOrder({
       status: body.status || 'pending',
       paymentStatus: body.paymentStatus || 'pending',
       customer: {

@@ -4,7 +4,7 @@ import { getAllProducts, createProduct } from '@/lib/products-store';
 // GET /api/productos
 export async function GET(request: NextRequest) {
   try {
-    const products = getAllProducts();
+    const products = await getAllProducts();
     const { searchParams } = new URL(request.url);
 
     let filtered = [...products];
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const product = createProduct({
+    const product = await createProduct({
       sku: body.sku,
       name: body.name,
       slug: body.slug || '',

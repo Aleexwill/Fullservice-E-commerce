@@ -3,7 +3,7 @@ import { getLeadStats } from '@/lib/leads-store';
 
 export async function GET() {
   try {
-    return NextResponse.json(getLeadStats());
+    return NextResponse.json(await getLeadStats());
   } catch {
     return NextResponse.json({ error: 'Error' }, { status: 500 });
   }

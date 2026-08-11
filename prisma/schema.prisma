@@ -1,5 +1,7 @@
 // prisma/schema.prisma
-// ServiPro — Modelo de datos completo
+// ServiPro — Modelo de datos alineado a la forma real usada por la app
+// (denormalizado a propósito: refleja lo que los antiguos stores JSON
+// ya guardaban, para poder migrar sin reescribir API routes ni admin UI)
 
 generator client {
   provider = "prisma-client-js"
@@ -12,368 +14,115 @@ datasource db {
 }
 
 // ============================================================
-// MÓDULO E-COMMERCE
+// PRODUCTOS (ferretería / tienda)
 // ============================================================
 
-model Category {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique
-  description String?
-  image       String?
-  parentId    String?
-  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryChildren")
-  products    Product[]
-  sortOrder   Int        @default(0)
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@index([parentId])
-  @@index([slug])
-}
-
-model Brand {
-  id        String    @id @default(cuid())
-  name      String
-  slug      String    @unique
-  logo      String?
-  website   String?
-  products  Product[]
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-
-  @@index([slug])
-}
-
 model Product {
-  id               String      @id @default(cuid())
-  sku              String      @unique
+  id               String   @id @default(cuid())
+  sku              String   @unique
   name             String
-  slug             String      @unique
-  description      String?     @db.Text
-  shortDescription String?
-  categoryId       String
-  category         Category    @relation(fields: [categoryId], references: [id])
-  brandId          String?
-  brand            Brand?      @relation(fields: [brandId], references: [id])
-  basePrice        Decimal     @db.Decimal(10, 2)
-  compareAtPrice   Decimal?    @db.Decimal(10, 2)
+  slug             String   @unique
+  description      String   @default("") @db.Text
+  shortDescription String   @default("")
+  category         String
+  brand            String
+  price            Decimal  @db.Decimal(10, 2)
+  compareAtPrice   Decimal? @db.Decimal(10, 2)
+  stock            Int      @default(0)
   images           String[]
-  specifications   Json?
-  variants         Variant[]
-  reviews          Review[]
+  specifications   Json     @default("{}")
   tags             String[]
-  isFeatured       Boolean     @default(false)
-  isActive         Boolean     @default(true)
-  seoTitle         String?
-  seoDescription   String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  isFeatured       Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  rating           Float    @default(0)
+  reviewCount      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  @@index([categoryId])
-  @@index([brandId])
   @@index([slug])
+  @@index([category])
   @@index([isActive, isFeatured])
 }
 
-model Variant {
-  id             String      @id @default(cuid())
-  productId      String
-  product        Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name           String
-  sku            String      @unique
-  price          Decimal     @db.Decimal(10, 2)
-  compareAtPrice Decimal?    @db.Decimal(10, 2)
-  stock          Int         @default(0)
-  attributes     Json
-  image          String?
-  weight         Decimal?    @db.Decimal(8, 2)
-  isActive       Boolean     @default(true)
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-
-  @@index([productId])
-  @@index([sku])
-}
-
-model Cart {
-  id         String     @id @default(cuid())
-  sessionId  String     @unique
-  customerId String?
-  customer   Customer?  @relation(fields: [customerId], references: [id])
-  items      CartItem[]
-  expiresAt  DateTime
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-
-  @@index([sessionId])
-  @@index([customerId])
-  @@index([expiresAt])
-}
-
-model CartItem {
-  id        String   @id @default(cuid())
-  cartId    String
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  variantId String
-  variant   Variant  @relation(fields: [variantId], references: [id])
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([cartId, variantId])
-  @@index([cartId])
-}
-
-model Order {
-  id              String      @id @default(cuid())
-  orderNumber     String      @unique
-  customerId      String?
-  customer        Customer?   @relation(fields: [customerId], references: [id])
-  status          OrderStatus @default(PENDING)
-  items           OrderItem[]
-  subtotal        Decimal     @db.Decimal(10, 2)
-  shippingCost    Decimal     @db.Decimal(10, 2) @default(0)
-  tax             Decimal     @db.Decimal(10, 2) @default(0)
-  discount        Decimal     @db.Decimal(10, 2) @default(0)
-  total           Decimal     @db.Decimal(10, 2)
-  email           String
-  phone           String?
-  firstName       String
-  lastName        String
-  dni             String?
-  shippingAddress Json
-  billingAddress  Json?
-  shippingMethod  String?
-  shipment        Shipment?
-  payment         Payment?
-  customerNotes   String?
-  adminNotes      String?
-  couponCode      String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  @@index([orderNumber])
-  @@index([customerId])
-  @@index([status])
-  @@index([email])
-  @@index([createdAt])
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-model OrderItem {
-  id          String  @id @default(cuid())
-  orderId     String
-  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variantId   String
-  variant     Variant @relation(fields: [variantId], references: [id])
-  productName String
-  variantName String
-  quantity    Int
-  unitPrice   Decimal @db.Decimal(10, 2)
-
-  @@index([orderId])
-}
-
-model Payment {
-  id                String        @id @default(cuid())
-  orderId           String        @unique
-  order             Order         @relation(fields: [orderId], references: [id])
-  provider          String        @default("stripe")
-  providerPaymentId String?
-  amount            Decimal       @db.Decimal(10, 2)
-  currency          String        @default("PYG")
-  status            PaymentStatus @default(PENDING)
-  metadata          Json?
-  paidAt            DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  @@index([providerPaymentId])
-}
-
-enum PaymentStatus {
-  PENDING
-  PROCESSING
-  SUCCEEDED
-  FAILED
-  REFUNDED
-}
-
-model Shipment {
-  id                String         @id @default(cuid())
-  orderId           String         @unique
-  order             Order          @relation(fields: [orderId], references: [id])
-  carrier           String
-  trackingNumber    String?
-  trackingUrl       String?
-  status            ShipmentStatus @default(PREPARING)
-  estimatedDelivery DateTime?
-  shippedAt         DateTime?
-  deliveredAt       DateTime?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-}
-
-enum ShipmentStatus {
-  PREPARING
-  SHIPPED
-  IN_TRANSIT
-  DELIVERED
-  RETURNED
-}
-
-model Review {
-  id         String   @id @default(cuid())
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
-  rating     Int
-  title      String?
-  body       String?  @db.Text
-  isVerified Boolean  @default(false)
-  isApproved Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  @@index([productId])
-  @@index([customerId])
-  @@unique([productId, customerId])
-}
-
 // ============================================================
-// MÓDULO SERVICIOS / LEADS
+// LEADS (mini-CRM de contactos de servicios)
 // ============================================================
 
 model Lead {
-  id           String     @id @default(cuid())
-  serviceSlug  String?
-  name         String
-  email        String
-  phone        String
-  type         LeadType
-  answers      Json?
-  message      String?    @db.Text
-  status       LeadStatus @default(NEW)
-  assignedTo   String?
-  adminNotes   String?    @db.Text
-  source       String?
-  utmSource    String?
-  utmMedium    String?
-  utmCampaign  String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id               String   @id @default(cuid())
+  status           String   @default("new")
+  priority         String   @default("medium")
+  source           String   @default("website")
+  customer         Json
+  subject          String   @default("")
+  message          String   @default("") @db.Text
+  serviceInterest  String   @default("")
+  estimatedValue   Decimal? @db.Decimal(10, 2)
+  tags             String[]
+  activities       Json     @default("[]")
+  tasks            Json     @default("[]")
+  notes            Json     @default("[]")
+  assignedTo       String   @default("")
+  lastContactedAt  String   @default("")
+  nextFollowUp     String   @default("")
+  lostReason       String   @default("")
+  leadType         String   @default("general")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([status])
-  @@index([serviceSlug])
   @@index([createdAt])
 }
 
-enum LeadType {
-  PRESUPUESTO
-  VISITA
-  URGENCIA
-  CONSULTA
-}
+// ============================================================
+// PEDIDOS (tienda)
+// ============================================================
 
-enum LeadStatus {
-  NEW
-  CONTACTED
-  QUOTED
-  ACCEPTED
-  IN_PROGRESS
-  COMPLETED
-  LOST
+model Order {
+  id            String   @id @default(cuid())
+  orderNumber   String   @unique
+  status        String   @default("pending")
+  paymentStatus String   @default("pending")
+  customer      Json
+  items         Json
+  subtotal      Decimal  @db.Decimal(10, 2)
+  shipping      Decimal  @db.Decimal(10, 2) @default(0)
+  discount      Decimal  @db.Decimal(10, 2) @default(0)
+  total         Decimal  @db.Decimal(10, 2)
+  paymentMethod String   @default("")
+  adminNotes    String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ============================================================
-// MÓDULO USUARIOS
+// PRESUPUESTOS (servicios)
 // ============================================================
 
-model Customer {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  phone     String?
-  password  String?
-  isGuest   Boolean  @default(true)
-  addresses Json[]
-  orders    Order[]
-  reviews   Review[]
-  carts     Cart[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Presupuesto {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  status            String   @default("nuevo")
+  serviceType       String
+  serviceTitle      String   @default("")
+  customer          Json
+  description       String   @default("") @db.Text
+  details           String   @default("") @db.Text
+  estimatedValue    Decimal? @db.Decimal(10, 2)
+  finalValue        Decimal? @db.Decimal(10, 2)
+  estimatedDuration String   @default("")
+  priority          String   @default("media")
+  source            String   @default("")
+  notes             Json     @default("[]")
+  attachments       String[]
+  assignedTo        String   @default("")
+  scheduledDate     String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  @@index([email])
-}
-
-model AdminUser {
-  id          String    @id @default(cuid())
-  email       String    @unique
-  name        String
-  password    String
-  role        AdminRole @default(OPERATOR)
-  permissions String[]
-  isActive    Boolean   @default(true)
-  lastLogin   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-enum AdminRole {
-  ADMIN
-  OPERATOR
-}
-
-// ============================================================
-// MÓDULO AUXILIAR
-// ============================================================
-
-model Coupon {
-  id             String      @id @default(cuid())
-  code           String      @unique
-  type           CouponType
-  value          Decimal     @db.Decimal(10, 2)
-  minPurchase    Decimal?    @db.Decimal(10, 2)
-  maxUses        Int?
-  usedCount      Int         @default(0)
-  isActive       Boolean     @default(true)
-  validFrom      DateTime    @default(now())
-  validUntil     DateTime?
-  createdAt      DateTime    @default(now())
-
-  @@index([code])
-}
-
-enum CouponType {
-  PERCENTAGE
-  FIXED_AMOUNT
-  FREE_SHIPPING
-}
-
-model ContactMessage {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  phone     String?
-  subject   String
-  message   String   @db.Text
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([isRead])
+  @@index([status])
   @@index([createdAt])
 }

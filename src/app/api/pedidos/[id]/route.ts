@@ -3,7 +3,7 @@ import { getOrderById, updateOrder, deleteOrder } from '@/lib/orders-store';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const order = getOrderById(params.id);
+    const order = await getOrderById(params.id);
     if (!order) return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 });
     return NextResponse.json(order);
   } catch {
@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await request.json();
-    const order = updateOrder(params.id, body);
+    const order = await updateOrder(params.id, body);
     if (!order) return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 });
     return NextResponse.json(order);
   } catch {
@@ -24,7 +24,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const ok = deleteOrder(params.id);
+    const ok = await deleteOrder(params.id);
     if (!ok) return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch {
