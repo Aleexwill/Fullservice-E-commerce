@@ -3,7 +3,7 @@ import { getAllProjects, createProject } from '@/lib/portfolio-store';
 
 export async function GET(req: NextRequest) {
   try {
-    let projects = getAllProjects();
+    let projects = await getAllProjects();
     const { searchParams } = new URL(req.url);
     const active = searchParams.get('active');
     if (active === 'true') projects = projects.filter((p) => p.isActive);
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     if (!body.title) return NextResponse.json({ error: 'Titulo obligatorio' }, { status: 400 });
-    const project = createProject({
+    const project = await createProject({
       title: body.title, description: body.description || '', category: body.category || 'civil',
       location: body.location || '', duration: body.duration || '', year: body.year || new Date().getFullYear().toString(),
       client: body.client || '', image: body.image || '', gallery: body.gallery || [],

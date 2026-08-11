@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import { prisma } from './prisma';
+import type { Prisma } from '@prisma/client';
 
 export interface SiteContent {
   hero: {
@@ -50,7 +50,7 @@ export interface SiteContent {
   };
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'content.json');
+const SINGLETON_ID = 'singleton';
 
 const DEFAULT_CONTENT: SiteContent = {
   hero: {
@@ -92,36 +92,38 @@ const DEFAULT_CONTENT: SiteContent = {
   },
 };
 
-function ensure() {
-  const d = path.dirname(DATA_FILE);
-  if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify(DEFAULT_CONTENT, null, 2), 'utf-8');
-}
-
-function deepMerge(target: any, source: any): any {
-  const out = { ...target };
-  for (const k of Object.keys(source)) {
-    if (source[k] && typeof source[k] === 'object' && !Array.isArray(source[k])) {
-      out[k] = deepMerge(target[k] || {}, source[k]);
-    } else if (source[k] !== undefined) { out[k] = source[k]; }
+function deepMerge<T>(target: T, source: unknown): T {
+  const output: Record<string, unknown> = { ...(target as Record<string, unknown>) };
+  const src = source as Record<string, unknown>;
+  for (const key of Object.keys(src)) {
+    const sourceVal = src[key];
+    if (sourceVal && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
+      output[key] = deepMerge((target as Record<string, unknown>)[key] || {}, sourceVal);
+    } else if (sourceVal !== undefined) {
+      output[key] = sourceVal;
+    }
   }
-  return out;
+  return output as T;
 }
 
-export function getContent(): SiteContent {
-  ensure();
-  return deepMerge(DEFAULT_CONTENT, JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')));
+export async function getContent(): Promise<SiteContent> {
+  const row = await prisma.siteContent.findUnique({ where: { id: SINGLETON_ID } });
+  if (!row) return DEFAULT_CONTENT;
+  return deepMerge(DEFAULT_CONTENT, row.data);
 }
 
-export function updateContent(data: Partial<SiteContent>): SiteContent {
-  const current = getContent();
+export async function updateContent(data: Partial<SiteContent>): Promise<SiteContent> {
+  const current = await getContent();
   const updated = deepMerge(current, data);
-  // Handle arrays explicitly
   if (data.testimonials !== undefined) updated.testimonials = data.testimonials;
   if (data.banners !== undefined) updated.banners = data.banners;
   if (data.hero?.stats !== undefined) updated.hero.stats = data.hero.stats;
   if (data.about?.values !== undefined) updated.about.values = data.about.values;
-  ensure();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(updated, null, 2), 'utf-8');
+
+  await prisma.siteContent.upsert({
+    where: { id: SINGLETON_ID },
+    create: { id: SINGLETON_ID, data: updated as unknown as Prisma.InputJsonValue },
+    update: { data: updated as unknown as Prisma.InputJsonValue },
+  });
   return updated;
 }

@@ -80,6 +80,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
 
+  if (pathname === '/admin/login') return <>{children}</>;
+
   return (
     <div className="flex min-h-screen bg-carbon">
       {/* Sidebar */}
@@ -141,7 +143,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="border-t border-steel-900/40 p-3">
           <div className="mb-2 rounded-md bg-steel-900/50 px-3 py-2">
             <p className="font-body text-caption font-medium text-arctic">Administrador</p>
-            <p className="font-body text-[0.6rem] text-steel-500">admin@fullserviceandclean.com.py</p>
           </div>
           <div className="flex gap-1">
             <Link
@@ -151,13 +152,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Eye className="h-3.5 w-3.5" />
               Ver sitio
             </Link>
-            <Link
-              href="/"
+            <button
+              type="button"
+              onClick={async () => {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/admin/login';
+              }}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 font-body text-caption text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
             >
               <LogOut className="h-3.5 w-3.5" />
               Salir
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
