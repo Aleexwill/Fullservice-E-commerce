@@ -13,6 +13,9 @@ import {
   Package,
 } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
+import { useCartStore } from '@/lib/cart-store';
+import { formatPrice } from '@/lib/utils';
+import { toast } from 'sonner';
 
 /* ============================================================
    TYPES
@@ -21,6 +24,7 @@ import { Isotipo } from '@/components/ui/isotipo';
 interface Product {
   id: string;
   sku: string;
+  slug: string;
   name: string;
   brand: string;
   category: string;
@@ -48,10 +52,6 @@ const categorias = [
   { id: 'seguridad', name: 'Seguridad', icon: '🛡️', color: 'from-danger-light to-danger' },
 ];
 
-function formatGs(n: number) {
-  return 'Gs. ' + n.toLocaleString('es-PY');
-}
-
 /* ============================================================
    PAGE
    ============================================================ */
@@ -61,6 +61,20 @@ export default function TiendaPage() {
   const [sortBy, setSortBy] = useState('featured');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const addItem = useCartStore((s) => s.addItem);
+
+  function handleAddToCart(product: Product) {
+    addItem({
+      productId: product.id,
+      sku: product.sku,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      image: product.images?.[0] || '',
+      stock: product.stock,
+    });
+    toast.success(`${product.name} agregado al carrito`);
+  }
 
   // Fetch real products from API
   useEffect(() => {
@@ -281,11 +295,11 @@ export default function TiendaPage() {
                       {/* Price */}
                       <div className="mt-3 flex items-baseline gap-2">
                         <span className="font-display text-[1.2rem] font-bold text-arctic">
-                          {formatGs(product.price)}
+                          {formatPrice(product.price)}
                         </span>
                         {product.compareAtPrice && product.compareAtPrice > product.price && (
                           <span className="font-body text-caption text-steel-500 line-through">
-                            {formatGs(product.compareAtPrice)}
+                            {formatPrice(product.compareAtPrice)}
                           </span>
                         )}
                       </div>
@@ -299,6 +313,7 @@ export default function TiendaPage() {
                       <button
                         className="btn-primary mt-3 w-full text-[0.6rem]"
                         disabled={product.stock === 0}
+                        onClick={() => handleAddToCart(product)}
                       >
                         <ShoppingCart className="h-3.5 w-3.5" />
                         {product.stock > 0 ? 'Agregar' : 'Sin stock'}
