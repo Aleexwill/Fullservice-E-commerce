@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   DollarSign,
   Truck,
+  CreditCard,
   X,
 } from 'lucide-react';
 
@@ -27,6 +28,17 @@ interface SiteSettings {
   business: { openingHours: { weekdays: string; saturday: string; sunday: string }; currency: string; taxRate: number; shippingBase: number; freeShippingThreshold: number };
   notifications: { emailOnNewOrder: boolean; emailOnNewLead: boolean; whatsappOnNewOrder: boolean; adminEmail: string };
   seo: { metaTitle: string; metaDescription: string; ogImage: string; googleAnalyticsId: string; metaPixelId: string };
+  payment: {
+    gatewayEnabled: boolean;
+    bankTransferEnabled: boolean;
+    cashOnDeliveryEnabled: boolean;
+    bankName: string;
+    accountHolder: string;
+    accountNumber: string;
+    accountType: string;
+    qrImageUrl: string;
+    instructions: string;
+  };
 }
 
 export default function AdminConfigPage() {
@@ -71,6 +83,7 @@ export default function AdminConfigPage() {
     { id: 'contact', label: 'Contacto', icon: Phone },
     { id: 'social', label: 'Redes sociales', icon: Share2 },
     { id: 'business', label: 'Negocio', icon: DollarSign },
+    { id: 'payment', label: 'Pagos', icon: CreditCard },
     { id: 'notifications', label: 'Notificaciones', icon: Bell },
     { id: 'seo', label: 'SEO', icon: SearchIcon },
   ];
@@ -188,6 +201,36 @@ export default function AdminConfigPage() {
                   <Field label="Costo envio base (Gs.)" value={settings.business.shippingBase.toString()} onChange={(v) => update('business', 'shippingBase', Number(v))} type="number" />
                   <Field label="Envio gratis desde (Gs.)" value={settings.business.freeShippingThreshold.toString()} onChange={(v) => update('business', 'freeShippingThreshold', Number(v))} type="number" />
                   <Field label="Moneda" value={settings.business.currency} onChange={(v) => update('business', 'currency', v)} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Payment */}
+          {activeTab === 'payment' && (
+            <div className="card p-6">
+              <h2 className="mb-4 flex items-center gap-2 border-b border-steel-900/40 pb-4 font-display text-h3 text-arctic"><CreditCard className="h-5 w-5 text-blue-bright" /> Metodos de pago</h2>
+              <div className="space-y-4">
+                <Toggle label="Transferencia bancaria (QR)" checked={settings.payment.bankTransferEnabled} onChange={(v) => update('payment', 'bankTransferEnabled', v)} />
+                <Toggle label="Efectivo contra entrega" checked={settings.payment.cashOnDeliveryEnabled} onChange={(v) => update('payment', 'cashOnDeliveryEnabled', v)} />
+                <Toggle label="Pasarela de pago online (proximamente)" checked={settings.payment.gatewayEnabled} onChange={(v) => update('payment', 'gatewayEnabled', v)} />
+                <div className="border-t border-steel-900/30 pt-4" />
+                <h3 className="font-display text-h4 text-arctic">Datos para transferencia</h3>
+                <Field label="Banco" value={settings.payment.bankName} onChange={(v) => update('payment', 'bankName', v)} />
+                <Field label="Titular de la cuenta" value={settings.payment.accountHolder} onChange={(v) => update('payment', 'accountHolder', v)} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Numero de cuenta" value={settings.payment.accountNumber} onChange={(v) => update('payment', 'accountNumber', v)} />
+                  <Field label="Tipo de cuenta" value={settings.payment.accountType} onChange={(v) => update('payment', 'accountType', v)} placeholder="Ahorro / Corriente" />
+                </div>
+                <Field label="URL de imagen QR" value={settings.payment.qrImageUrl} onChange={(v) => update('payment', 'qrImageUrl', v)} placeholder="https://..." />
+                <div>
+                  <label className="label mb-1.5 block">Instrucciones para el cliente</label>
+                  <textarea
+                    value={settings.payment.instructions}
+                    onChange={(e) => update('payment', 'instructions', e.target.value)}
+                    className="input min-h-[80px] resize-y"
+                    rows={3}
+                  />
                 </div>
               </div>
             </div>

@@ -50,6 +50,19 @@ export interface SiteSettings {
     googleAnalyticsId: string;
     metaPixelId: string;
   };
+  payment: {
+    /** Pasarela de pago online (Stripe/MercadoPago) — desactivada hasta integrarla */
+    gatewayEnabled: boolean;
+    /** Métodos manuales disponibles hoy en el checkout */
+    bankTransferEnabled: boolean;
+    cashOnDeliveryEnabled: boolean;
+    bankName: string;
+    accountHolder: string;
+    accountNumber: string;
+    accountType: string;
+    qrImageUrl: string;
+    instructions: string;
+  };
 }
 
 const SINGLETON_ID = 'singleton';
@@ -99,6 +112,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
     ogImage: '',
     googleAnalyticsId: '',
     metaPixelId: '',
+  },
+  payment: {
+    gatewayEnabled: false,
+    bankTransferEnabled: true,
+    cashOnDeliveryEnabled: true,
+    bankName: '',
+    accountHolder: '',
+    accountNumber: '',
+    accountType: '',
+    qrImageUrl: '',
+    instructions: 'Envía el comprobante de transferencia por WhatsApp para confirmar tu pedido.',
   },
 };
 

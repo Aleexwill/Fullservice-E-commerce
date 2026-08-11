@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
+import { useCartStore } from '@/lib/cart-store';
 import type { SiteSettings } from '@/lib/settings-store';
 
 const navLinks = [
@@ -25,6 +26,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
   const [isOpen, setIsOpen] = useState(false);
   const phone = settings?.contact.phone || siteConfig.phone;
   const openingHours = settings?.business.openingHours.weekdays || siteConfig.openingHours;
+  const cartCount = useCartStore((s) => s.totalItems());
 
   return (
     <header className="sticky top-0 z-50 border-b border-steel-900/40 bg-carbon/[0.92] backdrop-blur-xl">
@@ -89,9 +91,11 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
               className="relative rounded p-2 text-steel-500 transition-colors hover:text-arctic"
             >
               <ShoppingCart className="h-4 w-4" />
-              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-orange text-[9px] font-bold text-white">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-orange text-[9px] font-bold text-white">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </Link>
 
             <Link

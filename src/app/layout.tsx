@@ -4,6 +4,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { WhatsAppButton } from '@/components/layout/whatsapp-button';
 import { PageTracker } from '@/components/layout/page-tracker';
+import { Toaster } from 'sonner';
 import { siteConfig } from '@/config/site';
 import { getCachedSettings } from '@/lib/settings-store';
 import '@/styles/globals.css';
@@ -105,6 +106,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Footer settings={settings} />
         <WhatsAppButton settings={settings} />
         <PageTracker />
+        <Toaster position="top-center" theme="dark" richColors />
       </body>
     </html>
   );

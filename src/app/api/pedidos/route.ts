@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllOrders, createOrder } from '@/lib/orders-store';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,16 +37,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Nombre del cliente es obligatorio' }, { status: 400 });
     }
 
-    const items = (body.items || []).map((item: any) => ({
-      productId: item.productId || '',
-      productName: item.productName || '',
-      sku: item.sku || '',
-      quantity: Number(item.quantity) || 1,
-      unitPrice: Number(item.unitPrice) || 0,
-      total: (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0),
+    const rawItems: { productId: string; quantity: number }[] = (body.items || []).map((item: any) => ({
+      productId: String(item.productId || ''),
+      quantity: Math.max(1, Number(item.quantity) || 1),
     }));
 
-    const subtotal = items.reduce((s: number, i: any) => s + i.total, 0);
+    // El precio SIEMPRE se toma de la base de datos, nunca del cliente,
+    // para que no se pueda manipular el monto del pedido desde el navegador.
+    const productIds = rawItems.map((i) => i.productId).filter(Boolean);
+    const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
+    const productById = new Map(products.map((p) => [p.id, p]));
+
+    const items = rawItems
+      .map((item) => {
+        const product = productById.get(item.productId);
+        if (!product) return null;
+        const unitPrice = Number(product.price);
+        return {
+          productId: product.id,
+          productName: product.name,
+          sku: product.sku,
+          quantity: item.quantity,
+          unitPrice,
+          total: unitPrice * item.quantity,
+        };
+      })
+      .filter((i): i is NonNullable<typeof i> => i !== null);
+
+    if (items.length === 0) {
+      return NextResponse.json({ error: 'El carrito no tiene productos válidos' }, { status: 400 });
+    }
+
+    const subtotal = items.reduce((s, i) => s + i.total, 0);
 
     const order = await createOrder({
       status: body.status || 'pending',
