@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
+import type { SiteSettings } from '@/lib/settings-store';
 
 const navLinks = [
   { href: '/servicios', label: 'Servicios' },
@@ -20,8 +21,10 @@ const navLinks = [
   { href: '/contacto', label: 'Contacto' },
 ];
 
-export function Navbar() {
+export function Navbar({ settings }: { settings?: SiteSettings }) {
   const [isOpen, setIsOpen] = useState(false);
+  const phone = settings?.contact.phone || siteConfig.phone;
+  const openingHours = settings?.business.openingHours.weekdays || siteConfig.openingHours;
 
   return (
     <header className="sticky top-0 z-50 border-b border-steel-900/40 bg-carbon/[0.92] backdrop-blur-xl">
@@ -30,7 +33,7 @@ export function Navbar() {
         <div className="container-main flex items-center justify-between py-1.5">
           <p className="flex items-center gap-1.5 font-body text-[0.65rem] tracking-[0.04em] text-steel-500">
             <Phone className="h-3 w-3" />
-            {siteConfig.phone} — {siteConfig.openingHours}
+            {phone} — {openingHours}
           </p>
           <p className="font-body text-[0.65rem] tracking-[0.04em] text-steel-500">
             Envios a todo el pais

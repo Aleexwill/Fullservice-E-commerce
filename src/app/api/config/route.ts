@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSettings, updateSettings } from '@/lib/settings-store';
+import { revalidateTag } from 'next/cache';
+import { getSettings, updateSettings, SETTINGS_CACHE_TAG } from '@/lib/settings-store';
 
 export async function GET() {
   try {
@@ -13,6 +14,7 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const settings = await updateSettings(body);
+    revalidateTag(SETTINGS_CACHE_TAG);
     return NextResponse.json(settings);
   } catch {
     return NextResponse.json({ error: 'Error al guardar configuracion' }, { status: 500 });

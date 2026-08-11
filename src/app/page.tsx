@@ -3,6 +3,7 @@ import { Star } from 'lucide-react';
 import { HeroSection } from '@/components/sections/hero-section';
 import { TrustBar, ServicesSection, CtaSection } from '@/components/sections/services-section';
 import { Isotipo } from '@/components/ui/isotipo';
+import { getCachedSettings } from '@/lib/settings-store';
 
 /* ============================================================
    PRODUCTOS DESTACADOS
@@ -255,7 +256,8 @@ function TestimonialsSection() {
    HOME PAGE
    ============================================================ */
 
-export default function HomePage() {
+export default async function HomePage() {
+  const settings = await getCachedSettings();
   return (
     <>
       <HeroSection />
@@ -264,7 +266,7 @@ export default function HomePage() {
       <FeaturedProducts />
       <PortfolioPreview />
       <TestimonialsSection />
-      <CtaSection />
+      <CtaSection whatsapp={settings.contact.whatsapp} />
     </>
   );
 }
