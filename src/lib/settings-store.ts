@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import type { Prisma } from '@prisma/client';
 
 export interface SiteSettings {
   general: {
@@ -123,8 +124,8 @@ export async function updateSettings(data: Partial<SiteSettings>): Promise<SiteS
   const updated = deepMerge(current, data);
   await prisma.siteSettings.upsert({
     where: { id: SINGLETON_ID },
-    create: { id: SINGLETON_ID, data: updated },
-    update: { data: updated },
+    create: { id: SINGLETON_ID, data: updated as unknown as Prisma.InputJsonValue },
+    update: { data: updated as unknown as Prisma.InputJsonValue },
   });
   return updated;
 }

@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import type { Prisma } from '@prisma/client';
 
 export interface SiteContent {
   hero: {
@@ -121,8 +122,8 @@ export async function updateContent(data: Partial<SiteContent>): Promise<SiteCon
 
   await prisma.siteContent.upsert({
     where: { id: SINGLETON_ID },
-    create: { id: SINGLETON_ID, data: updated },
-    update: { data: updated },
+    create: { id: SINGLETON_ID, data: updated as unknown as Prisma.InputJsonValue },
+    update: { data: updated as unknown as Prisma.InputJsonValue },
   });
   return updated;
 }
