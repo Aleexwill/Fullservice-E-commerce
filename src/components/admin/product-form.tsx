@@ -15,6 +15,8 @@ import {
   Settings,
   Trash2,
   Sparkles,
+  Percent,
+  Calendar,
 } from 'lucide-react';
 import AIAssistModal from './ai-assist-modal';
 
@@ -34,6 +36,9 @@ interface ProductFormData {
   tags: string[];
   isFeatured: boolean;
   isActive: boolean;
+  promoDiscountPercent: string;
+  promoStartsAt: string;
+  promoEndsAt: string;
 }
 
 interface ProductFormProps {
@@ -71,6 +76,9 @@ const defaultData: ProductFormData = {
   tags: [],
   isFeatured: false,
   isActive: true,
+  promoDiscountPercent: '',
+  promoStartsAt: '',
+  promoEndsAt: '',
 };
 
 export default function ProductForm({ initialData, productId, mode }: ProductFormProps) {
@@ -170,6 +178,9 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
           price: Number(form.price),
           compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : null,
           stock: Number(form.stock) || 0,
+          promoDiscountPercent: form.promoDiscountPercent ? Number(form.promoDiscountPercent) : null,
+          promoStartsAt: form.promoStartsAt ? new Date(form.promoStartsAt).toISOString() : null,
+          promoEndsAt: form.promoEndsAt ? new Date(form.promoEndsAt).toISOString() : null,
         }),
       });
 
@@ -372,6 +383,60 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
             {form.compareAtPrice && Number(form.compareAtPrice) > Number(form.price) && (
               <div className="mt-3 rounded-md bg-[#48BB78]/10 px-3 py-2 font-body text-caption text-[#48BB78]">
                 Descuento: {Math.round((1 - Number(form.price) / Number(form.compareAtPrice)) * 100)}% OFF
+              </div>
+            )}
+          </div>
+
+          {/* Promocion por tiempo */}
+          <div className="card p-6">
+            <div className="mb-4 flex items-center gap-2 border-b border-steel-900/40 pb-4">
+              <Percent className="h-5 w-5 text-orange" />
+              <h2 className="font-display text-h3 text-arctic">Promocion</h2>
+            </div>
+            <p className="mb-4 font-body text-caption text-steel-500">
+              Descuento temporal que se activa y desactiva solo segun las fechas. Dejar el descuento vacio para no tener promocion activa.
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <label className="mb-1.5 block font-body text-caption uppercase tracking-[0.06em] text-steel-300">
+                  Descuento (%)
+                </label>
+                <input
+                  type="number"
+                  value={form.promoDiscountPercent}
+                  onChange={(e) => updateField('promoDiscountPercent', e.target.value)}
+                  placeholder="Ej: 20"
+                  className="input font-mono"
+                  min="1"
+                  max="90"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 flex items-center gap-1 font-body text-caption uppercase tracking-[0.06em] text-steel-300">
+                  <Calendar className="h-3 w-3" /> Desde
+                </label>
+                <input
+                  type="datetime-local"
+                  value={form.promoStartsAt}
+                  onChange={(e) => updateField('promoStartsAt', e.target.value)}
+                  className="input font-mono"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 flex items-center gap-1 font-body text-caption uppercase tracking-[0.06em] text-steel-300">
+                  <Calendar className="h-3 w-3" /> Hasta
+                </label>
+                <input
+                  type="datetime-local"
+                  value={form.promoEndsAt}
+                  onChange={(e) => updateField('promoEndsAt', e.target.value)}
+                  className="input font-mono"
+                />
+              </div>
+            </div>
+            {form.promoDiscountPercent && Number(form.price) > 0 && (
+              <div className="mt-3 rounded-md bg-orange/10 px-3 py-2 font-body text-caption text-orange">
+                Precio en promocion: {Math.round(Number(form.price) * (1 - Number(form.promoDiscountPercent) / 100)).toLocaleString('es-PY')} Gs.
               </div>
             )}
           </div>

@@ -34,3 +34,32 @@ export async function fetchJson<T = unknown>(input: RequestInfo | URL, init?: Re
     return null;
   }
 }
+
+/**
+ * Calcula si una promoción por tiempo está vigente ahora mismo y el precio
+ * resultante. La promo (con fecha) tiene prioridad sobre compareAtPrice
+ * (que sigue existiendo como "precio anterior" permanente, sin vigencia).
+ * Sin dependencias de servidor a propósito, para poder usarse tanto en
+ * componentes cliente como en API routes.
+ */
+export function getEffectivePrice(product: {
+  price: number;
+  promoDiscountPercent: number | null;
+  promoStartsAt: string | null;
+  promoEndsAt: string | null;
+}) {
+  const now = Date.now();
+  const starts = product.promoStartsAt ? new Date(product.promoStartsAt).getTime() : null;
+  const ends = product.promoEndsAt ? new Date(product.promoEndsAt).getTime() : null;
+  const isOnSale =
+    !!product.promoDiscountPercent &&
+    product.promoDiscountPercent > 0 &&
+    (starts === null || now >= starts) &&
+    (ends === null || now <= ends);
+
+  if (!isOnSale) return { isOnSale: false, price: product.price, discountPercent: 0 };
+
+  const discountPercent = product.promoDiscountPercent!;
+  const price = Math.round(product.price * (1 - discountPercent / 100));
+  return { isOnSale: true, price, discountPercent };
+}

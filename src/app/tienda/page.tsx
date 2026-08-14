@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { useCartStore } from '@/lib/cart-store';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getEffectivePrice } from '@/lib/utils';
 import { toast } from 'sonner';
 
 /* ============================================================
@@ -36,6 +36,10 @@ interface Product {
   isActive: boolean;
   rating: number;
   reviewCount: number;
+  salesCount: number;
+  promoDiscountPercent: number | null;
+  promoStartsAt: string | null;
+  promoEndsAt: string | null;
   shortDescription: string;
 }
 
@@ -59,17 +63,19 @@ const categorias = [
 export default function TiendaPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('featured');
+  const [onlyOnSale, setOnlyOnSale] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
 
   function handleAddToCart(product: Product) {
+    const { price } = getEffectivePrice(product);
     addItem({
       productId: product.id,
       sku: product.sku,
       name: product.name,
       slug: product.slug,
-      price: product.price,
+      price,
       image: product.images?.[0] || '',
       stock: product.stock,
     });
@@ -87,17 +93,20 @@ export default function TiendaPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = products
+    .filter(
+      (p) =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((p) => !onlyOnSale || getEffectivePrice(p).isOnSale);
 
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.price - b.price;
-    if (sortBy === 'price-desc') return b.price - a.price;
+    if (sortBy === 'price-asc') return getEffectivePrice(a).price - getEffectivePrice(b).price;
+    if (sortBy === 'price-desc') return getEffectivePrice(b).price - getEffectivePrice(a).price;
     if (sortBy === 'rating') return b.rating - a.rating;
+    if (sortBy === 'bestsellers') return b.salesCount - a.salesCount;
     return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
   });
 
@@ -187,12 +196,17 @@ export default function TiendaPage() {
               {searchTerm && ` para "${searchTerm}"`}
             </div>
             <div className="flex items-center gap-3">
+              <label className="flex cursor-pointer items-center gap-2 font-body text-body-sm text-steel-300">
+                <input type="checkbox" checked={onlyOnSale} onChange={(e) => setOnlyOnSale(e.target.checked)} />
+                Solo ofertas
+              </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="input max-w-[200px] py-2 text-body-sm"
               >
                 <option value="featured">Destacados</option>
+                <option value="bestsellers">Mas vendidos</option>
                 <option value="price-asc">Precio: menor a mayor</option>
                 <option value="price-desc">Precio: mayor a menor</option>
                 <option value="rating">Mejor valorados</option>
@@ -235,10 +249,18 @@ export default function TiendaPage() {
           ) : (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {sorted.map((product) => {
-                const discount =
-                  product.compareAtPrice && product.compareAtPrice > product.price
+                const promo = getEffectivePrice(product);
+                const discount = promo.isOnSale
+                  ? promo.discountPercent
+                  : product.compareAtPrice && product.compareAtPrice > product.price
                     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
                     : 0;
+                const displayPrice = promo.isOnSale ? promo.price : product.price;
+                const strikePrice = promo.isOnSale
+                  ? product.price
+                  : product.compareAtPrice && product.compareAtPrice > product.price
+                    ? product.compareAtPrice
+                    : null;
 
                 return (
                   <div key={product.id} className="card-interactive group overflow-hidden">
@@ -254,7 +276,8 @@ export default function TiendaPage() {
                         <Isotipo size={56} color="#2D8FCC20" />
                       )}
                       <div className="absolute left-2 top-2 flex gap-1">
-                        {discount > 0 && <span className="badge-red">-{discount}%</span>}
+                        {promo.isOnSale && <span className="badge-red">Oferta -{discount}%</span>}
+                        {!promo.isOnSale && discount > 0 && <span className="badge-red">-{discount}%</span>}
                         {product.isFeatured && <span className="badge-blue">Destacado</span>}
                       </div>
                       {product.stock === 0 && (
@@ -295,11 +318,11 @@ export default function TiendaPage() {
                       {/* Price */}
                       <div className="mt-3 flex items-baseline gap-2">
                         <span className="font-display text-[1.2rem] font-bold text-arctic">
-                          {formatPrice(product.price)}
+                          {formatPrice(displayPrice)}
                         </span>
-                        {product.compareAtPrice && product.compareAtPrice > product.price && (
+                        {strikePrice && (
                           <span className="font-body text-caption text-steel-500 line-through">
-                            {formatPrice(product.compareAtPrice)}
+                            {formatPrice(strikePrice)}
                           </span>
                         )}
                       </div>

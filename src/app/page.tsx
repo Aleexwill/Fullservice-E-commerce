@@ -7,7 +7,7 @@ import { AddToCartButton } from '@/components/sections/add-to-cart-button';
 import { getCachedSettings } from '@/lib/settings-store';
 import { getCachedContent, type SiteContent } from '@/lib/content-store';
 import { getAllProducts } from '@/lib/products-store';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getEffectivePrice } from '@/lib/utils';
 
 /* ============================================================
    QUIENES SOMOS (mision, vision, valores)
@@ -81,10 +81,18 @@ async function FeaturedProducts() {
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {products.map((product) => {
-            const discount =
-              product.compareAtPrice && product.compareAtPrice > product.price
+            const promo = getEffectivePrice(product);
+            const discount = promo.isOnSale
+              ? promo.discountPercent
+              : product.compareAtPrice && product.compareAtPrice > product.price
                 ? Math.round((1 - product.price / product.compareAtPrice) * 100)
                 : 0;
+            const displayPrice = promo.isOnSale ? promo.price : product.price;
+            const strikePrice = promo.isOnSale
+              ? product.price
+              : product.compareAtPrice && product.compareAtPrice > product.price
+                ? product.compareAtPrice
+                : null;
 
             return (
               <div key={product.id} className="card-interactive group overflow-hidden">
@@ -96,7 +104,7 @@ async function FeaturedProducts() {
                     <Isotipo size={64} />
                   )}
                   {discount > 0 && (
-                    <span className="badge-red absolute left-2 top-2">-{discount}%</span>
+                    <span className="badge-red absolute left-2 top-2">{promo.isOnSale ? 'Oferta ' : ''}-{discount}%</span>
                   )}
                 </div>
                 {/* Info */}
@@ -121,11 +129,11 @@ async function FeaturedProducts() {
                   {/* Price */}
                   <div className="mt-3 flex items-baseline gap-2">
                     <span className="font-display text-[1.3rem] font-bold text-arctic">
-                      {formatPrice(product.price)}
+                      {formatPrice(displayPrice)}
                     </span>
-                    {discount > 0 && (
+                    {strikePrice && (
                       <span className="font-body text-body-sm text-steel-500 line-through">
-                        {formatPrice(product.compareAtPrice!)}
+                        {formatPrice(strikePrice)}
                       </span>
                     )}
                   </div>
@@ -134,7 +142,7 @@ async function FeaturedProducts() {
                     sku={product.sku}
                     name={product.name}
                     slug={product.slug}
-                    price={product.price}
+                    price={displayPrice}
                     image={product.images?.[0] || ''}
                     stock={product.stock}
                   />

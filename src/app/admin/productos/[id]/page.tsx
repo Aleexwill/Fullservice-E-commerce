@@ -6,6 +6,13 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import ProductForm from '@/components/admin/product-form';
 
+function toDatetimeLocal(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function EditarProductoPage() {
   const params = useParams();
   const id = params.id as string;
@@ -76,6 +83,9 @@ export default function EditarProductoPage() {
     tags: product.tags || [],
     isFeatured: product.isFeatured,
     isActive: product.isActive,
+    promoDiscountPercent: product.promoDiscountPercent ? String(product.promoDiscountPercent) : '',
+    promoStartsAt: toDatetimeLocal(product.promoStartsAt),
+    promoEndsAt: toDatetimeLocal(product.promoEndsAt),
   };
 
   return (

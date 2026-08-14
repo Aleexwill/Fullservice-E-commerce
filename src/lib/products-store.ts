@@ -20,9 +20,15 @@ export interface Product {
   isActive: boolean;
   rating: number;
   reviewCount: number;
+  salesCount: number;
+  promoDiscountPercent: number | null;
+  promoStartsAt: string | null;
+  promoEndsAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+export { getEffectivePrice } from './utils';
 
 function toProduct(p: PrismaProduct): Product {
   return {
@@ -44,6 +50,10 @@ function toProduct(p: PrismaProduct): Product {
     isActive: p.isActive,
     rating: p.rating,
     reviewCount: p.reviewCount,
+    salesCount: p.salesCount,
+    promoDiscountPercent: p.promoDiscountPercent,
+    promoStartsAt: p.promoStartsAt ? p.promoStartsAt.toISOString() : null,
+    promoEndsAt: p.promoEndsAt ? p.promoEndsAt.toISOString() : null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
@@ -67,6 +77,8 @@ export async function createProduct(
       ...data,
       slug: data.slug || slugify(data.name),
       compareAtPrice: data.compareAtPrice ?? undefined,
+      promoStartsAt: data.promoStartsAt ? new Date(data.promoStartsAt) : undefined,
+      promoEndsAt: data.promoEndsAt ? new Date(data.promoEndsAt) : undefined,
     },
   });
   return toProduct(p);
@@ -80,6 +92,8 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
       data: {
         ...rest,
         compareAtPrice: rest.compareAtPrice ?? undefined,
+        promoStartsAt: rest.promoStartsAt === undefined ? undefined : rest.promoStartsAt ? new Date(rest.promoStartsAt) : null,
+        promoEndsAt: rest.promoEndsAt === undefined ? undefined : rest.promoEndsAt ? new Date(rest.promoEndsAt) : null,
       },
     });
     return toProduct(p);
