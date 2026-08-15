@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllOrders, createOrder } from '@/lib/orders-store';
+import { getEffectivePrice } from '@/lib/products-store';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
@@ -52,7 +53,12 @@ export async function POST(request: NextRequest) {
       .map((item) => {
         const product = productById.get(item.productId);
         if (!product) return null;
-        const unitPrice = Number(product.price);
+        const unitPrice = getEffectivePrice({
+          price: Number(product.price),
+          promoDiscountPercent: product.promoDiscountPercent,
+          promoStartsAt: product.promoStartsAt ? product.promoStartsAt.toISOString() : null,
+          promoEndsAt: product.promoEndsAt ? product.promoEndsAt.toISOString() : null,
+        }).price;
         return {
           productId: product.id,
           productName: product.name,
@@ -69,6 +75,13 @@ export async function POST(request: NextRequest) {
     }
 
     const subtotal = items.reduce((s, i) => s + i.total, 0);
+
+    // Contador de "mas vendidos" — se suma en el momento del pedido.
+    await Promise.all(
+      items.map((i) =>
+        prisma.product.update({ where: { id: i.productId }, data: { salesCount: { increment: i.quantity } } }).catch(() => null)
+      )
+    );
 
     const order = await createOrder({
       status: body.status || 'pending',

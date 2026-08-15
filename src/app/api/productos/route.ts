@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllProducts, createProduct } from '@/lib/products-store';
+import { getAllProducts, createProduct, getEffectivePrice, type Product } from '@/lib/products-store';
+
+const SORTABLE_FIELDS = ['createdAt', 'name', 'price', 'rating', 'salesCount', 'stock'] as const;
+type SortableField = (typeof SORTABLE_FIELDS)[number];
 
 // GET /api/productos
 export async function GET(request: NextRequest) {
@@ -39,16 +42,23 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter((p) => p.isFeatured);
     }
 
-    // Sort
-    const sort = searchParams.get('sort') || 'createdAt';
+    // Filter by promocion vigente
+    const onSale = searchParams.get('onSale');
+    if (onSale === 'true') {
+      filtered = filtered.filter((p) => getEffectivePrice(p).isOnSale);
+    }
+
+    // Sort (whitelist de campos para evitar acceso dinámico arbitrario)
+    const sortParam = searchParams.get('sort') || 'createdAt';
+    const sort: SortableField = SORTABLE_FIELDS.includes(sortParam as SortableField) ? (sortParam as SortableField) : 'createdAt';
     const order = searchParams.get('order') || 'desc';
     filtered.sort((a, b) => {
-      const aVal = (a as any)[sort];
-      const bVal = (b as any)[sort];
-      if (typeof aVal === 'string') {
+      const aVal = a[sort];
+      const bVal = b[sort];
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
         return order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       }
-      return order === 'asc' ? aVal - bVal : bVal - aVal;
+      return order === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
     });
 
     return NextResponse.json({ products: filtered, total: filtered.length });
@@ -88,6 +98,10 @@ export async function POST(request: NextRequest) {
       isActive: body.isActive !== false,
       rating: 0,
       reviewCount: 0,
+      salesCount: 0,
+      promoDiscountPercent: body.promoDiscountPercent ? Number(body.promoDiscountPercent) : null,
+      promoStartsAt: body.promoStartsAt || null,
+      promoEndsAt: body.promoEndsAt || null,
     });
 
     return NextResponse.json(product, { status: 201 });
