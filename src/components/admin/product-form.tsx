@@ -97,6 +97,35 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
 
   // Images
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setUploadError('');
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        const body = new FormData();
+        body.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body });
+        const data = await res.json();
+        if (!res.ok) {
+          setUploadError(data.error || `Error al subir ${file.name}`);
+          continue;
+        }
+        uploaded.push(data.url);
+      }
+      if (uploaded.length > 0) {
+        setForm((f) => ({ ...f, images: [...f.images, ...uploaded] }));
+      }
+    } catch {
+      setUploadError('Error de conexión al subir la imagen');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // AI Assist
   const [aiModalOpen, setAiModalOpen] = useState(false);
@@ -447,12 +476,39 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
               <ImageIcon className="h-5 w-5 text-blue-bright" />
               <h2 className="font-display text-h3 text-arctic">Imagenes</h2>
             </div>
-            <div className="flex gap-2">
+
+            {/* Subir desde la computadora */}
+            <label
+              className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-steel-900/50 p-6 text-center transition-colors hover:border-blue-bright/50 ${uploading ? 'pointer-events-none opacity-60' : ''}`}
+            >
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="hidden"
+                onChange={(e) => { handleFileUpload(e.target.files); e.target.value = ''; }}
+                disabled={uploading}
+              />
+              {uploading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-blue-bright" />
+              ) : (
+                <ImageIcon className="h-6 w-6 text-steel-500" />
+              )}
+              <span className="font-body text-caption text-steel-300">
+                {uploading ? 'Subiendo...' : 'Click para subir imagenes (JPG, PNG, WEBP, GIF - max 5MB)'}
+              </span>
+            </label>
+            {uploadError && (
+              <p className="mt-2 font-body text-caption text-red-400">{uploadError}</p>
+            )}
+
+            {/* O pegar una URL */}
+            <div className="mt-4 flex gap-2">
               <input
                 type="url"
                 value={newImageUrl}
                 onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="URL de la imagen (https://...)"
+                placeholder="...o pegar la URL de una imagen (https://...)"
                 className="input flex-1"
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
               />
