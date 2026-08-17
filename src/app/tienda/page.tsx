@@ -264,77 +264,81 @@ export default function TiendaPage() {
 
                 return (
                   <div key={product.id} className="card-interactive group overflow-hidden">
-                    {/* Image */}
-                    <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
-                      {product.images && product.images.length > 0 ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Isotipo size={56} color="#2D8FCC20" />
-                      )}
-                      <div className="absolute left-2 top-2 flex gap-1">
-                        {promo.isOnSale && <span className="badge-red">Oferta -{discount}%</span>}
-                        {!promo.isOnSale && discount > 0 && <span className="badge-red">-{discount}%</span>}
-                        {product.isFeatured && <span className="badge-blue">Destacado</span>}
-                      </div>
-                      {product.stock === 0 && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-carbon/70">
-                          <span className="badge-neutral">Sin stock</span>
+                    <Link href={`/tienda/${product.slug}`}>
+                      {/* Image */}
+                      <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
+                        {product.images && product.images.length > 0 ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Isotipo size={56} color="#2D8FCC20" />
+                        )}
+                        <div className="absolute left-2 top-2 flex gap-1">
+                          {promo.isOnSale && <span className="badge-red">Oferta -{discount}%</span>}
+                          {!promo.isOnSale && discount > 0 && <span className="badge-red">-{discount}%</span>}
+                          {product.isFeatured && <span className="badge-blue">Destacado</span>}
                         </div>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-4">
-                      <span className="font-body text-overline uppercase tracking-[0.08em] text-steel-500">
-                        {product.brand}
-                      </span>
-                      <h3 className="mt-1 min-h-[2.5rem] font-body text-body-sm font-semibold leading-tight text-cloud line-clamp-2">
-                        {product.name}
-                      </h3>
-
-                      {/* Rating */}
-                      {product.reviewCount > 0 && (
-                        <div className="mt-2 flex items-center gap-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3 w-3 ${
-                                i < Math.floor(product.rating)
-                                  ? 'fill-yellow text-yellow'
-                                  : 'text-steel-700'
-                              }`}
-                            />
-                          ))}
-                          <span className="ml-1 font-body text-caption text-steel-500">
-                            ({product.reviewCount})
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Price */}
-                      <div className="mt-3 flex items-baseline gap-2">
-                        <span className="font-display text-[1.2rem] font-bold text-arctic">
-                          {formatPrice(displayPrice)}
-                        </span>
-                        {strikePrice && (
-                          <span className="font-body text-caption text-steel-500 line-through">
-                            {formatPrice(strikePrice)}
-                          </span>
+                        {product.stock === 0 && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-carbon/70">
+                            <span className="badge-neutral">Sin stock</span>
+                          </div>
                         )}
                       </div>
 
-                      {/* SKU */}
-                      <span className="mt-1 block font-mono text-[0.55rem] text-steel-700">
-                        {product.sku}
-                      </span>
+                      {/* Info */}
+                      <div className="p-4 pb-0">
+                        <span className="font-body text-overline uppercase tracking-[0.08em] text-steel-500">
+                          {product.brand}
+                        </span>
+                        <h3 className="mt-1 min-h-[2.5rem] font-body text-body-sm font-semibold leading-tight text-cloud line-clamp-2">
+                          {product.name}
+                        </h3>
 
-                      {/* CTA */}
+                        {/* Rating */}
+                        {product.reviewCount > 0 && (
+                          <div className="mt-2 flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-3 w-3 ${
+                                  i < Math.floor(product.rating)
+                                    ? 'fill-yellow text-yellow'
+                                    : 'text-steel-700'
+                                }`}
+                              />
+                            ))}
+                            <span className="ml-1 font-body text-caption text-steel-500">
+                              ({product.reviewCount})
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Price */}
+                        <div className="mt-3 flex items-baseline gap-2">
+                          <span className="font-display text-[1.2rem] font-bold text-arctic">
+                            {formatPrice(displayPrice)}
+                          </span>
+                          {strikePrice && (
+                            <span className="font-body text-caption text-steel-500 line-through">
+                              {formatPrice(strikePrice)}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* SKU */}
+                        <span className="mt-1 block font-mono text-[0.55rem] text-steel-700">
+                          {product.sku}
+                        </span>
+                      </div>
+                    </Link>
+
+                    {/* CTA */}
+                    <div className="p-4 pt-3">
                       <button
-                        className="btn-primary mt-3 w-full text-[0.6rem]"
+                        className="btn-primary w-full text-[0.6rem]"
                         disabled={product.stock === 0}
                         onClick={() => handleAddToCart(product)}
                       >

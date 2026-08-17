@@ -69,6 +69,11 @@ export async function getProductById(id: string): Promise<Product | null> {
   return p ? toProduct(p) : null;
 }
 
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const p = await prisma.product.findUnique({ where: { slug } });
+  return p ? toProduct(p) : null;
+}
+
 export async function createProduct(
   data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<Product> {

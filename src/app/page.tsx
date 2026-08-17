@@ -96,47 +96,51 @@ async function FeaturedProducts() {
 
             return (
               <div key={product.id} className="card-interactive group overflow-hidden">
-                {/* Image */}
-                <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
-                  {product.images?.[0] ? (
-                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <Isotipo size={64} />
-                  )}
-                  {discount > 0 && (
-                    <span className="badge-red absolute left-2 top-2">{promo.isOnSale ? 'Oferta ' : ''}-{discount}%</span>
-                  )}
-                </div>
-                {/* Info */}
-                <div className="p-4">
-                  <span className="font-body text-overline uppercase tracking-[0.08em] text-steel-500">
-                    {product.brand}
-                  </span>
-                  <h3 className="mt-1 font-body text-body-sm font-semibold text-cloud leading-tight line-clamp-2">
-                    {product.name}
-                  </h3>
-                  {product.reviewCount > 0 && (
-                    <div className="mt-2 flex items-center gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-3 w-3 ${i < Math.floor(product.rating) ? 'fill-yellow text-yellow' : 'text-steel-700'}`}
-                        />
-                      ))}
-                      <span className="ml-1 font-body text-caption text-steel-500">({product.reviewCount})</span>
-                    </div>
-                  )}
-                  {/* Price */}
-                  <div className="mt-3 flex items-baseline gap-2">
-                    <span className="font-display text-[1.3rem] font-bold text-arctic">
-                      {formatPrice(displayPrice)}
-                    </span>
-                    {strikePrice && (
-                      <span className="font-body text-body-sm text-steel-500 line-through">
-                        {formatPrice(strikePrice)}
-                      </span>
+                <Link href={`/tienda/${product.slug}`}>
+                  {/* Image */}
+                  <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
+                    {product.images?.[0] ? (
+                      <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Isotipo size={64} />
+                    )}
+                    {discount > 0 && (
+                      <span className="badge-red absolute left-2 top-2">{promo.isOnSale ? 'Oferta ' : ''}-{discount}%</span>
                     )}
                   </div>
+                  {/* Info */}
+                  <div className="p-4 pb-0">
+                    <span className="font-body text-overline uppercase tracking-[0.08em] text-steel-500">
+                      {product.brand}
+                    </span>
+                    <h3 className="mt-1 font-body text-body-sm font-semibold text-cloud leading-tight line-clamp-2">
+                      {product.name}
+                    </h3>
+                    {product.reviewCount > 0 && (
+                      <div className="mt-2 flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3 w-3 ${i < Math.floor(product.rating) ? 'fill-yellow text-yellow' : 'text-steel-700'}`}
+                          />
+                        ))}
+                        <span className="ml-1 font-body text-caption text-steel-500">({product.reviewCount})</span>
+                      </div>
+                    )}
+                    {/* Price */}
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <span className="font-display text-[1.3rem] font-bold text-arctic">
+                        {formatPrice(displayPrice)}
+                      </span>
+                      {strikePrice && (
+                        <span className="font-body text-body-sm text-steel-500 line-through">
+                          {formatPrice(strikePrice)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+                <div className="p-4 pt-3">
                   <AddToCartButton
                     productId={product.id}
                     sku={product.sku}
