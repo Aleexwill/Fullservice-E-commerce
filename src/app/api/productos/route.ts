@@ -63,7 +63,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ products: filtered, total: filtered.length });
   } catch (error) {
-    return NextResponse.json({ error: 'Error al obtener productos' }, { status: 500 });
+    console.error('Error en GET /api/productos:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al obtener productos: ${message}` }, { status: 500 });
   }
 }
 
@@ -106,6 +108,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Error al crear producto' }, { status: 500 });
+    console.error('Error en POST /api/productos:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al crear producto: ${message}` }, { status: 500 });
   }
 }
