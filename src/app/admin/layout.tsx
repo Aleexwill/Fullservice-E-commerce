@@ -22,6 +22,7 @@ import {
   Calculator,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { NotificationBell } from '@/components/admin/notification-bell';
 
 interface NavGroup {
   label: string;
@@ -169,6 +170,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Content */}
       <main className="ml-[240px] flex-1 min-h-screen">
+        <div className="sticky top-0 z-40 flex h-[52px] items-center justify-end border-b border-steel-900/40 bg-carbon-light px-4">
+          <NotificationBell />
+        </div>
         {children}
       </main>
     </div>
