@@ -26,8 +26,10 @@ export async function GET(request: NextRequest) {
     filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({ orders: filtered, total: filtered.length });
-  } catch {
-    return NextResponse.json({ error: 'Error al obtener pedidos' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en GET /api/pedidos:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al obtener pedidos: ${message}` }, { status: 500 });
   }
 }
 
@@ -104,7 +106,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(order, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: 'Error al crear pedido' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en POST /api/pedidos:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al crear pedido: ${message}` }, { status: 500 });
   }
 }

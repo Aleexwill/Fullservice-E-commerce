@@ -13,7 +13,9 @@ export async function GET(
     }
     return NextResponse.json(product);
   } catch (error) {
-    return NextResponse.json({ error: 'Error al obtener producto' }, { status: 500 });
+    console.error('Error en GET /api/productos/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al obtener producto: ${message}` }, { status: 500 });
   }
 }
 
@@ -39,7 +41,9 @@ export async function PUT(
 
     return NextResponse.json(product);
   } catch (error) {
-    return NextResponse.json({ error: 'Error al actualizar producto' }, { status: 500 });
+    console.error('Error en PUT /api/productos/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al actualizar producto: ${message}` }, { status: 500 });
   }
 }
 
@@ -55,6 +59,8 @@ export async function DELETE(
     }
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: 'Error al eliminar producto' }, { status: 500 });
+    console.error('Error en DELETE /api/productos/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al eliminar producto: ${message}` }, { status: 500 });
   }
 }

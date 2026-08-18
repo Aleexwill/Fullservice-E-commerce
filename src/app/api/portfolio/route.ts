@@ -11,7 +11,11 @@ export async function GET(req: NextRequest) {
     if (cat) projects = projects.filter((p) => p.category === cat);
     projects.sort((a, b) => a.order - b.order);
     return NextResponse.json({ projects, total: projects.length });
-  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }); }
+  } catch (error) {
+    console.error('Error en GET /api/portfolio:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -26,5 +30,9 @@ export async function POST(req: NextRequest) {
       isFeatured: Boolean(body.isFeatured), order: body.order || 0,
     });
     return NextResponse.json(project, { status: 201 });
-  } catch { return NextResponse.json({ error: 'Error al crear' }, { status: 500 }); }
+  } catch (error) {
+    console.error('Error en POST /api/portfolio:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al crear: ${message}` }, { status: 500 });
+  }
 }
