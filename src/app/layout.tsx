@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Sans, IBM_Plex_Mono, Barlow_Condensed } from 'next/font/google';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
-import { WhatsAppButton } from '@/components/layout/whatsapp-button';
+import { PublicShell } from '@/components/layout/public-shell';
 import { PageTracker } from '@/components/layout/page-tracker';
 import { Toaster } from 'sonner';
 import { siteConfig } from '@/config/site';
@@ -101,10 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="font-body text-arctic bg-carbon antialiased">
-        <Navbar settings={settings} />
-        <main className="min-h-screen">{children}</main>
-        <Footer settings={settings} />
-        <WhatsAppButton settings={settings} />
+        <PublicShell settings={settings}>{children}</PublicShell>
         <PageTracker />
         <Toaster position="top-center" theme="dark" richColors />
       </body>
