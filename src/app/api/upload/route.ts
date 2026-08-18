@@ -27,7 +27,9 @@ export async function POST(request: NextRequest) {
     const blob = await put(filename, file, { access: 'public' });
 
     return NextResponse.json({ url: blob.url });
-  } catch {
-    return NextResponse.json({ error: 'Error al subir la imagen' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en /api/upload:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al subir la imagen: ${message}` }, { status: 500 });
   }
 }
