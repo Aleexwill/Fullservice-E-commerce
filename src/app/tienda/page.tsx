@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Search,
@@ -48,12 +48,12 @@ interface Product {
    ============================================================ */
 
 const categorias = [
-  { id: 'herramientas', name: 'Herramientas', icon: '🔧', color: 'from-blue-deep to-blue' },
-  { id: 'electricidad', name: 'Electricidad', icon: '⚡', color: 'from-yellow-muted to-yellow' },
-  { id: 'plomeria', name: 'Plomeria', icon: '🔩', color: 'from-blue-muted to-blue' },
-  { id: 'pinturas', name: 'Pinturas', icon: '🎨', color: 'from-success-light to-success' },
-  { id: 'fijaciones', name: 'Fijaciones', icon: '🔨', color: 'from-steel-900 to-steel-700' },
-  { id: 'seguridad', name: 'Seguridad', icon: '🛡️', color: 'from-danger-light to-danger' },
+  { id: 'herramientas', name: 'Herramientas', icon: '🔧', color: 'from-blue-deep to-blue', match: ['herramienta'] },
+  { id: 'electricidad', name: 'Electricidad', icon: '⚡', color: 'from-yellow-muted to-yellow', match: ['electric'] },
+  { id: 'plomeria', name: 'Plomeria', icon: '🔩', color: 'from-blue-muted to-blue', match: ['plomeria'] },
+  { id: 'pinturas', name: 'Pinturas', icon: '🎨', color: 'from-success-light to-success', match: ['pintura'] },
+  { id: 'fijaciones', name: 'Fijaciones', icon: '🔨', color: 'from-steel-900 to-steel-700', match: ['fijacion'] },
+  { id: 'seguridad', name: 'Seguridad', icon: '🛡️', color: 'from-danger-light to-danger', match: ['seguridad'] },
 ];
 
 /* ============================================================
@@ -64,9 +64,18 @@ export default function TiendaPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('featured');
   const [onlyOnSale, setOnlyOnSale] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
+  const gridRef = useRef<HTMLElement>(null);
+
+  function handleSelectCategory(id: string) {
+    setSelectedCategory((prev) => (prev === id ? null : id));
+    requestAnimationFrame(() => {
+      gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
 
   function handleAddToCart(product: Product) {
     const { price } = getEffectivePrice(product);
@@ -93,6 +102,8 @@ export default function TiendaPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  const activeCategory = categorias.find((c) => c.id === selectedCategory);
+
   const filtered = products
     .filter(
       (p) =>
@@ -100,7 +111,12 @@ export default function TiendaPage() {
         p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .filter((p) => !onlyOnSale || getEffectivePrice(p).isOnSale);
+    .filter((p) => !onlyOnSale || getEffectivePrice(p).isOnSale)
+    .filter(
+      (p) =>
+        !activeCategory ||
+        activeCategory.match.some((kw) => p.category.toLowerCase().includes(kw))
+    );
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === 'price-asc') return getEffectivePrice(a).price - getEffectivePrice(b).price;
@@ -150,13 +166,25 @@ export default function TiendaPage() {
       {/* Categorias */}
       <section className="section-sm border-b border-steel-900/40">
         <div className="container-main">
-          <h2 className="mb-6 font-display text-h3 text-arctic">Categorias</h2>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-display text-h3 text-arctic">Categorias</h2>
+            {selectedCategory && (
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="font-body text-body-sm text-blue hover:underline"
+              >
+                Ver todas
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {categorias.map((cat) => (
-              <Link
+              <button
                 key={cat.id}
-                href={`/tienda/${cat.id}`}
-                className="card-interactive group overflow-hidden"
+                onClick={() => handleSelectCategory(cat.id)}
+                className={`card-interactive group overflow-hidden text-left ${
+                  selectedCategory === cat.id ? 'ring-2 ring-blue' : ''
+                }`}
               >
                 <div className={`flex h-20 items-center justify-center bg-gradient-to-br ${cat.color}`}>
                   <span className="text-3xl transition-transform group-hover:scale-110">{cat.icon}</span>
@@ -164,7 +192,7 @@ export default function TiendaPage() {
                 <div className="p-3 text-center">
                   <h3 className="font-display text-h4 text-arctic">{cat.name}</h3>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -187,12 +215,13 @@ export default function TiendaPage() {
       </section>
 
       {/* Product Grid */}
-      <section className="section">
+      <section ref={gridRef} className="section">
         <div className="container-main">
           {/* Toolbar */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div className="font-body text-body-sm text-steel-500">
               {sorted.length} producto{sorted.length !== 1 ? 's' : ''}
+              {activeCategory && ` en "${activeCategory.name}"`}
               {searchTerm && ` para "${searchTerm}"`}
             </div>
             <div className="flex items-center gap-3">
@@ -233,14 +262,16 @@ export default function TiendaPage() {
             <div className="card p-12 text-center">
               <Package className="mx-auto h-12 w-12 text-steel-700" />
               <h3 className="mt-4 font-display text-h3 text-arctic">
-                {searchTerm ? 'Sin resultados' : 'Catalogo vacio'}
+                {searchTerm || activeCategory ? 'Sin resultados' : 'Catalogo vacio'}
               </h3>
               <p className="mt-2 font-body text-body-sm text-steel-500">
                 {searchTerm
                   ? `No se encontraron productos para "${searchTerm}".`
-                  : 'Aun no hay productos en el catalogo. El administrador debe cargar productos desde el panel de admin.'}
+                  : activeCategory
+                    ? `Todavia no hay productos cargados en "${activeCategory.name}".`
+                    : 'Aun no hay productos en el catalogo. El administrador debe cargar productos desde el panel de admin.'}
               </p>
-              {!searchTerm && (
+              {!searchTerm && !activeCategory && (
                 <Link href="/admin/productos/nuevo" className="btn-primary mt-6 inline-flex">
                   Ir al panel de admin
                 </Link>
