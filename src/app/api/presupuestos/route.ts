@@ -13,7 +13,11 @@ export async function GET(req: NextRequest) {
     if (type) data = data.filter((p) => p.serviceType === type);
     data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return NextResponse.json({ presupuestos: data, total: data.length });
-  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }); }
+  } catch (error) {
+    console.error('Error en GET /api/presupuestos:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -29,5 +33,9 @@ export async function POST(req: NextRequest) {
       notes: [], attachments: body.attachments || [], assignedTo: body.assignedTo || '', scheduledDate: body.scheduledDate || '',
     });
     return NextResponse.json(p, { status: 201 });
-  } catch { return NextResponse.json({ error: 'Error al crear' }, { status: 500 }); }
+  } catch (error) {
+    console.error('Error en POST /api/presupuestos:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al crear: ${message}` }, { status: 500 });
+  }
 }

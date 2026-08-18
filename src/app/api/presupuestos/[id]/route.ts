@@ -3,7 +3,11 @@ import { getPresupuestoById, updatePresupuesto, addNoteToPresupuesto, deletePres
 
 export async function GET(_r: NextRequest, { params }: { params: { id: string } }) {
   try { const p = await getPresupuestoById(params.id); return p ? NextResponse.json(p) : NextResponse.json({ error: 'No encontrado' }, { status: 404 }); }
-  catch { return NextResponse.json({ error: 'Error' }, { status: 500 }); }
+  catch (error) {
+    console.error('Error en GET /api/presupuestos/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
+  }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -12,10 +16,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (body._addNote) { const p = await addNoteToPresupuesto(params.id, body._addNote); return p ? NextResponse.json(p) : NextResponse.json({ error: 'No encontrado' }, { status: 404 }); }
     const p = await updatePresupuesto(params.id, body);
     return p ? NextResponse.json(p) : NextResponse.json({ error: 'No encontrado' }, { status: 404 });
-  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }); }
+  } catch (error) {
+    console.error('Error en PUT /api/presupuestos/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
+  }
 }
 
 export async function DELETE(_r: NextRequest, { params }: { params: { id: string } }) {
   try { return (await deletePresupuesto(params.id)) ? NextResponse.json({ success: true }) : NextResponse.json({ error: 'No encontrado' }, { status: 404 }); }
-  catch { return NextResponse.json({ error: 'Error' }, { status: 500 }); }
+  catch (error) {
+    console.error('Error en DELETE /api/presupuestos/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
+  }
 }

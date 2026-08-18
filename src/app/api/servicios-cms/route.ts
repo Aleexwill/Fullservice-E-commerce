@@ -10,7 +10,11 @@ export async function GET(req: NextRequest) {
     if (cat) services = services.filter((s) => s.category === cat);
     services.sort((a, b) => a.order - b.order);
     return NextResponse.json({ services, total: services.length });
-  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }); }
+  } catch (error) {
+    console.error('Error en GET /api/servicios-cms:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -23,5 +27,9 @@ export async function POST(req: NextRequest) {
       isActive: body.isActive !== false, isFeatured: Boolean(body.isFeatured), order: body.order || 0,
     });
     return NextResponse.json(svc, { status: 201 });
-  } catch { return NextResponse.json({ error: 'Error al crear' }, { status: 500 }); }
+  } catch (error) {
+    console.error('Error en POST /api/servicios-cms:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al crear: ${message}` }, { status: 500 });
+  }
 }

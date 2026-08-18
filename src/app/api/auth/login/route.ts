@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 12,
     });
     return res;
-  } catch {
-    return NextResponse.json({ error: 'Error al iniciar sesión' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en POST /api/auth/login:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al iniciar sesión: ${message}` }, { status: 500 });
   }
 }

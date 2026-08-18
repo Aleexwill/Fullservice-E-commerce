@@ -6,6 +6,8 @@ export async function GET() {
     const stats = await getProductStats();
     return NextResponse.json(stats);
   } catch (error) {
-    return NextResponse.json({ error: 'Error al obtener estadisticas' }, { status: 500 });
+    console.error('Error en GET /api/productos/stats:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al obtener estadisticas: ${message}` }, { status: 500 });
   }
 }

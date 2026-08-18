@@ -4,7 +4,11 @@ import { getContent, updateContent, CONTENT_CACHE_TAG } from '@/lib/content-stor
 
 export async function GET() {
   try { return NextResponse.json(await getContent()); }
-  catch { return NextResponse.json({ error: 'Error' }, { status: 500 }); }
+  catch (error) {
+    console.error('Error en GET /api/contenido:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
+  }
 }
 
 export async function PUT(req: NextRequest) {
@@ -13,7 +17,9 @@ export async function PUT(req: NextRequest) {
     const content = await updateContent(body);
     revalidateTag(CONTENT_CACHE_TAG);
     return NextResponse.json(content);
-  } catch {
-    return NextResponse.json({ error: 'Error al guardar' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en PUT /api/contenido:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al guardar: ${message}` }, { status: 500 });
   }
 }

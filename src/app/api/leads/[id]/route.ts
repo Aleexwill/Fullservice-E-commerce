@@ -6,8 +6,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const lead = await getLeadById(params.id);
     if (!lead) return NextResponse.json({ error: 'Lead no encontrado' }, { status: 404 });
     return NextResponse.json(lead);
-  } catch {
-    return NextResponse.json({ error: 'Error' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en GET /api/leads/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error: ${message}` }, { status: 500 });
   }
 }
 
@@ -42,8 +44,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const lead = await updateLead(params.id, body);
     if (!lead) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
     return NextResponse.json(lead);
-  } catch {
-    return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en PUT /api/leads/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al actualizar: ${message}` }, { status: 500 });
   }
 }
 
@@ -52,7 +56,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     const ok = await deleteLead(params.id);
     if (!ok) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'Error al eliminar' }, { status: 500 });
+  } catch (error) {
+    console.error('Error en DELETE /api/leads/[id]:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: `Error al eliminar: ${message}` }, { status: 500 });
   }
 }
