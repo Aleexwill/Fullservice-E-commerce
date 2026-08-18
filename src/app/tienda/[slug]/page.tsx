@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronRight, Star, ShieldCheck, Truck, CreditCard } from 'lucide-react';
 import { getProductBySlug, getAllProducts } from '@/lib/products-store';
+import { siteConfig } from '@/config/site';
 import { formatPrice, getEffectivePrice } from '@/lib/utils';
 import { Isotipo } from '@/components/ui/isotipo';
 import { AddToCartButton } from '@/components/sections/add-to-cart-button';
@@ -44,8 +45,42 @@ export default async function ProductPage({ params }: Props) {
     .filter((p) => p.id !== product.id && p.category === product.category && p.isActive)
     .slice(0, 4);
 
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.shortDescription || product.description,
+    sku: product.sku,
+    brand: { '@type': 'Brand', name: product.brand },
+    image: product.images ?? [],
+    offers: {
+      '@type': 'Offer',
+      url: `${siteConfig.url}/tienda/${product.slug}`,
+      priceCurrency: 'PYG',
+      price: displayPrice,
+      availability:
+        product.stock > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'Full Service & Clean' },
+    },
+    ...(product.rating > 0 && product.reviewCount > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: product.rating,
+            reviewCount: product.reviewCount,
+          },
+        }
+      : {}),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       {/* Breadcrumb */}
       <div className="border-b border-steel-900/40">
         <div className="container-main flex flex-wrap items-center gap-2 py-3 font-body text-caption text-steel-500">
