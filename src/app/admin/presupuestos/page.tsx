@@ -48,6 +48,12 @@ export default function AdminPresupuestosPage() {
   const [newNote, setNewNote] = useState('');
   const [addingNote, setAddingNote] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [editFinal, setEditFinal] = useState('');
+  const [editingFinal, setEditingFinal] = useState(false);
+  const [editSched, setEditSched] = useState('');
+  const [editDuration, setEditDuration] = useState('');
+  const [editAssigned, setEditAssigned] = useState('');
+  const [savingFields, setSavingFields] = useState(false);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -68,6 +74,47 @@ export default function AdminPresupuestosPage() {
   const updateField = async (id: string, field: string, value: any) => {
     const res = await fetch(`/api/presupuestos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [field]: value }) });
     if (res.ok && selected?.id === id) { const u = await res.json(); setSelected(u); }
+  };
+
+  const openDetail = (item: Presupuesto) => {
+    setSelected(item);
+    setEditFinal(item.finalValue ? String(item.finalValue) : '');
+    setEditSched(item.scheduledDate || '');
+    setEditDuration(item.estimatedDuration || '');
+    setEditAssigned(item.assignedTo || '');
+    setEditingFinal(false);
+  };
+
+  const saveWorkFields = async () => {
+    if (!selected) return;
+    setSavingFields(true);
+    const res = await fetch(`/api/presupuestos/${selected.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        finalValue: editFinal ? Number(editFinal) : null,
+        scheduledDate: editSched,
+        estimatedDuration: editDuration,
+        assignedTo: editAssigned,
+      }),
+    });
+    if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); }
+    setSavingFields(false);
+  };
+
+  const sendWhatsApp = () => {
+    if (!selected) return;
+    const phone = selected.customer.phone.replace(/\D/g, '');
+    const value = editFinal ? Number(editFinal) : selected.finalValue;
+    const valueText = value ? `un valor de *${formatGs(value)}*` : 'un valor a definir';
+    const msg = `Hola ${selected.customer.name}, le comunicamos que el presupuesto *${selected.code}* para el servicio *"${selected.serviceTitle}"* tiene ${valueText}. ¿Lo aprobamos? Quedamos a su disposición. — Full Service & Clean`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const aprobar = async () => {
+    if (!selected) return;
+    if (!confirm('¿Marcar como aprobado y pasar a ejecución?')) return;
+    await saveWorkFields();
+    await updateStatus(selected.id, 'aprobado');
   };
 
   const addNote = async () => {
@@ -116,7 +163,7 @@ export default function AdminPresupuestosPage() {
             const pr = PRIORITY_MAP[item.priority] || PRIORITY_MAP.media;
             const TpIcon = tp.icon;
             return (
-              <div key={item.id} className="card-interactive flex items-center gap-4 p-4" onClick={() => setSelected(item)}>
+              <div key={item.id} className="card-interactive flex items-center gap-4 p-4" onClick={() => openDetail(item)}>
                 <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-steel-900 ${tp.color}`}><TpIcon className="h-5 w-5" /></div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -176,11 +223,43 @@ export default function AdminPresupuestosPage() {
               </div>
               {/* Values */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="card p-3 text-center"><p className="label">Estimado</p><p className="mt-1 font-display text-h3 text-arctic">{selected.estimatedValue ? formatGs(selected.estimatedValue) : '—'}</p></div>
-                <div className="card p-3 text-center"><p className="label">Final</p><p className="mt-1 font-display text-h3 text-[#48BB78]">{selected.finalValue ? formatGs(selected.finalValue) : '—'}</p></div>
+                <div className="card p-3 text-center"><p className="label">Estimado cliente</p><p className="mt-1 font-display text-h3 text-arctic">{selected.estimatedValue ? formatGs(selected.estimatedValue) : '—'}</p></div>
+                <div className="card p-3">
+                  <p className="label mb-1">Valor final cotizado</p>
+                  {editingFinal ? (
+                    <input type="number" value={editFinal} onChange={(e) => setEditFinal(e.target.value)} className="input font-mono text-[#48BB78]" placeholder="Monto en Gs." autoFocus onBlur={() => setEditingFinal(false)} onKeyDown={(e) => { if (e.key === 'Enter') setEditingFinal(false); }} />
+                  ) : (
+                    <button onClick={() => setEditingFinal(true)} className="mt-1 w-full text-left font-display text-h3 text-[#48BB78] hover:opacity-80">
+                      {editFinal ? formatGs(Number(editFinal)) : <span className="text-steel-700 text-body">+ Agregar</span>}
+                    </button>
+                  )}
+                </div>
               </div>
-              {selected.estimatedDuration && <div className="flex items-center gap-2 font-body text-body-sm text-steel-300"><Clock className="h-4 w-4 text-steel-500" /> Duracion estimada: <span className="text-arctic">{selected.estimatedDuration}</span></div>}
-              {selected.scheduledDate && <div className="flex items-center gap-2 font-body text-body-sm text-steel-300"><Calendar className="h-4 w-4 text-steel-500" /> Fecha programada: <span className="text-arctic">{selected.scheduledDate}</span></div>}
+              {/* Scheduling fields */}
+              <div className="card p-4 space-y-3">
+                <h3 className="font-display text-h4 text-arctic flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-bright" /> Programación</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="label mb-1 block">Fecha programada</label><input type="text" value={editSched} onChange={(e) => setEditSched(e.target.value)} className="input" placeholder="ej: 15/09/2025" /></div>
+                  <div><label className="label mb-1 block">Duración estimada</label><input type="text" value={editDuration} onChange={(e) => setEditDuration(e.target.value)} className="input" placeholder="ej: 2 días" /></div>
+                </div>
+                <div><label className="label mb-1 block">Responsable / Equipo</label><input type="text" value={editAssigned} onChange={(e) => setEditAssigned(e.target.value)} className="input" placeholder="Nombre del técnico o equipo" /></div>
+                <button onClick={saveWorkFields} disabled={savingFields} className="btn-secondary w-full justify-center gap-2">
+                  {savingFields ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : 'Guardar cambios'}
+                </button>
+              </div>
+              {/* Action buttons */}
+              <div className="grid grid-cols-1 gap-2">
+                {selected.customer.phone && (
+                  <button onClick={sendWhatsApp} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2.5 font-body text-body-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors">
+                    <MessageSquare className="h-4 w-4" /> Enviar presupuesto al cliente por WhatsApp
+                  </button>
+                )}
+                {selected.status !== 'aprobado' && selected.status !== 'completado' && (
+                  <button onClick={aprobar} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#48BB78]/20 border border-[#48BB78]/40 px-4 py-2.5 font-body text-body-sm font-semibold text-[#48BB78] hover:bg-[#48BB78]/30 transition-colors">
+                    <ChevronRight className="h-4 w-4" /> Aprobar y pasar a ejecución
+                  </button>
+                )}
+              </div>
               {/* Notes */}
               <div>
                 <h3 className="mb-3 flex items-center gap-2 font-display text-h4 text-arctic"><MessageSquare className="h-4 w-4 text-blue-bright" /> Seguimiento</h3>
