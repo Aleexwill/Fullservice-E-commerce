@@ -47,21 +47,15 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
       <nav className="container-main">
         <div className="flex h-[60px] items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center">
             <Image
               src="/logo.png"
               alt="Full Service & Clean"
-              width={56}
-              height={56}
+              width={120}
+              height={48}
               className="object-contain"
               priority
             />
-            <div className="flex flex-col">
-              <span className="font-display text-[0.85rem] font-bold uppercase leading-none tracking-tight">
-                <span className="text-blue-bright">Full Service</span>{' '}
-                <span className="text-orange">&amp; Clean</span>
-              </span>
-            </div>
           </Link>
 
           {/* Desktop Links */}
