@@ -13,6 +13,7 @@ import {
   Package,
 } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
+import { BrandsCarousel } from '@/components/sections/brands-carousel';
 import { useCartStore } from '@/lib/cart-store';
 import { formatPrice, getEffectivePrice } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -385,26 +386,8 @@ export default function TiendaPage() {
         </div>
       </section>
 
-      {/* Marcas */}
-      {brands.length > 0 && (
-        <section className="border-t border-steel-900/40 py-12">
-          <div className="container-main">
-            <h2 className="mb-6 text-center font-display text-h3 text-arctic">
-              Marcas que trabajamos
-            </h2>
-            <div className="flex flex-wrap items-center justify-center gap-8">
-              {brands.map((marca) => (
-                <div
-                  key={marca}
-                  className="rounded-md border border-steel-900/60 bg-carbon-light px-6 py-3 font-display text-h4 text-steel-500 transition-colors hover:border-blue/30 hover:text-arctic"
-                >
-                  {marca}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Marcas carrusel */}
+      <BrandsCarousel />
     </>
   );
 }
