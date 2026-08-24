@@ -416,19 +416,41 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
   const fmtGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
   const today = new Date().toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const rows = calc.filas.map((fila) => {
-    if (fila.tipo === 'titulo') {
-      return `<tr><td colspan="5" class="section-header">${fila.descripcion}</td></tr>`;
+  // PDF shows only título rows (with their section total) — no internal cost detail exposed to client
+  const titulos = calc.filas.filter((f) => f.tipo === 'titulo');
+  const hasTitulos = titulos.length > 0;
+
+  const secTotal = (tituloId: string): number => {
+    let inside = false, total = 0;
+    for (const r of calc.filas) {
+      if (r.id === tituloId) { inside = true; continue; }
+      if (inside && r.tipo === 'titulo') break;
+      if (inside) total += r.cantidad * r.precioVenta;
     }
-    const total = fila.cantidad * fila.precioVenta;
-    return `<tr>
-      <td>${fila.descripcion}</td>
-      <td class="center">${fila.unidad}</td>
-      <td class="center">${fila.cantidad}</td>
-      <td class="right">${fmtGs(fila.precioVenta)}</td>
-      <td class="right bold">${fmtGs(total)}</td>
-    </tr>`;
-  }).join('');
+    return total;
+  };
+
+  const rows = hasTitulos
+    ? titulos.map((t, i) => {
+        const st = secTotal(t.id);
+        return `<tr>
+          <td>${t.descripcion || 'Ítem ' + (i + 1)}</td>
+          <td class="center">Global</td>
+          <td class="center">1</td>
+          <td class="right">${fmtGs(st)}</td>
+          <td class="right bold">${fmtGs(st)}</td>
+        </tr>`;
+      }).join('')
+    : calc.filas.filter((f) => f.tipo !== 'titulo').map((fila) => {
+        const total = fila.cantidad * fila.precioVenta;
+        return `<tr>
+          <td>${fila.descripcion}</td>
+          <td class="center">${fila.unidad}</td>
+          <td class="center">${fila.cantidad}</td>
+          <td class="right">${fmtGs(fila.precioVenta)}</td>
+          <td class="right bold">${fmtGs(total)}</td>
+        </tr>`;
+      }).join('');
 
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Presupuesto ${code}</title>
   <style>

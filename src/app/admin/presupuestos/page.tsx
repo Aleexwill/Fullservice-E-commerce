@@ -269,6 +269,61 @@ export default function AdminPresupuestosPage() {
                   )}
                 </div>
               </div>
+
+              {/* Resumen del cálculo interno */}
+              {(() => {
+                const cd = selected.calculationData;
+                if (!cd?.filas?.length) return null;
+                const titulos = cd.filas.filter((f: any) => f.tipo === 'titulo');
+                const filasTot = cd.filas.filter((f: any) => f.tipo !== 'titulo');
+                const subtotal = filasTot.reduce((s: number, f: any) => s + f.cantidad * f.precioVenta, 0);
+                const iva = subtotal * ((cd.iva ?? 10) / 100);
+                const total = subtotal + iva - (cd.descuento ?? 0);
+
+                // section total for each titulo
+                const secTotal = (tituloId: string) => {
+                  let inside = false, t = 0;
+                  for (const r of cd.filas) {
+                    if (r.id === tituloId) { inside = true; continue; }
+                    if (inside && r.tipo === 'titulo') break;
+                    if (inside) t += r.cantidad * r.precioVenta;
+                  }
+                  return t;
+                };
+
+                return (
+                  <div className="card p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="flex items-center gap-2 font-display text-h4 text-arctic">
+                        <Calculator className="h-4 w-4 text-blue-bright" /> Resumen del presupuesto
+                      </h3>
+                      <button onClick={() => setActiveTab('calculo')} className="font-body text-caption text-blue-bright hover:underline">Ver detalle →</button>
+                    </div>
+                    <div className="space-y-1">
+                      {titulos.length > 0 ? titulos.map((t: any) => {
+                        const st = secTotal(t.id);
+                        return (
+                          <div key={t.id} className="flex items-center justify-between gap-3 rounded-md bg-steel-900/30 px-3 py-2">
+                            <span className="font-body text-body-sm text-arctic">{t.descripcion || 'Sin título'}</span>
+                            <span className="shrink-0 font-mono text-body-sm text-[#48BB78]">{formatGs(st)}</span>
+                          </div>
+                        );
+                      }) : filasTot.map((f: any) => (
+                        <div key={f.id} className="flex items-center justify-between gap-3 rounded-md bg-steel-900/30 px-3 py-2">
+                          <span className="font-body text-caption text-steel-300">{f.descripcion}</span>
+                          <span className="shrink-0 font-mono text-caption text-[#48BB78]">{formatGs(f.cantidad * f.precioVenta)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 space-y-1 border-t border-steel-900/40 pt-3 font-body text-body-sm">
+                      <div className="flex justify-between text-steel-500"><span>Subtotal</span><span className="font-mono">{formatGs(subtotal)}</span></div>
+                      <div className="flex justify-between text-steel-500"><span>IVA ({cd.iva ?? 10}%)</span><span className="font-mono">{formatGs(iva)}</span></div>
+                      {cd.descuento > 0 && <div className="flex justify-between text-[#FC8181]"><span>Descuento</span><span className="font-mono">-{formatGs(cd.descuento)}</span></div>}
+                      <div className="flex justify-between font-semibold text-arctic"><span>TOTAL</span><span className="font-mono text-[#48BB78]">{formatGs(total)}</span></div>
+                    </div>
+                  </div>
+                );
+              })()}
               {/* Scheduling fields */}
               <div className="card p-4 space-y-3">
                 <h3 className="font-display text-h4 text-arctic flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-bright" /> Programación</h3>
