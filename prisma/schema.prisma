@@ -233,3 +233,31 @@ model Material {
   @@index([description])
   @@index([category])
 }
+
+// ============================================================
+// CLIENTES (confirmados — vienen de presupuestos aprobados)
+// ============================================================
+
+model Cliente {
+  id            String   @id @default(cuid())
+  name          String
+  company       String   @default("")
+  email         String   @default("")
+  phone         String   @default("")
+  address       String   @default("")
+  ruc           String   @default("")
+  category      String   @default("servicios") // servicios | tienda | ambos
+  notes         String   @default("") @db.Text
+  tags          String[]
+  totalSpent    Decimal  @db.Decimal(14, 2) @default(0)
+  jobsCount     Int      @default(0)
+  lastServiceAt String   @default("")
+  leadId        String?  @default("")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([name])
+  @@index([email])
+  @@index([isActive])
+}

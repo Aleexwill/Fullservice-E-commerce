@@ -63,6 +63,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'Marketing',
     items: [
+      { href: '/admin/clientes', label: 'Clientes', icon: Users },
       { href: '/admin/leads', label: 'Leads', icon: Users },
       { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     ],

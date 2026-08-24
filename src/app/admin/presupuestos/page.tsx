@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
@@ -197,7 +197,7 @@ export default function AdminPresupuestosPage() {
       {selected && (
         <div className="fixed inset-0 z-[100] flex items-end justify-end">
           <div className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative h-full w-full max-w-lg overflow-y-auto border-l border-steel-900/40 bg-carbon-light shadow-2xl">
+          <div className="relative h-full w-full max-w-5xl overflow-y-auto border-l border-steel-900/40 bg-carbon-light shadow-2xl">
             <div className="sticky top-0 z-10 border-b border-steel-900/40 bg-carbon-light">
               <div className="flex items-center justify-between px-6 pt-4 pb-3">
                 <div><span className="font-mono text-caption text-blue-bright">{selected.code}</span><h2 className="font-display text-h3 text-arctic">{selected.serviceTitle}</h2></div>
@@ -308,9 +308,63 @@ export default function AdminPresupuestosPage() {
   );
 }
 
+function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
+  const [q, setQ] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!q || q.length < 2) { setResults([]); setOpen(false); return; }
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/clientes?q=${encodeURIComponent(q)}&limit=8`);
+        if (res.ok) { const d = await res.json(); setResults(d.clientes || []); setOpen(true); }
+      } finally { setLoading(false); }
+    }, 300);
+  }, [q]);
+
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-2 rounded-md border border-blue/30 bg-carbon px-3 py-2">
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-bright shrink-0" /> : <Search className="h-3.5 w-3.5 text-blue-bright shrink-0" />}
+        <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => results.length > 0 && setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+          className="flex-1 bg-transparent font-body text-body-sm text-arctic outline-none placeholder:text-steel-700"
+          placeholder="Buscar cliente existente por nombre, empresa o teléfono..." />
+      </div>
+      {open && results.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-steel-900/60 bg-carbon shadow-xl">
+          {results.map((c: any) => (
+            <button key={c.id} onMouseDown={() => { onSelect(c); setQ(''); setResults([]); setOpen(false); }}
+              className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-steel-900/60">
+              <div>
+                <p className="font-body text-body-sm font-medium text-arctic">{c.name}</p>
+                <p className="font-body text-caption text-steel-500">{[c.company, c.phone, c.email].filter(Boolean).join(' · ')}</p>
+              </div>
+              <span className="shrink-0 font-mono text-[0.6rem] text-steel-700">{c.jobsCount} trabajo{c.jobsCount !== 1 ? 's' : ''}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [saving, setSaving] = useState(false);
   const [f, setF] = useState({ customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '', serviceTitle: '', serviceType: 'mantenimiento', description: '', estimatedValue: '', estimatedDuration: '', priority: 'media' });
+
+  const fillFromCliente = (c: any) => setF((prev) => ({
+    ...prev,
+    customerName: c.name || prev.customerName,
+    customerEmail: c.email || prev.customerEmail,
+    customerPhone: c.phone || prev.customerPhone,
+    customerCompany: c.company || prev.customerCompany,
+    customerAddress: c.address || prev.customerAddress,
+  }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true);
@@ -343,7 +397,12 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
               <input type="text" placeholder="Duracion estimada" value={f.estimatedDuration} onChange={(e) => setF({ ...f, estimatedDuration: e.target.value })} className="input" />
             </div>
           </div>
-          <div className="card p-4"><h3 className="mb-3 font-display text-h4 text-arctic">Datos del cliente</h3>
+          <div className="card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-display text-h4 text-arctic">Datos del cliente</h3>
+            </div>
+            <ClienteBuscador onSelect={fillFromCliente} />
+            <p className="mb-3 mt-1.5 font-body text-caption text-steel-700">O completá los datos manualmente:</p>
             <div className="grid grid-cols-2 gap-3">
               <input type="text" placeholder="Nombre *" value={f.customerName} onChange={(e) => setF({ ...f, customerName: e.target.value })} className="input" required />
               <input type="text" placeholder="Empresa" value={f.customerCompany} onChange={(e) => setF({ ...f, customerCompany: e.target.value })} className="input" />

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronUp, Save, FileText, Loader2, Package, Wrench, Search } from 'lucide-react';
+import { Plus, Trash2, Save, FileText, Loader2, Search, GripVertical } from 'lucide-react';
 
-/* ─── Material search autocomplete ──────────────────── */
+/* ─── Material search autocomplete ─────────────────── */
 interface MaterialSuggestion {
   id: string; description: string; unit: string; unitPrice: number; provider: string; category: string;
 }
@@ -21,7 +21,7 @@ function MaterialSearch({ onSelect }: { onSelect: (m: MaterialSuggestion) => voi
     timer.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/materiales?q=${encodeURIComponent(q)}&limit=8`);
+        const res = await fetch(`/api/materiales?q=${encodeURIComponent(q)}&limit=10`);
         if (res.ok) { const d = await res.json(); setResults(d.materials || []); setOpen(true); }
       } finally { setLoading(false); }
     }, 300);
@@ -32,12 +32,12 @@ function MaterialSearch({ onSelect }: { onSelect: (m: MaterialSuggestion) => voi
   return (
     <div className="relative">
       <div className="flex items-center gap-2 rounded-md border border-steel-900/40 bg-carbon px-3 py-2">
-        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-steel-500" /> : <Search className="h-3.5 w-3.5 text-steel-500" />}
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-steel-500 shrink-0" /> : <Search className="h-3.5 w-3.5 text-steel-500 shrink-0" />}
         <input
           value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => results.length > 0 && setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           className="flex-1 bg-transparent font-body text-body-sm text-arctic outline-none placeholder:text-steel-700"
-          placeholder="Buscar material del inventario..."
+          placeholder="Buscar en inventario para agregar fila..."
         />
       </div>
       {open && results.length > 0 && (
@@ -46,7 +46,7 @@ function MaterialSearch({ onSelect }: { onSelect: (m: MaterialSuggestion) => voi
             <button key={m.id} onMouseDown={() => pick(m)} className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-steel-900/60">
               <div>
                 <p className="font-body text-body-sm text-arctic">{m.description}</p>
-                <p className="font-mono text-caption text-steel-500">{m.provider} · {m.unit}</p>
+                <p className="font-mono text-caption text-steel-500">{m.category} · {m.unit}</p>
               </div>
               <span className="shrink-0 font-mono text-caption text-[#48BB78]">Gs. {Math.round(m.unitPrice).toLocaleString('es-PY')}</span>
             </button>
@@ -58,53 +58,52 @@ function MaterialSearch({ onSelect }: { onSelect: (m: MaterialSuggestion) => voi
 }
 
 /* ─── Types ─────────────────────────────────────────── */
-export interface LineaCalculo {
+export type RowType = 'titulo' | 'material' | 'mano_obra' | 'otro';
+
+export interface FilaCalculo {
   id: string;
+  tipo: RowType;
   descripcion: string;
   unidad: string;
   cantidad: number;
-  precioUnitario: number;
-  tipo: 'material' | 'mano_obra' | 'otro';
-}
-
-export interface ItemPresupuesto {
-  id: string;
-  orden: number;
-  descripcionCliente: string;
-  unidad: string;
-  cantidad: number;
-  precioVenta: number;
-  lineas: LineaCalculo[];
-  expandido: boolean;
+  precioUnitario: number;  // costo interno
+  precioVenta: number;     // precio al cliente (por unidad)
 }
 
 export interface CalculationData {
-  items: ItemPresupuesto[];
-  iva: number;        // porcentaje, default 10
-  descuento: number;  // monto fijo en Gs
+  filas: FilaCalculo[];
+  iva: number;
+  descuento: number;
   validez: string;
   ubicacion: string;
   observaciones: string;
+  // legacy fields kept for compatibility
+  items?: any[];
 }
 
 const defaultCalc = (): CalculationData => ({
-  items: [], iva: 10, descuento: 0, validez: '10 días', ubicacion: '', observaciones:
-    'Precios sujetos a relevamiento final, disponibilidad de materiales y confirmación técnica. No incluye trabajos no detallados en el presente presupuesto.',
+  filas: [], iva: 10, descuento: 0, validez: '10 días', ubicacion: '',
+  observaciones: 'Precios sujetos a relevamiento final y disponibilidad de materiales. No incluye trabajos no detallados en el presente presupuesto.',
 });
 
-const newItem = (orden: number): ItemPresupuesto => ({
-  id: crypto.randomUUID(), orden, descripcionCliente: '', unidad: 'Global', cantidad: 1,
-  precioVenta: 0, lineas: [], expandido: true,
-});
-
-const newLinea = (tipo: LineaCalculo['tipo']): LineaCalculo => ({
-  id: crypto.randomUUID(), descripcion: '', unidad: 'unid', cantidad: 1, precioUnitario: 0, tipo,
+const newFila = (tipo: RowType): FilaCalculo => ({
+  id: crypto.randomUUID(), tipo, descripcion: '', unidad: tipo === 'titulo' ? '' : 'unid',
+  cantidad: tipo === 'titulo' ? 0 : 1, precioUnitario: 0, precioVenta: 0,
 });
 
 const gs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
-const pct = (n: number) => (isNaN(n) || !isFinite(n) ? '—' : n.toFixed(1) + '%');
+
+const ROW_COLORS: Record<RowType, string> = {
+  titulo: 'bg-steel-900/60',
+  material: 'bg-blue/[0.04]',
+  mano_obra: 'bg-[#48BB78]/[0.04]',
+  otro: 'bg-carbon',
+};
 
 /* ─── Component ─────────────────────────────────────── */
+export interface ItemPresupuesto { id: string; orden: number; descripcionCliente: string; unidad: string; cantidad: number; precioVenta: number; lineas: any[]; expandido: boolean; }
+export interface LineaCalculo { id: string; descripcion: string; unidad: string; cantidad: number; precioUnitario: number; tipo: string; }
+
 interface Props {
   presupuestoId: string;
   serviceTitle: string;
@@ -115,51 +114,38 @@ interface Props {
 }
 
 export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, code, initial, onSaved }: Props) {
-  const [calc, setCalc] = useState<CalculationData>(initial && initial.items ? initial : defaultCalc());
+  const [calc, setCalc] = useState<CalculationData>(() => {
+    if (!initial) return defaultCalc();
+    // migrate from old format
+    if (initial.filas) return initial;
+    return { ...defaultCalc(), ubicacion: initial.ubicacion || '', validez: initial.validez || '10 días', observaciones: initial.observaciones || defaultCalc().observaciones };
+  });
   const [saving, setSaving] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
-  /* ─── Calculations ─── */
-  const costoItem = (item: ItemPresupuesto) =>
-    item.lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0);
-
-  const totalVentaItem = (item: ItemPresupuesto) => item.cantidad * item.precioVenta;
-
-  const subtotal = calc.items.reduce((s, i) => s + totalVentaItem(i), 0);
+  /* ─── Totals ─── */
+  const filasTotalizables = calc.filas.filter((f) => f.tipo !== 'titulo');
+  const subtotal = filasTotalizables.reduce((s, f) => s + f.cantidad * f.precioVenta, 0);
+  const costoTotal = filasTotalizables.reduce((s, f) => s + f.cantidad * f.precioUnitario, 0);
   const ivaMonto = subtotal * (calc.iva / 100);
   const totalGeneral = subtotal + ivaMonto - calc.descuento;
+  const margenTotal = subtotal > 0 ? ((subtotal - costoTotal) / subtotal) * 100 : 0;
 
   /* ─── Mutators ─── */
-  const setItems = (items: ItemPresupuesto[]) => setCalc((c) => ({ ...c, items }));
+  const setFilas = (filas: FilaCalculo[]) => setCalc((c) => ({ ...c, filas }));
 
-  const addItem = () =>
-    setItems([...calc.items, newItem(calc.items.length + 1)]);
+  const addFila = (tipo: RowType) => setFilas([...calc.filas, newFila(tipo)]);
 
-  const removeItem = (id: string) =>
-    setItems(calc.items.filter((i) => i.id !== id).map((i, idx) => ({ ...i, orden: idx + 1 })));
+  const removeFila = (id: string) => setFilas(calc.filas.filter((f) => f.id !== id));
 
-  const updateItem = (id: string, patch: Partial<ItemPresupuesto>) =>
-    setItems(calc.items.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+  const updateFila = (id: string, patch: Partial<FilaCalculo>) =>
+    setFilas(calc.filas.map((f) => (f.id === id ? { ...f, ...patch } : f)));
 
-  const toggleItem = (id: string) =>
-    updateItem(id, { expandido: !calc.items.find((i) => i.id === id)?.expandido });
-
-  const addLinea = (itemId: string, tipo: LineaCalculo['tipo']) =>
-    updateItem(itemId, {
-      lineas: [...(calc.items.find((i) => i.id === itemId)?.lineas ?? []), newLinea(tipo)],
-    });
-
-  const removeLinea = (itemId: string, lineaId: string) =>
-    updateItem(itemId, {
-      lineas: calc.items.find((i) => i.id === itemId)?.lineas.filter((l) => l.id !== lineaId) ?? [],
-    });
-
-  const updateLinea = (itemId: string, lineaId: string, patch: Partial<LineaCalculo>) =>
-    updateItem(itemId, {
-      lineas: calc.items.find((i) => i.id === itemId)?.lineas.map((l) =>
-        l.id === lineaId ? { ...l, ...patch } : l
-      ) ?? [],
-    });
+  const addFromInventario = (m: MaterialSuggestion) =>
+    setFilas([...calc.filas, {
+      id: crypto.randomUUID(), tipo: 'material', descripcion: m.description,
+      unidad: m.unit, cantidad: 1, precioUnitario: Number(m.unitPrice), precioVenta: Number(m.unitPrice),
+    }]);
 
   /* ─── Save ─── */
   const save = async () => {
@@ -172,24 +158,19 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
     setSaving(false);
   };
 
-  /* ─── PDF generation ─── */
+  /* ─── PDF ─── */
   const generatePdf = useCallback(() => {
     setGeneratingPdf(true);
     const html = buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral });
     const win = window.open('', '_blank');
-    if (win) {
-      win.document.write(html);
-      win.document.close();
-      setTimeout(() => { win.print(); setGeneratingPdf(false); }, 600);
-    } else {
-      setGeneratingPdf(false);
-    }
+    if (win) { win.document.write(html); win.document.close(); setTimeout(() => { win.print(); setGeneratingPdf(false); }, 600); }
+    else setGeneratingPdf(false);
   }, [calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral]);
 
   /* ─── Render ─── */
   return (
     <div className="space-y-4">
-      {/* Header info */}
+      {/* Project info */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="label mb-1 block">Ubicación / Proyecto</label>
@@ -201,122 +182,162 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         </div>
       </div>
 
-      {/* Items */}
-      <div className="space-y-3">
-        {calc.items.map((item) => {
-          const costo = costoItem(item);
-          const venta = totalVentaItem(item);
-          const margen = venta - costo;
-          const margenPct = costo > 0 ? (margen / venta) * 100 : 0;
-          return (
-            <div key={item.id} className="rounded-lg border border-steel-900/60 bg-carbon overflow-hidden">
-              {/* Item header */}
-              <div className="flex items-center gap-3 bg-steel-900/40 px-4 py-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-blue/20 font-mono text-caption text-blue-bright">{item.orden}</span>
+      {/* Inventory search */}
+      <MaterialSearch onSelect={addFromInventario} />
+
+      {/* Main table */}
+      <div className="rounded-lg border border-steel-900/50 overflow-hidden">
+        {/* Header */}
+        <div className="grid bg-steel-900/60 px-2 py-2 font-body text-[0.6rem] uppercase tracking-wider text-steel-500"
+          style={{ gridTemplateColumns: '32px 1fr 80px 70px 130px 130px 32px' }}>
+          <span />
+          <span>Descripción</span>
+          <span className="text-center">Unidad</span>
+          <span className="text-center">Cant.</span>
+          <span className="text-right">Costo unit.</span>
+          <span className="text-right">Precio cliente</span>
+          <span />
+        </div>
+
+        {/* Rows */}
+        {calc.filas.length === 0 ? (
+          <div className="py-10 text-center font-body text-body-sm text-steel-700">
+            Agregá ítems con los botones de abajo o buscá en el inventario
+          </div>
+        ) : (
+          <div className="divide-y divide-steel-900/20">
+            {calc.filas.map((fila) => (
+              <div key={fila.id}
+                className={`grid items-center px-2 py-1.5 gap-2 ${ROW_COLORS[fila.tipo]}`}
+                style={{ gridTemplateColumns: '32px 1fr 80px 70px 130px 130px 32px' }}>
+
+                {/* Type indicator */}
+                <span className={`flex h-5 w-5 items-center justify-center rounded text-[0.5rem] font-bold uppercase ${
+                  fila.tipo === 'titulo' ? 'bg-steel-700 text-arctic' :
+                  fila.tipo === 'material' ? 'bg-blue/20 text-blue-bright' :
+                  fila.tipo === 'mano_obra' ? 'bg-[#48BB78]/20 text-[#48BB78]' :
+                  'bg-steel-900 text-steel-300'
+                }`}>
+                  {fila.tipo === 'titulo' ? 'T' : fila.tipo === 'material' ? 'M' : fila.tipo === 'mano_obra' ? 'MO' : 'O'}
+                </span>
+
+                {/* Descripcion */}
                 <input
-                  className="flex-1 bg-transparent font-body text-body-sm text-arctic outline-none placeholder:text-steel-700"
-                  value={item.descripcionCliente}
-                  onChange={(e) => updateItem(item.id, { descripcionCliente: e.target.value })}
-                  placeholder="Descripción para el cliente..."
+                  className={`bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full ${fila.tipo === 'titulo' ? 'font-semibold text-arctic uppercase' : 'text-steel-300'}`}
+                  value={fila.descripcion}
+                  onChange={(e) => updateFila(fila.id, { descripcion: e.target.value })}
+                  placeholder={fila.tipo === 'titulo' ? 'Título de sección...' : fila.tipo === 'material' ? 'Material...' : fila.tipo === 'mano_obra' ? 'Mano de obra...' : 'Otro...'}
                 />
-                <div className="flex shrink-0 items-center gap-2">
-                  {costo > 0 && (
-                    <span className={`font-mono text-caption ${margen >= 0 ? 'text-[#48BB78]' : 'text-red-400'}`}>
-                      {pct(margenPct)} margen
-                    </span>
-                  )}
-                  <button onClick={() => toggleItem(item.id)} className="rounded p-1 text-steel-500 hover:text-arctic">
-                    {item.expandido ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </button>
-                  <button onClick={() => removeItem(item.id)} className="rounded p-1 text-steel-700 hover:text-red-400">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+
+                {/* Unidad */}
+                {fila.tipo === 'titulo' ? <span /> : (
+                  <input
+                    className="bg-transparent outline-none text-center font-mono text-body-sm text-steel-400 w-full"
+                    value={fila.unidad}
+                    onChange={(e) => updateFila(fila.id, { unidad: e.target.value })}
+                    placeholder="unid"
+                  />
+                )}
+
+                {/* Cantidad */}
+                {fila.tipo === 'titulo' ? <span /> : (
+                  <input
+                    type="number" min={0} step="any"
+                    className="bg-transparent outline-none text-center font-mono text-body-sm text-arctic w-full"
+                    value={fila.cantidad}
+                    onChange={(e) => updateFila(fila.id, { cantidad: Number(e.target.value) })}
+                  />
+                )}
+
+                {/* Costo unitario */}
+                {fila.tipo === 'titulo' ? <span /> : (
+                  <input
+                    type="number" min={0} step="any"
+                    className="bg-transparent outline-none text-right font-mono text-body-sm text-steel-500 w-full"
+                    value={fila.precioUnitario || ''}
+                    onChange={(e) => updateFila(fila.id, { precioUnitario: Number(e.target.value) })}
+                    placeholder="0"
+                  />
+                )}
+
+                {/* Precio venta */}
+                {fila.tipo === 'titulo' ? (
+                  <span className="text-right font-mono text-caption text-steel-700">
+                    {gs(calc.filas.filter(f => f.tipo !== 'titulo').reduce((s, f, _, arr) => {
+                      // sum only filas after this titulo until next titulo
+                      let inSection = false;
+                      let total = 0;
+                      for (const r of calc.filas) {
+                        if (r.id === fila.id) { inSection = true; continue; }
+                        if (inSection && r.tipo === 'titulo') break;
+                        if (inSection && r.tipo !== 'titulo') total += r.cantidad * r.precioVenta;
+                      }
+                      return total;
+                    }, 0))}
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number" min={0} step="any"
+                      className="bg-transparent outline-none text-right font-mono text-body-sm text-[#48BB78] w-full"
+                      value={fila.precioVenta || ''}
+                      onChange={(e) => updateFila(fila.id, { precioVenta: Number(e.target.value) })}
+                      placeholder="0"
+                    />
+                  </div>
+                )}
+
+                {/* Delete */}
+                <button onClick={() => removeFila(fila.id)} className="rounded p-1 text-steel-800 hover:text-red-400 transition-colors">
+                  <Trash2 className="h-3 w-3" />
+                </button>
               </div>
+            ))}
+          </div>
+        )}
 
-              {item.expandido && (
-                <div className="p-4 space-y-4">
-                  {/* Item pricing for client */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="label mb-1 block">Unidad</label>
-                      <input className="input" value={item.unidad} onChange={(e) => updateItem(item.id, { unidad: e.target.value })} placeholder="Global, m², m, unid..." />
-                    </div>
-                    <div>
-                      <label className="label mb-1 block">Cantidad</label>
-                      <input type="number" className="input font-mono" value={item.cantidad} min={1} onChange={(e) => updateItem(item.id, { cantidad: Number(e.target.value) })} />
-                    </div>
-                    <div>
-                      <label className="label mb-1 block">Precio unitario (cliente)</label>
-                      <input type="number" className="input font-mono" value={item.precioVenta} onChange={(e) => updateItem(item.id, { precioVenta: Number(e.target.value) })} placeholder="Gs." />
-                    </div>
-                  </div>
-
-                  {/* Internal cost lines */}
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="font-body text-caption font-semibold uppercase tracking-wider text-steel-500">Cálculo interno de costos</span>
-                      <div className="flex gap-2">
-                        <button onClick={() => addLinea(item.id, 'material')} className="flex items-center gap-1 rounded px-2 py-1 text-caption text-blue-bright hover:bg-blue/10">
-                          <Package className="h-3 w-3" /> + Material
-                        </button>
-                        <button onClick={() => addLinea(item.id, 'mano_obra')} className="flex items-center gap-1 rounded px-2 py-1 text-caption text-[#48BB78] hover:bg-[#48BB78]/10">
-                          <Wrench className="h-3 w-3" /> + M. obra/Otro
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <MaterialSearch onSelect={(m) => updateItem(item.id, {
-                        lineas: [...(calc.items.find(i => i.id === item.id)?.lineas ?? []), {
-                          id: crypto.randomUUID(), descripcion: m.description, unidad: m.unit,
-                          cantidad: 1, precioUnitario: Number(m.unitPrice), tipo: 'material',
-                        }],
-                      })} />
-                    </div>
-
-                    {item.lineas.length === 0 ? (
-                      <p className="py-3 text-center font-body text-caption text-steel-700">Sin líneas — agregá materiales o mano de obra</p>
-                    ) : (
-                      <div className="divide-y divide-steel-900/30 rounded-lg border border-steel-900/40">
-                        {/* Table header */}
-                        <div className="grid grid-cols-[1fr_80px_100px_100px_32px] gap-2 bg-steel-900/30 px-3 py-1.5 font-body text-[0.6rem] uppercase tracking-wider text-steel-700">
-                          <span>Descripción</span><span className="text-center">Cantidad</span><span className="text-right">P. Unit.</span><span className="text-right">Subtotal</span><span />
-                        </div>
-                        {item.lineas.map((l) => (
-                          <div key={l.id} className={`grid grid-cols-[1fr_80px_100px_100px_32px] gap-2 px-3 py-2 items-center ${l.tipo === 'material' ? 'bg-blue/[0.03]' : 'bg-[#48BB78]/[0.03]'}`}>
-                            <input className="bg-transparent font-body text-body-sm text-steel-300 outline-none placeholder:text-steel-800" value={l.descripcion} onChange={(e) => updateLinea(item.id, l.id, { descripcion: e.target.value })} placeholder={l.tipo === 'material' ? 'Material...' : 'Mano de obra / flete / otro...'} />
-                            <input type="number" className="bg-transparent text-center font-mono text-body-sm text-arctic outline-none" value={l.cantidad} min={0} onChange={(e) => updateLinea(item.id, l.id, { cantidad: Number(e.target.value) })} />
-                            <input type="number" className="bg-transparent text-right font-mono text-body-sm text-arctic outline-none" value={l.precioUnitario} min={0} onChange={(e) => updateLinea(item.id, l.id, { precioUnitario: Number(e.target.value) })} />
-                            <span className="text-right font-mono text-body-sm text-steel-400">{gs(l.cantidad * l.precioUnitario)}</span>
-                            <button onClick={() => removeLinea(item.id, l.id)} className="rounded p-1 text-steel-800 hover:text-red-400"><Trash2 className="h-3 w-3" /></button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Item summary */}
-                  <div className="grid grid-cols-3 gap-3 rounded-lg bg-steel-900/20 px-4 py-3 font-mono text-body-sm">
-                    <div><p className="text-steel-500 text-caption">Costo real</p><p className="text-arctic">{gs(costo)}</p></div>
-                    <div><p className="text-steel-500 text-caption">Precio venta</p><p className="text-arctic">{gs(venta)}</p></div>
-                    <div><p className="text-steel-500 text-caption">Margen</p><p className={margen >= 0 ? 'text-[#48BB78]' : 'text-red-400'}>{gs(margen)} ({pct(margenPct)})</p></div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {/* Row total footer */}
+        {calc.filas.length > 0 && (
+          <div className="grid border-t border-steel-900/40 bg-steel-900/30 px-2 py-2 font-mono text-body-sm"
+            style={{ gridTemplateColumns: '32px 1fr 80px 70px 130px 130px 32px' }}>
+            <span /><span className="text-steel-500 font-body text-caption">SUBTOTAL</span>
+            <span /><span />
+            <span className="text-right text-steel-500">{gs(costoTotal)}</span>
+            <span className="text-right text-[#48BB78] font-semibold">{gs(subtotal)}</span>
+            <span />
+          </div>
+        )}
       </div>
 
-      {/* Add item */}
-      <button onClick={addItem} className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-steel-900/60 py-3 font-body text-body-sm text-steel-500 hover:border-blue/40 hover:text-blue-bright transition-colors">
-        <Plus className="h-4 w-4" /> Agregar ítem
-      </button>
+      {/* Add row buttons */}
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => addFila('titulo')} className="flex items-center gap-1.5 rounded-md border border-steel-900/40 px-3 py-1.5 font-body text-caption text-steel-400 hover:bg-steel-900/40 hover:text-arctic transition-colors">
+          <Plus className="h-3 w-3" /> Título
+        </button>
+        <button onClick={() => addFila('material')} className="flex items-center gap-1.5 rounded-md border border-blue/30 px-3 py-1.5 font-body text-caption text-blue-bright hover:bg-blue/10 transition-colors">
+          <Plus className="h-3 w-3" /> Material
+        </button>
+        <button onClick={() => addFila('mano_obra')} className="flex items-center gap-1.5 rounded-md border border-[#48BB78]/30 px-3 py-1.5 font-body text-caption text-[#48BB78] hover:bg-[#48BB78]/10 transition-colors">
+          <Plus className="h-3 w-3" /> Mano de obra
+        </button>
+        <button onClick={() => addFila('otro')} className="flex items-center gap-1.5 rounded-md border border-steel-900/40 px-3 py-1.5 font-body text-caption text-steel-400 hover:bg-steel-900/40 hover:text-arctic transition-colors">
+          <Plus className="h-3 w-3" /> Otro
+        </button>
+      </div>
+
+      {/* Margen summary */}
+      {costoTotal > 0 && (
+        <div className="flex items-center gap-4 rounded-lg border border-steel-900/30 bg-carbon px-4 py-3 font-mono text-caption">
+          <span className="text-steel-500">Costo total: <span className="text-arctic">{gs(costoTotal)}</span></span>
+          <span className="text-steel-500">Venta: <span className="text-[#48BB78]">{gs(subtotal)}</span></span>
+          <span className="text-steel-500">Margen: <span className={margenTotal >= 20 ? 'text-[#48BB78]' : margenTotal >= 0 ? 'text-yellow-bright' : 'text-red-400'}>{margenTotal.toFixed(1)}%</span></span>
+        </div>
+      )}
 
       {/* Totals */}
-      {calc.items.length > 0 && (
-        <div className="rounded-lg border border-steel-900/40 bg-carbon-light p-4 space-y-2">
-          <div className="grid grid-cols-2 gap-3">
+      {calc.filas.length > 0 && (
+        <div className="rounded-lg border border-steel-900/40 bg-carbon-light p-4 space-y-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="label mb-1 block">IVA (%)</label>
               <input type="number" className="input font-mono" value={calc.iva} min={0} max={100} onChange={(e) => setCalc((c) => ({ ...c, iva: Number(e.target.value) }))} />
@@ -325,12 +346,17 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
               <label className="label mb-1 block">Descuento (Gs.)</label>
               <input type="number" className="input font-mono" value={calc.descuento} min={0} onChange={(e) => setCalc((c) => ({ ...c, descuento: Number(e.target.value) }))} />
             </div>
+            <div className="flex flex-col justify-end">
+              <div className="rounded-lg bg-steel-900/40 px-4 py-3 text-right">
+                <p className="font-body text-caption text-steel-500">TOTAL</p>
+                <p className="font-display text-h2 text-[#48BB78]">{gs(totalGeneral)}</p>
+              </div>
+            </div>
           </div>
-          <div className="divide-y divide-steel-900/30">
-            <div className="flex justify-between py-2 font-body text-body-sm text-steel-300"><span>Subtotal</span><span className="font-mono">{gs(subtotal)}</span></div>
-            <div className="flex justify-between py-2 font-body text-body-sm text-steel-300"><span>IVA ({calc.iva}%)</span><span className="font-mono">{gs(ivaMonto)}</span></div>
-            {calc.descuento > 0 && <div className="flex justify-between py-2 font-body text-body-sm text-[#FC8181]"><span>Descuento</span><span className="font-mono">-{gs(calc.descuento)}</span></div>}
-            <div className="flex justify-between py-2 font-display text-h3 text-arctic"><span>TOTAL GENERAL</span><span className="font-mono text-[#48BB78]">{gs(totalGeneral)}</span></div>
+          <div className="divide-y divide-steel-900/20 font-body text-body-sm">
+            <div className="flex justify-between py-1.5 text-steel-400"><span>Subtotal</span><span className="font-mono">{gs(subtotal)}</span></div>
+            <div className="flex justify-between py-1.5 text-steel-400"><span>IVA ({calc.iva}%)</span><span className="font-mono">{gs(ivaMonto)}</span></div>
+            {calc.descuento > 0 && <div className="flex justify-between py-1.5 text-[#FC8181]"><span>Descuento</span><span className="font-mono">-{gs(calc.descuento)}</span></div>}
           </div>
           <div>
             <label className="label mb-1 block">Observaciones para el PDF</label>
@@ -344,7 +370,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         <button onClick={save} disabled={saving} className="btn-primary flex-1 justify-center gap-2">
           {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><Save className="h-4 w-4" />Guardar cálculo</>}
         </button>
-        {calc.items.length > 0 && (
+        {calc.filas.length > 0 && (
           <button onClick={generatePdf} disabled={generatingPdf} className="btn-secondary flex items-center gap-2 px-4">
             {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
             PDF cliente
@@ -363,15 +389,19 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
   const gs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
   const today = new Date().toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const rows = calc.items.map((item) => `
-    <tr>
-      <td style="text-align:center">${item.orden}</td>
-      <td>${item.descripcionCliente}</td>
-      <td style="text-align:center">${item.unidad}</td>
-      <td style="text-align:center">${item.cantidad}</td>
-      <td style="text-align:right">${gs(item.precioVenta)}</td>
-      <td style="text-align:right">${gs(item.cantidad * item.precioVenta)}</td>
-    </tr>`).join('');
+  const rows = calc.filas.map((fila) => {
+    if (fila.tipo === 'titulo') {
+      return `<tr><td colspan="5" style="background:#1a3a52;color:white;font-weight:bold;padding:7px 10px;font-size:11px;letter-spacing:0.5px">${fila.descripcion}</td></tr>`;
+    }
+    const total = fila.cantidad * fila.precioVenta;
+    return `<tr>
+      <td>${fila.descripcion}</td>
+      <td style="text-align:center">${fila.unidad}</td>
+      <td style="text-align:center">${fila.cantidad}</td>
+      <td style="text-align:right">${gs(fila.precioVenta)}</td>
+      <td style="text-align:right">${gs(total)}</td>
+    </tr>`;
+  }).join('');
 
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Presupuesto ${code}</title>
   <style>
@@ -415,7 +445,7 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
   </div>
   <h2>${serviceTitle}</h2>
   <table class="items">
-    <thead><tr><th style="width:40px">N°</th><th>Descripción</th><th style="width:70px;text-align:center">Unidad</th><th style="width:60px;text-align:center">Cant.</th><th style="width:110px;text-align:right">P. Unitario</th><th style="width:120px;text-align:right">Total</th></tr></thead>
+    <thead><tr><th>Descripción</th><th style="width:70px;text-align:center">Unidad</th><th style="width:60px;text-align:center">Cant.</th><th style="width:120px;text-align:right">P. Unitario</th><th style="width:130px;text-align:right">Total</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
   <div class="totals">
