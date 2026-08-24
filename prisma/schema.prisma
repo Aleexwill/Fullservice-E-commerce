@@ -125,6 +125,7 @@ model Presupuesto {
   attachments       String[]
   assignedTo        String   @default("")
   scheduledDate     String   @default("")
+  calculationData   Json     @default("{}")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -210,4 +211,25 @@ model PageView {
 
   @@index([path])
   @@index([timestamp])
+}
+
+// ============================================================
+// INVENTARIO INTERNO (materiales para presupuestos de servicios)
+// ============================================================
+
+model Material {
+  id          String   @id @default(cuid())
+  code        String   @default("")
+  description String
+  unit        String   @default("un")
+  unitPrice   Decimal  @db.Decimal(14, 2)
+  provider    String   @default("")
+  category    String   @default("general")
+  isActive    Boolean  @default(true)
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([description])
+  @@index([category])
 }

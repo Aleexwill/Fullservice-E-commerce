@@ -1,0 +1,1 @@
+ALTER TABLE "Presupuesto" ADD COLUMN IF NOT EXISTS "calculationData" JSONB NOT NULL DEFAULT '{}';

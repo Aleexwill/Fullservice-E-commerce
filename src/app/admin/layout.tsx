@@ -49,6 +49,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/admin/servicios', label: 'Servicios', icon: Wrench },
       { href: '/admin/presupuestos', label: 'Presupuestos', icon: Calculator },
+      { href: '/admin/inventario', label: 'Inventario', icon: ClipboardList },
       { href: '/admin/reportes/servicios', label: 'Reporte Serv.', icon: ClipboardList },
     ],
   },

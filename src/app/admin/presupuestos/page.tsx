@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Search, RefreshCw, Plus, Eye, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, DollarSign, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Filter } from 'lucide-react';
+import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
+import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
 
 interface Presupuesto {
   id: string; code: string; status: string; serviceType: string; serviceTitle: string;
   customer: { name: string; email: string; phone: string; company: string; address: string };
   description: string; details: string; estimatedValue: number | null; finalValue: number | null;
   estimatedDuration: string; priority: string; source: string; assignedTo: string; scheduledDate: string;
+  calculationData: CalculationData | null;
   notes: { id: string; text: string; createdAt: string }[];
   createdAt: string; updatedAt: string;
 }
@@ -54,6 +56,7 @@ export default function AdminPresupuestosPage() {
   const [editDuration, setEditDuration] = useState('');
   const [editAssigned, setEditAssigned] = useState('');
   const [savingFields, setSavingFields] = useState(false);
+  const [activeTab, setActiveTab] = useState<'detalle' | 'calculo'>('detalle');
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -83,6 +86,7 @@ export default function AdminPresupuestosPage() {
     setEditDuration(item.estimatedDuration || '');
     setEditAssigned(item.assignedTo || '');
     setEditingFinal(false);
+    setActiveTab('detalle');
   };
 
   const saveWorkFields = async () => {
@@ -194,11 +198,36 @@ export default function AdminPresupuestosPage() {
         <div className="fixed inset-0 z-[100] flex items-end justify-end">
           <div className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
           <div className="relative h-full w-full max-w-lg overflow-y-auto border-l border-steel-900/40 bg-carbon-light shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-steel-900/40 bg-carbon-light px-6 py-4">
-              <div><span className="font-mono text-caption text-blue-bright">{selected.code}</span><h2 className="font-display text-h3 text-arctic">{selected.serviceTitle}</h2></div>
-              <button onClick={() => setSelected(null)} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
+            <div className="sticky top-0 z-10 border-b border-steel-900/40 bg-carbon-light">
+              <div className="flex items-center justify-between px-6 pt-4 pb-3">
+                <div><span className="font-mono text-caption text-blue-bright">{selected.code}</span><h2 className="font-display text-h3 text-arctic">{selected.serviceTitle}</h2></div>
+                <button onClick={() => setSelected(null)} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
+              </div>
+              {/* Tabs */}
+              <div className="flex gap-1 px-6 pb-0">
+                <button onClick={() => setActiveTab('detalle')} className={`flex items-center gap-1.5 rounded-t-md px-4 py-2 font-body text-body-sm transition-colors ${activeTab === 'detalle' ? 'bg-steel-900 text-arctic' : 'text-steel-500 hover:text-arctic'}`}>
+                  <FileText className="h-3.5 w-3.5" /> Detalle
+                </button>
+                <button onClick={() => setActiveTab('calculo')} className={`flex items-center gap-1.5 rounded-t-md px-4 py-2 font-body text-body-sm transition-colors ${activeTab === 'calculo' ? 'bg-steel-900 text-arctic' : 'text-steel-500 hover:text-arctic'}`}>
+                  <Calculator className="h-3.5 w-3.5" /> Cálculo interno
+                </button>
+              </div>
             </div>
             <div className="space-y-5 p-6">
+              {/* ── PESTAÑA CÁLCULO INTERNO ── */}
+              {activeTab === 'calculo' && (
+                <PresupuestoCalculo
+                  presupuestoId={selected.id}
+                  serviceTitle={selected.serviceTitle}
+                  customerName={selected.customer.name}
+                  code={selected.code}
+                  initial={selected.calculationData}
+                  onSaved={(data) => setSelected((s) => s ? { ...s, calculationData: data } : s)}
+                />
+              )}
+
+              {/* ── PESTAÑA DETALLE ── */}
+              {activeTab === 'detalle' && <>
               {/* Status + Priority */}
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="label mb-1 block">Estado</label><select value={selected.status} onChange={(e) => updateStatus(selected.id, e.target.value)} className="input">{Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
@@ -267,6 +296,7 @@ export default function AdminPresupuestosPage() {
                 <div className="flex gap-2"><input type="text" value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Agregar nota de seguimiento..." className="input flex-1" onKeyDown={(e) => e.key === 'Enter' && addNote()} /><button onClick={addNote} disabled={addingNote || !newNote.trim()} className="btn-primary shrink-0 px-3 disabled:opacity-50">{addingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</button></div>
               </div>
               <p className="font-mono text-[0.6rem] text-steel-700">Creado: {formatDate(selected.createdAt)} | Actualizado: {formatDate(selected.updatedAt)}</p>
+              </>}
             </div>
           </div>
         </div>
