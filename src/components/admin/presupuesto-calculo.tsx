@@ -158,14 +158,22 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
     setSaving(false);
   };
 
-  /* ─── PDF ─── */
-  const generatePdf = useCallback(() => {
+  /* ─── PDF — auto-save first, then print ─── */
+  const generatePdf = useCallback(async () => {
     setGeneratingPdf(true);
+    // persist before opening print window
+    try {
+      const res = await fetch(`/api/presupuestos/${presupuestoId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ calculationData: calc, finalValue: Math.round(totalGeneral) }),
+      });
+      if (res.ok) { const u = await res.json(); onSaved(u.calculationData ?? calc); }
+    } catch (_) {}
     const html = buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral });
     const win = window.open('', '_blank');
     if (win) { win.document.write(html); win.document.close(); setTimeout(() => { win.print(); setGeneratingPdf(false); }, 600); }
     else setGeneratingPdf(false);
-  }, [calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral]);
+  }, [calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral, presupuestoId, onSaved]);
 
   /* ─── Render ─── */
   return (

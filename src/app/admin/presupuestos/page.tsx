@@ -214,8 +214,8 @@ export default function AdminPresupuestosPage() {
               </div>
             </div>
             <div className="space-y-5 p-6">
-              {/* ── PESTAÑA CÁLCULO INTERNO ── */}
-              {activeTab === 'calculo' && (
+              {/* ── PESTAÑA CÁLCULO INTERNO — siempre montado, solo oculto ── */}
+              <div className={activeTab === 'calculo' ? '' : 'hidden'}>
                 <PresupuestoCalculo
                   presupuestoId={selected.id}
                   serviceTitle={selected.serviceTitle}
@@ -224,7 +224,7 @@ export default function AdminPresupuestosPage() {
                   initial={selected.calculationData}
                   onSaved={(data) => setSelected((s) => s ? { ...s, calculationData: data } : s)}
                 />
-              )}
+              </div>
 
               {/* ── PESTAÑA DETALLE ── */}
               {activeTab === 'detalle' && <>
