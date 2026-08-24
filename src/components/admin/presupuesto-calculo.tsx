@@ -408,9 +408,6 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a1a; padding: 32px; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .brand { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
-    .brand span { color: #2D8FCC; }
-    .brand em { color: #E8631A; font-style: normal; }
     .meta table { border-collapse: collapse; }
     .meta td { padding: 2px 8px; }
     .meta td:first-child { font-weight: bold; color: #555; }
@@ -429,12 +426,9 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     @media print { body { padding: 16px; } }
   </style></head><body>
   <div class="header">
-    <div style="display:flex;align-items:center;gap:12px">
-      <img src="/logo.png" alt="Full Service & Clean" style="height:64px;width:auto;object-fit:contain" />
-      <div>
-        <div class="brand"><span>Full Service</span> <em>&amp; Clean</em></div>
-        <div style="color:#555;margin-top:2px;font-size:10px">Servicios profesionales de mantenimiento y construcción</div>
-      </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px">
+      <img src="/logo.png" alt="Full Service & Clean" style="height:72px;width:auto;object-fit:contain" />
+      <div style="color:#555;font-size:10px">Servicios profesionales de mantenimiento y construcción</div>
     </div>
     <div class="meta">
       <table>
