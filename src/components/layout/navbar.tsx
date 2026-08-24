@@ -51,8 +51,8 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
             <Image
               src="/logo.png"
               alt="Full Service & Clean"
-              width={120}
-              height={48}
+              width={160}
+              height={64}
               className="object-contain"
               priority
             />
