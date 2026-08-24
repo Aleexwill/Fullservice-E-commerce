@@ -429,9 +429,12 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     @media print { body { padding: 16px; } }
   </style></head><body>
   <div class="header">
-    <div>
-      <div class="brand"><span>Full Service</span> <em>&amp; Clean</em></div>
-      <div style="color:#555;margin-top:4px;font-size:10px">Servicios profesionales de mantenimiento y construcción</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <img src="/logo.png" alt="Full Service & Clean" style="height:64px;width:auto;object-fit:contain" />
+      <div>
+        <div class="brand"><span>Full Service</span> <em>&amp; Clean</em></div>
+        <div style="color:#555;margin-top:2px;font-size:10px">Servicios profesionales de mantenimiento y construcción</div>
+      </div>
     </div>
     <div class="meta">
       <table>
@@ -457,5 +460,12 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     </table>
   </div>
   ${calc.observaciones ? `<div class="obs">${calc.observaciones}</div>` : ''}
+  <div style="margin-top:32px;border-top:1px solid #ddd;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+    <img src="/logo.png" alt="" style="height:32px;width:auto;opacity:0.5" />
+    <div style="font-size:9px;color:#aaa;text-align:right">
+      Full Service &amp; Clean · Asunción, Paraguay<br/>
+      Este presupuesto es válido por ${calc.validez} desde la fecha de emisión.
+    </div>
+  </div>
 </body></html>`;
 }
