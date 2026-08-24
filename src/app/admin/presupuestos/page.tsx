@@ -210,6 +210,11 @@ export default function AdminPresupuestosPage() {
                 </button>
                 <button onClick={() => setActiveTab('calculo')} className={`flex items-center gap-1.5 rounded-t-md px-4 py-2 font-body text-body-sm transition-colors ${activeTab === 'calculo' ? 'bg-steel-900 text-arctic' : 'text-steel-500 hover:text-arctic'}`}>
                   <Calculator className="h-3.5 w-3.5" /> Cálculo interno
+                  {selected.calculationData?.filas?.length > 0 && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#48BB78]/20 font-mono text-[0.5rem] text-[#48BB78]">
+                      {selected.calculationData.filas.length}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
