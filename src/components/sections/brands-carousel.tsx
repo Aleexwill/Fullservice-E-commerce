@@ -3,14 +3,16 @@
 import { useEffect, useRef } from 'react';
 
 const BRANDS = [
-  { name: 'Bosch', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Bosch_logo_svg.svg/320px-Bosch_logo_svg.svg.png' },
-  { name: 'Stanley', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Stanley_logo.svg/320px-Stanley_logo.svg.png' },
-  { name: 'DeWalt', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/DeWalt_Logo.svg/320px-DeWalt_Logo.svg.png' },
-  { name: 'Makita', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Makita_logo.svg/320px-Makita_logo.svg.png' },
-  { name: '3M', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/3M_wordmark.svg/320px-3M_wordmark.svg.png' },
-  { name: 'Philips', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Philips_logo_new.svg/320px-Philips_logo_new.svg.png' },
-  { name: 'Schneider', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Schneider_Electric_2007.svg/320px-Schneider_Electric_2007.svg.png' },
-  { name: 'Siemens', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Siemens-logo.svg/320px-Siemens-logo.svg.png' },
+  { name: 'Bosch', color: '#EA0016' },
+  { name: 'Stanley', color: '#FFCD00' },
+  { name: 'DeWalt', color: '#FFCD11' },
+  { name: 'Makita', color: '#00A0E9' },
+  { name: '3M', color: '#FF0000' },
+  { name: 'Philips', color: '#0B5ED7' },
+  { name: 'Schneider', color: '#3DCD58' },
+  { name: 'Siemens', color: '#009999' },
+  { name: 'Milwaukee', color: '#E4002B' },
+  { name: 'Truper', color: '#F47920' },
 ];
 
 // Duplicate for seamless loop
@@ -48,21 +50,19 @@ export function BrandsCarousel() {
         <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-carbon to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-carbon to-transparent" />
 
-        <div ref={trackRef} className="flex items-center gap-12 whitespace-nowrap will-change-transform">
+        <div ref={trackRef} className="flex items-center gap-8 whitespace-nowrap will-change-transform">
           {ALL.map((brand, i) => (
             <div
               key={i}
-              className="flex h-16 w-32 shrink-0 items-center justify-center rounded-lg border border-steel-900/30 bg-steel-900/20 px-4 py-3 grayscale opacity-60 transition hover:opacity-100 hover:grayscale-0"
+              className="flex h-16 w-36 shrink-0 items-center justify-center rounded-lg border border-steel-900/40 bg-steel-900/30 px-5 py-3 opacity-50 transition-all duration-300 hover:opacity-100"
+              style={{ borderColor: `${brand.color}30` }}
             >
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                className="max-h-full max-w-full object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="font-display text-body-sm font-bold text-steel-300">${brand.name}</span>`;
-                }}
-              />
+              <span
+                className="font-display text-body font-bold tracking-tight"
+                style={{ color: brand.color }}
+              >
+                {brand.name}
+              </span>
             </div>
           ))}
         </div>

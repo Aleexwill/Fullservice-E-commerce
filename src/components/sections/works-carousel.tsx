@@ -6,37 +6,37 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const WORKS = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
+    src: 'https://picsum.photos/seed/electric/1200/600',
     title: 'Instalación eléctrica industrial',
     category: 'Mantenimiento',
   },
   {
     id: 2,
-    src: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=800&q=80',
+    src: 'https://picsum.photos/seed/civil/1200/600',
     title: 'Construcción civil — Estructura',
     category: 'Construcción',
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+    src: 'https://picsum.photos/seed/cleaning/1200/600',
     title: 'Limpieza profunda de instalaciones',
     category: 'Limpieza',
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&q=80',
+    src: 'https://picsum.photos/seed/metal/1200/600',
     title: 'Estructura metálica — Galpón',
     category: 'Metalúrgica',
   },
   {
     id: 5,
-    src: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
+    src: 'https://picsum.photos/seed/maintenance/1200/600',
     title: 'Mantenimiento edilicio preventivo',
     category: 'Mantenimiento',
   },
   {
     id: 6,
-    src: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80',
+    src: 'https://picsum.photos/seed/obra/1200/600',
     title: 'Obra civil — Ampliación',
     category: 'Construcción',
   },
