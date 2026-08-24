@@ -45,14 +45,14 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
 
       {/* Navbar principal */}
       <nav className="container-main">
-        <div className="flex h-[60px] items-center justify-between">
+        <div className="flex h-[84px] items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Image
               src="/logo.png"
               alt="Full Service & Clean"
-              width={160}
-              height={64}
+              width={200}
+              height={80}
               className="object-contain"
               priority
             />
