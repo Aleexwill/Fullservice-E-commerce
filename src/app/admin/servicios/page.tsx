@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Wrench, X, Save, GripVertical, RefreshCw } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
+import { ImageUploader } from '@/components/admin/image-uploader';
 
 interface Service {
   id: string; title: string; description: string; category: string; icon: string;
@@ -113,8 +114,12 @@ export default function AdminServiciosPage() {
                 <div><label className="label mb-1 block">Categoria</label><select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="input">{CATEGORIES.map((c) => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}</select></div>
                 <div><label className="label mb-1 block">Icono</label><select value={editing.icon} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} className="input font-mono">{ICONS.map((i) => <option key={i} value={i}>{i}</option>)}</select></div>
               </div>
-              <div><label className="label mb-1 block">Imagen (URL)</label><input type="url" value={editing.image} onChange={(e) => setEditing({ ...editing, image: e.target.value })} className="input" placeholder="https://..." /></div>
-              {editing.image && <img src={editing.image} alt="" className="h-24 w-full rounded-md object-cover" />}
+              <ImageUploader
+                label="Imagen del servicio"
+                value={editing.image}
+                onChange={(url) => setEditing({ ...editing, image: url })}
+                previewHeight="h-32"
+              />
               <div>
                 <label className="label mb-1 block">Caracteristicas</label>
                 <div className="flex gap-2"><input type="text" value={newFeature} onChange={(e) => setNewFeature(e.target.value)} className="input flex-1" placeholder="Agregar caracteristica" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())} /><button type="button" onClick={addFeature} className="btn-secondary shrink-0"><Plus className="h-4 w-4" /></button></div>

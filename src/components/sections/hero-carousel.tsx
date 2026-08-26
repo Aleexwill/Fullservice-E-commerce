@@ -3,70 +3,55 @@
 import { useState, useEffect } from 'react';
 import { Wrench, HardHat, Sparkles, Factory, Zap, Layers } from 'lucide-react';
 
-const SLIDES = [
-  {
-    label: 'Soldadura & Estructuras',
-    icon: Factory,
-    gradient: 'from-[#0a1628] via-[#1a3a5c] to-[#0d2340]',
-    accent: '#2D8FCC',
-    tag: 'Metalurgica',
-    desc: 'Fabricación de rejas, portones, estructuras metálicas y trabajos de soldadura en general.',
-    photo: null as string | null,
-  },
-  {
-    label: 'Obra civil & Remodelación',
-    icon: HardHat,
-    gradient: 'from-[#1a1200] via-[#2d2000] to-[#1a1200]',
-    accent: '#E8862B',
-    tag: 'Construcción',
-    desc: 'Construcción, ampliación y remodelación de locales comerciales e industriales.',
-    photo: null as string | null,
-  },
-  {
-    label: 'Mantenimiento general',
-    icon: Wrench,
-    gradient: 'from-[#0a1a0f] via-[#0f2d1a] to-[#0a1a0f]',
-    accent: '#48BB78',
-    tag: 'Preventivo & Correctivo',
-    desc: 'Mantenimiento integral de instalaciones, equipos y espacios industriales.',
-    photo: null as string | null,
-  },
-  {
-    label: 'Limpieza industrial',
-    icon: Sparkles,
-    gradient: 'from-[#1a0a28] via-[#2d1a40] to-[#1a0a28]',
-    accent: '#9F7AEA',
-    tag: 'Limpieza profesional',
-    desc: 'Limpieza profunda de plantas, depósitos, oficinas y espacios comerciales.',
-    photo: null as string | null,
-  },
-  {
-    label: 'Eléctrica & Plomería',
-    icon: Zap,
-    gradient: 'from-[#1a1200] via-[#2d2000] to-[#0a1628]',
-    accent: '#F6E05E',
-    tag: 'Instalaciones',
-    desc: 'Instalaciones eléctricas, sanitarias y de gas para todo tipo de obras.',
-    photo: null as string | null,
-  },
+interface Slide {
+  id: string;
+  label: string;
+  tag: string;
+  description: string;
+  photoUrl: string;
+  accent: string;
+  gradient: string;
+  order: number;
+}
+
+// Fallback slides shown while DB loads or if DB is empty
+const FALLBACK_SLIDES: Slide[] = [
+  { id: '1', label: 'Soldadura & Estructuras', tag: 'Metalurgica', description: 'Fabricación de rejas, portones, estructuras metálicas y trabajos de soldadura en general.', photoUrl: '', accent: '#2D8FCC', gradient: 'from-[#0a1628] via-[#1a3a5c] to-[#0d2340]', order: 0 },
+  { id: '2', label: 'Obra civil & Remodelación', tag: 'Construcción', description: 'Construcción, ampliación y remodelación de locales comerciales e industriales.', photoUrl: '', accent: '#E8862B', gradient: 'from-[#1a1200] via-[#2d2000] to-[#1a1200]', order: 1 },
+  { id: '3', label: 'Mantenimiento general', tag: 'Preventivo & Correctivo', description: 'Mantenimiento integral de instalaciones, equipos y espacios industriales.', photoUrl: '', accent: '#48BB78', gradient: 'from-[#0a1a0f] via-[#0f2d1a] to-[#0a1a0f]', order: 2 },
+  { id: '4', label: 'Limpieza industrial', tag: 'Limpieza profesional', description: 'Limpieza profunda de plantas, depósitos, oficinas y espacios comerciales.', photoUrl: '', accent: '#9F7AEA', gradient: 'from-[#1a0a28] via-[#2d1a40] to-[#1a0a28]', order: 3 },
+  { id: '5', label: 'Eléctrica & Plomería', tag: 'Instalaciones', description: 'Instalaciones eléctricas, sanitarias y de gas para todo tipo de obras.', photoUrl: '', accent: '#F6E05E', gradient: 'from-[#1a1200] via-[#2d2000] to-[#0a1628]', order: 4 },
 ];
 
 export function HeroDiagonalCarousel() {
+  const [slides, setSlides] = useState<Slide[]>(FALLBACK_SLIDES);
   const [active, setActive] = useState(0);
 
+  // Fetch slides from DB
   useEffect(() => {
-    const t = setInterval(() => setActive((a) => (a + 1) % SLIDES.length), 3500);
-    return () => clearInterval(t);
+    fetch('/api/carousel-slides')
+      .then((r) => r.json())
+      .then((data: Slide[]) => {
+        if (Array.isArray(data) && data.length > 0) setSlides(data);
+      })
+      .catch(() => { /* keep fallback */ });
   }, []);
 
-  // Show 3 cards: previous (back), active (front), next (hint)
-  const prev = (active - 1 + SLIDES.length) % SLIDES.length;
-  const next = (active + 1) % SLIDES.length;
+  // Auto-advance
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const t = setInterval(() => setActive((a) => (a + 1) % slides.length), 3500);
+    return () => clearInterval(t);
+  }, [slides.length]);
+
+  if (slides.length === 0) return null;
+
+  const prev = (active - 1 + slides.length) % slides.length;
+  const next = (active + 1) % slides.length;
 
   return (
     <div className="relative h-[420px] w-[320px] select-none" style={{ perspective: '1000px' }}>
-      {SLIDES.map((slide, i) => {
-        const Icon = slide.icon;
+      {slides.map((slide, i) => {
         const isFront = i === active;
         const isBack = i === prev;
         const isHint = i === next;
@@ -76,11 +61,10 @@ export function HeroDiagonalCarousel() {
 
         return (
           <div
-            key={slide.label}
+            key={slide.id}
             onClick={() => isFront && setActive(next)}
-            className={`absolute inset-0 rounded-2xl border overflow-hidden transition-all duration-700 cursor-pointer`}
+            className="absolute inset-0 rounded-2xl border overflow-hidden transition-all duration-700 cursor-pointer"
             style={{
-              background: `linear-gradient(135deg, ${slide.gradient.replace('from-', '').replace('via-', '').replace('to-', '')})`,
               borderColor: isFront ? slide.accent + '60' : '#ffffff08',
               transform: isFront
                 ? 'rotate(-8deg) translateX(0px) translateY(0px) scale(1)'
@@ -94,12 +78,17 @@ export function HeroDiagonalCarousel() {
                 : 'none',
             }}
           >
-            {/* Photo or gradient background */}
-            {slide.photo ? (
+            {/* Photo background */}
+            {slide.photoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={slide.photo} alt={slide.label} className="absolute inset-0 h-full w-full object-cover" />
-            ) : null}
-            <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} ${slide.photo ? 'opacity-70' : ''}`} />
+              <img src={slide.photoUrl} alt={slide.label} className="absolute inset-0 h-full w-full object-cover" />
+            )}
+
+            {/* Gradient overlay (always shown, semi-transparent when photo exists) */}
+            <div
+              className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`}
+              style={{ opacity: slide.photoUrl ? 0.65 : 1 }}
+            />
 
             {/* Diagonal stripe pattern */}
             <svg className="absolute inset-0 h-full w-full opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
@@ -112,25 +101,13 @@ export function HeroDiagonalCarousel() {
             </svg>
 
             {/* Accent glow */}
-            <div
-              className="absolute -right-16 -top-16 h-48 w-48 rounded-full blur-3xl opacity-30"
-              style={{ background: slide.accent }}
-            />
-            <div
-              className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-20"
-              style={{ background: slide.accent }}
-            />
+            <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full blur-3xl opacity-30" style={{ background: slide.accent }} />
+            <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-20" style={{ background: slide.accent }} />
 
             {/* Content */}
             <div className="relative z-10 flex h-full flex-col justify-between p-8">
-              {/* Top: icon + tag */}
-              <div className="flex items-start justify-between">
-                <div
-                  className="flex h-14 w-14 items-center justify-center rounded-xl"
-                  style={{ background: slide.accent + '25', border: `1px solid ${slide.accent}40` }}
-                >
-                  <Icon className="h-7 w-7" style={{ color: slide.accent }} />
-                </div>
+              {/* Top: tag badge */}
+              <div className="flex items-start justify-end">
                 <span
                   className="rounded-full px-3 py-1 font-body text-[0.6rem] font-semibold uppercase tracking-wider"
                   style={{ background: slide.accent + '20', color: slide.accent, border: `1px solid ${slide.accent}30` }}
@@ -139,18 +116,20 @@ export function HeroDiagonalCarousel() {
                 </span>
               </div>
 
-              {/* Bottom: label + dots */}
+              {/* Bottom: label + description + dots */}
               <div>
-                <p className="font-body text-caption uppercase tracking-[0.15em] text-white/40">Full Service & Clean</p>
+                <p className="font-body text-[0.6rem] uppercase tracking-[0.15em] text-white/40">Full Service & Clean</p>
                 <h3 className="mt-1 font-display text-[1.6rem] font-bold uppercase leading-tight text-white">
                   {slide.label}
                 </h3>
-                <p className="mt-2 font-body text-[0.72rem] leading-relaxed text-white/50 line-clamp-2">
-                  {slide.desc}
-                </p>
+                {slide.description && (
+                  <p className="mt-1.5 font-body text-[0.7rem] leading-relaxed text-white/50 line-clamp-2">
+                    {slide.description}
+                  </p>
+                )}
                 {/* Progress dots */}
-                <div className="mt-5 flex gap-1.5">
-                  {SLIDES.map((_, di) => (
+                <div className="mt-4 flex gap-1.5">
+                  {slides.map((_, di) => (
                     <div
                       key={di}
                       onClick={(e) => { e.stopPropagation(); setActive(di); }}

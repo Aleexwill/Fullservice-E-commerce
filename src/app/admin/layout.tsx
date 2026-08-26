@@ -20,6 +20,7 @@ import {
   ClipboardList,
   TrendingUp,
   Calculator,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
@@ -58,6 +59,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/admin/contenido', label: 'Contenido', icon: PenSquare },
       { href: '/admin/portfolio', label: 'Portfolio', icon: FolderOpen },
+      { href: '/admin/carousel', label: 'Carrusel hero', icon: Layers },
     ],
   },
   {
