@@ -114,6 +114,14 @@
     @apply text-steel-500;
   }
 
+  .admin-input {
+    @apply w-full rounded border border-steel-700 bg-steel-900 px-3 py-2 text-body-sm text-arctic transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20;
+  }
+
+  .admin-input::placeholder {
+    @apply text-steel-500;
+  }
+
   .input-error {
     @apply border-danger focus:border-danger focus:ring-danger/20;
   }
