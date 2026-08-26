@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, ShoppingCart } from 'lucide-react';
+import { HeroDiagonalCarousel } from '@/components/sections/hero-carousel';
 
 function StatBlock({ number, label, suffix = '' }: { number: string; label: string; suffix?: string }) {
   return (
@@ -39,13 +39,9 @@ export function HeroSection() {
         style={{ background: 'linear-gradient(90deg, transparent, #E8862B10, transparent)' }}
       />
 
-      {/* Floating logo */}
-      <div className="absolute right-[8%] top-[15%] hidden opacity-[0.06] lg:block">
-        <Image src="/logo.png" alt="" width={350} height={350} className="object-contain" />
-      </div>
-
       <div className="container-main relative z-10 w-full">
-        <div className="max-w-[720px] py-20 md:py-28">
+        <div className="flex items-center gap-16 py-20 md:py-28">
+        <div className="flex-1 max-w-[620px]">
           {/* Status badge */}
           <div className="mb-6 flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-success shadow-[0_0_8px_rgba(47,133,90,0.6)]" />
@@ -91,6 +87,13 @@ export function HeroSection() {
             <StatBlock number="100" suffix="%" label="Garantia" />
             <StatBlock number="10" suffix="+" label="Anos experiencia" />
           </div>
+        </div>
+
+        {/* Carousel — hidden on mobile, visible on large screens */}
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-center">
+          <HeroDiagonalCarousel />
+        </div>
+
         </div>
       </div>
     </section>

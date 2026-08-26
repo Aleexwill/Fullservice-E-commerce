@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star, FolderOpen, X, Save, Loader2, MapPin, Calendar, User, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
+import { ImageUploader, MultiImageUploader } from '@/components/admin/image-uploader';
 
 interface Project {
   id: string; title: string; description: string; category: string; location: string;
@@ -115,8 +116,22 @@ export default function AdminPortfolioPage() {
                 <div><label className="label mb-1 block">Ubicacion</label><input type="text" value={editing.location} onChange={(e) => setEditing({ ...editing, location: e.target.value })} className="input" /></div>
                 <div><label className="label mb-1 block">Duracion</label><input type="text" value={editing.duration} onChange={(e) => setEditing({ ...editing, duration: e.target.value })} className="input" placeholder="Ej: 3 meses" /></div>
                 <div><label className="label mb-1 block">Ano</label><input type="text" value={editing.year} onChange={(e) => setEditing({ ...editing, year: e.target.value })} className="input" /></div>
-                <div className="col-span-2"><label className="label mb-1 block">Imagen principal (URL)</label><input type="url" value={editing.image} onChange={(e) => setEditing({ ...editing, image: e.target.value })} className="input" placeholder="https://..." /></div>
-                {editing.image && <div className="col-span-2"><img src={editing.image} alt="" className="h-32 w-full rounded-md object-cover" /></div>}
+                <div className="col-span-2">
+                  <ImageUploader
+                    label="Imagen principal"
+                    value={editing.image}
+                    onChange={(url) => setEditing({ ...editing, image: url })}
+                    previewHeight="h-40"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <MultiImageUploader
+                    label="Galería de fotos adicionales"
+                    value={editing.gallery}
+                    onChange={(urls) => setEditing({ ...editing, gallery: urls })}
+                    max={8}
+                  />
+                </div>
                 <div><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} className="h-4 w-4 accent-blue" /><span className="font-body text-body-sm text-arctic">Activo</span></label></div>
                 <div><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={editing.isFeatured} onChange={(e) => setEditing({ ...editing, isFeatured: e.target.checked })} className="h-4 w-4 accent-yellow-bright" /><span className="font-body text-body-sm text-arctic">Destacado</span></label></div>
               </div>

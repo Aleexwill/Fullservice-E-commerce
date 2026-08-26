@@ -235,6 +235,26 @@ model Material {
 }
 
 // ============================================================
+// CARRUSEL DEL HERO (slides con foto de trabajos)
+// ============================================================
+
+model CarouselSlide {
+  id          String   @id @default(cuid())
+  label       String
+  tag         String   @default("")
+  description String   @default("") @db.Text
+  photoUrl    String   @default("")
+  accent      String   @default("#2D8FCC")
+  gradient    String   @default("from-[#0a1628] via-[#1a3a5c] to-[#0d2340]")
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, order])
+}
+
+// ============================================================
 // CLIENTES (confirmados — vienen de presupuestos aprobados)
 // ============================================================
 
