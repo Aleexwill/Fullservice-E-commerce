@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
         photoUrl: body.photoUrl || '',
         accent: body.accent || '#2D8FCC',
         gradient: body.gradient || 'from-[#0a1628] via-[#1a3a5c] to-[#0d2340]',
+        overlayOpacity: body.overlayOpacity ?? 55,
         order: body.order ?? count,
         isActive: body.isActive ?? true,
       },

@@ -11,16 +11,17 @@ interface Slide {
   photoUrl: string;
   accent: string;
   gradient: string;
+  overlayOpacity: number;
   order: number;
 }
 
 // Fallback slides shown while DB loads or if DB is empty
 const FALLBACK_SLIDES: Slide[] = [
-  { id: '1', label: 'Soldadura & Estructuras', tag: 'Metalurgica', description: 'Fabricación de rejas, portones, estructuras metálicas y trabajos de soldadura en general.', photoUrl: '', accent: '#2D8FCC', gradient: 'from-[#0a1628] via-[#1a3a5c] to-[#0d2340]', order: 0 },
-  { id: '2', label: 'Obra civil & Remodelación', tag: 'Construcción', description: 'Construcción, ampliación y remodelación de locales comerciales e industriales.', photoUrl: '', accent: '#E8862B', gradient: 'from-[#1a1200] via-[#2d2000] to-[#1a1200]', order: 1 },
-  { id: '3', label: 'Mantenimiento general', tag: 'Preventivo & Correctivo', description: 'Mantenimiento integral de instalaciones, equipos y espacios industriales.', photoUrl: '', accent: '#48BB78', gradient: 'from-[#0a1a0f] via-[#0f2d1a] to-[#0a1a0f]', order: 2 },
-  { id: '4', label: 'Limpieza industrial', tag: 'Limpieza profesional', description: 'Limpieza profunda de plantas, depósitos, oficinas y espacios comerciales.', photoUrl: '', accent: '#9F7AEA', gradient: 'from-[#1a0a28] via-[#2d1a40] to-[#1a0a28]', order: 3 },
-  { id: '5', label: 'Eléctrica & Plomería', tag: 'Instalaciones', description: 'Instalaciones eléctricas, sanitarias y de gas para todo tipo de obras.', photoUrl: '', accent: '#F6E05E', gradient: 'from-[#1a1200] via-[#2d2000] to-[#0a1628]', order: 4 },
+  { id: '1', label: 'Soldadura & Estructuras', tag: 'Metalurgica', description: 'Fabricación de rejas, portones, estructuras metálicas y trabajos de soldadura en general.', photoUrl: '', accent: '#2D8FCC', gradient: 'from-[#0a1628] via-[#1a3a5c] to-[#0d2340]', overlayOpacity: 55, order: 0 },
+  { id: '2', label: 'Obra civil & Remodelación', tag: 'Construcción', description: 'Construcción, ampliación y remodelación de locales comerciales e industriales.', photoUrl: '', accent: '#E8862B', gradient: 'from-[#1a1200] via-[#2d2000] to-[#1a1200]', overlayOpacity: 55, order: 1 },
+  { id: '3', label: 'Mantenimiento general', tag: 'Preventivo & Correctivo', description: 'Mantenimiento integral de instalaciones, equipos y espacios industriales.', photoUrl: '', accent: '#48BB78', gradient: 'from-[#0a1a0f] via-[#0f2d1a] to-[#0a1a0f]', overlayOpacity: 55, order: 2 },
+  { id: '4', label: 'Limpieza industrial', tag: 'Limpieza profesional', description: 'Limpieza profunda de plantas, depósitos, oficinas y espacios comerciales.', photoUrl: '', accent: '#9F7AEA', gradient: 'from-[#1a0a28] via-[#2d1a40] to-[#1a0a28]', overlayOpacity: 55, order: 3 },
+  { id: '5', label: 'Eléctrica & Plomería', tag: 'Instalaciones', description: 'Instalaciones eléctricas, sanitarias y de gas para todo tipo de obras.', photoUrl: '', accent: '#F6E05E', gradient: 'from-[#1a1200] via-[#2d2000] to-[#0a1628]', overlayOpacity: 55, order: 4 },
 ];
 
 export function HeroDiagonalCarousel() {
@@ -84,10 +85,10 @@ export function HeroDiagonalCarousel() {
               <img src={slide.photoUrl} alt={slide.label} className="absolute inset-0 h-full w-full object-cover" />
             )}
 
-            {/* Gradient overlay (always shown, semi-transparent when photo exists) */}
+            {/* Gradient overlay — opacity controlled per-slide */}
             <div
               className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`}
-              style={{ opacity: slide.photoUrl ? 0.65 : 1 }}
+              style={{ opacity: slide.photoUrl ? (slide.overlayOpacity ?? 55) / 100 : 1 }}
             />
 
             {/* Diagonal stripe pattern */}

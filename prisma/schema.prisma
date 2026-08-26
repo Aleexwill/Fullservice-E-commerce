@@ -246,10 +246,11 @@ model CarouselSlide {
   photoUrl    String   @default("")
   accent      String   @default("#2D8FCC")
   gradient    String   @default("from-[#0a1628] via-[#1a3a5c] to-[#0d2340]")
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  overlayOpacity Int      @default(55)
+  order          Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([isActive, order])
 }

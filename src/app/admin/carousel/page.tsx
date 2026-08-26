@@ -12,6 +12,7 @@ interface Slide {
   photoUrl: string;
   accent: string;
   gradient: string;
+  overlayOpacity: number;
   order: number;
   isActive: boolean;
 }
@@ -51,6 +52,7 @@ function SlideEditor({
       photoUrl: '',
       accent: '#2D8FCC',
       gradient: GRADIENT_PRESETS[0].value,
+      overlayOpacity: 55,
       isActive: true,
     }
   );
@@ -78,6 +80,29 @@ function SlideEditor({
             hint="Subí una foto de un trabajo terminado (JPG, PNG, WEBP · máx 5 MB)"
             previewHeight="h-36"
           />
+
+          {/* Overlay opacity — only relevant when photo is set */}
+          {form.photoUrl && (
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="font-body text-xs text-steel-400">Oscuridad del fondo sobre la foto</label>
+                <span className="font-body text-xs font-semibold text-arctic">{form.overlayOpacity ?? 55}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={form.overlayOpacity ?? 55}
+                onChange={(e) => setForm((f) => ({ ...f, overlayOpacity: Number(e.target.value) }))}
+                className="w-full accent-blue"
+              />
+              <div className="mt-1 flex justify-between font-body text-[0.6rem] text-steel-600">
+                <span>0% — imagen limpia</span>
+                <span>100% — fondo sólido</span>
+              </div>
+            </div>
+          )}
 
           {/* Label */}
           <div>
@@ -161,7 +186,10 @@ function SlideEditor({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={form.photoUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
               ) : null}
-              <div className={`absolute inset-0 bg-gradient-to-br ${form.gradient || GRADIENT_PRESETS[0].value} ${form.photoUrl ? 'opacity-70' : ''}`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${form.gradient || GRADIENT_PRESETS[0].value}`}
+                style={{ opacity: form.photoUrl ? (form.overlayOpacity ?? 55) / 100 : 1 }}
+              />
               <div
                 className="absolute -right-4 -top-4 h-16 w-16 rounded-full opacity-30 blur-2xl"
                 style={{ background: form.accent }}

@@ -24,6 +24,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         ...(body.photoUrl !== undefined && { photoUrl: body.photoUrl }),
         ...(body.accent !== undefined && { accent: body.accent }),
         ...(body.gradient !== undefined && { gradient: body.gradient }),
+        ...(body.overlayOpacity !== undefined && { overlayOpacity: body.overlayOpacity }),
         ...(body.order !== undefined && { order: body.order }),
         ...(body.isActive !== undefined && { isActive: body.isActive }),
       },
