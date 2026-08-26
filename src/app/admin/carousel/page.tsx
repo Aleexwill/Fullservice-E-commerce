@@ -57,9 +57,9 @@ function SlideEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-steel-800 bg-carbon-light shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-steel-800 px-5 py-4">
+      <div className="flex w-full max-w-lg flex-col rounded-xl border border-steel-800 bg-carbon-light shadow-2xl" style={{ maxHeight: '90vh' }}>
+        {/* Header — fixed */}
+        <div className="flex shrink-0 items-center justify-between border-b border-steel-800 px-5 py-4">
           <h2 className="font-display text-sm font-bold uppercase text-arctic">
             {slide ? 'Editar slide' : 'Nuevo slide'}
           </h2>
@@ -68,6 +68,7 @@ function SlideEditor({
           </button>
         </div>
 
+        <div className="flex-1 overflow-y-auto">
         <div className="space-y-4 p-5">
           {/* Photo upload */}
           <ImageUploader
@@ -178,9 +179,11 @@ function SlideEditor({
               </div>
             </div>
           </div>
-        </div>
+        </div>{/* end space-y-4 */}
+        </div>{/* end scroll wrapper */}
 
-        <div className="flex justify-end gap-2 border-t border-steel-800 px-5 py-4">
+        {/* Footer — fixed */}
+        <div className="flex shrink-0 justify-end gap-2 border-t border-steel-800 px-5 py-4">
           <button onClick={onClose} className="btn-ghost text-xs">Cancelar</button>
           <button
             onClick={() => onSave(form)}
