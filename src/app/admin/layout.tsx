@@ -94,21 +94,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-steel-900/40 bg-carbon-light">
         {/* Logo */}
-        <div className="flex h-[60px] items-center gap-2.5 border-b border-steel-900/40 px-4">
+        <div className="flex h-[60px] items-center justify-between border-b border-steel-900/40 px-4">
           <Image
             src="/logo.png"
             alt="Full Service & Clean"
-            width={32}
-            height={32}
+            width={160}
+            height={48}
             className="object-contain"
           />
-          <div className="flex flex-col">
-            <span className="font-display text-[0.7rem] font-bold uppercase leading-none tracking-tight">
-              <span className="text-blue-bright">Full Service</span>{' '}
-              <span className="text-orange">&amp; Clean</span>
-            </span>
-          </div>
-          <span className="badge-blue ml-auto text-[0.5rem]">Admin</span>
+          <span className="badge-blue text-[0.5rem]">Admin</span>
         </div>
 
         {/* Nav */}
