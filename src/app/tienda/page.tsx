@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { BrandsCarousel } from '@/components/sections/brands-carousel';
+import { PromoBannerCarousel } from '@/components/sections/promo-banner-carousel';
 import { useCartStore } from '@/lib/cart-store';
 import { formatPrice, getEffectivePrice } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -131,6 +132,9 @@ export default function TiendaPage() {
 
   return (
     <>
+      {/* Promo banners */}
+      <PromoBannerCarousel />
+
       {/* Breadcrumb */}
       <div className="border-b border-steel-900/40">
         <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-steel-500">

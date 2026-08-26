@@ -235,6 +235,28 @@ model Material {
 }
 
 // ============================================================
+// BANNERS PROMOCIONALES (flyers de tienda / servicios)
+// ============================================================
+
+model PromoBanner {
+  id          String   @id @default(cuid())
+  title       String   @default("")
+  subtitle    String   @default("")
+  ctaLabel    String   @default("")
+  ctaUrl      String   @default("")
+  imageUrl    String   @default("")
+  bgColor     String   @default("#0a1628")
+  accentColor String   @default("#2D8FCC")
+  badge       String   @default("")
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, order])
+}
+
+// ============================================================
 // CARRUSEL DEL HERO (slides con foto de trabajos)
 // ============================================================
 

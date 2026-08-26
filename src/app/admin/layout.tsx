@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Calculator,
   Layers,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
@@ -60,6 +61,7 @@ const navGroups: NavGroup[] = [
       { href: '/admin/contenido', label: 'Contenido', icon: PenSquare },
       { href: '/admin/portfolio', label: 'Portfolio', icon: FolderOpen },
       { href: '/admin/carousel', label: 'Carrusel hero', icon: Layers },
+      { href: '/admin/promos', label: 'Banners / Promos', icon: Megaphone },
     ],
   },
   {
