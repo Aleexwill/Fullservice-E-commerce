@@ -18,7 +18,6 @@ interface PromoBanner {
 
 const FALLBACK: PromoBanner[] = [
   { id: '1', title: 'Hasta 30% OFF en herramientas', subtitle: 'Ofertas válidas hasta fin de mes. Stock limitado.', ctaLabel: 'Ver ofertas', ctaUrl: '/tienda', imageUrl: '', bgColor: '#0a1628', accentColor: '#E8862B', badge: 'OFERTA' },
-  { id: '2', title: 'Servicio completo garantizado', subtitle: 'Presupuesto sin cargo. Respuesta en 24 horas.', ctaLabel: 'Pedir presupuesto', ctaUrl: '/contacto?tipo=presupuesto', imageUrl: '', bgColor: '#0a1a0f', accentColor: '#48BB78', badge: 'NUEVO' },
 ];
 
 export function PromoBannerCarousel() {
