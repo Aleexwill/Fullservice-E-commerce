@@ -47,7 +47,7 @@ export function PromoBannerCarousel() {
   return (
     <div
       className="relative w-full overflow-hidden"
-      style={{ minHeight: '280px' }}
+      style={{ minHeight: '420px' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -101,7 +101,7 @@ export function PromoBannerCarousel() {
           </div>
 
           {/* Content */}
-          <div className="container-main relative z-10 flex h-full min-h-[280px] items-center py-10">
+          <div className="container-main relative z-10 flex h-full min-h-[420px] items-center py-14">
             <div className="max-w-[580px]">
               {/* Badge */}
               {banner.badge && (
