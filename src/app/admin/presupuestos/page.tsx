@@ -16,6 +16,7 @@ interface Presupuesto {
 }
 
 const STATUS_MAP: Record<string, { label: string; badge: string }> = {
+  borrador: { label: 'Borrador', badge: 'badge-neutral' },
   nuevo: { label: 'Nuevo', badge: 'badge-blue' },
   en_revision: { label: 'En revision', badge: 'badge-yellow' },
   cotizado: { label: 'Cotizado', badge: 'badge-yellow' },
@@ -138,7 +139,7 @@ export default function AdminPresupuestosPage() {
           <h1 className="font-display text-h1 uppercase text-arctic">Presupuestos</h1>
           <p className="mt-1 font-body text-body-sm text-steel-300">Solicitudes de presupuesto de servicios</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> Nueva solicitud</button>
+        <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo presupuesto</button>
       </div>
 
       {/* Filters */}
@@ -363,7 +364,15 @@ export default function AdminPresupuestosPage() {
       )}
 
       {/* Create modal */}
-      {showCreate && <CreatePresupuestoModal onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); fetchData(); }} />}
+      {showCreate && (
+        <CreatePresupuestoModal
+          onClose={() => setShowCreate(false)}
+          onCreated={(id) => {
+            setShowCreate(false);
+            fetchData();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -413,9 +422,13 @@ function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
   );
 }
 
-function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [saving, setSaving] = useState(false);
-  const [f, setF] = useState({ customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '', serviceTitle: '', serviceType: 'mantenimiento', description: '', estimatedValue: '', estimatedDuration: '', priority: 'media' });
+function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id?: string) => void }) {
+  const [saving, setSaving] = useState<null | 'borrador' | 'nuevo'>(null);
+  const [f, setF] = useState({
+    customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '',
+    serviceTitle: '', serviceType: 'mantenimiento', description: '', details: '',
+    estimatedValue: '', finalValue: '', estimatedDuration: '', scheduledDate: '', assignedTo: '', priority: 'media',
+  });
 
   const fillFromCliente = (c: any) => setF((prev) => ({
     ...prev,
@@ -426,55 +439,129 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
     customerAddress: c.address || prev.customerAddress,
   }));
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setSaving(true);
-    await fetch('/api/presupuestos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      customer: { name: f.customerName, email: f.customerEmail, phone: f.customerPhone, company: f.customerCompany, address: f.customerAddress },
-      serviceTitle: f.serviceTitle, serviceType: f.serviceType, description: f.description,
-      estimatedValue: f.estimatedValue ? Number(f.estimatedValue) : null, estimatedDuration: f.estimatedDuration, priority: f.priority, source: 'admin',
-    }) });
-    setSaving(false); onCreated();
+  const guardar = async (status: 'borrador' | 'nuevo') => {
+    if (!f.serviceTitle.trim()) return;
+    setSaving(status);
+    const res = await fetch('/api/presupuestos', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer: { name: f.customerName || 'Sin nombre', email: f.customerEmail, phone: f.customerPhone, company: f.customerCompany, address: f.customerAddress },
+        serviceTitle: f.serviceTitle, serviceType: f.serviceType, description: f.description, details: f.details,
+        estimatedValue: f.estimatedValue ? Number(f.estimatedValue) : null,
+        finalValue: f.finalValue ? Number(f.finalValue) : null,
+        estimatedDuration: f.estimatedDuration, scheduledDate: f.scheduledDate, assignedTo: f.assignedTo,
+        priority: f.priority, source: 'admin', status,
+      }),
+    });
+    setSaving(null);
+    if (res.ok) { const d = await res.json(); onCreated(d?.id); }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-carbon/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg border border-steel-900/60 bg-carbon-light shadow-2xl">
-        <div className="flex items-center justify-between border-b border-steel-900/40 px-6 py-4">
-          <h2 className="font-display text-h2 text-arctic">Nueva solicitud de presupuesto</h2>
+      <div className="relative flex w-full max-w-2xl flex-col rounded-lg border border-steel-900/60 bg-carbon-light shadow-2xl" style={{ maxHeight: '92vh' }}>
+        {/* Header */}
+        <div className="flex shrink-0 items-center justify-between border-b border-steel-900/40 px-6 py-4">
+          <div>
+            <h2 className="font-display text-h2 text-arctic">Nuevo presupuesto</h2>
+            <p className="mt-0.5 font-body text-caption text-steel-500">Completá los datos y guardá como borrador para continuar después</p>
+          </div>
           <button onClick={onClose} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
         </div>
-        <form onSubmit={submit} className="space-y-5 p-6">
-          <div className="card p-4"><h3 className="mb-3 font-display text-h4 text-arctic">Servicio solicitado</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <input type="text" placeholder="Servicio (ej: Instalacion electrica) *" value={f.serviceTitle} onChange={(e) => setF({ ...f, serviceTitle: e.target.value })} className="input col-span-2" required />
-              <select value={f.serviceType} onChange={(e) => setF({ ...f, serviceType: e.target.value })} className="input"><option value="mantenimiento">Mantenimiento</option><option value="civil">Construccion civil</option><option value="metalurgica">Metalurgica</option><option value="otro">Otro</option></select>
-              <select value={f.priority} onChange={(e) => setF({ ...f, priority: e.target.value })} className="input"><option value="baja">Prioridad baja</option><option value="media">Prioridad media</option><option value="alta">Prioridad alta</option><option value="urgente">Urgente</option></select>
+
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="space-y-5 p-6">
+            {/* Servicio */}
+            <div className="card p-4">
+              <h3 className="mb-3 font-display text-h4 text-arctic">Servicio</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="Titulo del servicio *" value={f.serviceTitle} onChange={(e) => setF({ ...f, serviceTitle: e.target.value })} className="input col-span-2" />
+                <select value={f.serviceType} onChange={(e) => setF({ ...f, serviceType: e.target.value })} className="input">
+                  <option value="mantenimiento">Mantenimiento</option>
+                  <option value="civil">Construccion civil</option>
+                  <option value="metalurgica">Metalurgica</option>
+                  <option value="otro">Otro</option>
+                </select>
+                <select value={f.priority} onChange={(e) => setF({ ...f, priority: e.target.value })} className="input">
+                  <option value="baja">Prioridad baja</option>
+                  <option value="media">Prioridad media</option>
+                  <option value="alta">Prioridad alta</option>
+                  <option value="urgente">Urgente</option>
+                </select>
+              </div>
+              <textarea placeholder="Descripcion del trabajo a realizar" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className="input mt-3 resize-none" rows={3} />
+              <textarea placeholder="Detalles adicionales, observaciones..." value={f.details} onChange={(e) => setF({ ...f, details: e.target.value })} className="input mt-2 resize-none" rows={2} />
             </div>
-            <textarea placeholder="Descripcion del servicio requerido" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className="input mt-3" rows={3} />
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <input type="number" placeholder="Valor estimado (Gs.)" value={f.estimatedValue} onChange={(e) => setF({ ...f, estimatedValue: e.target.value })} className="input font-mono" />
-              <input type="text" placeholder="Duracion estimada" value={f.estimatedDuration} onChange={(e) => setF({ ...f, estimatedDuration: e.target.value })} className="input" />
+
+            {/* Valores y programacion */}
+            <div className="card p-4">
+              <h3 className="mb-3 font-display text-h4 text-arctic">Valores y programacion</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label mb-1 block">Valor estimado (Gs.)</label>
+                  <input type="number" placeholder="0" value={f.estimatedValue} onChange={(e) => setF({ ...f, estimatedValue: e.target.value })} className="input font-mono" />
+                </div>
+                <div>
+                  <label className="label mb-1 block">Valor cotizado (Gs.)</label>
+                  <input type="number" placeholder="0" value={f.finalValue} onChange={(e) => setF({ ...f, finalValue: e.target.value })} className="input font-mono" />
+                </div>
+                <div>
+                  <label className="label mb-1 block">Duracion estimada</label>
+                  <input type="text" placeholder="ej: 3 dias" value={f.estimatedDuration} onChange={(e) => setF({ ...f, estimatedDuration: e.target.value })} className="input" />
+                </div>
+                <div>
+                  <label className="label mb-1 block">Fecha programada</label>
+                  <input type="text" placeholder="ej: 20/09/2025" value={f.scheduledDate} onChange={(e) => setF({ ...f, scheduledDate: e.target.value })} className="input" />
+                </div>
+                <div className="col-span-2">
+                  <label className="label mb-1 block">Responsable / Equipo</label>
+                  <input type="text" placeholder="Nombre del tecnico o equipo asignado" value={f.assignedTo} onChange={(e) => setF({ ...f, assignedTo: e.target.value })} className="input" />
+                </div>
+              </div>
+            </div>
+
+            {/* Cliente */}
+            <div className="card p-4">
+              <h3 className="mb-3 font-display text-h4 text-arctic">Cliente</h3>
+              <ClienteBuscador onSelect={fillFromCliente} />
+              <p className="mb-3 mt-1.5 font-body text-caption text-steel-700">O completá los datos manualmente:</p>
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="Nombre del cliente" value={f.customerName} onChange={(e) => setF({ ...f, customerName: e.target.value })} className="input" />
+                <input type="text" placeholder="Empresa" value={f.customerCompany} onChange={(e) => setF({ ...f, customerCompany: e.target.value })} className="input" />
+                <input type="email" placeholder="Email" value={f.customerEmail} onChange={(e) => setF({ ...f, customerEmail: e.target.value })} className="input" />
+                <input type="text" placeholder="Telefono" value={f.customerPhone} onChange={(e) => setF({ ...f, customerPhone: e.target.value })} className="input" />
+                <input type="text" placeholder="Direccion" value={f.customerAddress} onChange={(e) => setF({ ...f, customerAddress: e.target.value })} className="input col-span-2" />
+              </div>
             </div>
           </div>
-          <div className="card p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-h4 text-arctic">Datos del cliente</h3>
-            </div>
-            <ClienteBuscador onSelect={fillFromCliente} />
-            <p className="mb-3 mt-1.5 font-body text-caption text-steel-700">O completá los datos manualmente:</p>
-            <div className="grid grid-cols-2 gap-3">
-              <input type="text" placeholder="Nombre *" value={f.customerName} onChange={(e) => setF({ ...f, customerName: e.target.value })} className="input" required />
-              <input type="text" placeholder="Empresa" value={f.customerCompany} onChange={(e) => setF({ ...f, customerCompany: e.target.value })} className="input" />
-              <input type="email" placeholder="Email" value={f.customerEmail} onChange={(e) => setF({ ...f, customerEmail: e.target.value })} className="input" />
-              <input type="text" placeholder="Telefono" value={f.customerPhone} onChange={(e) => setF({ ...f, customerPhone: e.target.value })} className="input" />
-              <input type="text" placeholder="Direccion" value={f.customerAddress} onChange={(e) => setF({ ...f, customerAddress: e.target.value })} className="input col-span-2" />
-            </div>
+        </div>
+
+        {/* Footer con botones */}
+        <div className="shrink-0 border-t border-steel-900/40 bg-carbon-light px-6 py-4">
+          <p className="mb-3 font-body text-caption text-steel-500">
+            <span className="text-steel-700">Borrador:</span> guarda y podés continuar después. <span className="text-steel-700">Crear:</span> queda como solicitud nueva activa.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => guardar('borrador')}
+              disabled={!!saving || !f.serviceTitle.trim()}
+              className="btn-secondary flex-1 justify-center gap-2 disabled:opacity-50"
+            >
+              {saving === 'borrador' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}
+              Guardar borrador
+            </button>
+            <button
+              onClick={() => guardar('nuevo')}
+              disabled={!!saving || !f.serviceTitle.trim()}
+              className="btn-primary flex-1 justify-center gap-2 disabled:opacity-50"
+            >
+              {saving === 'nuevo' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+              Crear presupuesto
+            </button>
           </div>
-          <button type="submit" disabled={saving || !f.customerName || !f.serviceTitle} className="btn-primary w-full justify-center gap-2 py-3">
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><FileText className="h-4 w-4" />Crear presupuesto</>}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
