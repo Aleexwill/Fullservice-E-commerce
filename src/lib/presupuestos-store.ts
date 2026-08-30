@@ -35,6 +35,7 @@ export interface Presupuesto {
   attachments: string[];
   assignedTo: string;
   scheduledDate: string;
+  calculationData: any | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +59,7 @@ function toPresupuesto(p: PrismaPresupuesto): Presupuesto {
     attachments: p.attachments,
     assignedTo: p.assignedTo,
     scheduledDate: p.scheduledDate,
+    calculationData: (p as any).calculationData ?? null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
