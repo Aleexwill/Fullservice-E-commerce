@@ -422,13 +422,35 @@ function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
   );
 }
 
+const DRAFT_KEY = 'presupuesto_draft';
+const EMPTY_FORM = { customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '', serviceTitle: '', serviceType: 'mantenimiento', description: '', details: '', estimatedValue: '', finalValue: '', estimatedDuration: '', scheduledDate: '', assignedTo: '', priority: 'media' };
+
 function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id?: string) => void }) {
   const [saving, setSaving] = useState<null | 'borrador' | 'nuevo'>(null);
-  const [f, setF] = useState({
-    customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '',
-    serviceTitle: '', serviceType: 'mantenimiento', description: '', details: '',
-    estimatedValue: '', finalValue: '', estimatedDuration: '', scheduledDate: '', assignedTo: '', priority: 'media',
+  const [autoSaved, setAutoSaved] = useState(false);
+  const [restored, setRestored] = useState(false);
+
+  const [f, setF] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) { setRestored(true); return { ...EMPTY_FORM, ...JSON.parse(saved) }; }
+    } catch (_) {}
+    return EMPTY_FORM;
   });
+
+  // Auto-save to localStorage on every change
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(f));
+        setAutoSaved(true);
+        setTimeout(() => setAutoSaved(false), 1500);
+      } catch (_) {}
+    }, 800);
+    return () => clearTimeout(t);
+  }, [f]);
+
+  const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY); } catch (_) {} };
 
   const fillFromCliente = (c: any) => setF((prev) => ({
     ...prev,
@@ -454,7 +476,7 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
       }),
     });
     setSaving(null);
-    if (res.ok) { const d = await res.json(); onCreated(d?.id); }
+    if (res.ok) { clearDraft(); const d = await res.json(); onCreated(d?.id); }
   };
 
   return (
@@ -462,12 +484,34 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
       <div className="absolute inset-0 bg-carbon/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex w-full max-w-2xl flex-col rounded-lg border border-steel-900/60 bg-carbon-light shadow-2xl" style={{ maxHeight: '92vh' }}>
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-steel-900/40 px-6 py-4">
-          <div>
-            <h2 className="font-display text-h2 text-arctic">Nuevo presupuesto</h2>
-            <p className="mt-0.5 font-body text-caption text-steel-500">Completá los datos y guardá como borrador para continuar después</p>
+        <div className="shrink-0 border-b border-steel-900/40">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div>
+              <h2 className="font-display text-h2 text-arctic">Nuevo presupuesto</h2>
+              <p className="mt-0.5 font-body text-caption text-steel-500">Los datos se guardan automaticamente</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {autoSaved && (
+                <span className="flex items-center gap-1 font-body text-caption text-[#48BB78] animate-pulse">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#48BB78]" /> Auto-guardado
+                </span>
+              )}
+              <button onClick={onClose} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
+            </div>
           </div>
-          <button onClick={onClose} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
+          {restored && (
+            <div className="mx-6 mb-3 flex items-center justify-between gap-3 rounded-md border border-blue/30 bg-blue/10 px-4 py-2.5">
+              <p className="font-body text-caption text-blue-bright">
+                <span className="font-semibold">Datos recuperados</span> — se restauro el borrador que habia quedado pendiente.
+              </p>
+              <button
+                onClick={() => { setF(EMPTY_FORM); clearDraft(); setRestored(false); }}
+                className="shrink-0 font-body text-caption text-steel-500 hover:text-arctic underline"
+              >
+                Empezar de cero
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Scrollable body */}
