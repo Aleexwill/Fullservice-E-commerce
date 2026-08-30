@@ -36,7 +36,12 @@ ${texto}`;
       }),
     });
 
-    if (!res.ok) throw new Error('OpenAI error');
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      const msg = errBody?.error?.message ?? `OpenAI ${res.status}`;
+      console.error('OpenAI error:', msg);
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
     const data = await res.json();
     const resultado = data.choices?.[0]?.message?.content?.trim() ?? '';
     return NextResponse.json({ texto: resultado });
