@@ -238,9 +238,9 @@ export default function AdminPresupuestosPage() {
 
       {/* Detail panel */}
       {selected && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-end">
+        <div className="fixed inset-0 z-[100] flex">
           <div className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative h-full w-full max-w-7xl overflow-y-auto border-l border-steel-900/40 bg-carbon-light shadow-2xl">
+          <div className="relative h-full w-full overflow-y-auto bg-carbon-light shadow-2xl">
             <div className="sticky top-0 z-10 border-b border-steel-900/40 bg-carbon-light">
               <div className="flex items-center justify-between px-6 pt-4 pb-3">
                 <div><span className="font-mono text-caption text-blue-bright">{selected.code}</span><h2 className="font-display text-h3 text-arctic">{selected.serviceTitle}</h2></div>
@@ -261,7 +261,7 @@ export default function AdminPresupuestosPage() {
                 </button>
               </div>
             </div>
-            <div className="space-y-5 p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-5 p-6">
               {/* ── PESTAÑA CÁLCULO INTERNO — siempre montado, solo oculto ── */}
               <div className={activeTab === 'calculo' ? '' : 'hidden'}>
                 <PresupuestoCalculo
@@ -391,7 +391,7 @@ export default function AdminPresupuestosPage() {
                     <ChevronRight className="h-4 w-4" /> Aprobar y pasar a ejecución
                   </button>
                 )}
-                {(selected.status === 'cotizado' || selected.status === 'en_revision') && (
+                {selected.status !== 'completado' && selected.status !== 'rechazado' && (
                   <button onClick={crearNuevaVersion} className="flex w-full items-center justify-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2.5 font-body text-body-sm font-semibold text-yellow-400 hover:bg-yellow-500/20 transition-colors">
                     <GitBranch className="h-4 w-4" /> Modificar presupuesto (nueva versión)
                   </button>
