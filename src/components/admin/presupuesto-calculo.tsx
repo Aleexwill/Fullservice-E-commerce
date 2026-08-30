@@ -238,6 +238,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const [saved, setSaved] = useState(true);   // tracks unsaved changes
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
 
   // mark dirty on any calc change
   const prevCalc = useRef(calc);
@@ -297,6 +298,24 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
     } finally { setSaving(false); }
   };
   const save = () => doSave(calc);
+
+  const mejorarConIA = async (fila: FilaCalculo) => {
+    if (!fila.descripcion.trim() || aiLoadingId) return;
+    setAiLoadingId(fila.id);
+    try {
+      const res = await fetch('/api/ai/mejorar-titulo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto: fila.descripcion, contexto: serviceTitle }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.texto) updateFila(fila.id, { descripcion: data.texto });
+      }
+    } finally {
+      setAiLoadingId(null);
+    }
+  };
 
   /* ─── PDF — auto-save, then print ─── */
   const generatePdf = useCallback(async (opts: PdfOpts) => {
@@ -432,6 +451,16 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                     onChange={(e) => updateFila(fila.id, { descripcion: e.target.value })}
                     placeholder={fila.tipo === 'titulo' ? 'Título de sección...' : fila.tipo === 'material' ? 'Material...' : fila.tipo === 'mano_obra' ? 'Mano de obra / viático...' : 'Otro...'}
                   />
+                  {fila.tipo === 'titulo' && fila.descripcion.trim() && (
+                    <button
+                      onClick={() => mejorarConIA(fila)}
+                      disabled={!!aiLoadingId}
+                      title="Mejorar con IA"
+                      className="ml-1 shrink-0 rounded px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 disabled:opacity-40 transition-colors"
+                    >
+                      {aiLoadingId === fila.id ? '...' : 'IA'}
+                    </button>
+                  )}
 
                   {/* Unidad */}
                   {fila.tipo === 'titulo' ? <span /> : (
