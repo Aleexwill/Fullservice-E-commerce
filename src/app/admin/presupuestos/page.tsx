@@ -145,7 +145,9 @@ export default function AdminPresupuestosPage() {
         priority: selected.priority,
         source: 'admin',
         status: 'borrador',
-        calculationData: selected.calculationData,
+        calculationData: selected.calculationData
+          ? { ...selected.calculationData, previousFilas: selected.calculationData.filas }
+          : null,
         _versionOf: baseCode,
         _versionNum: nextV,
       }),
@@ -389,9 +391,11 @@ export default function AdminPresupuestosPage() {
                     <ChevronRight className="h-4 w-4" /> Aprobar y pasar a ejecución
                   </button>
                 )}
-                <button onClick={crearNuevaVersion} className="flex w-full items-center justify-center gap-2 rounded-lg border border-steel-900/40 px-4 py-2.5 font-body text-body-sm font-semibold text-steel-300 hover:bg-steel-900 transition-colors">
-                  <GitBranch className="h-4 w-4" /> Crear nueva versión (el cliente pidió cambios)
-                </button>
+                {(selected.status === 'cotizado' || selected.status === 'en_revision') && (
+                  <button onClick={crearNuevaVersion} className="flex w-full items-center justify-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2.5 font-body text-body-sm font-semibold text-yellow-400 hover:bg-yellow-500/20 transition-colors">
+                    <GitBranch className="h-4 w-4" /> Modificar presupuesto (nueva versión)
+                  </button>
+                )}
               </div>
               {/* Notes */}
               <div>
