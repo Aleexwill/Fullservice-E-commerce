@@ -337,6 +337,22 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
       {/* ── Inventory search ── */}
       <MaterialSearch onSelect={addFromInventario} />
 
+      {/* ── Version history banner ── */}
+      {(() => {
+        const versions: { v: number; filas: FilaCalculo[] }[] | undefined = (calc as any).versions;
+        if (!versions || versions.length === 0) return null;
+        const lastV = versions[versions.length - 1];
+        return (
+          <div className="flex items-center gap-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5">
+            <span className="font-mono text-[0.6rem] font-bold text-yellow-400">v{lastV.v + 1}</span>
+            <p className="font-body text-caption text-steel-400">
+              Mostrando cambios respecto a <span className="text-yellow-400 font-semibold">v{lastV.v}</span> — los valores modificados aparecen tachados en rojo.
+            </p>
+            <span className="ml-auto font-mono text-[0.55rem] text-steel-600">{versions.length} versión{versions.length > 1 ? 'es' : ''} guardada{versions.length > 1 ? 's' : ''}</span>
+          </div>
+        );
+      })()}
+
       {/* ── Main spreadsheet table ── */}
       <div className="rounded-lg border border-steel-900/50 overflow-hidden">
 
@@ -366,7 +382,10 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
           <div className="divide-y divide-steel-900/20">
             {calc.filas.map((fila) => {
               const rowTotal = fila.tipo !== 'titulo' ? fila.cantidad * fila.precioVenta : sectionTotal(calc.filas, fila);
-              const prevFilas: FilaCalculo[] | undefined = (calc as any).previousFilas;
+              // Use versions history: compare against last saved version
+              const versions: { v: number; filas: FilaCalculo[] }[] | undefined = (calc as any).versions;
+              const lastVersion = versions && versions.length > 0 ? versions[versions.length - 1] : undefined;
+              const prevFilas: FilaCalculo[] | undefined = lastVersion?.filas ?? (calc as any).previousFilas;
               const prev = prevFilas?.find((p) => p.id === fila.id);
               const cantChanged = prev && prev.cantidad !== fila.cantidad;
               const ventaChanged = prev && prev.precioVenta !== fila.precioVenta;

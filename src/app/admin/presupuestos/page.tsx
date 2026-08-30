@@ -124,43 +124,37 @@ export default function AdminPresupuestosPage() {
 
   const crearNuevaVersion = async () => {
     if (!selected) return;
-    if (!confirm(`¿Crear una nueva versión de ${selected.code}? Se copiará todo el contenido con estado Borrador.`)) return;
-    // Detect current version suffix and increment
+    if (!confirm(`¿Iniciar modificación de ${selected.code}? El cálculo actual se guardará como versión anterior y el código pasará a la siguiente versión.`)) return;
+
+    // Detect current version and increment
     const baseCode = selected.code.replace(/-v\d+$/, '');
-    const currentV = selected.code.match(/-v(\d+)$/)?.[1];
-    const nextV = currentV ? Number(currentV) + 1 : 2;
-    const res = await fetch('/api/presupuestos', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer: selected.customer,
-        serviceTitle: selected.serviceTitle,
-        serviceType: selected.serviceType,
-        description: selected.description,
-        details: selected.details,
-        estimatedValue: selected.estimatedValue,
-        finalValue: null,
-        estimatedDuration: selected.estimatedDuration,
-        scheduledDate: selected.scheduledDate,
-        assignedTo: selected.assignedTo,
-        priority: selected.priority,
-        source: 'admin',
-        status: 'borrador',
-        calculationData: selected.calculationData
-          ? { ...selected.calculationData, previousFilas: selected.calculationData.filas }
-          : null,
-        _versionOf: baseCode,
-        _versionNum: nextV,
-      }),
+    const currentV = Number(selected.code.match(/-v(\d+)$/)?.[1] ?? 1);
+    const nextV = currentV + 1;
+    const newCode = `${baseCode}-v${nextV}`;
+
+    // Build updated calculationData: push current filas into versions history
+    const currentCalc = selected.calculationData ?? { filas: [], iva: 10, descuento: 0, validez: '10 días', ubicacion: '', observaciones: '' };
+    const prevVersions: { v: number; filas: any[] }[] = (currentCalc as any).versions ?? [];
+    const updatedCalc = {
+      ...currentCalc,
+      versions: [...prevVersions, { v: currentV, filas: currentCalc.filas ?? [] }],
+    };
+
+    // Update same record: new code, status en_revision, updated calculationData
+    const res = await fetch(`/api/presupuestos/${selected.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _forceCode: newCode }),
     });
-    if (res.ok) {
-      const nuevo = await res.json();
-      // Rename code to include version suffix
-      await fetch(`/api/presupuestos/${nuevo.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _forceCode: `${baseCode}-v${nextV}` }),
-      });
+    if (!res.ok) return;
+
+    const res2 = await fetch(`/api/presupuestos/${selected.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'en_revision', calculationData: updatedCalc }),
+    });
+    if (res2.ok) {
+      const updated = await res2.json();
+      setSelected(updated);
       fetchData();
-      setSelected(null);
     }
   };
 
