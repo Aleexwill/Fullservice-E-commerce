@@ -239,6 +239,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   // mark dirty on any calc change
   const prevCalc = useRef(calc);
@@ -302,16 +303,23 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const mejorarConIA = async (fila: FilaCalculo) => {
     if (!fila.descripcion.trim() || aiLoadingId) return;
     setAiLoadingId(fila.id);
+    setAiError(null);
     try {
       const res = await fetch('/api/ai/mejorar-titulo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ texto: fila.descripcion, contexto: serviceTitle }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.texto) updateFila(fila.id, { descripcion: data.texto });
+      const data = await res.json();
+      if (res.ok && data.texto) {
+        updateFila(fila.id, { descripcion: data.texto });
+      } else {
+        setAiError(data.error || 'Error al procesar');
+        setTimeout(() => setAiError(null), 4000);
       }
+    } catch {
+      setAiError('Sin conexión con el servidor AI');
+      setTimeout(() => setAiError(null), 4000);
     } finally {
       setAiLoadingId(null);
     }
@@ -337,6 +345,11 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   /* ─── Render ─── */
   return (
     <div className="flex flex-col gap-4">
+      {aiError && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 font-body text-body-sm text-red-400">
+          IA: {aiError}
+        </div>
+      )}
       {showPdfModal && (
         <PdfOptsModal
           haySecciones={haySecciones}
