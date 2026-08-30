@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       description: body.description || '', details: body.details || '',
       estimatedValue: body.estimatedValue ? Number(body.estimatedValue) : null, finalValue: body.finalValue ? Number(body.finalValue) : null,
       estimatedDuration: body.estimatedDuration || '', priority: body.priority || 'media', source: body.source || 'admin',
-      notes: [], attachments: body.attachments || [], assignedTo: body.assignedTo || '', scheduledDate: body.scheduledDate || '',
+      notes: [], attachments: body.attachments || [], assignedTo: body.assignedTo || '', scheduledDate: body.scheduledDate || '', calculationData: null,
     });
 
     // Auto-create Lead for this potential client
