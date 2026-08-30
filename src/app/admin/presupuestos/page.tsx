@@ -58,6 +58,12 @@ export default function AdminPresupuestosPage() {
   const [editAssigned, setEditAssigned] = useState('');
   const [savingFields, setSavingFields] = useState(false);
   const [activeTab, setActiveTab] = useState<'detalle' | 'calculo'>('detalle');
+  const [editingCustomer, setEditingCustomer] = useState(false);
+  const [editCustomer, setEditCustomer] = useState({ name: '', email: '', phone: '', company: '', address: '' });
+  const [savingCustomer, setSavingCustomer] = useState(false);
+  const [editingService, setEditingService] = useState(false);
+  const [editService, setEditService] = useState({ serviceTitle: '', serviceType: '', description: '', details: '' });
+  const [savingService, setSavingService] = useState(false);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -87,6 +93,10 @@ export default function AdminPresupuestosPage() {
     setEditDuration(item.estimatedDuration || '');
     setEditAssigned(item.assignedTo || '');
     setEditingFinal(false);
+    setEditingCustomer(false);
+    setEditCustomer({ name: item.customer.name || '', email: item.customer.email || '', phone: item.customer.phone || '', company: item.customer.company || '', address: item.customer.address || '' });
+    setEditingService(false);
+    setEditService({ serviceTitle: item.serviceTitle || '', serviceType: item.serviceType || '', description: item.description || '', details: item.details || '' });
     setActiveTab('detalle');
   };
 
@@ -104,6 +114,22 @@ export default function AdminPresupuestosPage() {
     });
     if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); }
     setSavingFields(false);
+  };
+
+  const saveCustomer = async () => {
+    if (!selected) return;
+    setSavingCustomer(true);
+    const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: editCustomer }) });
+    if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingCustomer(false); }
+    setSavingCustomer(false);
+  };
+
+  const saveService = async () => {
+    if (!selected) return;
+    setSavingService(true);
+    const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceTitle: editService.serviceTitle, serviceType: editService.serviceType, description: editService.description, details: editService.details }) });
+    if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingService(false); }
+    setSavingService(false);
   };
 
   const sendWhatsApp = () => {
@@ -277,20 +303,54 @@ export default function AdminPresupuestosPage() {
               </div>
               {/* Customer */}
               <div className="card p-4">
-                <h3 className="mb-2 flex items-center gap-2 font-display text-h4 text-arctic"><User className="h-4 w-4 text-blue-bright" /> Cliente</h3>
-                <div className="space-y-1 font-body text-body-sm">
-                  <p className="font-medium text-arctic">{selected.customer.name}</p>
-                  {selected.customer.company && <p className="flex items-center gap-1 text-steel-300"><Building className="h-3 w-3" />{selected.customer.company}</p>}
-                  {selected.customer.email && <p className="flex items-center gap-1 text-steel-300"><Mail className="h-3 w-3" />{selected.customer.email}</p>}
-                  {selected.customer.phone && <p className="flex items-center gap-1 text-steel-300"><Phone className="h-3 w-3" />{selected.customer.phone}</p>}
-                  {selected.customer.address && <p className="flex items-center gap-1 text-steel-300"><MapPin className="h-3 w-3" />{selected.customer.address}</p>}
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 font-display text-h4 text-arctic"><User className="h-4 w-4 text-blue-bright" /> Cliente</h3>
+                  {!editingCustomer
+                    ? <button onClick={() => { setEditCustomer({ name: selected.customer.name || '', email: selected.customer.email || '', phone: selected.customer.phone || '', company: selected.customer.company || '', address: selected.customer.address || '' }); setEditingCustomer(true); }} className="font-body text-caption text-blue-bright hover:underline">Editar</button>
+                    : <div className="flex gap-2"><button onClick={() => setEditingCustomer(false)} className="font-body text-caption text-steel-400 hover:underline">Cancelar</button><button onClick={saveCustomer} disabled={savingCustomer} className="font-body text-caption text-[#48BB78] hover:underline">{savingCustomer ? 'Guardando…' : 'Guardar'}</button></div>
+                  }
                 </div>
+                {editingCustomer ? (
+                  <div className="space-y-2">
+                    <div><label className="label mb-1 block">Nombre</label><input className="input" value={editCustomer.name} onChange={(e) => setEditCustomer((c) => ({ ...c, name: e.target.value }))} /></div>
+                    <div><label className="label mb-1 block">Empresa</label><input className="input" value={editCustomer.company} onChange={(e) => setEditCustomer((c) => ({ ...c, company: e.target.value }))} /></div>
+                    <div><label className="label mb-1 block">Email</label><input className="input" type="email" value={editCustomer.email} onChange={(e) => setEditCustomer((c) => ({ ...c, email: e.target.value }))} /></div>
+                    <div><label className="label mb-1 block">Teléfono</label><input className="input" value={editCustomer.phone} onChange={(e) => setEditCustomer((c) => ({ ...c, phone: e.target.value }))} /></div>
+                    <div><label className="label mb-1 block">Dirección</label><input className="input" value={editCustomer.address} onChange={(e) => setEditCustomer((c) => ({ ...c, address: e.target.value }))} /></div>
+                  </div>
+                ) : (
+                  <div className="space-y-1 font-body text-body-sm">
+                    <p className="font-medium text-arctic">{selected.customer.name}</p>
+                    {selected.customer.company && <p className="flex items-center gap-1 text-steel-300"><Building className="h-3 w-3" />{selected.customer.company}</p>}
+                    {selected.customer.email && <p className="flex items-center gap-1 text-steel-300"><Mail className="h-3 w-3" />{selected.customer.email}</p>}
+                    {selected.customer.phone && <p className="flex items-center gap-1 text-steel-300"><Phone className="h-3 w-3" />{selected.customer.phone}</p>}
+                    {selected.customer.address && <p className="flex items-center gap-1 text-steel-300"><MapPin className="h-3 w-3" />{selected.customer.address}</p>}
+                  </div>
+                )}
               </div>
               {/* Description */}
               <div className="card p-4">
-                <h3 className="mb-2 font-display text-h4 text-arctic">Descripcion del servicio</h3>
-                <p className="whitespace-pre-line font-body text-body-sm text-steel-300">{selected.description || 'Sin descripcion'}</p>
-                {selected.details && <><div className="my-2 border-t border-steel-900/30" /><p className="whitespace-pre-line font-body text-caption text-steel-500">{selected.details}</p></>}
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="font-display text-h4 text-arctic">Servicio</h3>
+                  {!editingService
+                    ? <button onClick={() => { setEditService({ serviceTitle: selected.serviceTitle || '', serviceType: selected.serviceType || '', description: selected.description || '', details: selected.details || '' }); setEditingService(true); }} className="font-body text-caption text-blue-bright hover:underline">Editar</button>
+                    : <div className="flex gap-2"><button onClick={() => setEditingService(false)} className="font-body text-caption text-steel-400 hover:underline">Cancelar</button><button onClick={saveService} disabled={savingService} className="font-body text-caption text-[#48BB78] hover:underline">{savingService ? 'Guardando…' : 'Guardar'}</button></div>
+                  }
+                </div>
+                {editingService ? (
+                  <div className="space-y-2">
+                    <div><label className="label mb-1 block">Título del servicio</label><input className="input" value={editService.serviceTitle} onChange={(e) => setEditService((s) => ({ ...s, serviceTitle: e.target.value }))} /></div>
+                    <div><label className="label mb-1 block">Tipo</label><select className="input" value={editService.serviceType} onChange={(e) => setEditService((s) => ({ ...s, serviceType: e.target.value }))}>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
+                    <div><label className="label mb-1 block">Descripción</label><textarea className="input min-h-[80px]" value={editService.description} onChange={(e) => setEditService((s) => ({ ...s, description: e.target.value }))} /></div>
+                    <div><label className="label mb-1 block">Detalles adicionales</label><textarea className="input min-h-[60px]" value={editService.details} onChange={(e) => setEditService((s) => ({ ...s, details: e.target.value }))} /></div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mb-1 font-body text-body-sm font-medium text-arctic">{selected.serviceTitle}</p>
+                    <p className="whitespace-pre-line font-body text-body-sm text-steel-300">{selected.description || 'Sin descripcion'}</p>
+                    {selected.details && <><div className="my-2 border-t border-steel-900/30" /><p className="whitespace-pre-line font-body text-caption text-steel-500">{selected.details}</p></>}
+                  </>
+                )}
               </div>
               {/* Values */}
               <div className="grid grid-cols-2 gap-3">
