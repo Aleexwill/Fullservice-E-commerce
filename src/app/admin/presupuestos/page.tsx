@@ -317,16 +317,40 @@ export default function AdminPresupuestosPage() {
                 const iva = subtotal * ((cd.iva ?? 10) / 100);
                 const total = subtotal + iva - (cd.descuento ?? 0);
 
-                // section total for each titulo
-                const secTotal = (tituloId: string) => {
-                  let inside = false, t = 0;
+                // section total applying GG+Mg
+                const secTotal = (t: any) => {
+                  let inside = false, sub = 0;
                   for (const r of cd.filas) {
-                    if (r.id === tituloId) { inside = true; continue; }
+                    if (r.id === t.id) { inside = true; continue; }
                     if (inside && r.tipo === 'titulo') break;
-                    if (inside) t += r.cantidad * r.precioVenta;
+                    if (inside) sub += r.cantidad * r.precioVenta;
                   }
-                  return t;
+                  const conGG = sub * (1 + (t.gastosGeneralesPct ?? 0) / 100);
+                  return conGG * (1 + (t.margenPct ?? 0) / 100);
                 };
+
+                // approved-only total (item level)
+                const secAprobado = (t: any) => {
+                  let inside = false, sub = 0;
+                  for (const r of cd.filas) {
+                    if (r.id === t.id) { inside = true; continue; }
+                    if (inside && r.tipo === 'titulo') break;
+                    if (inside && r.aprobado) sub += r.cantidad * r.precioVenta;
+                  }
+                  const conGG = sub * (1 + (t.gastosGeneralesPct ?? 0) / 100);
+                  return conGG * (1 + (t.margenPct ?? 0) / 100);
+                };
+
+                const totalConGG = titulos.length > 0
+                  ? titulos.reduce((s: number, t: any) => s + secTotal(t), 0)
+                  : subtotal;
+                const ivaFinal = totalConGG * ((cd.iva ?? 10) / 100);
+                const totalFinal = totalConGG + ivaFinal - (cd.descuento ?? 0);
+
+                const hayAprobadosDetalle = cd.filas.some((f: any) => f.aprobado);
+                const totalAprobadoDetalle = titulos.reduce((s: number, t: any) => s + secAprobado(t), 0);
+                const ivaAprobadoDetalle = totalAprobadoDetalle * ((cd.iva ?? 10) / 100);
+                const totalAprobadoFinal = totalAprobadoDetalle + ivaAprobadoDetalle - (cd.descuento ?? 0);
 
                 return (
                   <div className="card p-4">
@@ -338,25 +362,46 @@ export default function AdminPresupuestosPage() {
                     </div>
                     <div className="space-y-1">
                       {titulos.length > 0 ? titulos.map((t: any) => {
-                        const st = secTotal(t.id);
+                        const st = secTotal(t);
+                        const sa = secAprobado(t);
+                        const items = cd.filas.filter((r: any) => {
+                          let inside = false;
+                          for (const f of cd.filas) { if (f.id === t.id) { inside = true; continue; } if (inside && f.tipo === 'titulo') break; if (inside && f.id === r.id) return true; } return false;
+                        });
+                        const allApproved = items.length > 0 && items.every((i: any) => i.aprobado);
+                        const someApproved = items.some((i: any) => i.aprobado);
                         return (
-                          <div key={t.id} className="flex items-center justify-between gap-3 rounded-md bg-steel-900/30 px-3 py-2">
-                            <span className="font-body text-body-sm text-arctic">{t.descripcion || 'Sin título'}</span>
-                            <span className="shrink-0 font-mono text-body-sm text-[#48BB78]">{formatGs(st)}</span>
+                          <div key={t.id} className="rounded-md bg-steel-900/30 px-3 py-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2">
+                                {someApproved && <span className={`text-[0.6rem] font-bold ${allApproved ? 'text-[#48BB78]' : 'text-yellow-400'}`}>{allApproved ? '✓' : '~'}</span>}
+                                <span className="font-body text-body-sm text-arctic">{t.descripcion || 'Sin título'}</span>
+                              </div>
+                              <div className="flex flex-col items-end shrink-0">
+                                <span className="font-mono text-body-sm text-[#48BB78]">{formatGs(st)}</span>
+                                {someApproved && !allApproved && <span className="font-mono text-caption text-yellow-400">{formatGs(sa)} aprobado</span>}
+                              </div>
+                            </div>
                           </div>
                         );
                       }) : filasTot.map((f: any) => (
                         <div key={f.id} className="flex items-center justify-between gap-3 rounded-md bg-steel-900/30 px-3 py-2">
-                          <span className="font-body text-caption text-steel-300">{f.descripcion}</span>
+                          <div className="flex items-center gap-2">
+                            {f.aprobado && <span className="text-[0.6rem] font-bold text-[#48BB78]">✓</span>}
+                            <span className="font-body text-caption text-steel-300">{f.descripcion}</span>
+                          </div>
                           <span className="shrink-0 font-mono text-caption text-[#48BB78]">{formatGs(f.cantidad * f.precioVenta)}</span>
                         </div>
                       ))}
                     </div>
                     <div className="mt-3 space-y-1 border-t border-steel-900/40 pt-3 font-body text-body-sm">
-                      <div className="flex justify-between text-steel-500"><span>Subtotal</span><span className="font-mono">{formatGs(subtotal)}</span></div>
-                      <div className="flex justify-between text-steel-500"><span>IVA ({cd.iva ?? 10}%)</span><span className="font-mono">{formatGs(iva)}</span></div>
+                      <div className="flex justify-between text-steel-500"><span>Subtotal</span><span className="font-mono">{formatGs(totalConGG)}</span></div>
+                      <div className="flex justify-between text-steel-500"><span>IVA ({cd.iva ?? 10}%)</span><span className="font-mono">{formatGs(ivaFinal)}</span></div>
                       {cd.descuento > 0 && <div className="flex justify-between text-[#FC8181]"><span>Descuento</span><span className="font-mono">-{formatGs(cd.descuento)}</span></div>}
-                      <div className="flex justify-between font-semibold text-arctic"><span>TOTAL</span><span className="font-mono text-[#48BB78]">{formatGs(total)}</span></div>
+                      <div className="flex justify-between font-semibold text-arctic"><span>TOTAL</span><span className="font-mono text-[#48BB78]">{formatGs(totalFinal)}</span></div>
+                      {hayAprobadosDetalle && totalAprobadoDetalle > 0 && (
+                        <div className="flex justify-between font-semibold border-t border-[#48BB78]/20 pt-2 mt-2"><span className="text-[#48BB78]">TOTAL APROBADO</span><span className="font-mono text-[#48BB78]">{formatGs(totalAprobadoFinal)}</span></div>
+                      )}
                     </div>
                   </div>
                 );
