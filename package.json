@@ -14,6 +14,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "@hookform/resolvers": "^3.4.0",
     "@prisma/client": "^5.14.0",
     "@vercel/blob": "^2.8.0",
