@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Plus, Trash2, Save, FileText, Loader2, Search, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Save, FileText, Loader2, Search, CheckCircle2, AlertCircle, Printer, X } from 'lucide-react';
 
 /* ─── Material search autocomplete ─────────────────── */
 interface MaterialSuggestion {
@@ -138,6 +138,92 @@ function sectionTotal(filas: FilaCalculo[], titulo: FilaCalculo): number {
   return conMg;
 }
 
+/* ─── PDF Options ───────────────────────────────────── */
+interface PdfOpts {
+  soloAprobados: boolean;
+  incluirDetalle: boolean;
+  mostrarPrecioUnitario: boolean;
+  mostrarTotalSeccion: boolean;
+  mostrarObservaciones: boolean;
+}
+
+function PdfOptsModal({ haySecciones, hayAprobados, onConfirm, onClose }: {
+  haySecciones: boolean;
+  hayAprobados: boolean;
+  onConfirm: (opts: PdfOpts) => void;
+  onClose: () => void;
+}) {
+  const [opts, setOpts] = useState<PdfOpts>({
+    soloAprobados: hayAprobados,
+    incluirDetalle: false,
+    mostrarPrecioUnitario: false,
+    mostrarTotalSeccion: true,
+    mostrarObservaciones: true,
+  });
+  const toggle = (k: keyof PdfOpts) => setOpts((o) => ({ ...o, [k]: !o[k] }));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-xl border border-steel-900/60 bg-carbon shadow-2xl">
+        <div className="flex items-center justify-between border-b border-steel-900/40 px-5 py-4">
+          <div className="flex items-center gap-2">
+            <Printer className="h-4 w-4 text-blue-bright" />
+            <span className="font-body text-body-sm font-semibold text-arctic">Opciones de PDF</span>
+          </div>
+          <button onClick={onClose} className="rounded p-1 text-steel-600 hover:text-arctic transition-colors"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="space-y-1 px-5 py-4">
+          {/* Sección: contenido */}
+          <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-600 mb-2">Contenido</p>
+          {hayAprobados && (
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+              <input type="checkbox" checked={opts.soloAprobados} onChange={() => toggle('soloAprobados')}
+                className="h-4 w-4 rounded border-steel-700 accent-[#48BB78]" />
+              <div>
+                <p className="font-body text-body-sm text-arctic">Solo secciones aprobadas</p>
+                <p className="font-body text-[0.65rem] text-steel-500">Imprime únicamente lo que el cliente aprobó</p>
+              </div>
+            </label>
+          )}
+          {haySecciones && (
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+              <input type="checkbox" checked={opts.incluirDetalle} onChange={() => toggle('incluirDetalle')}
+                className="h-4 w-4 rounded border-steel-700 accent-blue" />
+              <div>
+                <p className="font-body text-body-sm text-arctic">Incluir detalle de ítems</p>
+                <p className="font-body text-[0.65rem] text-steel-500">Muestra materiales y mano de obra bajo cada título</p>
+              </div>
+            </label>
+          )}
+          {/* Sección: columnas */}
+          <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-600 mb-2 mt-3">Columnas visibles</p>
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+            <input type="checkbox" checked={opts.mostrarPrecioUnitario} onChange={() => toggle('mostrarPrecioUnitario')}
+              className="h-4 w-4 rounded border-steel-700 accent-blue" />
+            <p className="font-body text-body-sm text-arctic">Precio unitario</p>
+          </label>
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+            <input type="checkbox" checked={opts.mostrarTotalSeccion} onChange={() => toggle('mostrarTotalSeccion')}
+              className="h-4 w-4 rounded border-steel-700 accent-blue" />
+            <p className="font-body text-body-sm text-arctic">Total por sección</p>
+          </label>
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+            <input type="checkbox" checked={opts.mostrarObservaciones} onChange={() => toggle('mostrarObservaciones')}
+              className="h-4 w-4 rounded border-steel-700 accent-blue" />
+            <p className="font-body text-body-sm text-arctic">Observaciones y condiciones</p>
+          </label>
+        </div>
+        <div className="flex gap-2 border-t border-steel-900/40 px-5 py-4">
+          <button onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
+          <button onClick={() => onConfirm(opts)} className="btn-primary flex flex-1 items-center justify-center gap-2">
+            <Printer className="h-4 w-4" /> Generar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Props ─────────────────────────────────────────── */
 interface Props {
   presupuestoId: string;
@@ -158,6 +244,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(true);   // tracks unsaved changes
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   // mark dirty on any calc change
   const prevCalc = useRef(calc);
@@ -207,10 +294,11 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const save = () => doSave(calc);
 
   /* ─── PDF — auto-save, then print ─── */
-  const generatePdf = useCallback(async () => {
+  const generatePdf = useCallback(async (opts: PdfOpts) => {
+    setShowPdfModal(false);
     setGeneratingPdf(true);
     await doSave(calc);
-    const html = buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral });
+    const html = buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral, opts });
     const win = window.open('', '_blank');
     if (win) { win.document.write(html); win.document.close(); setTimeout(() => { win.print(); setGeneratingPdf(false); }, 600); }
     else setGeneratingPdf(false);
@@ -220,9 +308,19 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   // [check 22px] [badge 28px] [desc flex] [unidad 72px] [cant 60px] [costo 110px] [pventa 110px] [total 110px] [del 28px]
   const COLS = '22px 28px 1fr 72px 60px 110px 110px 110px 28px';
 
+  const haySecciones = titulos.length > 0;
+
   /* ─── Render ─── */
   return (
     <div className="flex flex-col gap-4">
+      {showPdfModal && (
+        <PdfOptsModal
+          haySecciones={haySecciones}
+          hayAprobados={hayAprobados}
+          onConfirm={generatePdf}
+          onClose={() => setShowPdfModal(false)}
+        />
+      )}
 
       {/* ── Header info ── */}
       <div className="grid grid-cols-2 gap-3">
@@ -494,8 +592,8 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         </div>
         <div className="flex-1" />
         {calc.filas.length > 0 && (
-          <button onClick={generatePdf} disabled={generatingPdf} className="btn-secondary flex items-center gap-2 px-4">
-            {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+          <button onClick={() => setShowPdfModal(true)} disabled={generatingPdf} className="btn-secondary flex items-center gap-2 px-4">
+            {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
             PDF cliente
           </button>
         )}
@@ -509,16 +607,12 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 }
 
 /* ─── PDF HTML builder ─────────────────────────────── */
-function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral }: {
+function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral, opts }: {
   calc: CalculationData; code: string; serviceTitle: string; customerName: string;
-  subtotal: number; ivaMonto: number; totalGeneral: number;
+  subtotal: number; ivaMonto: number; totalGeneral: number; opts: PdfOpts;
 }) {
   const fmtGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
   const today = new Date().toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' });
-
-  // PDF shows only título rows (with their section total) — no internal cost detail exposed to client
-  const titulos = calc.filas.filter((f) => f.tipo === 'titulo');
-  const hasTitulos = titulos.length > 0;
 
   const secTotal = (t: FilaCalculo): number => {
     let inside = false, sub = 0;
@@ -531,16 +625,52 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     return conGG * (1 + (t.margenPct ?? 0) / 100);
   };
 
+  // Filter sections by approval option
+  let allTitulos = calc.filas.filter((f) => f.tipo === 'titulo');
+  const titulosToShow = opts.soloAprobados ? allTitulos.filter((t) => t.aprobado) : allTitulos;
+  const hasTitulos = titulosToShow.length > 0;
+
+  // Recalculate totals for what's shown
+  const shownSubtotal = opts.soloAprobados
+    ? titulosToShow.reduce((s, t) => s + secTotal(t), 0)
+    : subtotal;
+  const shownIva = shownSubtotal * (calc.iva / 100);
+  const shownTotal = shownSubtotal + shownIva - calc.descuento;
+
+  // Build rows: titulos + optional detail rows underneath
+  const pUCol = opts.mostrarPrecioUnitario;
+  const totalCol = opts.mostrarTotalSeccion;
+  const colCount = 3 + (pUCol ? 1 : 0) + (totalCol ? 1 : 0);
+
   const rows = hasTitulos
-    ? titulos.map((t, i) => {
+    ? titulosToShow.map((t, i) => {
         const st = secTotal(t);
-        return `<tr>
-          <td>${t.descripcion || 'Ítem ' + (i + 1)}</td>
-          <td class="center">Global</td>
-          <td class="center">1</td>
-          <td class="right">${fmtGs(st)}</td>
-          <td class="right bold">${fmtGs(st)}</td>
-        </tr>`;
+        // Gather detail rows for this titulo
+        let detailRows = '';
+        if (opts.incluirDetalle) {
+          let inside = false;
+          for (const r of calc.filas) {
+            if (r.id === t.id) { inside = true; continue; }
+            if (inside && r.tipo === 'titulo') break;
+            if (inside) {
+              const rowTotal = r.cantidad * r.precioVenta;
+              detailRows += `<tr style="background:#f0f4f8">
+                <td style="padding-left:20px;color:#555">${r.descripcion}</td>
+                <td class="center" style="color:#555">${r.unidad}</td>
+                <td class="center" style="color:#555">${r.cantidad}</td>
+                ${pUCol ? `<td class="right" style="color:#555">${fmtGs(r.precioVenta)}</td>` : ''}
+                ${totalCol ? `<td class="right" style="color:#555">${fmtGs(rowTotal)}</td>` : ''}
+              </tr>`;
+            }
+          }
+        }
+        return `<tr class="section-header">
+          <td colspan="${colCount}">${t.descripcion || 'Ítem ' + (i + 1)}</td>
+          ${totalCol && !opts.incluirDetalle ? `<td class="right bold">${fmtGs(st)}</td>` : ''}
+        </tr>${detailRows}${opts.incluirDetalle && totalCol ? `<tr style="background:#e8f0e8">
+          <td colspan="${colCount - 1}" style="text-align:right;padding-right:8px;font-weight:bold;color:#2a6a3a">Total sección</td>
+          <td class="right bold" style="color:#2a6a3a">${fmtGs(st)}</td>
+        </tr>` : ''}`;
       }).join('')
     : calc.filas.filter((f) => f.tipo !== 'titulo').map((fila) => {
         const total = fila.cantidad * fila.precioVenta;
@@ -548,10 +678,18 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
           <td>${fila.descripcion}</td>
           <td class="center">${fila.unidad}</td>
           <td class="center">${fila.cantidad}</td>
-          <td class="right">${fmtGs(fila.precioVenta)}</td>
-          <td class="right bold">${fmtGs(total)}</td>
+          ${pUCol ? `<td class="right">${fmtGs(fila.precioVenta)}</td>` : ''}
+          ${totalCol ? `<td class="right bold">${fmtGs(total)}</td>` : ''}
         </tr>`;
       }).join('');
+
+  const thead = `<tr>
+    <th>Descripción</th>
+    <th style="width:70px;text-align:center">Unidad</th>
+    <th style="width:55px;text-align:center">Cant.</th>
+    ${pUCol ? '<th style="width:120px;text-align:right">P. Unitario</th>' : ''}
+    ${totalCol ? '<th style="width:130px;text-align:right">Total</th>' : ''}
+  </tr>`;
 
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Presupuesto ${code}</title>
   <style>
@@ -598,24 +736,18 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
       </table>
     </div>
   </div>
-  <h2>${serviceTitle}</h2>
+  <h2>${serviceTitle}${opts.soloAprobados ? ' — <span style="color:#2a6a3a;font-size:11px">Secciones aprobadas</span>' : ''}</h2>
   <table class="items">
-    <thead><tr>
-      <th>Descripción</th>
-      <th style="width:70px;text-align:center">Unidad</th>
-      <th style="width:55px;text-align:center">Cant.</th>
-      <th style="width:120px;text-align:right">P. Unitario</th>
-      <th style="width:130px;text-align:right">Total</th>
-    </tr></thead>
+    <thead>${thead}</thead>
     <tbody>${rows}</tbody>
   </table>
   <div class="totals-wrap"><table class="totals">
-    <tr><td class="lbl">Subtotal</td><td class="val">${fmtGs(subtotal)}</td></tr>
-    <tr><td class="lbl">IVA (${calc.iva}%)</td><td class="val">${fmtGs(ivaMonto)}</td></tr>
+    <tr><td class="lbl">Subtotal</td><td class="val">${fmtGs(shownSubtotal)}</td></tr>
+    <tr><td class="lbl">IVA (${calc.iva}%)</td><td class="val">${fmtGs(shownIva)}</td></tr>
     ${calc.descuento > 0 ? `<tr><td class="lbl">Descuento</td><td class="val" style="color:#c0392b">-${fmtGs(calc.descuento)}</td></tr>` : ''}
-    <tr class="total-row"><td>TOTAL GENERAL</td><td style="text-align:right">${fmtGs(totalGeneral)}</td></tr>
+    <tr class="total-row"><td>TOTAL${opts.soloAprobados ? ' APROBADO' : ' GENERAL'}</td><td style="text-align:right">${fmtGs(shownTotal)}</td></tr>
   </table></div>
-  ${calc.observaciones ? `<div class="obs">${calc.observaciones}</div>` : ''}
+  ${opts.mostrarObservaciones && calc.observaciones ? `<div class="obs">${calc.observaciones}</div>` : ''}
   <div class="footer">
     <img src="/logo.png" alt="" />
     <small>Full Service &amp; Clean · Asunción, Paraguay<br/>Válido por ${calc.validez} desde la fecha de emisión.</small>
