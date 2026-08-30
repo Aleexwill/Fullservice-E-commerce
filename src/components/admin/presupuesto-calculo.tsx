@@ -260,10 +260,22 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const totalGeneral = subtotal + ivaMonto - calc.descuento;
   const margenPct = subtotal > 0 ? ((subtotal - costoTotal) / subtotal) * 100 : 0;
 
-  /* ─── Approved totals ─── */
+  /* ─── Approved totals (item-level) ─── */
   const titulos = calc.filas.filter((f) => f.tipo === 'titulo');
-  const hayAprobados = titulos.some((t) => t.aprobado);
-  const subtotalAprobado = titulos.filter((t) => t.aprobado).reduce((s, t) => s + sectionTotal(calc.filas, t), 0);
+  const hayAprobados = calc.filas.some((f) => f.tipo !== 'titulo' && f.aprobado);
+
+  const sectionAprobadoTotal = (t: FilaCalculo): number => {
+    let inside = false, sub = 0;
+    for (const r of calc.filas) {
+      if (r.id === t.id) { inside = true; continue; }
+      if (inside && r.tipo === 'titulo') break;
+      if (inside && r.aprobado) sub += r.cantidad * r.precioVenta;
+    }
+    const conGG = sub * (1 + (t.gastosGeneralesPct ?? 0) / 100);
+    return conGG * (1 + (t.margenPct ?? 0) / 100);
+  };
+
+  const subtotalAprobado = titulos.reduce((s, t) => s + sectionAprobadoTotal(t), 0);
   const ivaAprobado = subtotalAprobado * (calc.iva / 100);
   const totalAprobado = subtotalAprobado + ivaAprobado - calc.descuento;
 
@@ -644,14 +656,34 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     return conGG * (1 + (t.margenPct ?? 0) / 100);
   };
 
-  // Filter sections by approval option
+  // Item-level approval helpers for PDF
+  const getItemsDeTitulo = (t: FilaCalculo): FilaCalculo[] => {
+    let inside = false;
+    const result: FilaCalculo[] = [];
+    for (const r of calc.filas) {
+      if (r.id === t.id) { inside = true; continue; }
+      if (inside && r.tipo === 'titulo') break;
+      if (inside) result.push(r);
+    }
+    return result;
+  };
+  const secAprobadoTotal = (t: FilaCalculo): number => {
+    const items = getItemsDeTitulo(t).filter((r) => r.aprobado);
+    const sub = items.reduce((s, r) => s + r.cantidad * r.precioVenta, 0);
+    const conGG = sub * (1 + (t.gastosGeneralesPct ?? 0) / 100);
+    return conGG * (1 + (t.margenPct ?? 0) / 100);
+  };
+
+  // Filter sections by approval option (item-level)
   let allTitulos = calc.filas.filter((f) => f.tipo === 'titulo');
-  const titulosToShow = opts.soloAprobados ? allTitulos.filter((t) => t.aprobado) : allTitulos;
+  const titulosToShow = opts.soloAprobados
+    ? allTitulos.filter((t) => getItemsDeTitulo(t).some((r) => r.aprobado))
+    : allTitulos;
   const hasTitulos = titulosToShow.length > 0;
 
   // Recalculate totals for what's shown
   const shownSubtotal = opts.soloAprobados
-    ? titulosToShow.reduce((s, t) => s + secTotal(t), 0)
+    ? titulosToShow.reduce((s, t) => s + secAprobadoTotal(t), 0)
     : subtotal;
   const shownIva = shownSubtotal * (calc.iva / 100);
   const shownTotal = shownSubtotal + shownIva - calc.descuento;
@@ -663,24 +695,21 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
 
   const rows = hasTitulos
     ? titulosToShow.map((t, i) => {
-        const st = secTotal(t);
+        const st = opts.soloAprobados ? secAprobadoTotal(t) : secTotal(t);
         // Gather detail rows for this titulo
         let detailRows = '';
         if (opts.incluirDetalle) {
-          let inside = false;
-          for (const r of calc.filas) {
-            if (r.id === t.id) { inside = true; continue; }
-            if (inside && r.tipo === 'titulo') break;
-            if (inside) {
-              const rowTotal = r.cantidad * r.precioVenta;
-              detailRows += `<tr style="background:#f0f4f8">
-                <td style="padding-left:20px;color:#555">${r.descripcion}</td>
-                <td class="center" style="color:#555">${r.unidad}</td>
-                <td class="center" style="color:#555">${r.cantidad}</td>
-                ${pUCol ? `<td class="right" style="color:#555">${fmtGs(r.precioVenta)}</td>` : ''}
-                ${totalCol ? `<td class="right" style="color:#555">${fmtGs(rowTotal)}</td>` : ''}
-              </tr>`;
-            }
+          const items = getItemsDeTitulo(t);
+          const filteredItems = opts.soloAprobados ? items.filter((r) => r.aprobado) : items;
+          for (const r of filteredItems) {
+            const rowTotal = r.cantidad * r.precioVenta;
+            detailRows += `<tr style="background:#f0f4f8">
+              <td style="padding-left:20px;color:#555">${r.descripcion}</td>
+              <td class="center" style="color:#555">${r.unidad}</td>
+              <td class="center" style="color:#555">${r.cantidad}</td>
+              ${pUCol ? `<td class="right" style="color:#555">${fmtGs(r.precioVenta)}</td>` : ''}
+              ${totalCol ? `<td class="right" style="color:#555">${fmtGs(rowTotal)}</td>` : ''}
+            </tr>`;
           }
         }
         return `<tr class="section-header">
