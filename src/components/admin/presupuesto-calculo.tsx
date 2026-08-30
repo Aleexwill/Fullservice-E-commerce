@@ -142,7 +142,6 @@ function sectionTotal(filas: FilaCalculo[], titulo: FilaCalculo): number {
 interface PdfOpts {
   soloAprobados: boolean;
   incluirDetalle: boolean;
-  mostrarPrecioUnitario: boolean;
   mostrarTotalSeccion: boolean;
   mostrarObservaciones: boolean;
 }
@@ -156,7 +155,6 @@ function PdfOptsModal({ haySecciones, hayAprobados, onConfirm, onClose }: {
   const [opts, setOpts] = useState<PdfOpts>({
     soloAprobados: hayAprobados,
     incluirDetalle: false,
-    mostrarPrecioUnitario: false,
     mostrarTotalSeccion: true,
     mostrarObservaciones: true,
   });
@@ -197,11 +195,6 @@ function PdfOptsModal({ haySecciones, hayAprobados, onConfirm, onClose }: {
           )}
           {/* Sección: columnas */}
           <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-600 mb-2 mt-3">Columnas visibles</p>
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
-            <input type="checkbox" checked={opts.mostrarPrecioUnitario} onChange={() => toggle('mostrarPrecioUnitario')}
-              className="h-4 w-4 rounded border-steel-700 accent-blue" />
-            <p className="font-body text-body-sm text-arctic">Precio unitario</p>
-          </label>
           <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
             <input type="checkbox" checked={opts.mostrarTotalSeccion} onChange={() => toggle('mostrarTotalSeccion')}
               className="h-4 w-4 rounded border-steel-700 accent-blue" />
@@ -689,9 +682,8 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
   const shownTotal = shownSubtotal + shownIva - calc.descuento;
 
   // Build rows: titulos + optional detail rows underneath
-  const pUCol = opts.mostrarPrecioUnitario;
   const totalCol = opts.mostrarTotalSeccion;
-  const colCount = 3 + (pUCol ? 1 : 0) + (totalCol ? 1 : 0);
+  const colCount = 3 + (totalCol ? 1 : 0);
 
   const rows = hasTitulos
     ? titulosToShow.map((t, i) => {
@@ -707,8 +699,7 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
               <td style="padding-left:20px;color:#555">${r.descripcion}</td>
               <td class="center" style="color:#555">${r.unidad}</td>
               <td class="center" style="color:#555">${r.cantidad}</td>
-              ${pUCol ? `<td class="right" style="color:#555">${fmtGs(r.precioVenta)}</td>` : ''}
-              ${totalCol ? `<td class="right" style="color:#555">${fmtGs(rowTotal)}</td>` : ''}
+                            ${totalCol ? `<td class="right" style="color:#555">${fmtGs(rowTotal)}</td>` : ''}
             </tr>`;
           }
         }
@@ -726,7 +717,6 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
           <td>${fila.descripcion}</td>
           <td class="center">${fila.unidad}</td>
           <td class="center">${fila.cantidad}</td>
-          ${pUCol ? `<td class="right">${fmtGs(fila.precioVenta)}</td>` : ''}
           ${totalCol ? `<td class="right bold">${fmtGs(total)}</td>` : ''}
         </tr>`;
       }).join('');
@@ -735,7 +725,6 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     <th>Descripción</th>
     <th style="width:70px;text-align:center">Unidad</th>
     <th style="width:55px;text-align:center">Cant.</th>
-    ${pUCol ? '<th style="width:120px;text-align:right">P. Unitario</th>' : ''}
     ${totalCol ? '<th style="width:130px;text-align:right">Total</th>' : ''}
   </tr>`;
 
