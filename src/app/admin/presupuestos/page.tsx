@@ -453,9 +453,13 @@ export default function AdminPresupuestosPage() {
       {showCreate && (
         <CreatePresupuestoModal
           onClose={() => setShowCreate(false)}
-          onCreated={(id) => {
+          onCreated={async (id) => {
             setShowCreate(false);
             fetchData();
+            if (id) {
+              const nuevo = await fetchJson<Presupuesto>(`/api/presupuestos/${id}`);
+              if (nuevo) { setSelected(nuevo); setActiveTab('calculo'); }
+            }
           }}
         />
       )}
