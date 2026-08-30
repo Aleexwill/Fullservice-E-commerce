@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(request: NextRequest) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || apiKey === 'sk-YOUR-KEY-HERE') {
     return NextResponse.json({ error: 'AI no configurada' }, { status: 503 });
   }
 
@@ -14,13 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Texto requerido' }, { status: 400 });
     }
 
-    const msg = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 256,
-      messages: [
-        {
-          role: 'user',
-          content: `Eres asistente de redacción técnica para presupuestos de servicios de mantenimiento, construcción civil y metalúrgica en Paraguay. Tu tarea es mejorar y clarificar el texto de un título o descripción de sección de presupuesto.
+    const prompt = `Eres asistente de redacción técnica para presupuestos de servicios de mantenimiento, construcción civil y metalúrgica en Paraguay. Mejora y clarifica el siguiente título o descripción de sección de presupuesto.
 
 REGLAS:
 - Devuelve SOLO el texto mejorado, sin comillas, sin explicaciones, sin markdown
@@ -31,12 +23,22 @@ REGLAS:
 ${contexto ? `- Contexto del servicio: ${contexto}` : ''}
 
 TEXTO A MEJORAR:
-${texto}`,
-        },
-      ],
+${texto}`;
+
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 100,
+        temperature: 0.4,
+      }),
     });
 
-    const resultado = (msg.content[0] as { text: string }).text.trim();
+    if (!res.ok) throw new Error('OpenAI error');
+    const data = await res.json();
+    const resultado = data.choices?.[0]?.message?.content?.trim() ?? '';
     return NextResponse.json({ texto: resultado });
   } catch (error) {
     console.error('Error AI mejorar-titulo:', error);
