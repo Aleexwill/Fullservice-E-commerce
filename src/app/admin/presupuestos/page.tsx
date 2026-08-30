@@ -452,7 +452,7 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
 
   const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY); } catch (_) {} };
 
-  const fillFromCliente = (c: any) => setF((prev) => ({
+  const fillFromCliente = (c: any) => setF((prev: typeof EMPTY_FORM) => ({
     ...prev,
     customerName: c.name || prev.customerName,
     customerEmail: c.email || prev.customerEmail,
