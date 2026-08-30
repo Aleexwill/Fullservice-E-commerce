@@ -71,6 +71,7 @@ export interface FilaCalculo {
   // Solo aplica a filas tipo 'titulo'
   gastosGeneralesPct?: number;
   margenPct?: number;
+  aprobado?: boolean;
 }
 
 export interface CalculationData {
@@ -172,6 +173,13 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const totalGeneral = subtotal + ivaMonto - calc.descuento;
   const margenPct = subtotal > 0 ? ((subtotal - costoTotal) / subtotal) * 100 : 0;
 
+  /* ─── Approved totals ─── */
+  const titulos = calc.filas.filter((f) => f.tipo === 'titulo');
+  const hayAprobados = titulos.some((t) => t.aprobado);
+  const subtotalAprobado = titulos.filter((t) => t.aprobado).reduce((s, t) => s + sectionTotal(calc.filas, t), 0);
+  const ivaAprobado = subtotalAprobado * (calc.iva / 100);
+  const totalAprobado = subtotalAprobado + ivaAprobado - calc.descuento;
+
   /* ─── Mutators ─── */
   const setFilas = (filas: FilaCalculo[]) => setCalc((c) => ({ ...c, filas }));
   const addFila = (tipo: RowType) => setFilas([...calc.filas, newFila(tipo)]);
@@ -209,8 +217,8 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   }, [calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral, presupuestoId]);
 
   /* ─── COLS layout ─── */
-  // [badge 28px] [desc flex] [unidad 72px] [cant 60px] [costo 110px] [pventa 110px] [total 110px] [del 28px]
-  const COLS = '28px 1fr 72px 60px 110px 110px 110px 28px';
+  // [check 22px] [badge 28px] [desc flex] [unidad 72px] [cant 60px] [costo 110px] [pventa 110px] [total 110px] [del 28px]
+  const COLS = '22px 28px 1fr 72px 60px 110px 110px 110px 28px';
 
   /* ─── Render ─── */
   return (
@@ -237,6 +245,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         {/* Table header */}
         <div className="grid items-center bg-steel-900/70 px-2 py-2 font-body text-[0.58rem] font-semibold uppercase tracking-wider text-steel-500"
           style={{ gridTemplateColumns: COLS }}>
+          <span title="Aprobado por cliente" className="text-center text-[#48BB78]">✓</span>
           <span />
           <span>Descripción</span>
           <span className="text-center">Unidad</span>
@@ -263,10 +272,31 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
               const prev = prevFilas?.find((p) => p.id === fila.id);
               const cantChanged = prev && prev.cantidad !== fila.cantidad;
               const ventaChanged = prev && prev.precioVenta !== fila.precioVenta;
+              // find parent titulo for non-titulo rows to determine if section is approved
+              let parentAprobado = true;
+              if (fila.tipo !== 'titulo' && hayAprobados) {
+                let lastTitulo: FilaCalculo | null = null;
+                for (const r of calc.filas) {
+                  if (r.id === fila.id) break;
+                  if (r.tipo === 'titulo') lastTitulo = r;
+                }
+                parentAprobado = lastTitulo ? !!lastTitulo.aprobado : false;
+              }
+              const dimmed = hayAprobados && !parentAprobado && fila.tipo !== 'titulo';
               return (
                 <div key={fila.id}
-                  className={`grid items-center gap-2 px-2 py-1.5 ${ROW_BG[fila.tipo]}`}
+                  className={`grid items-center gap-2 px-2 py-1.5 transition-opacity ${ROW_BG[fila.tipo]} ${dimmed ? 'opacity-40' : ''}`}
                   style={{ gridTemplateColumns: COLS }}>
+
+                  {/* Aprobado checkbox — solo titulo */}
+                  {fila.tipo === 'titulo' ? (
+                    <button
+                      onClick={() => updateFila(fila.id, { aprobado: !fila.aprobado })}
+                      title={fila.aprobado ? 'Desmarcar aprobación' : 'Marcar como aprobado por cliente'}
+                      className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${fila.aprobado ? 'border-[#48BB78] bg-[#48BB78]/20 text-[#48BB78]' : 'border-steel-700 text-transparent hover:border-[#48BB78]/50'}`}>
+                      <span className="text-[0.55rem] font-bold leading-none">✓</span>
+                    </button>
+                  ) : <span />}
 
                   {/* Type badge */}
                   <span className={`flex h-5 w-5 items-center justify-center rounded text-[0.48rem] font-bold ${TYPE_BADGE[fila.tipo]}`}>
@@ -353,7 +383,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         {calc.filas.length > 0 && (
           <div className="grid items-center border-t-2 border-steel-900/60 bg-steel-900/40 px-2 py-2"
             style={{ gridTemplateColumns: COLS }}>
-            <span />
+            <span /><span />
             <span className="font-body text-caption font-semibold uppercase tracking-wider text-steel-500">Subtotal</span>
             <span /><span />
             <span className="text-right font-mono text-caption text-steel-600">{gs(costoTotal)}</span>
@@ -419,6 +449,33 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
             <label className="label mb-1 block">Observaciones / condiciones</label>
             <textarea className="input" rows={3} value={calc.observaciones}
               onChange={(e) => setCalc((c) => ({ ...c, observaciones: e.target.value }))} />
+          </div>
+        </div>
+      )}
+
+      {/* ── Total aprobado por cliente ── */}
+      {hayAprobados && (
+        <div className="rounded-lg border border-[#48BB78]/30 bg-[#48BB78]/5 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#48BB78]/20 text-[#48BB78] text-[0.6rem] font-bold">✓</span>
+              <span className="font-body text-body-sm font-semibold text-[#48BB78]">Total aprobado por cliente</span>
+            </div>
+            <span className="font-mono text-caption text-steel-500">
+              {titulos.filter((t) => t.aprobado).length} de {titulos.length} secciones aprobadas
+            </span>
+          </div>
+          <div className="divide-y divide-[#48BB78]/10 font-body text-body-sm">
+            {titulos.filter((t) => t.aprobado).map((t) => (
+              <div key={t.id} className="flex justify-between py-1.5 text-steel-300">
+                <span>{t.descripcion || 'Sin título'}</span>
+                <span className="font-mono text-[#48BB78]">{gs(sectionTotal(calc.filas, t))}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center justify-between border-t border-[#48BB78]/20 pt-3">
+            <span className="font-body text-caption text-steel-400">Subtotal aprobado + IVA ({calc.iva}%)</span>
+            <span className="font-mono text-h3 font-bold text-[#48BB78]">{gs(totalAprobado)}</span>
           </div>
         </div>
       )}
