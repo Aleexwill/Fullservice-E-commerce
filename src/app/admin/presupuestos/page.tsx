@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator } from 'lucide-react';
+import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator, GitBranch } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
 
@@ -122,6 +122,46 @@ export default function AdminPresupuestosPage() {
     await updateStatus(selected.id, 'aprobado');
   };
 
+  const crearNuevaVersion = async () => {
+    if (!selected) return;
+    if (!confirm(`¿Crear una nueva versión de ${selected.code}? Se copiará todo el contenido con estado Borrador.`)) return;
+    // Detect current version suffix and increment
+    const baseCode = selected.code.replace(/-v\d+$/, '');
+    const currentV = selected.code.match(/-v(\d+)$/)?.[1];
+    const nextV = currentV ? Number(currentV) + 1 : 2;
+    const res = await fetch('/api/presupuestos', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer: selected.customer,
+        serviceTitle: selected.serviceTitle,
+        serviceType: selected.serviceType,
+        description: selected.description,
+        details: selected.details,
+        estimatedValue: selected.estimatedValue,
+        finalValue: null,
+        estimatedDuration: selected.estimatedDuration,
+        scheduledDate: selected.scheduledDate,
+        assignedTo: selected.assignedTo,
+        priority: selected.priority,
+        source: 'admin',
+        status: 'borrador',
+        calculationData: selected.calculationData,
+        _versionOf: baseCode,
+        _versionNum: nextV,
+      }),
+    });
+    if (res.ok) {
+      const nuevo = await res.json();
+      // Rename code to include version suffix
+      await fetch(`/api/presupuestos/${nuevo.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _forceCode: `${baseCode}-v${nextV}` }),
+      });
+      fetchData();
+      setSelected(null);
+    }
+  };
+
   const addNote = async () => {
     if (!selected || !newNote.trim()) return;
     setAddingNote(true);
@@ -198,7 +238,7 @@ export default function AdminPresupuestosPage() {
       {selected && (
         <div className="fixed inset-0 z-[100] flex items-end justify-end">
           <div className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative h-full w-full max-w-5xl overflow-y-auto border-l border-steel-900/40 bg-carbon-light shadow-2xl">
+          <div className="relative h-full w-full max-w-7xl overflow-y-auto border-l border-steel-900/40 bg-carbon-light shadow-2xl">
             <div className="sticky top-0 z-10 border-b border-steel-900/40 bg-carbon-light">
               <div className="flex items-center justify-between px-6 pt-4 pb-3">
                 <div><span className="font-mono text-caption text-blue-bright">{selected.code}</span><h2 className="font-display text-h3 text-arctic">{selected.serviceTitle}</h2></div>
@@ -349,6 +389,9 @@ export default function AdminPresupuestosPage() {
                     <ChevronRight className="h-4 w-4" /> Aprobar y pasar a ejecución
                   </button>
                 )}
+                <button onClick={crearNuevaVersion} className="flex w-full items-center justify-center gap-2 rounded-lg border border-steel-900/40 px-4 py-2.5 font-body text-body-sm font-semibold text-steel-300 hover:bg-steel-900 transition-colors">
+                  <GitBranch className="h-4 w-4" /> Crear nueva versión (el cliente pidió cambios)
+                </button>
               </div>
               {/* Notes */}
               <div>

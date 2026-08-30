@@ -68,6 +68,9 @@ export interface FilaCalculo {
   cantidad: number;
   precioUnitario: number;
   precioVenta: number;
+  // Solo aplica a filas tipo 'titulo'
+  gastosGeneralesPct?: number;
+  margenPct?: number;
 }
 
 export interface CalculationData {
@@ -114,7 +117,7 @@ export interface ItemPresupuesto { id: string; orden: number; descripcionCliente
 export interface LineaCalculo { id: string; descripcion: string; unidad: string; cantidad: number; precioUnitario: number; tipo: string; }
 
 /* ─── Helpers ─── */
-function sectionTotal(filas: FilaCalculo[], tituloId: string): number {
+function sectionSubtotal(filas: FilaCalculo[], tituloId: string): number {
   let inside = false, total = 0;
   for (const r of filas) {
     if (r.id === tituloId) { inside = true; continue; }
@@ -122,6 +125,16 @@ function sectionTotal(filas: FilaCalculo[], tituloId: string): number {
     if (inside) total += r.cantidad * r.precioVenta;
   }
   return total;
+}
+
+function sectionTotal(filas: FilaCalculo[], titulo: FilaCalculo): number {
+  const sub = sectionSubtotal(filas, titulo.id);
+  const gg = titulo.gastosGeneralesPct ?? 0;
+  const mg = titulo.margenPct ?? 0;
+  // gastos generales se aplican sobre subtotal, luego margen sobre (subtotal + gg)
+  const conGG = sub * (1 + gg / 100);
+  const conMg = conGG * (1 + mg / 100);
+  return conMg;
 }
 
 /* ─── Props ─────────────────────────────────────────── */
@@ -228,8 +241,8 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
           <span>Descripción</span>
           <span className="text-center">Unidad</span>
           <span className="text-center">Cant.</span>
-          <span className="text-right">Costo unit.</span>
-          <span className="text-right">P. Cliente unit.</span>
+          <span className="text-right">Costo / %GG</span>
+          <span className="text-right">P.Venta / %Mg</span>
           <span className="text-right text-[#48BB78]">Total</span>
           <span />
         </div>
@@ -245,7 +258,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         {calc.filas.length > 0 && (
           <div className="divide-y divide-steel-900/20">
             {calc.filas.map((fila) => {
-              const rowTotal = fila.tipo !== 'titulo' ? fila.cantidad * fila.precioVenta : sectionTotal(calc.filas, fila.id);
+              const rowTotal = fila.tipo !== 'titulo' ? fila.cantidad * fila.precioVenta : sectionTotal(calc.filas, fila);
               return (
                 <div key={fila.id}
                   className={`grid items-center gap-2 px-2 py-1.5 ${ROW_BG[fila.tipo]}`}
@@ -277,15 +290,31 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                       value={fila.cantidad || ''} onChange={(e) => updateFila(fila.id, { cantidad: Number(e.target.value) })} />
                   )}
 
-                  {/* Costo unitario (internal) */}
-                  {fila.tipo === 'titulo' ? <span /> : (
+                  {/* Gastos generales % — solo titulo */}
+                  {fila.tipo === 'titulo' ? (
+                    <div className="flex items-center gap-0.5 justify-end">
+                      <input type="number" min={0} max={100} step="0.5"
+                        className="bg-transparent outline-none text-right font-mono text-[0.65rem] text-steel-500 w-10"
+                        value={fila.gastosGeneralesPct ?? ''} placeholder="0"
+                        onChange={(e) => updateFila(fila.id, { gastosGeneralesPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
+                      <span className="font-mono text-[0.55rem] text-steel-700">%GG</span>
+                    </div>
+                  ) : (
                     <input type="number" min={0} step="any"
                       className="bg-transparent outline-none text-right font-mono text-body-sm text-steel-600 w-full"
                       value={fila.precioUnitario || ''} onChange={(e) => updateFila(fila.id, { precioUnitario: Number(e.target.value) })} placeholder="0" />
                   )}
 
-                  {/* Precio venta (client) */}
-                  {fila.tipo === 'titulo' ? <span /> : (
+                  {/* Margen % — solo titulo */}
+                  {fila.tipo === 'titulo' ? (
+                    <div className="flex items-center gap-0.5 justify-end">
+                      <input type="number" min={0} max={100} step="0.5"
+                        className="bg-transparent outline-none text-right font-mono text-[0.65rem] text-steel-500 w-10"
+                        value={fila.margenPct ?? ''} placeholder="0"
+                        onChange={(e) => updateFila(fila.id, { margenPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
+                      <span className="font-mono text-[0.55rem] text-steel-700">%Mg</span>
+                    </div>
+                  ) : (
                     <input type="number" min={0} step="any"
                       className="bg-transparent outline-none text-right font-mono text-body-sm text-steel-300 w-full"
                       value={fila.precioVenta || ''} onChange={(e) => updateFila(fila.id, { precioVenta: Number(e.target.value) })} placeholder="0" />
@@ -420,19 +449,20 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
   const titulos = calc.filas.filter((f) => f.tipo === 'titulo');
   const hasTitulos = titulos.length > 0;
 
-  const secTotal = (tituloId: string): number => {
-    let inside = false, total = 0;
+  const secTotal = (t: FilaCalculo): number => {
+    let inside = false, sub = 0;
     for (const r of calc.filas) {
-      if (r.id === tituloId) { inside = true; continue; }
+      if (r.id === t.id) { inside = true; continue; }
       if (inside && r.tipo === 'titulo') break;
-      if (inside) total += r.cantidad * r.precioVenta;
+      if (inside) sub += r.cantidad * r.precioVenta;
     }
-    return total;
+    const conGG = sub * (1 + (t.gastosGeneralesPct ?? 0) / 100);
+    return conGG * (1 + (t.margenPct ?? 0) / 100);
   };
 
   const rows = hasTitulos
     ? titulos.map((t, i) => {
-        const st = secTotal(t.id);
+        const st = secTotal(t);
         return `<tr>
           <td>${t.descripcion || 'Ítem ' + (i + 1)}</td>
           <td class="center">Global</td>

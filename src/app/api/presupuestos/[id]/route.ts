@@ -15,6 +15,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   try {
     const body = await req.json();
     if (body._addNote) { const p = await addNoteToPresupuesto(params.id, body._addNote); return p ? NextResponse.json(p) : NextResponse.json({ error: 'No encontrado' }, { status: 404 }); }
+    if (body._forceCode) {
+      await prisma.presupuesto.update({ where: { id: params.id }, data: { code: body._forceCode } });
+      const p = await getPresupuestoById(params.id);
+      return p ? NextResponse.json(p) : NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    }
     const p = await updatePresupuesto(params.id, body);
     if (!p) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
 
