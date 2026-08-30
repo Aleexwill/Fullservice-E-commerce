@@ -259,6 +259,10 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
           <div className="divide-y divide-steel-900/20">
             {calc.filas.map((fila) => {
               const rowTotal = fila.tipo !== 'titulo' ? fila.cantidad * fila.precioVenta : sectionTotal(calc.filas, fila);
+              const prevFilas: FilaCalculo[] | undefined = (calc as any).previousFilas;
+              const prev = prevFilas?.find((p) => p.id === fila.id);
+              const cantChanged = prev && prev.cantidad !== fila.cantidad;
+              const ventaChanged = prev && prev.precioVenta !== fila.precioVenta;
               return (
                 <div key={fila.id}
                   className={`grid items-center gap-2 px-2 py-1.5 ${ROW_BG[fila.tipo]}`}
@@ -285,9 +289,14 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 
                   {/* Cantidad */}
                   {fila.tipo === 'titulo' ? <span /> : (
-                    <input type="number" min={0} step="any"
-                      className="bg-transparent outline-none text-center font-mono text-body-sm text-arctic w-full"
-                      value={fila.cantidad || ''} onChange={(e) => updateFila(fila.id, { cantidad: Number(e.target.value) })} />
+                    <div className="flex flex-col items-center">
+                      {cantChanged && (
+                        <span className="font-mono text-[0.55rem] text-red-400/70 line-through leading-none mb-0.5">{prev!.cantidad}</span>
+                      )}
+                      <input type="number" min={0} step="any"
+                        className="bg-transparent outline-none text-center font-mono text-body-sm text-arctic w-full"
+                        value={fila.cantidad || ''} onChange={(e) => updateFila(fila.id, { cantidad: Number(e.target.value) })} />
+                    </div>
                   )}
 
                   {/* Gastos generales % — solo titulo */}
@@ -305,7 +314,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                       value={fila.precioUnitario || ''} onChange={(e) => updateFila(fila.id, { precioUnitario: Number(e.target.value) })} placeholder="0" />
                   )}
 
-                  {/* Margen % — solo titulo */}
+                  {/* Margen % — solo titulo | P.Venta para otros */}
                   {fila.tipo === 'titulo' ? (
                     <div className="flex items-center gap-0.5 justify-end">
                       <input type="number" min={0} max={100} step="0.5"
@@ -315,9 +324,14 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                       <span className="font-mono text-[0.55rem] text-steel-700">%Mg</span>
                     </div>
                   ) : (
-                    <input type="number" min={0} step="any"
-                      className="bg-transparent outline-none text-right font-mono text-body-sm text-steel-300 w-full"
-                      value={fila.precioVenta || ''} onChange={(e) => updateFila(fila.id, { precioVenta: Number(e.target.value) })} placeholder="0" />
+                    <div className="flex flex-col items-end">
+                      {ventaChanged && (
+                        <span className="font-mono text-[0.55rem] text-red-400/70 line-through leading-none mb-0.5">{prev!.precioVenta.toLocaleString('es-PY')}</span>
+                      )}
+                      <input type="number" min={0} step="any"
+                        className="bg-transparent outline-none text-right font-mono text-body-sm text-steel-300 w-full"
+                        value={fila.precioVenta || ''} onChange={(e) => updateFila(fila.id, { precioVenta: Number(e.target.value) })} placeholder="0" />
+                    </div>
                   )}
 
                   {/* Total (qty × venta) */}
