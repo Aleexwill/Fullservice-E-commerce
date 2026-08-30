@@ -352,20 +352,6 @@ export default function AdminPresupuestosPage() {
                   </>
                 )}
               </div>
-              {/* Values */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="card p-3 text-center"><p className="label">Estimado cliente</p><p className="mt-1 font-display text-h3 text-arctic">{selected.estimatedValue ? formatGs(selected.estimatedValue) : '—'}</p></div>
-                <div className="card p-3">
-                  <p className="label mb-1">Valor final cotizado</p>
-                  {editingFinal ? (
-                    <input type="number" value={editFinal} onChange={(e) => setEditFinal(e.target.value)} className="input font-mono text-[#48BB78]" placeholder="Monto en Gs." autoFocus onBlur={() => setEditingFinal(false)} onKeyDown={(e) => { if (e.key === 'Enter') setEditingFinal(false); }} />
-                  ) : (
-                    <button onClick={() => setEditingFinal(true)} className="mt-1 w-full text-left font-display text-h3 text-[#48BB78] hover:opacity-80">
-                      {editFinal ? formatGs(Number(editFinal)) : <span className="text-steel-700 text-body">+ Agregar</span>}
-                    </button>
-                  )}
-                </div>
-              </div>
 
               {/* Resumen del cálculo interno */}
               {(() => {
