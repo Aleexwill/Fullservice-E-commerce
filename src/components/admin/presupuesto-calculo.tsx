@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Plus, Trash2, Save, FileText, Loader2, Search, CheckCircle2, AlertCircle, Printer, X } from 'lucide-react';
 
 /* ─── Material search autocomplete ─────────────────── */
@@ -240,6 +240,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiAlcance, setAiAlcance] = useState<{ id: string; alcance: string } | null>(null);
 
   // mark dirty on any calc change
   const prevCalc = useRef(calc);
@@ -311,8 +312,9 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         body: JSON.stringify({ texto: fila.descripcion, contexto: serviceTitle }),
       });
       const data = await res.json();
-      if (res.ok && data.texto) {
-        updateFila(fila.id, { descripcion: data.texto });
+      if (res.ok && data.titulo) {
+        updateFila(fila.id, { descripcion: data.titulo });
+        if (data.alcance) setAiAlcance({ id: fila.id, alcance: data.alcance });
       } else {
         setAiError(data.error || 'Error al procesar');
         setTimeout(() => setAiError(null), 4000);
@@ -438,7 +440,8 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
               }
               const dimmed = hayAprobados && !parentAprobado && fila.tipo !== 'titulo';
               return (
-                <div key={fila.id}
+                <React.Fragment key={fila.id}>
+                <div
                   className={`grid items-center gap-2 px-2 py-1.5 transition-opacity ${ROW_BG[fila.tipo]} ${dimmed ? 'opacity-40' : ''}`}
                   style={{ gridTemplateColumns: COLS }}>
 
@@ -538,6 +541,33 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                     <Trash2 className="h-3 w-3" />
                   </button>
                 </div>
+
+                {/* Alcance panel shown after AI generates scope */}
+                {aiAlcance?.id === fila.id && (
+                  <div className="mx-2 mb-2 rounded-lg border border-blue-bright/20 bg-blue-bright/5 px-3 py-2 flex items-start gap-2">
+                    <div className="flex-1">
+                      <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-blue-bright/70 mb-0.5">Alcance sugerido</p>
+                      <p className="font-body text-body-sm text-steel-300 leading-relaxed">{aiAlcance.alcance}</p>
+                    </div>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(aiAlcance.alcance); }}
+                        title="Copiar alcance"
+                        className="rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
+                      >
+                        Copiar
+                      </button>
+                      <button
+                        onClick={() => setAiAlcance(null)}
+                        title="Cerrar"
+                        className="rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-steel-700 text-steel-500 hover:text-steel-300 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+                </React.Fragment>
               );
             })}
           </div>
