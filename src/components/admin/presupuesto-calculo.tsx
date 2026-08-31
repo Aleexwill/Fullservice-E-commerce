@@ -240,7 +240,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [aiAlcance, setAiAlcance] = useState<{ id: string; alcance: string } | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<{ id: string; titulo: string; alcance: string } | null>(null);
 
   // mark dirty on any calc change
   const prevCalc = useRef(calc);
@@ -313,8 +313,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
       });
       const data = await res.json();
       if (res.ok && data.titulo) {
-        updateFila(fila.id, { descripcion: data.titulo });
-        if (data.alcance) setAiAlcance({ id: fila.id, alcance: data.alcance });
+        setAiSuggestion({ id: fila.id, titulo: data.titulo, alcance: data.alcance ?? '' });
       } else {
         setAiError(data.error || 'Error al procesar');
         setTimeout(() => setAiError(null), 4000);
@@ -461,12 +460,24 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                   </span>
 
                   {/* Descripcion */}
-                  <input
-                    className={`bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full min-w-0 ${fila.tipo === 'titulo' ? 'font-semibold text-arctic' : 'text-steel-300'}`}
-                    value={fila.descripcion}
-                    onChange={(e) => updateFila(fila.id, { descripcion: e.target.value })}
-                    placeholder={fila.tipo === 'titulo' ? 'Título de sección...' : fila.tipo === 'material' ? 'Material...' : fila.tipo === 'mano_obra' ? 'Mano de obra / viático...' : 'Otro...'}
-                  />
+                  {fila.tipo === 'titulo' ? (
+                    <textarea
+                      rows={1}
+                      className="bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full min-w-0 font-semibold text-arctic resize-none overflow-hidden leading-snug"
+                      style={{ fieldSizing: 'content' } as React.CSSProperties}
+                      value={fila.descripcion}
+                      onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; updateFila(fila.id, { descripcion: e.target.value }); }}
+                      onInput={(e) => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                      placeholder="Título de sección..."
+                    />
+                  ) : (
+                    <input
+                      className="bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full min-w-0 text-steel-300"
+                      value={fila.descripcion}
+                      onChange={(e) => updateFila(fila.id, { descripcion: e.target.value })}
+                      placeholder={fila.tipo === 'material' ? 'Material...' : fila.tipo === 'mano_obra' ? 'Mano de obra / viático...' : 'Otro...'}
+                    />
+                  )}
                   {fila.tipo === 'titulo' && fila.descripcion.trim() && (
                     <button
                       onClick={() => mejorarConIA(fila)}
@@ -542,29 +553,41 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                   </button>
                 </div>
 
-                {/* Alcance panel shown after AI generates scope */}
-                {aiAlcance?.id === fila.id && (
-                  <div className="mx-2 mb-2 rounded-lg border border-blue-bright/20 bg-blue-bright/5 px-3 py-2 flex items-start gap-2">
-                    <div className="flex-1">
-                      <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-blue-bright/70 mb-0.5">Alcance sugerido</p>
-                      <p className="font-body text-body-sm text-steel-300 leading-relaxed">{aiAlcance.alcance}</p>
+                {/* AI suggestion panel */}
+                {aiSuggestion?.id === fila.id && (
+                  <div className="mx-2 mb-2 rounded-lg border border-blue-bright/20 bg-blue-bright/5 px-3 py-2 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-blue-bright/70">Sugerencias IA</p>
+                      <button onClick={() => setAiSuggestion(null)} className="text-steel-600 hover:text-steel-300 text-xs transition-colors">✕</button>
                     </div>
-                    <div className="flex flex-col gap-1 shrink-0">
+                    {/* Título sugerido */}
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1">
+                        <p className="font-body text-[0.58rem] text-steel-500 mb-0.5">Título</p>
+                        <p className="font-body text-body-sm text-arctic font-semibold leading-snug">{aiSuggestion.titulo}</p>
+                      </div>
                       <button
-                        onClick={() => { updateFila(aiAlcance.id, { descripcion: aiAlcance.alcance }); setAiAlcance(null); }}
-                        title="Reemplazar alcance"
-                        className="rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
+                        onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.titulo }); setAiSuggestion(null); }}
+                        className="shrink-0 rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
                       >
                         Reemplazar
                       </button>
-                      <button
-                        onClick={() => setAiAlcance(null)}
-                        title="Descartar"
-                        className="rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-steel-700 text-steel-500 hover:text-steel-300 transition-colors"
-                      >
-                        ✕
-                      </button>
                     </div>
+                    {/* Alcance sugerido */}
+                    {aiSuggestion.alcance && (
+                      <div className="flex items-start gap-2 border-t border-steel-800/40 pt-2">
+                        <div className="flex-1">
+                          <p className="font-body text-[0.58rem] text-steel-500 mb-0.5">Alcance</p>
+                          <p className="font-body text-body-sm text-steel-300 leading-relaxed">{aiSuggestion.alcance}</p>
+                        </div>
+                        <button
+                          onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.alcance }); setAiSuggestion(null); }}
+                          className="shrink-0 rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
+                        >
+                          Reemplazar
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
                 </React.Fragment>
