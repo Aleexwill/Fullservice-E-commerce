@@ -509,12 +509,12 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 
                   {/* Gastos generales % — solo titulo */}
                   {fila.tipo === 'titulo' ? (
-                    <div className="flex items-center gap-0.5 justify-end">
+                    <div className="flex flex-col items-end gap-0">
+                      <span className="font-mono text-[0.5rem] font-semibold uppercase tracking-wider text-steel-600 leading-none mb-0.5">GG %</span>
                       <input type="number" min={0} max={100} step="0.5"
-                        className="bg-transparent outline-none text-right font-mono text-[0.65rem] text-steel-500 w-10"
+                        className="bg-steel-900/60 border border-steel-800/60 rounded px-1.5 py-0.5 outline-none text-right font-mono text-body-sm text-steel-300 w-full focus:border-blue-bright/40 focus:text-arctic transition-colors"
                         value={fila.gastosGeneralesPct ?? ''} placeholder="0"
                         onChange={(e) => updateFila(fila.id, { gastosGeneralesPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
-                      <span className="font-mono text-[0.55rem] text-steel-700">%GG</span>
                     </div>
                   ) : (
                     <input type="number" min={0} step="any"
@@ -524,12 +524,12 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 
                   {/* Margen % — solo titulo | P.Venta para otros */}
                   {fila.tipo === 'titulo' ? (
-                    <div className="flex items-center gap-0.5 justify-end">
+                    <div className="flex flex-col items-end gap-0">
+                      <span className="font-mono text-[0.5rem] font-semibold uppercase tracking-wider text-steel-600 leading-none mb-0.5">Mg %</span>
                       <input type="number" min={0} max={100} step="0.5"
-                        className="bg-transparent outline-none text-right font-mono text-[0.65rem] text-steel-500 w-10"
+                        className="bg-steel-900/60 border border-steel-800/60 rounded px-1.5 py-0.5 outline-none text-right font-mono text-body-sm text-steel-300 w-full focus:border-blue-bright/40 focus:text-arctic transition-colors"
                         value={fila.margenPct ?? ''} placeholder="0"
                         onChange={(e) => updateFila(fila.id, { margenPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
-                      <span className="font-mono text-[0.55rem] text-steel-700">%Mg</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-end">
@@ -543,7 +543,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                   )}
 
                   {/* Total (qty × venta) */}
-                  <span className={`text-right font-mono text-body-sm font-semibold ${fila.tipo === 'titulo' ? 'text-steel-500 text-caption' : 'text-[#48BB78]'}`}>
+                  <span className={`text-right font-mono font-semibold ${fila.tipo === 'titulo' ? 'text-body-sm text-[#48BB78]' : 'text-body-sm text-[#48BB78]'}`}>
                     {rowTotal > 0 ? gs(rowTotal) : '—'}
                   </span>
 
