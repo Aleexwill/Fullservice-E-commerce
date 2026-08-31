@@ -551,15 +551,15 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                     </div>
                     <div className="flex flex-col gap-1 shrink-0">
                       <button
-                        onClick={() => { navigator.clipboard.writeText(aiAlcance.alcance); }}
-                        title="Copiar alcance"
+                        onClick={() => { updateFila(aiAlcance.id, { descripcion: aiAlcance.alcance }); setAiAlcance(null); }}
+                        title="Reemplazar alcance"
                         className="rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
                       >
-                        Copiar
+                        Reemplazar
                       </button>
                       <button
                         onClick={() => setAiAlcance(null)}
-                        title="Cerrar"
+                        title="Descartar"
                         className="rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-steel-700 text-steel-500 hover:text-steel-300 transition-colors"
                       >
                         ✕
