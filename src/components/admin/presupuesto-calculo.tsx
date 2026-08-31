@@ -240,7 +240,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [aiSuggestion, setAiSuggestion] = useState<{ id: string; titulo: string; alcance: string } | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<{ id: string; original: string; titulo: string; alcance: string } | null>(null);
 
   // mark dirty on any calc change
   const prevCalc = useRef(calc);
@@ -313,7 +313,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
       });
       const data = await res.json();
       if (res.ok && data.titulo) {
-        setAiSuggestion({ id: fila.id, titulo: data.titulo, alcance: data.alcance ?? '' });
+        setAiSuggestion({ id: fila.id, original: fila.descripcion, titulo: data.titulo, alcance: data.alcance ?? '' });
       } else {
         setAiError(data.error || 'Error al procesar');
         setTimeout(() => setAiError(null), 4000);
@@ -560,31 +560,45 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                       <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-blue-bright/70">Sugerencias IA</p>
                       <button onClick={() => setAiSuggestion(null)} className="text-steel-600 hover:text-steel-300 text-xs transition-colors">✕</button>
                     </div>
-                    {/* Título sugerido */}
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <p className="font-body text-[0.58rem] text-steel-500 mb-0.5">Título</p>
-                        <p className="font-body text-body-sm text-arctic font-semibold leading-snug">{aiSuggestion.titulo}</p>
+
+                    {/* Título: original vs IA, lado a lado */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Original del usuario */}
+                      <div className="flex flex-col gap-1 rounded-md border border-steel-800/60 bg-steel-900/40 px-2 py-1.5">
+                        <p className="font-body text-[0.55rem] font-semibold uppercase tracking-wider text-steel-500">Original</p>
+                        <p className="font-body text-body-sm text-steel-300 leading-snug flex-1">{aiSuggestion.original}</p>
+                        <button
+                          onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.original }); setAiSuggestion(null); }}
+                          className="self-start rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-steel-700 text-steel-400 hover:text-arctic hover:border-steel-500 transition-colors"
+                        >
+                          Usar
+                        </button>
                       </div>
-                      <button
-                        onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.titulo }); setAiSuggestion(null); }}
-                        className="shrink-0 rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
-                      >
-                        Reemplazar
-                      </button>
+                      {/* Título mejorado por IA */}
+                      <div className="flex flex-col gap-1 rounded-md border border-blue-bright/25 bg-blue-bright/5 px-2 py-1.5">
+                        <p className="font-body text-[0.55rem] font-semibold uppercase tracking-wider text-blue-bright/70">IA</p>
+                        <p className="font-body text-body-sm text-arctic font-semibold leading-snug flex-1">{aiSuggestion.titulo}</p>
+                        <button
+                          onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.titulo }); setAiSuggestion(null); }}
+                          className="self-start rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
+                        >
+                          Usar
+                        </button>
+                      </div>
                     </div>
+
                     {/* Alcance sugerido */}
                     {aiSuggestion.alcance && (
                       <div className="flex items-start gap-2 border-t border-steel-800/40 pt-2">
                         <div className="flex-1">
-                          <p className="font-body text-[0.58rem] text-steel-500 mb-0.5">Alcance</p>
+                          <p className="font-body text-[0.58rem] text-steel-500 mb-0.5">Alcance de trabajos</p>
                           <p className="font-body text-body-sm text-steel-300 leading-relaxed">{aiSuggestion.alcance}</p>
                         </div>
                         <button
                           onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.alcance }); setAiSuggestion(null); }}
                           className="shrink-0 rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
                         >
-                          Reemplazar
+                          Usar
                         </button>
                       </div>
                     )}
