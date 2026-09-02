@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { getSettings, updateSettings, SETTINGS_CACHE_TAG } from '@/lib/settings-store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     return NextResponse.json(await getSettings());
