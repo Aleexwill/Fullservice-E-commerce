@@ -40,59 +40,57 @@ export function HeroSection() {
       />
 
       <div className="container-main relative z-10 w-full">
-        <div className="flex items-center gap-16 py-20 md:py-28">
-        <div className="flex-1 max-w-[620px]">
-          {/* Status badge */}
-          <div className="mb-6 flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-success shadow-[0_0_8px_rgba(47,133,90,0.6)]" />
-            <span className="overline text-steel-300">
-              Atencion inmediata disponible
-            </span>
+        <div className="flex flex-col py-16 md:py-24 gap-12">
+
+          {/* Top: texto principal */}
+          <div className="max-w-[720px]">
+            {/* Status badge */}
+            <div className="mb-6 flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-success shadow-[0_0_8px_rgba(47,133,90,0.6)]" />
+              <span className="overline text-steel-300">Atencion inmediata disponible</span>
+            </div>
+
+            {/* Main heading */}
+            <h1 className="font-display text-[clamp(2.5rem,6vw,5rem)] font-bold uppercase leading-[0.95] tracking-tight text-arctic">
+              SERVICIO
+              <br />
+              <span className="text-blue">COMPLETO</span> Y
+              <br />
+              <span className="text-orange">LIMPIEZA</span> TOTAL
+            </h1>
+
+            {/* Subtitle */}
+            <p className="mt-8 max-w-[520px] font-body text-body-lg text-steel-300 leading-[1.7]">
+              Mantenimiento, limpieza profesional, obras civiles y metalurgica.
+              Presupuesto claro, seguimiento del trabajo y garantia.
+            </p>
+
+            {/* CTAs */}
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link href="/contacto?tipo=presupuesto" className="btn-primary px-8 py-4 text-[0.8rem]">
+                Pedir presupuesto
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/tienda"
+                className="inline-flex items-center justify-center gap-2 rounded border-[1.5px] border-steel-700 bg-transparent px-8 py-4 font-body text-[0.8rem] font-semibold uppercase tracking-[0.05em] text-steel-100 transition-all hover:border-steel-500 hover:bg-steel-900/50"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Tienda online
+              </Link>
+            </div>
           </div>
 
-          {/* Main heading */}
-          <h1 className="font-display text-[clamp(2.5rem,6vw,5rem)] font-bold uppercase leading-[0.95] tracking-tight text-arctic">
-            SERVICIO
-            <br />
-            <span className="text-blue">COMPLETO</span> Y
-            <br />
-            <span className="text-orange">LIMPIEZA</span> TOTAL
-          </h1>
-
-          {/* Subtitle */}
-          <p className="mt-8 max-w-[520px] font-body text-body-lg text-steel-300 leading-[1.7]">
-            Mantenimiento, limpieza profesional, obras civiles y metalurgica.
-            Presupuesto claro, seguimiento del trabajo y garantia.
-          </p>
-
-          {/* CTAs */}
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Link href="/contacto?tipo=presupuesto" className="btn-primary px-8 py-4 text-[0.8rem]">
-              Pedir presupuesto
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/tienda"
-              className="inline-flex items-center justify-center gap-2 rounded border-[1.5px] border-steel-700 bg-transparent px-8 py-4 font-body text-[0.8rem] font-semibold uppercase tracking-[0.05em] text-steel-100 transition-all hover:border-steel-500 hover:bg-steel-900/50"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Tienda online
-            </Link>
-          </div>
+          {/* Carrusel horizontal — full width */}
+          <HeroDiagonalCarousel />
 
           {/* Stats */}
-          <div className="mt-16 flex flex-wrap gap-12 border-t border-steel-900/60 pt-8">
+          <div className="flex flex-wrap gap-12 border-t border-steel-900/60 pt-8">
             <StatBlock number="150" suffix="+" label="Clientes activos" />
             <StatBlock number="24h" label="Respuesta" />
             <StatBlock number="100" suffix="%" label="Garantia" />
             <StatBlock number="10" suffix="+" label="Anos experiencia" />
           </div>
-        </div>
-
-        {/* Carousel — hidden on mobile, visible on large screens */}
-        <div className="hidden lg:flex flex-shrink-0 items-center justify-center">
-          <HeroDiagonalCarousel />
-        </div>
 
         </div>
       </div>
