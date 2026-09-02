@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Star, Target, Eye, Heart } from 'lucide-react';
 import { HeroSection } from '@/components/sections/hero-section';
 import { TrustBar, ServicesSection, CtaSection } from '@/components/sections/services-section';
+import { PromoBannerCarousel } from '@/components/sections/promo-banner-carousel';
 import { Isotipo } from '@/components/ui/isotipo';
 import { AddToCartButton } from '@/components/sections/add-to-cart-button';
 import { getCachedSettings } from '@/lib/settings-store';
@@ -334,6 +335,7 @@ export default async function HomePage() {
       <TrustBar />
       <ServicesSection />
       <AboutSection about={content.about} />
+      <PromoBannerCarousel />
       <FeaturedProducts />
       <PortfolioPreview />
       <TestimonialsSection />
