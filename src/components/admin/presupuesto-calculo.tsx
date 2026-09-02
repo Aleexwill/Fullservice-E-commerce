@@ -459,35 +459,37 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                     {TYPE_LABEL[fila.tipo]}
                   </span>
 
-                  {/* Descripcion */}
-                  {fila.tipo === 'titulo' ? (
-                    <textarea
-                      rows={1}
-                      className="bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full min-w-0 font-semibold text-arctic resize-none overflow-hidden leading-snug"
-                      style={{ fieldSizing: 'content' } as React.CSSProperties}
-                      value={fila.descripcion}
-                      onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; updateFila(fila.id, { descripcion: e.target.value }); }}
-                      onInput={(e) => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
-                      placeholder="Título de sección..."
-                    />
-                  ) : (
-                    <input
-                      className="bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full min-w-0 text-steel-300"
-                      value={fila.descripcion}
-                      onChange={(e) => updateFila(fila.id, { descripcion: e.target.value })}
-                      placeholder={fila.tipo === 'material' ? 'Material...' : fila.tipo === 'mano_obra' ? 'Mano de obra / viático...' : 'Otro...'}
-                    />
-                  )}
-                  {fila.tipo === 'titulo' && fila.descripcion.trim() && (
-                    <button
-                      onClick={() => mejorarConIA(fila)}
-                      disabled={!!aiLoadingId}
-                      title="Mejorar con IA"
-                      className="ml-1 shrink-0 rounded px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 disabled:opacity-40 transition-colors"
-                    >
-                      {aiLoadingId === fila.id ? '...' : 'IA'}
-                    </button>
-                  )}
+                  {/* Descripcion + botón IA en la misma celda */}
+                  <div className="flex items-center gap-1 min-w-0 w-full">
+                    {fila.tipo === 'titulo' ? (
+                      <textarea
+                        rows={1}
+                        className="bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full min-w-0 font-semibold text-arctic resize-none overflow-hidden leading-snug"
+                        style={{ fieldSizing: 'content' } as React.CSSProperties}
+                        value={fila.descripcion}
+                        onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; updateFila(fila.id, { descripcion: e.target.value }); }}
+                        onInput={(e) => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                        placeholder="Título de sección..."
+                      />
+                    ) : (
+                      <input
+                        className="bg-transparent outline-none font-body text-body-sm placeholder:text-steel-800 w-full min-w-0 text-steel-300"
+                        value={fila.descripcion}
+                        onChange={(e) => updateFila(fila.id, { descripcion: e.target.value })}
+                        placeholder={fila.tipo === 'material' ? 'Material...' : fila.tipo === 'mano_obra' ? 'Mano de obra / viático...' : 'Otro...'}
+                      />
+                    )}
+                    {fila.tipo === 'titulo' && fila.descripcion.trim() && (
+                      <button
+                        onClick={() => mejorarConIA(fila)}
+                        disabled={!!aiLoadingId}
+                        title="Mejorar con IA"
+                        className="ml-1 shrink-0 rounded px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 disabled:opacity-40 transition-colors"
+                      >
+                        {aiLoadingId === fila.id ? '...' : 'IA'}
+                      </button>
+                    )}
+                  </div>
 
                   {/* Unidad */}
                   {fila.tipo === 'titulo' ? <span /> : (
@@ -509,13 +511,10 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 
                   {/* Gastos generales % — solo titulo */}
                   {fila.tipo === 'titulo' ? (
-                    <div className="flex flex-col items-end gap-0">
-                      <span className="font-mono text-[0.5rem] font-semibold uppercase tracking-wider text-steel-600 leading-none mb-0.5">GG %</span>
-                      <input type="number" min={0} max={100} step="0.5"
-                        className="bg-steel-900/60 border border-steel-800/60 rounded px-1.5 py-0.5 outline-none text-right font-mono text-body-sm text-steel-300 w-full focus:border-blue-bright/40 focus:text-arctic transition-colors"
-                        value={fila.gastosGeneralesPct ?? ''} placeholder="0"
-                        onChange={(e) => updateFila(fila.id, { gastosGeneralesPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
-                    </div>
+                    <input type="number" min={0} max={100} step="0.5"
+                      className="bg-steel-900/60 border border-steel-800/60 rounded px-1.5 py-1 outline-none text-right font-mono text-body-sm text-steel-300 w-full focus:border-blue-bright/40 focus:text-arctic transition-colors"
+                      value={fila.gastosGeneralesPct ?? ''} placeholder="0"
+                      onChange={(e) => updateFila(fila.id, { gastosGeneralesPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
                   ) : (
                     <input type="number" min={0} step="any"
                       className="bg-transparent outline-none text-right font-mono text-body-sm text-steel-600 w-full"
@@ -524,13 +523,10 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 
                   {/* Margen % — solo titulo | P.Venta para otros */}
                   {fila.tipo === 'titulo' ? (
-                    <div className="flex flex-col items-end gap-0">
-                      <span className="font-mono text-[0.5rem] font-semibold uppercase tracking-wider text-steel-600 leading-none mb-0.5">Mg %</span>
-                      <input type="number" min={0} max={100} step="0.5"
-                        className="bg-steel-900/60 border border-steel-800/60 rounded px-1.5 py-0.5 outline-none text-right font-mono text-body-sm text-steel-300 w-full focus:border-blue-bright/40 focus:text-arctic transition-colors"
-                        value={fila.margenPct ?? ''} placeholder="0"
-                        onChange={(e) => updateFila(fila.id, { margenPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
-                    </div>
+                    <input type="number" min={0} max={100} step="0.5"
+                      className="bg-steel-900/60 border border-steel-800/60 rounded px-1.5 py-1 outline-none text-right font-mono text-body-sm text-steel-300 w-full focus:border-blue-bright/40 focus:text-arctic transition-colors"
+                      value={fila.margenPct ?? ''} placeholder="0"
+                      onChange={(e) => updateFila(fila.id, { margenPct: e.target.value === '' ? undefined : Number(e.target.value) })} />
                   ) : (
                     <div className="flex flex-col items-end">
                       {ventaChanged && (
