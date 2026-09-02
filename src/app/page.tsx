@@ -334,6 +334,7 @@ export default async function HomePage() {
       <TrustBar />
       <ServicesSection />
       <AboutSection about={content.about} />
+      <PromoBannerCarousel />
       <FeaturedProducts />
       <PortfolioPreview />
       <TestimonialsSection />
