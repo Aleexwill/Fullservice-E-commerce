@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/auth';
+import { can, RESTRICTED_ROUTES } from '@/lib/roles';
 
 // Rutas de API que deben quedar abiertas al público (formularios del sitio, tracking).
 // Todo lo demás bajo /api requiere sesión de admin.
 function isPublicApi(pathname: string, method: string): boolean {
   if (pathname.startsWith('/api/auth/')) return true;
+  if (pathname.startsWith('/api/invitaciones/')) return true; // token lookup + activation
 
   if (method === 'POST' && ['/api/leads', '/api/pedidos', '/api/presupuestos', '/api/analytics'].includes(pathname)) {
     return true;
@@ -22,9 +24,6 @@ function isPublicApi(pathname: string, method: string): boolean {
 }
 
 async function getSession(token: string | undefined) {
-  // Falla "cerrado": cualquier error al verificar (ej. SESSION_SECRET
-  // no configurado) se trata como "sin sesión", nunca deja pasar la
-  // request ni tumba el middleware con una excepción sin manejar.
   try {
     return await verifySessionToken(token);
   } catch {
@@ -47,11 +46,20 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login') return NextResponse.next();
+    // Invitation acceptance pages are public
+    if (pathname.startsWith('/admin/invitacion/')) return NextResponse.next();
+
     const session = await getSession(token);
     if (!session) {
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
+    }
+
+    // Role-based route enforcement
+    const restricted = RESTRICTED_ROUTES.find(r => pathname.startsWith(r.path));
+    if (restricted && !can(session.role, restricted.requiredPermission)) {
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
 
