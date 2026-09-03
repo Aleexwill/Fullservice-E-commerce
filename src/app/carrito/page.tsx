@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { useState, useEffect } from 'react';
 import { Trash2, Minus, Plus, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
@@ -43,7 +44,7 @@ export default function CarritoPage() {
                   <div key={item.productId} className="card flex items-center gap-4 p-4">
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-steel-900">
                       {item.image ? (
-                        <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                        <NextImage src={item.image} alt={item.name} width={64} height={64} className="h-full w-full object-cover" />
                       ) : (
                         <ShoppingCart className="h-6 w-6 text-steel-700" />
                       )}

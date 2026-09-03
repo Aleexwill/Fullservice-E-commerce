@@ -64,7 +64,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded px-4 py-2 font-body text-[0.7rem] font-medium uppercase tracking-[0.05em] text-steel-500 transition-colors hover:text-arctic"
+                className="rounded px-4 py-2.5 font-body text-xs font-medium uppercase tracking-[0.05em] text-steel-500 transition-colors hover:text-arctic"
               >
                 {link.label}
               </Link>
@@ -74,7 +74,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
           {/* Actions */}
           <div className="flex items-center gap-2">
             <button
-              className="rounded p-2 text-steel-500 transition-colors hover:text-arctic"
+              className="rounded p-2.5 text-steel-500 transition-colors hover:text-arctic"
               aria-label="Buscar"
             >
               <Search className="h-4 w-4" />
@@ -82,11 +82,12 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
 
             <Link
               href="/carrito"
-              className="relative rounded p-2 text-steel-500 transition-colors hover:text-arctic"
+              aria-label={cartCount > 0 ? `Carrito — ${cartCount} item${cartCount !== 1 ? 's' : ''}` : 'Carrito'}
+              className="relative rounded p-2.5 text-steel-500 transition-colors hover:text-arctic"
             >
               <ShoppingCart className="h-4 w-4" />
               {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-orange text-[9px] font-bold text-white">
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange text-[0.6rem] font-bold text-white">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
