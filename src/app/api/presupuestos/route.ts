@@ -12,6 +12,13 @@ export async function GET(req: NextRequest) {
     if (status) data = data.filter((p) => p.status === status);
     const type = searchParams.get('type');
     if (type) data = data.filter((p) => p.serviceType === type);
+
+    // Filter by scheduled date range (scheduledDate stored as YYYY-MM-DD string)
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
+    if (dateFrom) data = data.filter((p) => p.scheduledDate >= dateFrom);
+    if (dateTo) data = data.filter((p) => p.scheduledDate <= dateTo);
+
     data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return NextResponse.json({ presupuestos: data, total: data.length });
   } catch (error) {

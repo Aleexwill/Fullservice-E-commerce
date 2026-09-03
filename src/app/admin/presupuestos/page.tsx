@@ -40,6 +40,13 @@ const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
 
 const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
 const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const formatScheduledDate = (d: string) => {
+  if (!d) return null;
+  // ISO date YYYY-MM-DD — parse as local date to avoid timezone shift
+  const [y, m, day] = d.split('-').map(Number);
+  if (!y || !m || !day) return d;
+  return new Date(y, m - 1, day).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 export default function AdminPresupuestosPage() {
   const [items, setItems] = useState<Presupuesto[]>([]);
@@ -47,6 +54,8 @@ export default function AdminPresupuestosPage() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
   const [selected, setSelected] = useState<Presupuesto | null>(null);
   const [newNote, setNewNote] = useState('');
   const [addingNote, setAddingNote] = useState(false);
@@ -71,8 +80,10 @@ export default function AdminPresupuestosPage() {
     if (search) p.set('search', search);
     if (filterStatus) p.set('status', filterStatus);
     if (filterType) p.set('type', filterType);
+    if (filterDateFrom) p.set('dateFrom', filterDateFrom);
+    if (filterDateTo) p.set('dateTo', filterDateTo);
     fetchJson<any>(`/api/presupuestos?${p}`).then((d) => { setItems(d?.presupuestos || []); setLoading(false); });
-  }, [search, filterStatus, filterType]);
+  }, [search, filterStatus, filterType, filterDateFrom, filterDateTo]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -209,6 +220,11 @@ export default function AdminPresupuestosPage() {
         <div className="relative min-w-[240px] flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" /><input type="text" placeholder="Buscar por codigo, cliente, servicio..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" /></div>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input max-w-[160px]"><option value="">Todo estado</option>{Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="input max-w-[160px]"><option value="">Todo tipo</option>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
+        <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} className="input max-w-[160px]" title="Fecha programada desde" />
+        <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} className="input max-w-[160px]" title="Fecha programada hasta" />
+        {(filterDateFrom || filterDateTo) && (
+          <button onClick={() => { setFilterDateFrom(''); setFilterDateTo(''); }} className="font-body text-caption text-steel-500 hover:text-arctic transition-colors">✕ Limpiar fechas</button>
+        )}
         <button onClick={fetchData} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
       </div>
 
@@ -243,7 +259,11 @@ export default function AdminPresupuestosPage() {
                 </div>
                 <div className="hidden shrink-0 text-right md:block">
                   {item.estimatedValue && <p className="font-mono text-body-sm text-arctic">{formatGs(item.estimatedValue)}</p>}
-                  <p className="font-body text-caption text-steel-700">{formatDate(item.createdAt)}</p>
+                  {item.scheduledDate ? (
+                    <p className="font-body text-caption text-blue-bright/70" title="Fecha programada">📅 {formatScheduledDate(item.scheduledDate)}</p>
+                  ) : (
+                    <p className="font-body text-caption text-steel-700">{formatDate(item.createdAt)}</p>
+                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-700"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
@@ -456,7 +476,7 @@ export default function AdminPresupuestosPage() {
               <div className="card p-4 space-y-3">
                 <h3 className="font-display text-h4 text-arctic flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-bright" /> Programación</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="label mb-1 block">Fecha programada</label><input type="text" value={editSched} onChange={(e) => setEditSched(e.target.value)} className="input" placeholder="ej: 15/09/2025" /></div>
+                  <div><label className="label mb-1 block">Fecha programada</label><input type="date" value={editSched} onChange={(e) => setEditSched(e.target.value)} className="input" /></div>
                   <div><label className="label mb-1 block">Duración estimada</label><input type="text" value={editDuration} onChange={(e) => setEditDuration(e.target.value)} className="input" placeholder="ej: 2 días" /></div>
                 </div>
                 <div><label className="label mb-1 block">Responsable / Equipo</label><input type="text" value={editAssigned} onChange={(e) => setEditAssigned(e.target.value)} className="input" placeholder="Nombre del técnico o equipo" /></div>
@@ -693,7 +713,7 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
                 </div>
                 <div>
                   <label className="label mb-1 block">Fecha programada</label>
-                  <input type="text" placeholder="ej: 20/09/2025" value={f.scheduledDate} onChange={(e) => setF({ ...f, scheduledDate: e.target.value })} className="input" />
+                  <input type="date" value={f.scheduledDate} onChange={(e) => setF({ ...f, scheduledDate: e.target.value })} className="input" />
                 </div>
                 <div className="col-span-2">
                   <label className="label mb-1 block">Responsable / Equipo</label>
