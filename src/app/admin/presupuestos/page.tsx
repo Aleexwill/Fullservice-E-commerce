@@ -267,7 +267,7 @@ export default function AdminPresupuestosPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-700"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
-                  <button onClick={(e) => { e.stopPropagation(); del(item.id); }} className="rounded p-1 text-steel-700 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); del(item.id); }} aria-label="Eliminar presupuesto" className="rounded p-1.5 text-steel-700 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
                   <ChevronRight className="h-4 w-4 text-steel-700" />
                 </div>
               </div>
