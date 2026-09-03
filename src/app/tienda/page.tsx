@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import NextImage from 'next/image';
 import {
   Search,
   Star,
@@ -304,10 +305,12 @@ export default function TiendaPage() {
                       {/* Image */}
                       <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
                         {product.images && product.images.length > 0 ? (
-                          <img
+                          <NextImage
                             src={product.images[0]}
                             alt={product.name}
-                            className="h-full w-full object-cover"
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            className="object-cover"
                           />
                         ) : (
                           <Isotipo size={56} color="#2D8FCC20" />
@@ -365,7 +368,7 @@ export default function TiendaPage() {
                         </div>
 
                         {/* SKU */}
-                        <span className="mt-1 block font-mono text-[0.55rem] text-steel-700">
+                        <span className="mt-1 block font-mono text-[0.65rem] text-steel-700">
                           {product.sku}
                         </span>
                       </div>
@@ -374,12 +377,12 @@ export default function TiendaPage() {
                     {/* CTA */}
                     <div className="p-4 pt-3">
                       <button
-                        className="btn-primary w-full text-[0.6rem]"
+                        className="btn-primary w-full"
                         disabled={product.stock === 0}
                         onClick={() => handleAddToCart(product)}
                       >
-                        <ShoppingCart className="h-3.5 w-3.5" />
-                        {product.stock > 0 ? 'Agregar' : 'Sin stock'}
+                        <ShoppingCart className="h-4 w-4" />
+                        {product.stock > 0 ? 'Agregar al carrito' : 'Sin stock'}
                       </button>
                     </div>
                   </div>
