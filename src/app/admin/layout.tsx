@@ -203,7 +203,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Content */}
       <main className="flex-1 min-h-screen lg:ml-[240px]">
-        <div className="sticky top-0 z-40 flex h-[52px] items-center justify-between border-b border-steel-900/40 bg-carbon-light px-4">
+        <div className="sticky top-0 z-40 flex h-[52px] items-center border-b border-steel-900/40 bg-carbon-light px-4">
           {/* Hamburger — mobile only */}
           <button
             onClick={() => setSidebarOpen(true)}
@@ -212,8 +212,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="lg:hidden" />
-          <NotificationBell />
+          <div className="ml-auto">
+            <NotificationBell />
+          </div>
         </div>
         {children}
       </main>
