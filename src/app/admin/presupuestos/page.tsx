@@ -54,8 +54,7 @@ export default function AdminPresupuestosPage() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
-  const [filterDateFrom, setFilterDateFrom] = useState('');
-  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterDate, setFilterDate] = useState('');
   const [selected, setSelected] = useState<Presupuesto | null>(null);
   const [newNote, setNewNote] = useState('');
   const [addingNote, setAddingNote] = useState(false);
@@ -81,10 +80,9 @@ export default function AdminPresupuestosPage() {
     if (search) p.set('search', search);
     if (filterStatus) p.set('status', filterStatus);
     if (filterType) p.set('type', filterType);
-    if (filterDateFrom) p.set('dateFrom', filterDateFrom);
-    if (filterDateTo) p.set('dateTo', filterDateTo);
+    if (filterDate) { p.set('dateFrom', filterDate); p.set('dateTo', filterDate); }
     fetchJson<any>(`/api/presupuestos?${p}`).then((d) => { setItems(d?.presupuestos || []); setLoading(false); });
-  }, [search, filterStatus, filterType, filterDateFrom, filterDateTo]);
+  }, [search, filterStatus, filterType, filterDate]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -233,11 +231,9 @@ export default function AdminPresupuestosPage() {
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="input max-w-[160px]"><option value="">Todo tipo</option>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
         <div className="flex items-center gap-1.5 rounded-md border border-steel-900/60 bg-carbon px-3 py-1.5">
           <Calendar className="h-3.5 w-3.5 shrink-0 text-steel-500" />
-          <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} className="bg-transparent font-body text-caption text-arctic outline-none" title="Fecha desde" />
-          <span className="font-body text-caption text-steel-700">→</span>
-          <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} className="bg-transparent font-body text-caption text-arctic outline-none" title="Fecha hasta" />
-          {(filterDateFrom || filterDateTo) && (
-            <button onClick={() => { setFilterDateFrom(''); setFilterDateTo(''); }} className="ml-1 text-steel-600 hover:text-red-400 transition-colors" title="Limpiar fechas"><X className="h-3.5 w-3.5" /></button>
+          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="bg-transparent font-body text-caption text-arctic outline-none" title="Filtrar por fecha programada" />
+          {filterDate && (
+            <button onClick={() => setFilterDate('')} className="ml-1 text-steel-600 hover:text-red-400 transition-colors" title="Limpiar fecha"><X className="h-3.5 w-3.5" /></button>
           )}
         </div>
         <button onClick={fetchData} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
