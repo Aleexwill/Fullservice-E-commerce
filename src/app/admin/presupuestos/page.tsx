@@ -229,11 +229,10 @@ export default function AdminPresupuestosPage() {
         <div className="relative min-w-[240px] flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" /><input type="text" placeholder="Buscar por codigo, cliente, servicio..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" /></div>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input max-w-[160px]"><option value="">Todo estado</option>{Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="input max-w-[160px]"><option value="">Todo tipo</option>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
-        <div className="flex items-center gap-1.5 rounded-md border border-steel-900/60 bg-carbon px-3 py-1.5">
-          <Calendar className="h-3.5 w-3.5 shrink-0 text-steel-500" />
-          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="bg-transparent font-body text-caption text-arctic outline-none" title="Filtrar por fecha programada" />
+        <div className="relative">
+          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="input max-w-[160px]" title="Filtrar por fecha programada" />
           {filterDate && (
-            <button onClick={() => setFilterDate('')} className="ml-1 text-steel-600 hover:text-red-400 transition-colors" title="Limpiar fecha"><X className="h-3.5 w-3.5" /></button>
+            <button onClick={() => setFilterDate('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-steel-600 hover:text-red-400 transition-colors" title="Limpiar fecha"><X className="h-3.5 w-3.5" /></button>
           )}
         </div>
         <button onClick={fetchData} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
