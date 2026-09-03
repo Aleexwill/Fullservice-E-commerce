@@ -1,7 +1,10 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.RESEND_FROM_EMAIL || 'noreply@fullserviceclean.com.py';
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 export async function sendInvitationEmail({
@@ -76,7 +79,7 @@ export async function sendInvitationEmail({
 </body>
 </html>`;
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `Invitación al panel de administración — Full Service & Clean`,
