@@ -12,6 +12,13 @@ import {
   ShieldCheck,
   CreditCard,
   Package,
+  Wrench,
+  Zap,
+  Droplets,
+  Paintbrush,
+  Hammer,
+  Lock,
+  type LucideIcon,
 } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { BrandsCarousel } from '@/components/sections/brands-carousel';
@@ -50,13 +57,22 @@ interface Product {
    STATIC DATA
    ============================================================ */
 
-const categorias = [
-  { id: 'herramientas', name: 'Herramientas', icon: '🔧', color: 'from-blue-deep to-blue', match: ['herramienta'] },
-  { id: 'electricidad', name: 'Electricidad', icon: '⚡', color: 'from-yellow-muted to-yellow', match: ['electric'] },
-  { id: 'plomeria', name: 'Plomeria', icon: '🔩', color: 'from-blue-muted to-blue', match: ['plomeria'] },
-  { id: 'pinturas', name: 'Pinturas', icon: '🎨', color: 'from-success-light to-success', match: ['pintura'] },
-  { id: 'fijaciones', name: 'Fijaciones', icon: '🔨', color: 'from-steel-900 to-steel-700', match: ['fijacion'] },
-  { id: 'seguridad', name: 'Seguridad', icon: '🛡️', color: 'from-danger-light to-danger', match: ['seguridad'] },
+interface Categoria {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  accent: string;
+  color: string;
+  match: string[];
+}
+
+const categorias: Categoria[] = [
+  { id: 'herramientas', name: 'Herramientas', icon: Wrench,    accent: '#2D8FCC', color: 'from-blue-deep to-blue',         match: ['herramienta'] },
+  { id: 'electricidad', name: 'Electricidad', icon: Zap,       accent: '#F6E05E', color: 'from-yellow-muted to-yellow',    match: ['electric'] },
+  { id: 'plomeria',     name: 'Plomeria',     icon: Droplets,  accent: '#63B3ED', color: 'from-blue-muted to-blue',        match: ['plomeria'] },
+  { id: 'pinturas',     name: 'Pinturas',     icon: Paintbrush,accent: '#48BB78', color: 'from-success-light to-success',  match: ['pintura'] },
+  { id: 'fijaciones',   name: 'Fijaciones',   icon: Hammer,    accent: '#A0AEC0', color: 'from-steel-900 to-steel-700',    match: ['fijacion'] },
+  { id: 'seguridad',    name: 'Seguridad',    icon: Lock,      accent: '#FC8181', color: 'from-danger-light to-danger',    match: ['seguridad'] },
 ];
 
 /* ============================================================
@@ -193,7 +209,11 @@ export default function TiendaPage() {
                 }`}
               >
                 <div className={`flex h-20 items-center justify-center bg-gradient-to-br ${cat.color}`}>
-                  <span className="text-3xl transition-transform group-hover:scale-110">{cat.icon}</span>
+                  <cat.icon
+                    className="h-8 w-8 transition-transform group-hover:scale-110"
+                    style={{ color: cat.accent }}
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="p-3 text-center">
                   <h3 className="font-display text-h4 text-arctic">{cat.name}</h3>

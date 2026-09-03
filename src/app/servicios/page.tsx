@@ -111,13 +111,13 @@ export default function ServiciosPage() {
       </section>
 
       {/* Filters */}
-      <section className="sticky top-[60px] z-40 border-b border-steel-900/40 bg-carbon/95 backdrop-blur-lg">
+      <section className="sticky top-[95px] z-40 border-b border-steel-900/40 bg-carbon/95 backdrop-blur-lg">
         <div className="container-main flex gap-1 overflow-x-auto py-3">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`whitespace-nowrap rounded px-5 py-2.5 font-body text-[0.75rem] font-medium uppercase tracking-[0.04em] transition-all ${
+              className={`whitespace-nowrap rounded px-5 py-3 font-body text-[0.75rem] font-medium uppercase tracking-[0.04em] transition-all min-h-[44px] ${
                 activeCategory === cat.id
                   ? 'bg-steel-900 text-arctic'
                   : 'text-steel-500 hover:text-arctic'

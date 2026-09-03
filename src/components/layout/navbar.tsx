@@ -33,11 +33,11 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
       {/* Barra superior */}
       <div className="hidden border-b border-steel-900/30 sm:block">
         <div className="container-main flex items-center justify-between py-1.5">
-          <p className="flex items-center gap-1.5 font-body text-[0.65rem] tracking-[0.04em] text-steel-500">
+          <p className="flex items-center gap-1.5 font-body text-xs tracking-[0.04em] text-steel-500">
             <Phone className="h-3 w-3" />
             {phone} — {openingHours}
           </p>
-          <p className="font-body text-[0.65rem] tracking-[0.04em] text-steel-500">
+          <p className="font-body text-xs tracking-[0.04em] text-steel-500">
             Envios a todo el pais
           </p>
         </div>
@@ -87,7 +87,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
             >
               <ShoppingCart className="h-4 w-4" />
               {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange text-[0.6rem] font-bold text-white">
+                <span className="absolute -right-0.5 -top-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-orange text-[0.65rem] font-bold leading-none text-white">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
