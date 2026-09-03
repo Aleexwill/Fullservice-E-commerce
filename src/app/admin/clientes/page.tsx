@@ -20,15 +20,15 @@ export default function AdminClientesPage() {
   const [selected, setSelected] = useState<Cliente | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback((q = search) => {
     setLoading(true);
     const p = new URLSearchParams();
-    if (search) p.set('q', search);
+    if (q) p.set('q', q);
     p.set('limit', '100');
     fetch(`/api/clientes?${p}`).then(r => r.json()).then(d => { setItems(d?.clientes || []); setLoading(false); });
-  }, [search]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchData(search); }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="p-6 lg:p-8">
@@ -59,7 +59,7 @@ export default function AdminClientesPage() {
       {/* Search */}
       <div className="mb-4 flex gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" /><input type="text" placeholder="Buscar por nombre, empresa, teléfono o email..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" /></div>
-        <button onClick={fetchData} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
+        <button onClick={() => fetchData(search)} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
       </div>
 
       {/* List */}
@@ -127,19 +127,29 @@ export default function AdminClientesPage() {
       )}
 
       {/* Create modal */}
-      {showCreate && <CreateClienteModal onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); fetchData(); }} />}
+      {showCreate && <CreateClienteModal onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); setSearch(''); fetchData(''); }} />}
     </div>
   );
 }
 
 function CreateClienteModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [f, setF] = useState({ name: '', company: '', email: '', phone: '', address: '', ruc: '', category: 'servicios', notes: '' });
 
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setSaving(true);
-    await fetch('/api/clientes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) });
-    setSaving(false); onCreated();
+    e.preventDefault();
+    setError('');
+    setSaving(true);
+    try {
+      const res = await fetch('/api/clientes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Error al crear cliente'); setSaving(false); return; }
+      onCreated();
+    } catch {
+      setError('Error de conexión');
+      setSaving(false);
+    }
   };
 
   return (
@@ -165,6 +175,7 @@ function CreateClienteModal({ onClose, onCreated }: { onClose: () => void; onCre
             </select>
           </div>
           <textarea placeholder="Notas" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} className="input" rows={3} />
+          {error && <p className="rounded-md bg-danger-light/10 px-3 py-2 font-body text-caption text-danger-light">{error}</p>}
           <button type="submit" disabled={saving || !f.name} className="btn-primary w-full justify-center gap-2 py-3">
             {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><User className="h-4 w-4" />Crear cliente</>}
           </button>
