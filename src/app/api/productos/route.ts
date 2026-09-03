@@ -61,7 +61,20 @@ export async function GET(request: NextRequest) {
       return order === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
     });
 
-    return NextResponse.json({ products: filtered, total: filtered.length });
+    // Pagination
+    const totalFiltered = filtered.length;
+    const limit = Math.min(Math.max(Number(searchParams.get('limit') || 20), 1), 100);
+    const page = Math.max(Number(searchParams.get('page') || 1), 1);
+    const offset = (page - 1) * limit;
+    const paginated = filtered.slice(offset, offset + limit);
+
+    return NextResponse.json({
+      products: paginated,
+      total: totalFiltered,
+      page,
+      limit,
+      totalPages: Math.ceil(totalFiltered / limit),
+    });
   } catch (error) {
     console.error('Error en GET /api/productos:', error);
     const message = error instanceof Error ? error.message : 'Error desconocido';

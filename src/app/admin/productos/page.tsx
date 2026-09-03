@@ -13,8 +13,9 @@ import {
   Star,
   Package,
   AlertTriangle,
-  ArrowUpDown,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 interface Product {
@@ -31,29 +32,50 @@ interface Product {
   createdAt: string;
 }
 
+const PAGE_SIZE = 20;
+
 export default function AdminProductosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
+  const [filterActive, setFilterActive] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchProducts = useCallback(() => {
+  const fetchProducts = useCallback((p = page) => {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
+    if (filterActive) params.set('active', filterActive);
+    if (filterCategory) params.set('category', filterCategory);
+    params.set('page', String(p));
+    params.set('limit', String(PAGE_SIZE));
     fetchJson(`/api/productos?${params.toString()}`)
       .then((data: any) => {
         setProducts(data.products || []);
         setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [search]);
+  }, [search, filterActive, filterCategory, page]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    setPage(1);
+  }, [search, filterActive, filterCategory]);
+
+  useEffect(() => {
+    fetchProducts(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search, filterActive, filterCategory]);
+
+  const goToPage = (p: number) => {
+    const clamped = Math.max(1, Math.min(p, totalPages));
+    setPage(clamped);
+  };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`¿Eliminar "${name}" del catalogo?`)) return;
@@ -101,6 +123,9 @@ export default function AdminProductosPage() {
 
   const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
 
+  const pageStart = (page - 1) * PAGE_SIZE + 1;
+  const pageEnd = Math.min(page * PAGE_SIZE, total);
+
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
@@ -129,7 +154,36 @@ export default function AdminProductosPage() {
             className="input pl-10"
           />
         </div>
-        <button onClick={fetchProducts} className="btn-secondary">
+
+        <select
+          value={filterActive}
+          onChange={(e) => setFilterActive(e.target.value)}
+          className="input min-w-[140px]"
+        >
+          <option value="">Todos los estados</option>
+          <option value="true">Activos</option>
+          <option value="false">Inactivos</option>
+        </select>
+
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="input min-w-[160px]"
+        >
+          <option value="">Todas las categorias</option>
+          <option value="herramientas">Herramientas</option>
+          <option value="materiales">Materiales</option>
+          <option value="equipos">Equipos</option>
+          <option value="seguridad">Seguridad</option>
+          <option value="electricidad">Electricidad</option>
+          <option value="plomeria">Plomeria</option>
+          <option value="pinturas">Pinturas</option>
+          <option value="limpieza">Limpieza</option>
+          <option value="ferreteria">Ferreteria</option>
+          <option value="general">General</option>
+        </select>
+
+        <button onClick={() => fetchProducts(page)} className="btn-secondary">
           <RefreshCw className="h-4 w-4" />
           Actualizar
         </button>
@@ -155,11 +209,11 @@ export default function AdminProductosPage() {
           <Package className="mx-auto h-12 w-12 text-steel-700" />
           <h3 className="mt-4 font-display text-h3 text-arctic">No hay productos</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">
-            {search
-              ? 'No se encontraron productos con esa busqueda.'
+            {search || filterActive || filterCategory
+              ? 'No se encontraron productos con esos filtros.'
               : 'Comienza agregando tu primer producto al catalogo.'}
           </p>
-          {!search && (
+          {!search && !filterActive && !filterCategory && (
             <Link href="/admin/productos/nuevo" className="btn-primary mt-6 inline-flex">
               <Plus className="h-4 w-4" />
               Agregar primer producto
@@ -167,120 +221,170 @@ export default function AdminProductosPage() {
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-steel-900/40">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-steel-900/40 bg-carbon-light">
-                <th className="px-4 py-3 text-left font-body text-caption uppercase tracking-[0.06em] text-steel-500">
-                  Producto
-                </th>
-                <th className="px-4 py-3 text-left font-body text-caption uppercase tracking-[0.06em] text-steel-500">
-                  SKU
-                </th>
-                <th className="px-4 py-3 text-left font-body text-caption uppercase tracking-[0.06em] text-steel-500">
-                  Categoria
-                </th>
-                <th className="px-4 py-3 text-right font-body text-caption uppercase tracking-[0.06em] text-steel-500">
-                  Precio
-                </th>
-                <th className="px-4 py-3 text-center font-body text-caption uppercase tracking-[0.06em] text-steel-500">
-                  Stock
-                </th>
-                <th className="px-4 py-3 text-center font-body text-caption uppercase tracking-[0.06em] text-steel-500">
-                  Estado
-                </th>
-                <th className="px-4 py-3 text-right font-body text-caption uppercase tracking-[0.06em] text-steel-500">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-steel-900/20">
-              {products.map((p) => (
-                <tr
-                  key={p.id}
-                  className="group transition-colors hover:bg-steel-900/20"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-steel-900 text-steel-500">
-                        <Package className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="font-body text-body-sm font-medium text-arctic">
-                          {p.name}
-                        </p>
-                        <p className="font-body text-caption text-steel-500">{p.brand}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-caption text-steel-300">{p.sku}</td>
-                  <td className="px-4 py-3">
-                    <span className="badge-blue">{p.category}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-body-sm text-arctic">
-                    {formatGs(p.price)}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {p.stock === 0 ? (
-                      <span className="badge-red inline-flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        Sin stock
-                      </span>
-                    ) : p.stock < 5 ? (
-                      <span className="badge-yellow">{p.stock} uds</span>
-                    ) : (
-                      <span className="badge-green">{p.stock} uds</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {p.isActive ? (
-                      <span className="badge-green">Activo</span>
-                    ) : (
-                      <span className="badge-red">Inactivo</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => toggleFeatured(p.id, p.isFeatured)}
-                        className={`rounded p-1.5 transition-colors ${
-                          p.isFeatured
-                            ? 'text-yellow-bright hover:bg-yellow-muted'
-                            : 'text-steel-700 hover:bg-steel-900 hover:text-steel-300'
-                        }`}
-                        title={p.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}
-                      >
-                        <Star className="h-4 w-4" fill={p.isFeatured ? 'currentColor' : 'none'} />
-                      </button>
-                      <button
-                        onClick={() => toggleActive(p.id, p.isActive)}
-                        className="rounded p-1.5 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
-                        title={p.isActive ? 'Desactivar' : 'Activar'}
-                      >
-                        {p.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      </button>
-                      <Link
-                        href={`/admin/productos/${p.id}`}
-                        className="rounded p-1.5 text-steel-500 transition-colors hover:bg-blue-muted hover:text-blue-bright"
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(p.id, p.name)}
-                        disabled={deleting === p.id}
-                        className="rounded p-1.5 text-steel-500 transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
+        <>
+          <div className="overflow-x-auto rounded-lg border border-steel-900/40">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-steel-900/40 bg-carbon-light">
+                  <th className="px-4 py-3 text-left font-body text-caption uppercase tracking-[0.06em] text-steel-500">
+                    Producto
+                  </th>
+                  <th className="px-4 py-3 text-left font-body text-caption uppercase tracking-[0.06em] text-steel-500">
+                    SKU
+                  </th>
+                  <th className="px-4 py-3 text-left font-body text-caption uppercase tracking-[0.06em] text-steel-500">
+                    Categoria
+                  </th>
+                  <th className="px-4 py-3 text-right font-body text-caption uppercase tracking-[0.06em] text-steel-500">
+                    Precio
+                  </th>
+                  <th className="px-4 py-3 text-center font-body text-caption uppercase tracking-[0.06em] text-steel-500">
+                    Stock
+                  </th>
+                  <th className="px-4 py-3 text-center font-body text-caption uppercase tracking-[0.06em] text-steel-500">
+                    Estado
+                  </th>
+                  <th className="px-4 py-3 text-right font-body text-caption uppercase tracking-[0.06em] text-steel-500">
+                    Acciones
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-steel-900/20">
+                {products.map((p) => (
+                  <tr key={p.id} className="group transition-colors hover:bg-steel-900/20">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-steel-900 text-steel-500">
+                          <Package className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-body text-body-sm font-medium text-arctic">{p.name}</p>
+                          <p className="font-body text-caption text-steel-500">{p.brand}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-caption text-steel-300">{p.sku}</td>
+                    <td className="px-4 py-3">
+                      <span className="badge-blue">{p.category}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-body-sm text-arctic">
+                      {formatGs(p.price)}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {p.stock === 0 ? (
+                        <span className="badge-red inline-flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          Sin stock
+                        </span>
+                      ) : p.stock < 5 ? (
+                        <span className="badge-yellow">{p.stock} uds</span>
+                      ) : (
+                        <span className="badge-green">{p.stock} uds</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {p.isActive ? (
+                        <span className="badge-green">Activo</span>
+                      ) : (
+                        <span className="badge-red">Inactivo</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => toggleFeatured(p.id, p.isFeatured)}
+                          className={`rounded p-1.5 transition-colors ${
+                            p.isFeatured
+                              ? 'text-yellow-bright hover:bg-yellow-muted'
+                              : 'text-steel-700 hover:bg-steel-900 hover:text-steel-300'
+                          }`}
+                          title={p.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}
+                        >
+                          <Star className="h-4 w-4" fill={p.isFeatured ? 'currentColor' : 'none'} />
+                        </button>
+                        <button
+                          onClick={() => toggleActive(p.id, p.isActive)}
+                          className="rounded p-1.5 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
+                          title={p.isActive ? 'Desactivar' : 'Activar'}
+                        >
+                          {p.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </button>
+                        <Link
+                          href={`/admin/productos/${p.id}`}
+                          className="rounded p-1.5 text-steel-500 transition-colors hover:bg-blue-muted hover:text-blue-bright"
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(p.id, p.name)}
+                          disabled={deleting === p.id}
+                          className="rounded p-1.5 text-steel-500 transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-between">
+              <p className="font-body text-caption text-steel-500">
+                Mostrando {pageStart}–{pageEnd} de {total} productos
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page === 1}
+                  className="rounded p-1.5 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && typeof arr[idx - 1] === 'number' && (p as number) - (arr[idx - 1] as number) > 1) {
+                      acc.push('...');
+                    }
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((p, i) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${i}`} className="px-2 font-body text-caption text-steel-600">…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => goToPage(p as number)}
+                        className={`rounded px-2.5 py-1 font-body text-caption transition-colors ${
+                          page === p
+                            ? 'bg-blue text-white'
+                            : 'text-steel-400 hover:bg-steel-900 hover:text-arctic'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+
+                <button
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page === totalPages}
+                  className="rounded p-1.5 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
