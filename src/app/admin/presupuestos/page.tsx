@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator, GitBranch, Printer } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
+import { imprimirPresupuesto } from '@/lib/presupuesto-pdf';
 
 interface Presupuesto {
   id: string; code: string; status: string; serviceType: string; serviceTitle: string;
@@ -517,7 +518,7 @@ export default function AdminPresupuestosPage() {
               <div className="grid grid-cols-1 gap-2">
                 {(selected.calculationData?.filas?.length ?? 0) > 0 && (
                   <button
-                    onClick={() => setActiveTab('calculo')}
+                    onClick={() => imprimirPresupuesto({ code: selected.code, serviceTitle: selected.serviceTitle, serviceType: selected.serviceType, description: selected.description, scheduledDate: selected.scheduledDate, estimatedDuration: selected.estimatedDuration, assignedTo: selected.assignedTo, customer: selected.customer, calculationData: selected.calculationData, createdAt: selected.createdAt })}
                     className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-bright/30 bg-blue-bright/10 px-4 py-2.5 font-body text-body-sm font-semibold text-blue-bright hover:bg-blue-bright/20 transition-colors"
                   >
                     <Printer className="h-4 w-4" /> Generar PDF del presupuesto
