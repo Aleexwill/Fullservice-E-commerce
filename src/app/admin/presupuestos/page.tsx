@@ -66,6 +66,7 @@ export default function AdminPresupuestosPage() {
   const [editDuration, setEditDuration] = useState('');
   const [editAssigned, setEditAssigned] = useState('');
   const [savingFields, setSavingFields] = useState(false);
+  const [fieldsError, setFieldsError] = useState('');
   const [activeTab, setActiveTab] = useState<'detalle' | 'calculo'>('detalle');
   const [editingCustomer, setEditingCustomer] = useState(false);
   const [editCustomer, setEditCustomer] = useState({ name: '', email: '', phone: '', company: '', address: '' });
@@ -114,17 +115,27 @@ export default function AdminPresupuestosPage() {
   const saveWorkFields = async () => {
     if (!selected) return;
     setSavingFields(true);
-    const res = await fetch(`/api/presupuestos/${selected.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        finalValue: editFinal ? Number(editFinal) : null,
-        scheduledDate: editSched,
-        estimatedDuration: editDuration,
-        assignedTo: editAssigned,
-      }),
-    });
-    if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); }
-    setSavingFields(false);
+    setFieldsError('');
+    try {
+      const res = await fetch(`/api/presupuestos/${selected.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          finalValue: editFinal ? Number(editFinal) : null,
+          scheduledDate: editSched,
+          estimatedDuration: editDuration,
+          assignedTo: editAssigned,
+        }),
+      });
+      if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); }
+      else {
+        const err = await res.json().catch(() => ({}));
+        setFieldsError(err?.error || `Error ${res.status} al guardar`);
+      }
+    } catch {
+      setFieldsError('Error de red al guardar. Intentá de nuevo.');
+    } finally {
+      setSavingFields(false);
+    }
   };
 
   const saveCustomer = async () => {
@@ -498,6 +509,7 @@ export default function AdminPresupuestosPage() {
                   <div><label className="label mb-1 block">Duración estimada</label><input type="text" value={editDuration} onChange={(e) => setEditDuration(e.target.value)} className="input" placeholder="ej: 2 días" /></div>
                 </div>
                 <div><label className="label mb-1 block">Responsable / Equipo</label><input type="text" value={editAssigned} onChange={(e) => setEditAssigned(e.target.value)} className="input" placeholder="Nombre del técnico o equipo" /></div>
+                {fieldsError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">{fieldsError}</p>}
                 <button onClick={saveWorkFields} disabled={savingFields} className="btn-secondary w-full justify-center gap-2">
                   {savingFields ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : 'Guardar cambios'}
                 </button>
@@ -611,6 +623,7 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
   const [saving, setSaving] = useState<null | 'borrador' | 'nuevo'>(null);
   const [autoSaved, setAutoSaved] = useState(false);
   const [restored, setRestored] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const [f, setF] = useState(() => {
     try {
@@ -646,19 +659,29 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
   const guardar = async (status: 'borrador' | 'nuevo') => {
     if (!f.serviceTitle.trim()) return;
     setSaving(status);
-    const res = await fetch('/api/presupuestos', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer: { name: f.customerName || 'Sin nombre', email: f.customerEmail, phone: f.customerPhone, company: f.customerCompany, address: f.customerAddress },
-        serviceTitle: f.serviceTitle, serviceType: f.serviceType, description: f.description, details: f.details,
-        estimatedValue: f.estimatedValue ? Number(f.estimatedValue) : null,
-        finalValue: f.finalValue ? Number(f.finalValue) : null,
-        estimatedDuration: f.estimatedDuration, scheduledDate: f.scheduledDate, assignedTo: f.assignedTo,
-        priority: f.priority, source: 'admin', status,
-      }),
-    });
-    setSaving(null);
-    if (res.ok) { clearDraft(); const d = await res.json(); onCreated(d?.id); }
+    setSaveError('');
+    try {
+      const res = await fetch('/api/presupuestos', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: { name: f.customerName || 'Sin nombre', email: f.customerEmail, phone: f.customerPhone, company: f.customerCompany, address: f.customerAddress },
+          serviceTitle: f.serviceTitle, serviceType: f.serviceType, description: f.description, details: f.details,
+          estimatedValue: f.estimatedValue ? Number(f.estimatedValue) : null,
+          finalValue: f.finalValue ? Number(f.finalValue) : null,
+          estimatedDuration: f.estimatedDuration, scheduledDate: f.scheduledDate, assignedTo: f.assignedTo,
+          priority: f.priority, source: 'admin', status,
+        }),
+      });
+      if (res.ok) { clearDraft(); const d = await res.json(); onCreated(d?.id); }
+      else {
+        const err = await res.json().catch(() => ({}));
+        setSaveError(err?.error || `Error ${res.status} al guardar. Verificá la conexión e intentá de nuevo.`);
+      }
+    } catch (e) {
+      setSaveError('Error de red. Verificá tu conexión e intentá de nuevo.');
+    } finally {
+      setSaving(null);
+    }
   };
 
   return (
@@ -766,6 +789,11 @@ function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; o
 
         {/* Footer con botones */}
         <div className="shrink-0 border-t border-steel-900/40 bg-carbon-light px-6 py-4">
+          {saveError && (
+            <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-body text-caption text-red-400">
+              {saveError}
+            </div>
+          )}
           <p className="mb-3 font-body text-caption text-steel-500">
             <span className="text-steel-700">Borrador:</span> guarda y podés continuar después. <span className="text-steel-700">Crear:</span> queda como solicitud nueva activa.
           </p>
