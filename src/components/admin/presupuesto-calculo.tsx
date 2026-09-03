@@ -246,7 +246,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [aiSuggestion, setAiSuggestion] = useState<{ id: string; original: string; titulo: string; alcance: string } | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<{ id: string; original: string; corregido: string; titulo: string; alcance: string } | null>(null);
 
   // mark dirty on any calc change
   const prevCalc = useRef(calc);
@@ -318,8 +318,8 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         body: JSON.stringify({ texto: fila.descripcion, contexto: serviceTitle }),
       });
       const data = await res.json();
-      if (res.ok && data.titulo) {
-        setAiSuggestion({ id: fila.id, original: fila.descripcion, titulo: data.titulo, alcance: data.alcance ?? '' });
+      if (res.ok && (data.titulo || data.corregido)) {
+        setAiSuggestion({ id: fila.id, original: fila.descripcion, corregido: data.corregido ?? data.titulo, titulo: data.titulo ?? data.corregido, alcance: data.alcance ?? '' });
       } else {
         setAiError(data.error || 'Error al procesar');
         setTimeout(() => setAiError(null), 4000);
@@ -490,9 +490,9 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                         onClick={() => mejorarConIA(fila)}
                         disabled={!!aiLoadingId}
                         title="Mejorar con IA"
-                        className="ml-1 shrink-0 rounded px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 disabled:opacity-40 transition-colors"
+                        className="ml-2 shrink-0 rounded px-2.5 py-1 text-xs font-semibold uppercase tracking-wide border border-blue-bright/50 text-blue-bright hover:bg-blue-bright/20 disabled:opacity-40 transition-colors"
                       >
-                        {aiLoadingId === fila.id ? '...' : 'IA'}
+                        {aiLoadingId === fila.id ? '···' : '✦ IA'}
                       </button>
                     )}
                   </div>
@@ -563,22 +563,22 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                       <button onClick={() => setAiSuggestion(null)} className="text-steel-600 hover:text-steel-300 text-xs transition-colors">✕</button>
                     </div>
 
-                    {/* Título: original vs IA, lado a lado */}
+                    {/* Corregido vs Técnico, lado a lado */}
                     <div className="grid grid-cols-2 gap-2">
-                      {/* Original del usuario */}
+                      {/* Texto corregido ortográficamente */}
                       <div className="flex flex-col gap-1 rounded-md border border-steel-800/60 bg-steel-900/40 px-2 py-1.5">
-                        <p className="font-body text-[0.55rem] font-semibold uppercase tracking-wider text-steel-500">Original</p>
-                        <p className="font-body text-body-sm text-steel-300 leading-snug flex-1">{aiSuggestion.original}</p>
+                        <p className="font-body text-[0.55rem] font-semibold uppercase tracking-wider text-steel-400">Corregido</p>
+                        <p className="font-body text-body-sm text-steel-200 leading-snug flex-1">{aiSuggestion.corregido}</p>
                         <button
-                          onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.original }); setAiSuggestion(null); }}
+                          onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.corregido }); setAiSuggestion(null); }}
                           className="self-start rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-steel-700 text-steel-400 hover:text-arctic hover:border-steel-500 transition-colors"
                         >
                           Usar
                         </button>
                       </div>
-                      {/* Título mejorado por IA */}
+                      {/* Versión técnica profesional */}
                       <div className="flex flex-col gap-1 rounded-md border border-blue-bright/25 bg-blue-bright/5 px-2 py-1.5">
-                        <p className="font-body text-[0.55rem] font-semibold uppercase tracking-wider text-blue-bright/70">IA</p>
+                        <p className="font-body text-[0.55rem] font-semibold uppercase tracking-wider text-blue-bright/70">Técnico</p>
                         <p className="font-body text-body-sm text-arctic font-semibold leading-snug flex-1">{aiSuggestion.titulo}</p>
                         <button
                           onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.titulo }); setAiSuggestion(null); }}

@@ -12,6 +12,40 @@ function titleCase(str: string): string {
     .join(' ');
 }
 
+// Expandir abreviaturas y corregir errores comunes en presupuestos
+function corregirTexto(texto: string): string {
+  let result = texto.trim().replace(/\s+/g, ' ').replace(/\.+$/, '');
+
+  const expansiones: [RegExp, string][] = [
+    [/\binst(?:al)?\b/gi, 'Instalación'],
+    [/\bmant(?:en)?\b/gi, 'Mantenimiento'],
+    [/\brep(?:ar)?\b/gi, 'Reparación'],
+    [/\bconst(?:r)?\b/gi, 'Construcción'],
+    [/\belec(?:tr)?\b/gi, 'Eléctrico'],
+    [/\bdemol\b/gi, 'Demolición'],
+    [/\bimpermeab\b/gi, 'Impermeabilización'],
+    [/\bplom\b/gi, 'Plomería'],
+    [/\bsanit\b/gi, 'Sanitario'],
+    [/\bmetalurg\b/gi, 'Metalúrgica'],
+    [/\blimpiez\b/gi, 'Limpieza'],
+    [/\bpint\b/gi, 'Pintura'],
+    [/\bcarpint\b/gi, 'Carpintería'],
+    [/\brefacc\b/gi, 'Refacción'],
+    [/\bprev\b/gi, 'Preventivo'],
+    [/\bcorrect\b/gi, 'Correctivo'],
+    [/\bsold(?:adura)?\b/gi, 'Soldadura'],
+    [/\bestruc\b/gi, 'Estructura'],
+    [/\bcielo raso\b/gi, 'Cielorraso'],
+    [/\bcielo rraso\b/gi, 'Cielorraso'],
+  ];
+
+  for (const [regex, reemplazo] of expansiones) {
+    result = result.replace(regex, reemplazo);
+  }
+
+  return titleCase(result);
+}
+
 const ALCANCES: Record<string, string> = {
   electric: 'Comprende el suministro e instalación de materiales eléctricos, cableado, tableros y accesorios conforme a normas vigentes.',
   sanitari: 'Incluye trabajos de plomería, instalación de cañerías, accesorios sanitarios y conexiones de agua fría/caliente.',
@@ -24,6 +58,8 @@ const ALCANCES: Record<string, string> = {
   impermeabil: 'Incluye preparación de superficie, aplicación de membrana y/o productos impermeabilizantes con garantía de estanqueidad.',
   metalurg: 'Comprende trabajos de soldadura, corte, doblez y/o montaje de estructuras y elementos metálicos según diseño.',
   limpieza: 'Incluye limpieza profunda, desinfección y/o mantenimiento de espacios con productos y equipos especializados.',
+  sold: 'Comprende trabajos de soldadura MIG/MAG, TIG o electrodo según requerimiento, con control de calidad de juntas.',
+  plomer: 'Incluye suministro e instalación de cañerías, accesorios y válvulas para instalaciones sanitarias y de agua.',
 };
 
 function fallbackAlcance(texto: string, contexto?: string): string {
@@ -35,35 +71,25 @@ function fallbackAlcance(texto: string, contexto?: string): string {
   return `Comprende todos los trabajos, materiales y mano de obra necesarios para la correcta ejecución del ${base}, conforme a especificaciones acordadas con el cliente.`;
 }
 
-function fallbackMejorar(texto: string): string {
-  let result = texto.trim().replace(/\s+/g, ' ').replace(/\.+$/, '');
-  const expansiones: [RegExp, string][] = [
-    [/\binst\b/gi, 'Instalación'], [/\bmant\b/gi, 'Mantenimiento'],
-    [/\brep\b/gi, 'Reparación'], [/\bconst\b/gi, 'Construcción'],
-    [/\belec\b/gi, 'Eléctrico'], [/\bdemol\b/gi, 'Demolición'],
-    [/\bimpermeab\b/gi, 'Impermeabilización'],
-  ];
-  for (const [regex, reemplazo] of expansiones) result = result.replace(regex, reemplazo);
-  return titleCase(result);
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { texto, contexto } = await request.json();
     if (!texto?.trim()) return NextResponse.json({ error: 'Texto requerido' }, { status: 400 });
 
     if (OPENAI_API_KEY && OPENAI_API_KEY.length > 10) {
-      const prompt = `Eres asistente de redacción técnica para presupuestos de servicios en Paraguay (mantenimiento, construcción civil, metalúrgica, limpieza).
+      const prompt = `Eres un asistente especializado en redacción técnica para presupuestos de servicios de construcción, mantenimiento, metalúrgica y limpieza industrial en Paraguay.
 
-Dado el título de una sección de presupuesto, devuelve un JSON con:
-- "titulo": título mejorado (máx 80 caracteres, profesional, sin comillas)
-- "alcance": descripción breve del alcance de trabajos de esa sección (1-2 oraciones, máx 200 caracteres, tercera persona, sin comillas)
+Dado el texto de una sección de presupuesto (puede tener abreviaturas, errores ortográficos o redacción informal), devuelve un JSON con exactamente estos campos:
 
-${contexto ? `Contexto del servicio: ${contexto}` : ''}
+- "corregido": Corrige ortografía, gramática y puntuación. Expande abreviaturas (ej: "inst" → "Instalación", "mant" → "Mantenimiento"). Mantiene el significado original sin agregar contenido nuevo. Aplica Title Case. Máx 100 caracteres.
+- "mejorado": Versión profesional y técnica del mismo texto. Usa terminología del rubro (construcción, mantenimiento, metalúrgica). Puede ser más descriptiva pero concisa. Sin jerga coloquial. Máx 120 caracteres.
+- "alcance": Descripción del alcance de trabajos de esa sección (2-3 oraciones, tercera persona, tono contractual/técnico, máx 250 caracteres).
 
-TÍTULO: ${texto}
+${contexto ? `Contexto del presupuesto: ${contexto}` : ''}
 
-Responde SOLO el JSON, sin markdown.`;
+TEXTO: ${texto}
+
+Responde SOLO el JSON sin markdown ni explicaciones.`;
 
       try {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -72,21 +98,30 @@ Responde SOLO el JSON, sin markdown.`;
           body: JSON.stringify({
             model: 'gpt-4o-mini',
             messages: [{ role: 'user', content: prompt }],
-            max_tokens: 150,
-            temperature: 0.4,
+            max_tokens: 300,
+            temperature: 0.3,
             response_format: { type: 'json_object' },
           }),
         });
         if (res.ok) {
           const data = await res.json();
           const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? '{}');
-          if (parsed.titulo) return NextResponse.json({ titulo: parsed.titulo, alcance: parsed.alcance ?? '', source: 'ai' });
+          if (parsed.corregido || parsed.mejorado) {
+            return NextResponse.json({
+              corregido: parsed.corregido ?? corregirTexto(texto),
+              titulo: parsed.mejorado ?? parsed.corregido ?? corregirTexto(texto),
+              alcance: parsed.alcance ?? fallbackAlcance(texto, contexto),
+              source: 'ai',
+            });
+          }
         }
-      } catch { /* fall through */ }
+      } catch { /* fall through to fallback */ }
     }
 
+    // Fallback sin API
     return NextResponse.json({
-      titulo: fallbackMejorar(texto),
+      corregido: corregirTexto(texto),
+      titulo: corregirTexto(texto),
       alcance: fallbackAlcance(texto, contexto),
       source: 'template',
     });
