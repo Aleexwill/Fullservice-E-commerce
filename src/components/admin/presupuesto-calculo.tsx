@@ -454,14 +454,15 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                   {fila.tipo === 'titulo' ? (
                     <button
                       onClick={() => updateFila(fila.id, { aprobado: !fila.aprobado })}
+                      aria-label={fila.aprobado ? 'Desmarcar aprobación' : 'Marcar como aprobado por cliente'}
                       title={fila.aprobado ? 'Desmarcar aprobación' : 'Marcar como aprobado por cliente'}
-                      className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${fila.aprobado ? 'border-[#48BB78] bg-[#48BB78]/20 text-[#48BB78]' : 'border-steel-700 text-transparent hover:border-[#48BB78]/50'}`}>
-                      <span className="text-[0.55rem] font-bold leading-none">✓</span>
+                      className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${fila.aprobado ? 'border-[#48BB78] bg-[#48BB78]/20 text-[#48BB78]' : 'border-steel-700 text-transparent hover:border-[#48BB78]/50'}`}>
+                      <span className="text-[0.6rem] font-bold leading-none">✓</span>
                     </button>
                   ) : <span />}
 
                   {/* Type badge */}
-                  <span className={`flex h-5 w-5 items-center justify-center rounded text-[0.48rem] font-bold ${TYPE_BADGE[fila.tipo]}`}>
+                  <span className={`flex h-5 w-5 items-center justify-center rounded text-[0.55rem] font-bold ${TYPE_BADGE[fila.tipo]}`}>
                     {TYPE_LABEL[fila.tipo]}
                   </span>
 
@@ -550,8 +551,8 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                   </span>
 
                   {/* Delete */}
-                  <button onClick={() => removeFila(fila.id)} className="rounded p-1 text-steel-800 hover:text-red-400 transition-colors">
-                    <Trash2 className="h-3 w-3" />
+                  <button onClick={() => removeFila(fila.id)} aria-label="Eliminar fila" className="rounded p-1.5 text-steel-700 hover:text-red-400 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
 
@@ -560,7 +561,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                   <div className="mx-2 mb-2 rounded-lg border border-blue-bright/20 bg-blue-bright/5 px-3 py-2 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-blue-bright/70">Sugerencias IA</p>
-                      <button onClick={() => setAiSuggestion(null)} className="text-steel-600 hover:text-steel-300 text-xs transition-colors">✕</button>
+                      <button onClick={() => setAiSuggestion(null)} aria-label="Cerrar sugerencias" className="rounded p-1 text-steel-600 hover:text-steel-300 hover:bg-steel-800/50 transition-colors"><X className="h-3.5 w-3.5" /></button>
                     </div>
 
                     {/* Corregido vs Técnico, lado a lado */}
@@ -571,7 +572,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                         <p className="font-body text-body-sm text-steel-200 leading-snug flex-1">{aiSuggestion.corregido}</p>
                         <button
                           onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.corregido }); setAiSuggestion(null); }}
-                          className="self-start rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-steel-700 text-steel-400 hover:text-arctic hover:border-steel-500 transition-colors"
+                          className="self-start rounded px-2.5 py-1 text-xs font-semibold uppercase tracking-wide border border-steel-700 text-steel-400 hover:text-arctic hover:border-steel-500 transition-colors"
                         >
                           Usar
                         </button>
@@ -582,7 +583,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                         <p className="font-body text-body-sm text-arctic font-semibold leading-snug flex-1">{aiSuggestion.titulo}</p>
                         <button
                           onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.titulo }); setAiSuggestion(null); }}
-                          className="self-start rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
+                          className="self-start rounded px-2.5 py-1 text-xs font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
                         >
                           Usar
                         </button>
@@ -598,7 +599,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
                         </div>
                         <button
                           onClick={() => { updateFila(aiSuggestion.id, { descripcion: aiSuggestion.alcance }); setAiSuggestion(null); }}
-                          className="shrink-0 rounded px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
+                          className="shrink-0 rounded px-2.5 py-1 text-xs font-semibold uppercase tracking-wide border border-blue-bright/30 text-blue-bright hover:bg-blue-bright/10 transition-colors"
                         >
                           Usar
                         </button>
