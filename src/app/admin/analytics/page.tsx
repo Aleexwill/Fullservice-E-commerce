@@ -87,9 +87,9 @@ export default function AdminAnalyticsPage() {
               const pct = maxHourly > 0 ? (count / maxHourly) * 100 : 0;
               return (
                 <div key={h} className="flex flex-1 flex-col items-center gap-1">
-                  {count > 0 && <span className="font-mono text-[0.45rem] text-steel-500">{count}</span>}
+                  {count > 0 && <span className="font-mono text-[0.55rem] text-steel-500">{count}</span>}
                   <div className="w-full rounded-t bg-yellow-muted transition-all hover:bg-yellow" style={{ height: `${Math.max(pct, 2)}%` }} />
-                  {h % 4 === 0 && <span className="font-mono text-[0.45rem] text-steel-700">{h}h</span>}
+                  {h % 4 === 0 && <span className="font-mono text-[0.55rem] text-steel-700">{h}h</span>}
                 </div>
               );
             })}

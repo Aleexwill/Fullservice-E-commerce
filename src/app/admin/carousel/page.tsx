@@ -169,7 +169,7 @@ function SlideEditor({
                 <button
                   key={g.value}
                   title={g.label}
-                  className={`h-7 w-14 rounded border-2 bg-gradient-to-br text-[0.5rem] text-white transition ${form.gradient === g.value ? 'border-white' : 'border-transparent opacity-70'} ${g.value}`}
+                  className={`h-7 w-14 rounded border-2 bg-gradient-to-br text-[0.6rem] text-white transition ${form.gradient === g.value ? 'border-white' : 'border-transparent opacity-70'} ${g.value}`}
                   onClick={() => setForm((f) => ({ ...f, gradient: g.value }))}
                 >
                   {g.label}
@@ -196,7 +196,7 @@ function SlideEditor({
               />
               <div className="relative z-10 px-3 pb-2">
                 <span
-                  className="rounded-full px-2 py-0.5 font-body text-[0.5rem] font-semibold uppercase"
+                  className="rounded-full px-2 py-0.5 font-body text-[0.6rem] font-semibold uppercase"
                   style={{ background: (form.accent || '#2D8FCC') + '30', color: form.accent, border: `1px solid ${(form.accent || '#2D8FCC')}40` }}
                 >
                   {form.tag || 'Tag'}

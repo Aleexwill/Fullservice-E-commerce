@@ -291,7 +291,7 @@ export default function PromosAdminPage() {
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-0.5" style={{ background: banner.accentColor }} />
                 {banner.badge && (
-                  <span className="absolute left-1.5 top-1.5 rounded-full px-1.5 py-0.5 font-body text-[0.5rem] font-bold"
+                  <span className="absolute left-1.5 top-1.5 rounded-full px-1.5 py-0.5 font-body text-[0.6rem] font-bold"
                     style={{ background: banner.accentColor + '30', color: banner.accentColor }}>
                     {banner.badge}
                   </span>
