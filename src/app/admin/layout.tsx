@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import {
   LayoutDashboard,
   Package,
@@ -22,6 +23,8 @@ import {
   Calculator,
   Layers,
   Megaphone,
+  Menu,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
@@ -83,94 +86,132 @@ const navGroups: NavGroup[] = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
 
   if (pathname === '/admin/login') return <>{children}</>;
 
+  const SidebarContent = () => (
+    <>
+      {/* Logo */}
+      <div className="flex h-[60px] items-center justify-between border-b border-steel-900/40 px-4">
+        <Image
+          src="/logo.png"
+          alt="Full Service & Clean"
+          width={140}
+          height={44}
+          className="object-contain"
+        />
+        <span className="badge-blue text-[0.6rem] font-bold">Admin</span>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto p-3" aria-label="Navegación principal">
+        {navGroups.map((group, gi) => (
+          <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
+            {group.label && (
+              <p className="mb-1.5 px-3 font-body text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-steel-500">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.href, item.exact);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-md px-3 py-2.5 font-body text-body-sm transition-all',
+                      active
+                        ? 'bg-blue-muted text-blue-bright font-medium'
+                        : 'text-steel-300 hover:bg-steel-900 hover:text-arctic'
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {item.label}
+                    {active && <ChevronRight className="ml-auto h-3 w-3" />}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Footer */}
+      <div className="border-t border-steel-900/40 p-3">
+        <div className="mb-2 rounded-md bg-steel-900/50 px-3 py-2">
+          <p className="font-body text-caption font-medium text-arctic">Administrador</p>
+        </div>
+        <div className="flex gap-1">
+          <Link
+            href="/"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 font-body text-caption text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            Ver sitio
+          </Link>
+          <button
+            type="button"
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              window.location.href = '/admin/login';
+            }}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 font-body text-caption text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Salir
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="flex min-h-screen bg-carbon">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-steel-900/40 bg-carbon-light">
-        {/* Logo */}
-        <div className="flex h-[60px] items-center justify-between border-b border-steel-900/40 px-4">
-          <Image
-            src="/logo.png"
-            alt="Full Service & Clean"
-            width={160}
-            height={48}
-            className="object-contain"
-          />
-          <span className="badge-blue text-[0.5rem]">Admin</span>
-        </div>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-carbon/70 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto p-3">
-          {navGroups.map((group, gi) => (
-            <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
-              {group.label && (
-                <p className="mb-1.5 px-3 font-body text-[0.55rem] font-semibold uppercase tracking-[0.1em] text-steel-700">
-                  {group.label}
-                </p>
-              )}
-              <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.href, item.exact);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-3 rounded-md px-3 py-2 font-body text-body-sm transition-all',
-                        active
-                          ? 'bg-blue-muted text-blue-bright font-medium'
-                          : 'text-steel-300 hover:bg-steel-900 hover:text-arctic'
-                      )}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      {item.label}
-                      {active && <ChevronRight className="ml-auto h-3 w-3" />}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        {/* Footer */}
-        <div className="border-t border-steel-900/40 p-3">
-          <div className="mb-2 rounded-md bg-steel-900/50 px-3 py-2">
-            <p className="font-body text-caption font-medium text-arctic">Administrador</p>
-          </div>
-          <div className="flex gap-1">
-            <Link
-              href="/"
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 font-body text-caption text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
-            >
-              <Eye className="h-3.5 w-3.5" />
-              Ver sitio
-            </Link>
-            <button
-              type="button"
-              onClick={async () => {
-                await fetch('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/admin/login';
-              }}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 font-body text-caption text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Salir
-            </button>
-          </div>
-        </div>
+      {/* Sidebar — desktop fixed, mobile slide-in */}
+      <aside className={cn(
+        'fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200',
+        'lg:translate-x-0',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      )}>
+        {/* Mobile close button */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Cerrar menú"
+          className="absolute right-3 top-3 rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic lg:hidden"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <SidebarContent />
       </aside>
 
       {/* Content */}
-      <main className="ml-[240px] flex-1 min-h-screen">
-        <div className="sticky top-0 z-40 flex h-[52px] items-center justify-end border-b border-steel-900/40 bg-carbon-light px-4">
+      <main className="flex-1 min-h-screen lg:ml-[240px]">
+        <div className="sticky top-0 z-40 flex h-[52px] items-center justify-between border-b border-steel-900/40 bg-carbon-light px-4">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menú"
+            className="rounded-md p-2 text-steel-400 hover:bg-steel-900 hover:text-arctic lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="lg:hidden" />
           <NotificationBell />
         </div>
         {children}

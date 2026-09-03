@@ -183,14 +183,14 @@ export default function AdminLeadsCRM() {
                             </div>
                             <p className="mb-2 truncate font-body text-caption text-steel-300">{lead.subject}</p>
                             <div className="flex flex-wrap gap-1">
-                              {lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.5rem] text-steel-300">{t}</span>)}
-                              {lead.estimatedValue ? <span className="rounded bg-[#1A3D2A] px-1.5 py-0.5 font-mono text-[0.5rem] text-[#48BB78]">{formatGs(lead.estimatedValue)}</span> : null}
+                              {lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}
+                              {lead.estimatedValue ? <span className="rounded bg-[#1A3D2A] px-1.5 py-0.5 font-mono text-[0.6rem] text-[#48BB78]">{formatGs(lead.estimatedValue)}</span> : null}
                             </div>
                             <div className="mt-2 flex items-center justify-between">
-                              <span className="font-mono text-[0.5rem] text-steel-700">{timeAgo(lead.updatedAt)}</span>
+                              <span className="font-mono text-[0.6rem] text-steel-700">{timeAgo(lead.updatedAt)}</span>
                               <div className="flex items-center gap-1">
                                 {lead.tasks?.some((t) => !t.completed) && <CheckSquare className="h-3 w-3 text-yellow-bright" />}
-                                {lead.notes?.length > 0 && <span className="flex items-center gap-0.5 font-mono text-[0.5rem] text-steel-700"><MessageSquare className="h-2.5 w-2.5" />{lead.notes.length}</span>}
+                                {lead.notes?.length > 0 && <span className="flex items-center gap-0.5 font-mono text-[0.6rem] text-steel-700"><MessageSquare className="h-2.5 w-2.5" />{lead.notes.length}</span>}
                               </div>
                             </div>
                           </div>
@@ -216,7 +216,7 @@ export default function AdminLeadsCRM() {
                         <div className="flex items-center gap-2"><p className="truncate font-body text-body-sm font-medium text-arctic">{lead.customer.name}</p><div className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} /></div>
                         <p className="truncate font-body text-caption text-steel-500">{lead.subject}{lead.customer.company ? ` — ${lead.customer.company}` : ''}</p>
                       </div>
-                      <div className="hidden shrink-0 md:flex md:items-center md:gap-2">{lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.5rem] text-steel-300">{t}</span>)}</div>
+                      <div className="hidden shrink-0 md:flex md:items-center md:gap-2">{lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}</div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[0.55rem] font-medium ${stage.color} ${stage.bg}`}>{stage.label}</span>
                       {lead.estimatedValue ? <span className="hidden shrink-0 font-mono text-caption text-[#48BB78] md:block">{formatGs(lead.estimatedValue)}</span> : null}
                       <span className="shrink-0 font-mono text-[0.55rem] text-steel-700">{timeAgo(lead.updatedAt)}</span>
