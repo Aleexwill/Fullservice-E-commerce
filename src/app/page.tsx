@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { Star, Target, Eye, Heart } from 'lucide-react';
 import { HeroSection } from '@/components/sections/hero-section';
 import { TrustBar, ServicesSection, CtaSection } from '@/components/sections/services-section';
@@ -101,7 +102,7 @@ async function FeaturedProducts() {
                   {/* Image */}
                   <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
                     {product.images?.[0] ? (
-                      <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                      <NextImage src={product.images[0]} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
                     ) : (
                       <Isotipo size={64} />
                     )}

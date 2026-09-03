@@ -65,7 +65,7 @@ export function HeroDiagonalCarousel() {
               {/* Photo */}
               {slide.photoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={slide.photoUrl} alt={slide.label} className="absolute inset-0 h-full w-full object-cover" />
+                <img src={slide.photoUrl} alt={slide.label} className="absolute inset-0 h-full w-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
               )}
 
               {/* Gradient overlay */}
