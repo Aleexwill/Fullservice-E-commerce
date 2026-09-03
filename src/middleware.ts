@@ -12,6 +12,7 @@ function isPublicApi(pathname: string, method: string): boolean {
 
   if (method === 'GET') {
     if (pathname === '/api/config' || pathname === '/api/contenido') return true;
+    if (pathname === '/api/promo-banners' || pathname === '/api/carousel-slides') return true;
     if (/^\/api\/(productos|portfolio|servicios-cms)(\/[^/]+)?$/.test(pathname) && !pathname.endsWith('/stats')) {
       return true;
     }
