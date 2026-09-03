@@ -258,7 +258,19 @@ export default function AdminPresupuestosPage() {
                   <p className="truncate font-body text-caption text-steel-500">{item.customer.name}{item.customer.company ? ` — ${item.customer.company}` : ''}</p>
                 </div>
                 <div className="hidden shrink-0 text-right md:block">
-                  {item.estimatedValue && <p className="font-mono text-body-sm text-arctic">{formatGs(item.estimatedValue)}</p>}
+                  {(item.finalValue || item.estimatedValue) && (
+                    <div>
+                      <p className="font-mono text-body-sm text-arctic">
+                        {formatGs(item.finalValue ?? item.estimatedValue!)}
+                      </p>
+                      {item.finalValue && item.estimatedValue && item.finalValue !== item.estimatedValue && (
+                        <p className="font-mono text-[0.6rem] text-steel-600 line-through">{formatGs(item.estimatedValue)}</p>
+                      )}
+                      <p className="font-body text-[0.6rem] text-steel-600">
+                        {item.finalValue ? 'calculado' : 'estimado'}
+                      </p>
+                    </div>
+                  )}
                   {item.scheduledDate ? (
                     <p className="font-body text-caption text-blue-bright/70" title="Fecha programada">📅 {formatScheduledDate(item.scheduledDate)}</p>
                   ) : (

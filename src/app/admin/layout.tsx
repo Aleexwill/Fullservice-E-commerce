@@ -78,6 +78,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'Sistema',
     items: [
+      { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
       { href: '/admin/reportes', label: 'Reporte General', icon: FileText, exact: true },
       { href: '/admin/config', label: 'Configuracion', icon: Settings },
     ],
