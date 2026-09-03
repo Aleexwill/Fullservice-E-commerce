@@ -27,9 +27,8 @@ const footerLinks = {
   ],
   empresa: [
     { label: 'Portfolio', href: '/portfolio' },
-    { label: 'Blog', href: '/blog' },
     { label: 'Contacto', href: '/contacto' },
-    { label: 'Terminos y condiciones', href: '/terminos' },
+    { label: 'Pedir presupuesto', href: '/contacto?tipo=presupuesto' },
   ],
 };
 
@@ -182,16 +181,10 @@ export function Footer({ settings }: { settings?: SiteSettings }) {
           </p>
           <div className="flex gap-4">
             <Link
-              href="/terminos"
+              href="/contacto"
               className="font-body text-caption text-steel-700 hover:text-steel-300"
             >
-              Terminos
-            </Link>
-            <Link
-              href="/privacidad"
-              className="font-body text-caption text-steel-700 hover:text-steel-300"
-            >
-              Privacidad
+              Contacto
             </Link>
           </div>
         </div>
