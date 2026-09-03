@@ -222,13 +222,19 @@ interface Props {
   presupuestoId: string;
   serviceTitle: string;
   customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  customerCompany?: string;
+  customerAddress?: string;
+  description?: string;
+  scheduledDate?: string;
   code: string;
   initial: CalculationData | null;
   onSaved: (data: CalculationData) => void;
 }
 
 /* ─── Component ─────────────────────────────────────── */
-export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, code, initial, onSaved }: Props) {
+export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, customerEmail, customerPhone, customerCompany, customerAddress, description, scheduledDate, code, initial, onSaved }: Props) {
   const [calc, setCalc] = useState<CalculationData>(() => {
     if (!initial) return defaultCalc();
     if (initial.filas) return initial;
@@ -331,7 +337,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
     setShowPdfModal(false);
     setGeneratingPdf(true);
     await doSave(calc);
-    const html = buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral, opts });
+    const html = buildPdfHtml({ calc, code, serviceTitle, customerName, customerEmail, customerPhone, customerCompany, customerAddress, description, scheduledDate, subtotal, ivaMonto, totalGeneral, opts });
     const win = window.open('', '_blank');
     if (win) { win.document.write(html); win.document.close(); setTimeout(() => { win.print(); setGeneratingPdf(false); }, 600); }
     else setGeneratingPdf(false);
@@ -736,12 +742,21 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 }
 
 /* ─── PDF HTML builder ─────────────────────────────── */
-function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMonto, totalGeneral, opts }: {
-  calc: CalculationData; code: string; serviceTitle: string; customerName: string;
+function buildPdfHtml({ calc, code, serviceTitle, customerName, customerEmail, customerPhone, customerCompany, customerAddress, description, scheduledDate, subtotal, ivaMonto, totalGeneral, opts }: {
+  calc: CalculationData; code: string; serviceTitle: string;
+  customerName: string; customerEmail?: string; customerPhone?: string;
+  customerCompany?: string; customerAddress?: string;
+  description?: string; scheduledDate?: string;
   subtotal: number; ivaMonto: number; totalGeneral: number; opts: PdfOpts;
 }) {
   const fmtGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
   const today = new Date().toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' });
+  const fmtScheduled = (d: string) => {
+    const [y, m, day] = d.split('-').map(Number);
+    if (!y) return d;
+    return new Date(y, m - 1, day).toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   const secTotal = (t: FilaCalculo): number => {
     let inside = false, sub = 0;
@@ -833,17 +848,22 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     ${totalCol ? '<th style="width:130px;text-align:right">Total</th>' : ''}
   </tr>`;
 
-  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Presupuesto ${code}</title>
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><base href="${baseUrl}"><title>Presupuesto ${code}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a;padding:32px}
-    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
     .logo-block{display:flex;flex-direction:column;gap:4px}
-    .logo-block img{height:72px;width:auto;object-fit:contain}
+    .logo-block img{height:64px;width:auto;object-fit:contain}
     .logo-block small{font-size:10px;color:#777}
     .meta table{border-collapse:collapse}
     .meta td{padding:3px 10px;font-size:11px}
     .meta td:first-child{font-weight:bold;color:#555;text-align:right}
+    .client-block{margin-bottom:18px;padding:10px 12px;background:#f7f9fb;border-left:3px solid #2D8FCC;border-radius:0 4px 4px 0}
+    .client-block h3{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#2D8FCC;margin-bottom:6px}
+    .client-block p{font-size:11px;color:#333;margin-bottom:2px}
+    .client-block .light{color:#777;font-size:10px}
+    .desc-block{margin-bottom:16px;padding:8px 12px;background:#fff8f0;border-left:3px solid #E8862B;border-radius:0 4px 4px 0;font-size:10px;color:#555}
     h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#333;margin:0 0 10px;border-bottom:2px solid #2D8FCC;padding-bottom:4px}
     table.items{width:100%;border-collapse:collapse;margin-bottom:20px}
     table.items th{background:#1a3a52;color:#fff;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
@@ -859,7 +879,7 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     .total-row td{background:#1a3a52;color:#fff;font-size:13px;font-weight:900;padding:9px 10px}
     .obs{font-size:10px;color:#888;border-top:1px solid #ddd;padding-top:10px;margin-top:4px}
     .footer{margin-top:28px;border-top:1px solid #ddd;padding-top:10px;display:flex;justify-content:space-between;align-items:center}
-    .footer img{height:30px;width:auto;opacity:.4}
+    .footer img{height:28px;width:auto;opacity:.35}
     .footer small{font-size:9px;color:#bbb;text-align:right}
     @media print{body{padding:16px}}
   </style></head><body>
@@ -871,13 +891,24 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, subtotal, ivaMon
     <div class="meta">
       <table>
         <tr><td>N° Presupuesto</td><td><strong>${code}</strong></td></tr>
-        <tr><td>Fecha</td><td>${today}</td></tr>
+        <tr><td>Fecha emisión</td><td>${today}</td></tr>
+        ${scheduledDate ? `<tr><td>Fecha programada</td><td><strong>${fmtScheduled(scheduledDate)}</strong></td></tr>` : ''}
         <tr><td>Validez</td><td>${calc.validez}</td></tr>
-        <tr><td>Cliente</td><td><strong>${customerName}</strong></td></tr>
         ${calc.ubicacion ? `<tr><td>Ubicación</td><td>${calc.ubicacion}</td></tr>` : ''}
       </table>
     </div>
   </div>
+
+  <div class="client-block">
+    <h3>Datos del cliente</h3>
+    <p><strong>${customerName}</strong>${customerCompany ? ` — ${customerCompany}` : ''}</p>
+    ${customerPhone ? `<p class="light">Tel: ${customerPhone}</p>` : ''}
+    ${customerEmail ? `<p class="light">Email: ${customerEmail}</p>` : ''}
+    ${customerAddress ? `<p class="light">Dirección: ${customerAddress}</p>` : ''}
+  </div>
+
+  ${description ? `<div class="desc-block"><strong>Descripción del servicio:</strong> ${description}</div>` : ''}
+
   <h2>${serviceTitle}${opts.soloAprobados ? ' — <span style="color:#2a6a3a;font-size:11px">Secciones aprobadas</span>' : ''}</h2>
   <table class="items">
     <thead>${thead}</thead>
