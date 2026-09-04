@@ -113,10 +113,13 @@ export function imprimirPresupuesto(p: PresupuestoData) {
           </table>`;
       })();
 
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <base href="${baseUrl}" />
   <title>Presupuesto ${p.code}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -128,10 +131,8 @@ export function imprimirPresupuesto(p: PresupuestoData) {
     }
     .page { max-width: 860px; margin: 0 auto; padding: 32px 24px; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 3px solid #1e2d3d; }
-    .brand { display: flex; flex-direction: column; gap: 2px; }
-    .brand-name { font-size: 20px; font-weight: 800; color: #1e2d3d; letter-spacing: -0.5px; }
-    .brand-name span.blue { color: #2d8fcc; }
-    .brand-name span.orange { color: #e8862b; }
+    .brand { display: flex; flex-direction: column; gap: 4px; }
+    .brand img { height: 56px; width: auto; object-fit: contain; }
     .brand-sub { font-size: 11px; color: #718096; letter-spacing: 0.04em; }
     .doc-info { text-align: right; }
     .doc-code { font-size: 22px; font-weight: 700; color: #2d8fcc; font-family: monospace; }
@@ -162,7 +163,7 @@ export function imprimirPresupuesto(p: PresupuestoData) {
   <!-- HEADER -->
   <div class="header">
     <div class="brand">
-      <div class="brand-name"><span class="blue">Full Service</span> <span class="orange">&amp; Clean</span></div>
+      <img src="/logo.png" alt="Full Service &amp; Clean" />
       <div class="brand-sub">Servicios industriales y construcción</div>
     </div>
     <div class="doc-info">

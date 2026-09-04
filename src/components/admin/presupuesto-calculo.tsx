@@ -802,129 +802,156 @@ function buildPdfHtml({ calc, code, serviceTitle, customerName, customerEmail, c
   const shownIva = shownSubtotal * (calc.iva / 100);
   const shownTotal = shownSubtotal + shownIva - calc.descuento;
 
-  // Build rows: titulos + optional detail rows underneath
   const totalCol = opts.mostrarTotalSeccion;
-  const colCount = 3 + (totalCol ? 1 : 0);
 
-  const rows = hasTitulos
-    ? titulosToShow.map((t, i) => {
+  // Build section HTML blocks (same design as detail PDF)
+  const seccionesHTML = hasTitulos
+    ? titulosToShow.map((t) => {
         const st = opts.soloAprobados ? secAprobadoTotal(t) : secTotal(t);
-        // Gather detail rows for this titulo
-        let detailRows = '';
-        if (opts.incluirDetalle) {
-          const items = getItemsDeTitulo(t);
-          const filteredItems = opts.soloAprobados ? items.filter((r) => r.aprobado) : items;
-          for (const r of filteredItems) {
-            const rowTotal = r.cantidad * r.precioVenta;
-            detailRows += `<tr style="background:#f0f4f8">
-              <td style="padding-left:20px;color:#555">${r.descripcion}</td>
-              <td class="center" style="color:#555">${r.unidad}</td>
-              <td class="center" style="color:#555">${r.cantidad}</td>
-                            ${totalCol ? `<td class="right" style="color:#555">${fmtGs(rowTotal)}</td>` : ''}
-            </tr>`;
-          }
-        }
-        return `<tr class="section-header">
-          <td colspan="${colCount}">${t.descripcion || 'Ítem ' + (i + 1)}</td>
-          ${totalCol && !opts.incluirDetalle ? `<td class="right bold">${fmtGs(st)}</td>` : ''}
-        </tr>${detailRows}${opts.incluirDetalle && totalCol ? `<tr style="background:#e8f0e8">
-          <td colspan="${colCount - 1}" style="text-align:right;padding-right:8px;font-weight:bold;color:#2a6a3a">Total sección</td>
-          <td class="right bold" style="color:#2a6a3a">${fmtGs(st)}</td>
-        </tr>` : ''}`;
+        const items = getItemsDeTitulo(t);
+        const filteredItems = opts.soloAprobados ? items.filter((r) => r.aprobado) : items;
+        const rowsHTML = opts.incluirDetalle
+          ? filteredItems.map((r) => `
+            <tr>
+              <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;padding-left:20px;color:#4a5568;">${r.descripcion || '—'}</td>
+              <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:center;color:#718096;">${r.unidad}</td>
+              <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;color:#718096;">${r.cantidad}</td>
+              ${totalCol ? `<td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#4a5568;">${fmtGs(r.cantidad * r.precioVenta)}</td>` : ''}
+            </tr>`).join('')
+          : '';
+        return `
+          <div style="margin-bottom:20px;">
+            <div style="background:#1e2d3d;color:#e2e8f0;padding:8px 12px;font-weight:700;font-size:13px;border-radius:4px 4px 0 0;display:flex;justify-content:space-between;align-items:center;">
+              <span>${t.descripcion || 'Sección sin título'}</span>
+              ${totalCol ? `<span style="color:#90cdf4;font-family:monospace;">${fmtGs(st)}</span>` : ''}
+            </div>
+            ${opts.incluirDetalle && filteredItems.length > 0 ? `
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:#f7fafc;">
+                  <th style="padding:5px 8px 5px 20px;text-align:left;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Descripción</th>
+                  <th style="padding:5px 8px;text-align:center;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Unidad</th>
+                  <th style="padding:5px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Cant.</th>
+                  ${totalCol ? '<th style="padding:5px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Total</th>' : ''}
+                </tr>
+              </thead>
+              <tbody>${rowsHTML}</tbody>
+            </table>` : ''}
+          </div>`;
       }).join('')
-    : calc.filas.filter((f) => f.tipo !== 'titulo').map((fila) => {
-        const total = fila.cantidad * fila.precioVenta;
-        return `<tr>
-          <td>${fila.descripcion}</td>
-          <td class="center">${fila.unidad}</td>
-          <td class="center">${fila.cantidad}</td>
-          ${totalCol ? `<td class="right bold">${fmtGs(total)}</td>` : ''}
-        </tr>`;
-      }).join('');
-
-  const thead = `<tr>
-    <th>Descripción</th>
-    <th style="width:70px;text-align:center">Unidad</th>
-    <th style="width:55px;text-align:center">Cant.</th>
-    ${totalCol ? '<th style="width:130px;text-align:right">Total</th>' : ''}
-  </tr>`;
+    : (() => {
+        const filasItems2 = calc.filas.filter((f) => f.tipo !== 'titulo');
+        const rowsHTML = filasItems2.map((f) => `
+          <tr>
+            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;">${f.descripcion || '—'}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:center;">${f.unidad}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;">${f.cantidad}</td>
+            ${totalCol ? `<td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;">${fmtGs(f.cantidad * f.precioVenta)}</td>` : ''}
+          </tr>`).join('');
+        return `
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px;">
+            <thead>
+              <tr style="background:#f7fafc;">
+                <th style="padding:6px 8px;text-align:left;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Descripción</th>
+                <th style="padding:6px 8px;text-align:center;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Unidad</th>
+                <th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Cant.</th>
+                ${totalCol ? '<th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Total</th>' : ''}
+              </tr>
+            </thead>
+            <tbody>${rowsHTML}</tbody>
+          </table>`;
+      })();
 
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><base href="${baseUrl}"><title>Presupuesto ${code}</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a;padding:32px}
-    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
-    .logo-block{display:flex;flex-direction:column;gap:4px}
-    .logo-block img{height:64px;width:auto;object-fit:contain}
-    .logo-block small{font-size:10px;color:#777}
-    .meta table{border-collapse:collapse}
-    .meta td{padding:3px 10px;font-size:11px}
-    .meta td:first-child{font-weight:bold;color:#555;text-align:right}
-    .client-block{margin-bottom:18px;padding:10px 12px;background:#f7f9fb;border-left:3px solid #2D8FCC;border-radius:0 4px 4px 0}
-    .client-block h3{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#2D8FCC;margin-bottom:6px}
-    .client-block p{font-size:11px;color:#333;margin-bottom:2px}
-    .client-block .light{color:#777;font-size:10px}
-    .desc-block{margin-bottom:16px;padding:8px 12px;background:#fff8f0;border-left:3px solid #E8862B;border-radius:0 4px 4px 0;font-size:10px;color:#555}
-    h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#333;margin:0 0 10px;border-bottom:2px solid #2D8FCC;padding-bottom:4px}
-    table.items{width:100%;border-collapse:collapse;margin-bottom:20px}
-    table.items th{background:#1a3a52;color:#fff;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
-    table.items td{padding:7px 8px;border-bottom:1px solid #e8e8e8;vertical-align:top}
-    table.items tr:nth-child(even) td{background:#f7f9fb}
-    .section-header{background:#2d5a7a!important;color:#fff!important;font-weight:bold;font-size:11px;letter-spacing:.5px;padding:6px 10px!important;text-transform:uppercase}
-    .center{text-align:center}.right{text-align:right}.bold{font-weight:bold}
-    .totals-wrap{display:flex;justify-content:flex-end;margin-bottom:20px}
-    .totals{width:290px;border-collapse:collapse}
-    .totals td{padding:5px 8px}
-    .totals .lbl{color:#555}
-    .totals .val{text-align:right;font-weight:bold}
-    .total-row td{background:#1a3a52;color:#fff;font-size:13px;font-weight:900;padding:9px 10px}
-    .obs{font-size:10px;color:#888;border-top:1px solid #ddd;padding-top:10px;margin-top:4px}
-    .footer{margin-top:28px;border-top:1px solid #ddd;padding-top:10px;display:flex;justify-content:space-between;align-items:center}
-    .footer img{height:28px;width:auto;opacity:.35}
-    .footer small{font-size:9px;color:#bbb;text-align:right}
-    @media print{body{padding:16px}}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a202c;background:#fff}
+    @media print{
+      body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .no-print{display:none!important}
+      @page{margin:18mm 15mm}
+    }
+    .page{max-width:860px;margin:0 auto;padding:32px 24px}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:3px solid #1e2d3d}
+    .brand{display:flex;flex-direction:column;gap:4px}
+    .brand img{height:56px;width:auto;object-fit:contain}
+    .brand-sub{font-size:11px;color:#718096;letter-spacing:.04em}
+    .doc-info{text-align:right}
+    .doc-code{font-size:22px;font-weight:700;color:#2d8fcc;font-family:monospace}
+    .doc-date{font-size:11px;color:#718096;margin-top:2px}
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#718096;margin-bottom:6px}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+    .info-box{background:#f7fafc;border-radius:6px;padding:12px 14px}
+    .client-name{font-size:15px;font-weight:700;color:#1a202c;margin-bottom:4px}
+    .client-detail{font-size:12px;color:#4a5568;line-height:1.6}
+    .service-box{background:#ebf8ff;border-left:4px solid #2d8fcc;border-radius:0 6px 6px 0;padding:12px 14px}
+    .service-title{font-size:14px;font-weight:700;color:#1a202c;margin-bottom:4px}
+    .service-desc{font-size:12px;color:#4a5568;line-height:1.6}
+    .totals-box{background:#f7fafc;border-radius:6px;padding:14px 16px;min-width:220px}
+    .total-row{display:flex;justify-content:space-between;font-size:12px;color:#4a5568;padding:3px 0}
+    .total-row.final{font-size:15px;font-weight:800;color:#1a202c;border-top:2px solid #1e2d3d;margin-top:6px;padding-top:8px}
+    .total-row.final span:last-child{color:#2d8fcc;font-family:monospace}
+    .footer-info{margin-top:28px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:flex-end}
+    .validity{font-size:11px;color:#718096}
+    .obs{font-size:10px;color:#a0aec0;max-width:460px;line-height:1.5}
+    .print-btn{position:fixed;top:16px;right:16px;background:#2d8fcc;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer}
   </style></head><body>
-  <div class="header">
-    <div class="logo-block">
-      <img src="/logo.png" alt="Full Service &amp; Clean" />
-      <small>Servicios profesionales de mantenimiento y construcción</small>
+  <div class="page">
+    <button class="print-btn no-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+
+    <div class="header">
+      <div class="brand">
+        <img src="/logo.png" alt="Full Service &amp; Clean" />
+        <div class="brand-sub">Servicios industriales y construcción</div>
+      </div>
+      <div class="doc-info">
+        <div class="doc-code">${code}</div>
+        <div class="doc-date">Emitido el ${today}</div>
+        ${scheduledDate ? `<div class="doc-date">Fecha programada: ${fmtScheduled(scheduledDate)}</div>` : ''}
+        ${calc.validez ? `<div class="doc-date">Validez: ${calc.validez}</div>` : ''}
+        ${calc.ubicacion ? `<div class="doc-date">Ubicación: ${calc.ubicacion}</div>` : ''}
+        ${opts.soloAprobados ? '<div class="doc-date" style="color:#2a6a3a;font-weight:600;">★ Secciones aprobadas</div>' : ''}
+      </div>
     </div>
-    <div class="meta">
-      <table>
-        <tr><td>N° Presupuesto</td><td><strong>${code}</strong></td></tr>
-        <tr><td>Fecha emisión</td><td>${today}</td></tr>
-        ${scheduledDate ? `<tr><td>Fecha programada</td><td><strong>${fmtScheduled(scheduledDate)}</strong></td></tr>` : ''}
-        <tr><td>Validez</td><td>${calc.validez}</td></tr>
-        ${calc.ubicacion ? `<tr><td>Ubicación</td><td>${calc.ubicacion}</td></tr>` : ''}
-      </table>
+
+    <div class="two-col">
+      <div>
+        <div class="section-label">Cliente</div>
+        <div class="info-box">
+          <div class="client-name">${customerName || 'Sin nombre'}</div>
+          <div class="client-detail">
+            ${customerCompany ? `<div>${customerCompany}</div>` : ''}
+            ${customerAddress ? `<div>${customerAddress}</div>` : ''}
+            ${customerPhone ? `<div>Tel: ${customerPhone}</div>` : ''}
+            ${customerEmail ? `<div>${customerEmail}</div>` : ''}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">Servicio solicitado</div>
+        <div class="service-box">
+          <div class="service-title">${serviceTitle}</div>
+          ${description ? `<div class="service-desc">${description.replace(/\n/g, '<br>')}</div>` : ''}
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="client-block">
-    <h3>Datos del cliente</h3>
-    <p><strong>${customerName}</strong>${customerCompany ? ` — ${customerCompany}` : ''}</p>
-    ${customerPhone ? `<p class="light">Tel: ${customerPhone}</p>` : ''}
-    ${customerEmail ? `<p class="light">Email: ${customerEmail}</p>` : ''}
-    ${customerAddress ? `<p class="light">Dirección: ${customerAddress}</p>` : ''}
-  </div>
+    <div class="section-label" style="margin-bottom:12px;">Detalle del presupuesto</div>
+    ${seccionesHTML || '<p style="color:#718096;font-size:12px;margin-bottom:20px;">Sin ítems de cálculo cargados.</p>'}
 
-  ${description ? `<div class="desc-block"><strong>Descripción del servicio:</strong> ${description}</div>` : ''}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+      <div class="totals-box">
+        <div class="total-row"><span>Subtotal</span><span style="font-family:monospace;">${fmtGs(shownSubtotal)}</span></div>
+        <div class="total-row"><span>IVA (${calc.iva}%)</span><span style="font-family:monospace;">${fmtGs(shownIva)}</span></div>
+        ${calc.descuento > 0 ? `<div class="total-row" style="color:#e53e3e;"><span>Descuento</span><span style="font-family:monospace;">-${fmtGs(calc.descuento)}</span></div>` : ''}
+        <div class="total-row final"><span>TOTAL${opts.soloAprobados ? ' APROBADO' : ''}</span><span>${fmtGs(shownTotal)}</span></div>
+      </div>
+    </div>
 
-  <h2>${serviceTitle}${opts.soloAprobados ? ' — <span style="color:#2a6a3a;font-size:11px">Secciones aprobadas</span>' : ''}</h2>
-  <table class="items">
-    <thead>${thead}</thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <div class="totals-wrap"><table class="totals">
-    <tr><td class="lbl">Subtotal</td><td class="val">${fmtGs(shownSubtotal)}</td></tr>
-    <tr><td class="lbl">IVA (${calc.iva}%)</td><td class="val">${fmtGs(shownIva)}</td></tr>
-    ${calc.descuento > 0 ? `<tr><td class="lbl">Descuento</td><td class="val" style="color:#c0392b">-${fmtGs(calc.descuento)}</td></tr>` : ''}
-    <tr class="total-row"><td>TOTAL${opts.soloAprobados ? ' APROBADO' : ' GENERAL'}</td><td style="text-align:right">${fmtGs(shownTotal)}</td></tr>
-  </table></div>
-  ${opts.mostrarObservaciones && calc.observaciones ? `<div class="obs">${calc.observaciones}</div>` : ''}
-  <div class="footer">
-    <img src="/logo.png" alt="" />
-    <small>Full Service &amp; Clean · Asunción, Paraguay<br/>Válido por ${calc.validez} desde la fecha de emisión.</small>
+    <div class="footer-info">
+      <div class="obs">${opts.mostrarObservaciones && calc.observaciones ? calc.observaciones : ''}</div>
+      <div class="validity">Validez de la oferta: <strong>${calc.validez}</strong></div>
+    </div>
   </div>
 </body></html>`;
 }
