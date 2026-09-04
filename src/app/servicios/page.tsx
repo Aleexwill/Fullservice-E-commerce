@@ -86,11 +86,11 @@ export default function ServiciosPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="border-b border-steel-900/40">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-steel-500">
-          <Link href="/" className="hover:text-arctic">Inicio</Link>
+      <div className="border-b border-gray-200 bg-white">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-arctic">Servicios</span>
+          <span className="text-[#0B1120]">Servicios</span>
         </div>
       </div>
 
