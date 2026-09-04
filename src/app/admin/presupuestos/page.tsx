@@ -610,14 +610,12 @@ export default function AdminPresupuestosPage() {
               </div>
               {/* Action buttons */}
               <div className="grid grid-cols-1 gap-2">
-                {(selected.calculationData?.filas?.length ?? 0) > 0 && (
-                  <button
-                    onClick={() => setShowPdfOpts(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-bright/30 bg-blue-bright/10 px-4 py-2.5 font-body text-body-sm font-semibold text-blue-bright hover:bg-blue-bright/20 transition-colors"
-                  >
-                    <Printer className="h-4 w-4" /> Generar PDF del presupuesto
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowPdfOpts(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-bright/30 bg-blue-bright/10 px-4 py-2.5 font-body text-body-sm font-semibold text-blue-bright hover:bg-blue-bright/20 transition-colors"
+                >
+                  <Printer className="h-4 w-4" /> Generar PDF del presupuesto
+                </button>
                 {selected.customer.phone && (
                   <button onClick={sendWhatsApp} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2.5 font-body text-body-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors">
                     <MessageSquare className="h-4 w-4" /> Enviar presupuesto al cliente por WhatsApp
