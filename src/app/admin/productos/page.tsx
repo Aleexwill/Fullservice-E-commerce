@@ -14,9 +14,8 @@ import {
   Package,
   AlertTriangle,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
+import { Pagination } from '@/components/admin/pagination';
 
 interface Product {
   id: string;
@@ -72,10 +71,6 @@ export default function AdminProductosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, filterActive, filterCategory]);
 
-  const goToPage = (p: number) => {
-    const clamped = Math.max(1, Math.min(p, totalPages));
-    setPage(clamped);
-  };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`¿Eliminar "${name}" del catalogo?`)) return;
@@ -123,8 +118,6 @@ export default function AdminProductosPage() {
 
   const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
 
-  const pageStart = (page - 1) * PAGE_SIZE + 1;
-  const pageEnd = Math.min(page * PAGE_SIZE, total);
 
   return (
     <div className="p-6 lg:p-8">
@@ -333,57 +326,14 @@ export default function AdminProductosPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="font-body text-caption text-steel-500">
-                Mostrando {pageStart}–{pageEnd} de {total} productos
-              </p>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => goToPage(page - 1)}
-                  disabled={page === 1}
-                  className="rounded p-1.5 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic disabled:opacity-30"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                  .reduce<(number | '...')[]>((acc, p, idx, arr) => {
-                    if (idx > 0 && typeof arr[idx - 1] === 'number' && (p as number) - (arr[idx - 1] as number) > 1) {
-                      acc.push('...');
-                    }
-                    acc.push(p);
-                    return acc;
-                  }, [])
-                  .map((p, i) =>
-                    p === '...' ? (
-                      <span key={`ellipsis-${i}`} className="px-2 font-body text-caption text-steel-600">…</span>
-                    ) : (
-                      <button
-                        key={p}
-                        onClick={() => goToPage(p as number)}
-                        className={`rounded px-2.5 py-1 font-body text-caption transition-colors ${
-                          page === p
-                            ? 'bg-blue text-white'
-                            : 'text-steel-400 hover:bg-steel-900 hover:text-arctic'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
-
-                <button
-                  onClick={() => goToPage(page + 1)}
-                  disabled={page === totalPages}
-                  className="rounded p-1.5 text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic disabled:opacity-30"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+            itemLabel="productos"
+          />
         </>
       )}
     </div>
