@@ -3,298 +3,41 @@
 import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import {
-  Phone, Mail, MapPin, Clock, MessageCircle, Send, ChevronRight,
-  CheckCircle, Facebook, Instagram, Linkedin, Calculator, ShoppingCart, Wrench,
-} from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, MessageCircle, Send, ChevronRight, CheckCircle, Calculator, ShoppingCart, Wrench } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 
-const subjectsGeneral = [
-  'Informacion de la empresa',
-  'Reclamo o sugerencia',
-  'Otro',
-];
-
-const subjectsEcommerce = [
-  'Consulta sobre producto',
-  'Estado de mi pedido',
-  'Devolucion o cambio',
-  'Disponibilidad de producto',
-];
-
-const subjectsServicios = [
-  'Presupuesto de mantenimiento',
-  'Presupuesto de obra civil',
-  'Presupuesto metalurgica',
-  'Consulta sobre servicios',
-];
-
+const subjectsGeneral = ['Informacion de la empresa', 'Reclamo o sugerencia', 'Otro'];
+const subjectsEcommerce = ['Consulta sobre producto', 'Estado de mi pedido', 'Devolucion o cambio', 'Disponibilidad de producto'];
+const subjectsServicios = ['Presupuesto de mantenimiento', 'Presupuesto de obra civil', 'Presupuesto metalurgica', 'Consulta sobre servicios'];
 type FormType = 'general' | 'ecommerce' | 'servicios';
 
-export default function ContactoPage() {
-  return (
-    <Suspense fallback={null}>
-      <ContactoPageContent />
-    </Suspense>
-  );
-}
+export default function ContactoPage() { return <Suspense fallback={null}><ContactoPageContent /></Suspense>; }
 
 function ContactoPageContent() {
   const searchParams = useSearchParams();
-
-  const tipoParam = searchParams.get('tipo');
-  const servicioParam = searchParams.get('servicio');
-  const categoriaParam = searchParams.get('categoria');
-
+  const tipoParam = searchParams.get('tipo'); const servicioParam = searchParams.get('servicio'); const categoriaParam = searchParams.get('categoria');
   const initialType: FormType = tipoParam === 'presupuesto' ? 'servicios' : tipoParam === 'ecommerce' ? 'ecommerce' : 'general';
-
   const [formType, setFormType] = useState<FormType>(initialType);
-  const [formData, setFormData] = useState({
-    name: '', email: '', phone: '', company: '', address: '',
-    subject: servicioParam ? `Presupuesto de ${servicioParam.toLowerCase()}` : '',
-    message: servicioParam ? `Hola, me interesa solicitar un presupuesto para el servicio de ${servicioParam}.` : '',
-    serviceTitle: servicioParam || '',
-    serviceType: categoriaParam || '',
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  useEffect(() => {
-    if (tipoParam === 'presupuesto') setFormType('servicios');
-    else if (tipoParam === 'ecommerce') setFormType('ecommerce');
-  }, [tipoParam]);
-
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', address: '', subject: servicioParam ? `Presupuesto de ${servicioParam.toLowerCase()}` : '', message: servicioParam ? `Hola, me interesa solicitar un presupuesto para el servicio de ${servicioParam}.` : '', serviceTitle: servicioParam || '', serviceType: categoriaParam || '' });
+  const [submitted, setSubmitted] = useState(false); const [sending, setSending] = useState(false);
+  useEffect(() => { if (tipoParam === 'presupuesto') setFormType('servicios'); else if (tipoParam === 'ecommerce') setFormType('ecommerce'); }, [tipoParam]);
   const whatsappUrl = formatWhatsAppUrl(siteConfig.whatsapp, 'Hola, quiero comunicarme con ustedes.');
+  const getSubjects = () => formType === 'ecommerce' ? subjectsEcommerce : formType === 'servicios' ? subjectsServicios : subjectsGeneral;
+  const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setSending(true); try { const endpoint = formType === 'servicios' ? '/api/presupuestos' : '/api/leads'; const body = formType === 'servicios' ? { customer: { name: formData.name, email: formData.email, phone: formData.phone, company: formData.company, address: formData.address }, serviceTitle: formData.serviceTitle || formData.subject, serviceType: formData.serviceType || 'otro', description: formData.message, priority: 'media', source: 'formulario_web' } : { customer: { name: formData.name, email: formData.email, phone: formData.phone }, subject: formData.subject || 'Consulta general', message: formData.message, source: 'contact_form', priority: 'medium', serviceInterest: formData.subject, leadType: formType }; const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!res.ok) throw new Error('Error'); setSubmitted(true); } catch { alert('Error al enviar el formulario. Intenta de nuevo.'); } finally { setSending(false); } };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const typeConfig = { general: { label: 'General', icon: Mail, desc: 'Consultas generales, información y sugerencias' }, ecommerce: { label: 'E-Commerce', icon: ShoppingCart, desc: 'Productos, pedidos, disponibilidad y cambios' }, servicios: { label: 'Servicios', icon: Wrench, desc: 'Presupuestos, cotizaciones y consultas de servicios' } };
 
-  const getSubjects = () => {
-    switch (formType) {
-      case 'ecommerce': return subjectsEcommerce;
-      case 'servicios': return subjectsServicios;
-      default: return subjectsGeneral;
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSending(true);
-    try {
-      if (formType === 'servicios') {
-        // Create a presupuesto (budget request)
-        const res = await fetch('/api/presupuestos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customer: { name: formData.name, email: formData.email, phone: formData.phone, company: formData.company, address: formData.address },
-            serviceTitle: formData.serviceTitle || formData.subject,
-            serviceType: formData.serviceType || 'otro',
-            description: formData.message,
-            priority: 'media',
-            source: 'formulario_web',
-          }),
-        });
-        if (!res.ok) throw new Error('Error');
-      } else {
-        // Create a lead (for ecommerce or general)
-        const res = await fetch('/api/leads', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customer: { name: formData.name, email: formData.email, phone: formData.phone },
-            subject: formData.subject || 'Consulta general',
-            message: formData.message,
-            source: 'contact_form',
-            priority: 'medium',
-            serviceInterest: formData.subject,
-            leadType: formType,
-          }),
-        });
-        if (!res.ok) throw new Error('Error');
-      }
-      setSubmitted(true);
-    } catch {
-      alert('Error al enviar el formulario. Intenta de nuevo.');
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const typeConfig: Record<FormType, { label: string; icon: any; color: string; bg: string; desc: string }> = {
-    general: { label: 'General', icon: Mail, color: 'text-blue-bright', bg: 'bg-blue-muted', desc: 'Consultas generales, informacion, sugerencias' },
-    ecommerce: { label: 'E-Commerce', icon: ShoppingCart, color: 'text-[#48BB78]', bg: 'bg-success-light', desc: 'Productos, pedidos, disponibilidad, cambios' },
-    servicios: { label: 'Servicios', icon: Wrench, color: 'text-yellow-bright', bg: 'bg-yellow-muted', desc: 'Presupuestos, cotizaciones, consultas de servicios' },
-  };
-
-  return (
-    <>
-      {/* Breadcrumb */}
-      <div className="border-b border-gray-200">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
-          <Link href="/" className="hover:text-[#2D8FCC]">Inicio</Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="text-[#0B1120]">Contacto</span>
-        </div>
-      </div>
-
-      {/* Hero */}
-      <section className="border-b border-gray-200 bg-white py-16">
-        <div className="container-main">
-          <span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Hablemos</span>
-          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-[#0B1120]">
-            Contacto
-          </h1>
-          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-6 max-w-lg font-body text-body-lg text-[#4A5E80]">
-            Escribinos y te respondemos en menos de 24 horas. También podés llamarnos o visitarnos en nuestra oficina.
-          </p>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <section className="section bg-[#F4F7FB]">
-        <div className="container-main">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-5">
-            {/* Form — 3 cols */}
-            <div className="lg:col-span-3">
-              {submitted ? (
-                <div className="card p-8 text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F0FFF4]">
-                    <CheckCircle className="h-8 w-8 text-[#2F855A]" />
-                  </div>
-                  <h2 className="font-display text-h2 text-[#0B1120]">
-                    {formType === 'servicios' ? '¡Solicitud de presupuesto enviada!' : '¡Mensaje enviado!'}
-                  </h2>
-                  <p className="mt-3 font-body text-body text-[#4A5E80]">
-                    {formType === 'servicios'
-                      ? 'Recibimos tu solicitud de presupuesto. Nuestro equipo la revisará y te contactará con una cotización.'
-                      : 'Recibimos tu consulta. Te responderemos en menos de 24 horas al email que nos indicaste.'}
-                  </p>
-                  <button onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', phone: '', company: '', address: '', subject: '', message: '', serviceTitle: '', serviceType: '' }); }} className="btn-secondary mt-6">Enviar otro mensaje</button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="card p-6 md:p-8">
-                  {/* Type selector */}
-                  <div className="mb-6">
-                    <h2 className="mb-3 font-display text-h2 text-[#0B1120]">Tipo de consulta</h2>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(Object.entries(typeConfig) as [FormType, typeof typeConfig[FormType]][]).map(([key, cfg]) => {
-                        const Icon = cfg.icon;
-                        return (
-                          <button key={key} type="button" onClick={() => setFormType(key)}
-                            className={`flex flex-col items-center gap-2 rounded-lg border p-3 transition-all ${formType === key ? `${cfg.bg} border-[#2D8FCC] ring-1 ring-[#2D8FCC]` : 'border-gray-200 bg-white hover:border-[#2D8FCC]/40'}`}>
-                            <Icon className={`h-5 w-5 ${formType === key ? cfg.color : 'text-[#8094B4]'}`} />
-                            <span className={`font-body text-caption font-medium ${formType === key ? 'text-[#0B1120]' : 'text-[#4A5E80]'}`}>{cfg.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <p className="mt-2 font-body text-caption text-[#8094B4]">{typeConfig[formType].desc}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <div><label className="label mb-1.5 block">Nombre *</label><input type="text" name="name" required value={formData.name} onChange={handleChange} placeholder="Tu nombre completo" className="input" /></div>
-                    <div><label className="label mb-1.5 block">Email *</label><input type="email" name="email" required value={formData.email} onChange={handleChange} placeholder="tu@email.com" className="input" /></div>
-                    <div><label className="label mb-1.5 block">Telefono</label><input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="0971 123 456" className="input" /></div>
-                    {formType === 'servicios' ? (
-                      <div><label className="label mb-1.5 block">Empresa</label><input type="text" name="company" value={formData.company} onChange={handleChange} placeholder="Tu empresa (opcional)" className="input" /></div>
-                    ) : (
-                      <div><label className="label mb-1.5 block">Asunto *</label><select name="subject" required value={formData.subject} onChange={handleChange} className="input"><option value="">Seleccionar...</option>{getSubjects().map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
-                    )}
-                  </div>
-
-                  {formType === 'servicios' && (
-                    <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                      <div><label className="label mb-1.5 block">Servicio solicitado *</label><input type="text" name="serviceTitle" required value={formData.serviceTitle} onChange={handleChange} placeholder="Ej: Instalacion electrica, obra civil..." className="input" /></div>
-                      <div><label className="label mb-1.5 block">Tipo de servicio</label>
-                        <select name="serviceType" value={formData.serviceType} onChange={handleChange} className="input">
-                          <option value="">Seleccionar...</option>
-                          <option value="mantenimiento">Mantenimiento</option>
-                          <option value="civil">Construccion civil</option>
-                          <option value="metalurgica">Metalurgica</option>
-                          <option value="otro">Otro</option>
-                        </select>
-                      </div>
-                      <div className="sm:col-span-2"><label className="label mb-1.5 block">Direccion</label><input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Direccion donde se realizara el servicio" className="input" /></div>
-                    </div>
-                  )}
-
-                  <div className="mt-5">
-                    <label className="label mb-1.5 block">{formType === 'servicios' ? 'Descripcion del trabajo *' : 'Mensaje *'}</label>
-                    <textarea name="message" required rows={5} value={formData.message} onChange={handleChange} placeholder={formType === 'servicios' ? 'Describe el trabajo que necesitas, dimensiones, materiales, plazos...' : 'Contanos en que podemos ayudarte...'} className="input resize-none" />
-                  </div>
-
-                  <button type="submit" disabled={sending} className="btn-primary mt-6 w-full py-4 text-[0.8rem] sm:w-auto">
-                    {sending ? (<><span className="h-4 w-4 animate-spin rounded-full border-2 border-arctic/30 border-t-arctic" />Enviando...</>) : (
-                      formType === 'servicios'
-                        ? <><Calculator className="h-4 w-4" />Solicitar presupuesto</>
-                        : <><Send className="h-4 w-4" />Enviar mensaje</>
-                    )}
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Sidebar info — 2 cols */}
-            <div className="space-y-6 lg:col-span-2">
-              {/* Contact info card */}
-              <div className="card p-6">
-                <h3 className="mb-5 font-display text-h3 text-[#0B1120]">Información de contacto</h3>
-                <div className="space-y-4">
-                  <a href={`tel:${siteConfig.phone}`} className="flex items-start gap-3 rounded-md p-3 transition-colors hover:bg-[#F4F7FB]">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Phone className="h-5 w-5" /></div>
-                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Teléfono</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.phone}</div></div>
-                  </a>
-                  <a href={`mailto:${siteConfig.email}`} className="flex items-start gap-3 rounded-md p-3 transition-colors hover:bg-[#F4F7FB]">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Mail className="h-5 w-5" /></div>
-                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Email</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.email}</div></div>
-                  </a>
-                  <div className="flex items-start gap-3 rounded-md p-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><MapPin className="h-5 w-5" /></div>
-                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Dirección</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.address.street}</div><div className="font-body text-body-sm text-[#4A5E80]">{siteConfig.address.city}, {siteConfig.address.state}</div></div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-md p-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Clock className="h-5 w-5" /></div>
-                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Horarios</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.openingHours}</div></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* WhatsApp card */}
-              <div className="card overflow-hidden">
-                <div className="bg-[#F0FDF4] p-6">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]"><MessageCircle className="h-5 w-5 text-white" /></div>
-                    <div><h3 className="font-display text-h4 text-[#0B1120]">Escribinos por WhatsApp</h3><p className="font-body text-caption text-[#4A5E80]">Respuesta rápida</p></div>
-                  </div>
-                  <p className="mb-4 font-body text-body-sm text-[#4A5E80]">Consultanos directamente por WhatsApp para una respuesta inmediata.</p>
-                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-whatsapp w-full"><MessageCircle className="h-4 w-4" />Iniciar chat</a>
-                </div>
-              </div>
-
-              {/* Social */}
-              <div className="card p-6">
-                <h3 className="mb-4 font-display text-h4 text-[#0B1120]">Seguinos en redes</h3>
-                <div className="flex gap-3">
-                  <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#F4F7FB] text-[#4A5E80] transition-colors hover:bg-[#EBF5FB] hover:text-[#2D8FCC]"><Facebook className="h-5 w-5" /></a>
-                  <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#F4F7FB] text-[#4A5E80] transition-colors hover:bg-[#EBF5FB] hover:text-[#2D8FCC]"><Instagram className="h-5 w-5" /></a>
-                  <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#F4F7FB] text-[#4A5E80] transition-colors hover:bg-[#EBF5FB] hover:text-[#2D8FCC]"><Linkedin className="h-5 w-5" /></a>
-                </div>
-              </div>
-
-              {/* Map placeholder */}
-              <div className="card overflow-hidden">
-                <div className="flex h-48 items-center justify-center bg-[#F4F7FB]">
-                  <div className="text-center"><MapPin className="mx-auto h-8 w-8 text-[#8094B4]" /><p className="mt-2 font-body text-body-sm text-[#8094B4]">Mapa interactivo</p><p className="font-body text-caption text-[#C0CEDF]">Google Maps se integrará aquí</p></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+  return <main className="bg-[#F4F7FB]">
+    <div className="border-b border-gray-200 bg-white"><div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]"><Link href="/" className="hover:text-[#2D8FCC]">Inicio</Link><ChevronRight className="h-3 w-3"/><span className="text-[#0B1120]">Contacto</span></div></div>
+    <section className="relative overflow-hidden bg-[#0B1120] py-16 md:py-20"><div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#2D8FCC]/15 blur-3xl"/><div className="container-main relative"><span className="overline text-[#6FC3F5]">Estamos para ayudarte</span><h1 className="mt-3 max-w-3xl font-display text-[clamp(2.4rem,5vw,4rem)] font-bold uppercase leading-[.95] text-white">Hablemos de tu <span className="text-[#6FC3F5]">proyecto.</span></h1><p className="mt-5 max-w-2xl font-body text-body-lg leading-relaxed text-[#B7C5D9]">Escribinos para una consulta, un presupuesto o información sobre nuestros productos y servicios.</p></div></section>
+    <section className="section"><div className="container-main"><div className="grid gap-8 lg:grid-cols-5">
+      <div className="lg:col-span-3">{submitted ? <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#F0FFF4]"><CheckCircle className="h-8 w-8 text-[#2F855A]"/></div><h2 className="mt-5 font-display text-h2 text-[#0B1120]">{formType === 'servicios' ? '¡Solicitud enviada!' : '¡Mensaje enviado!'}</h2><p className="mx-auto mt-3 max-w-md font-body text-body leading-7 text-[#4A5E80]">Recibimos tu solicitud. Nuestro equipo la revisará y se pondrá en contacto contigo.</p><button onClick={() => setSubmitted(false)} className="btn-secondary mt-6">Enviar otro mensaje</button></div> : <form onSubmit={handleSubmit} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8"><h2 className="font-display text-h2 text-[#0B1120]">¿En qué podemos ayudarte?</h2><p className="mt-2 font-body text-body-sm text-[#8094B4]">Elegí el tipo de consulta y completá tus datos.</p><div className="mt-6 grid grid-cols-3 gap-2">{(Object.entries(typeConfig) as [FormType, typeof typeConfig.general][]).map(([key, cfg]) => { const Icon = cfg.icon; return <button key={key} type="button" onClick={() => setFormType(key)} className={`flex flex-col items-center gap-2 rounded-xl border p-3 transition-all ${formType === key ? 'border-[#2D8FCC] bg-[#EBF5FB] ring-1 ring-[#2D8FCC]' : 'border-gray-200 hover:border-[#2D8FCC]/40'}`}><Icon className={`h-5 w-5 ${formType === key ? 'text-[#2D8FCC]' : 'text-[#8094B4]'}`}/><span className="font-body text-caption font-medium text-[#0B1120]">{cfg.label}</span></button>})}</div><p className="mt-2 font-body text-caption text-[#8094B4]">{typeConfig[formType].desc}</p>
+        <div className="mt-6 grid gap-5 sm:grid-cols-2"><div><label className="label mb-1.5 block">Nombre *</label><input required name="name" value={formData.name} onChange={handleChange} placeholder="Tu nombre completo" className="input"/></div><div><label className="label mb-1.5 block">Email *</label><input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="tu@email.com" className="input"/></div><div><label className="label mb-1.5 block">Teléfono</label><input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="0971 123 456" className="input"/></div>{formType === 'servicios' ? <div><label className="label mb-1.5 block">Empresa</label><input name="company" value={formData.company} onChange={handleChange} placeholder="Tu empresa (opcional)" className="input"/></div> : <div><label className="label mb-1.5 block">Asunto *</label><select required name="subject" value={formData.subject} onChange={handleChange} className="input"><option value="">Seleccionar...</option>{getSubjects().map(s => <option key={s}>{s}</option>)}</select></div>}</div>
+        {formType === 'servicios' && <div className="mt-5 grid gap-5 sm:grid-cols-2"><div><label className="label mb-1.5 block">Servicio solicitado *</label><input required name="serviceTitle" value={formData.serviceTitle} onChange={handleChange} placeholder="Ej: Obra civil, instalación..." className="input"/></div><div><label className="label mb-1.5 block">Tipo de servicio</label><select name="serviceType" value={formData.serviceType} onChange={handleChange} className="input"><option value="">Seleccionar...</option><option value="mantenimiento">Mantenimiento</option><option value="civil">Construcción civil</option><option value="metalurgica">Metalúrgica</option><option value="otro">Otro</option></select></div><div className="sm:col-span-2"><label className="label mb-1.5 block">Dirección</label><input name="address" value={formData.address} onChange={handleChange} placeholder="Dirección donde se realizará el servicio" className="input"/></div></div>}
+        <div className="mt-5"><label className="label mb-1.5 block">{formType === 'servicios' ? 'Descripción del trabajo *' : 'Mensaje *'}</label><textarea required rows={5} name="message" value={formData.message} onChange={handleChange} placeholder="Contanos en qué podemos ayudarte..." className="input resize-none"/></div><button disabled={sending} className="btn-primary mt-6 w-full py-4 sm:w-auto">{sending ? 'Enviando...' : formType === 'servicios' ? <><Calculator className="h-4 w-4"/>Solicitar presupuesto</> : <><Send className="h-4 w-4"/>Enviar mensaje</>}</button>
+      </form>}</div>
+      <aside className="space-y-4 lg:col-span-2"><div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"><h2 className="font-display text-h3 text-[#0B1120]">Contacto directo</h2><div className="mt-5 space-y-2">{[[Phone,'Teléfono',siteConfig.phone,`tel:${siteConfig.phone}`],[Mail,'Email',siteConfig.email,`mailto:${siteConfig.email}`]].map(([Icon,label,value,href]) => <a key={label as string} href={href as string} className="flex items-center gap-3 rounded-xl p-3 hover:bg-[#F4F7FB]"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Icon className="h-5 w-5"/></div><div><div className="font-body text-[.65rem] font-semibold uppercase tracking-wider text-[#8094B4]">{label as string}</div><div className="font-body text-sm font-medium text-[#0B1120]">{value as string}</div></div></a>)}</div></div><div className="rounded-2xl bg-[#0B1120] p-6 text-white"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2D8FCC]/20 text-[#6FC3F5]"><MessageCircle className="h-5 w-5"/></div><h3 className="mt-4 font-display text-h3">¿Preferís WhatsApp?</h3><p className="mt-2 font-body text-body-sm leading-6 text-[#B7C5D9]">Escribinos directamente y coordinamos tu consulta.</p><a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#2D8FCC] px-4 py-3 font-body text-sm font-semibold text-white">Abrir WhatsApp <ChevronRight className="h-4 w-4"/></a></div><div className="rounded-2xl border border-gray-200 bg-white p-6"><div className="flex gap-3"><MapPin className="mt-0.5 h-5 w-5 text-[#2D8FCC]"/><div><h3 className="font-display text-h3 text-[#0B1120]">Dónde estamos</h3><p className="mt-1 font-body text-body-sm text-[#4A5E80]">{siteConfig.address.street}<br/>{siteConfig.address.city}, {siteConfig.address.state}</p></div></div><div className="mt-4 flex gap-3"><Clock className="mt-0.5 h-5 w-5 text-[#2D8FCC]"/><div><h3 className="font-display text-h3 text-[#0B1120]">Atención</h3><p className="mt-1 font-body text-body-sm text-[#4A5E80]">Respondemos consultas dentro de 24 horas.</p></div></div></div></aside>
+    </div></div></section>
+  </main>;
 }
