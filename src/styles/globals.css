@@ -3,16 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --color-carbon: #0B1120;
-    --color-blue: #2D8FCC;
-    --color-orange: #E8862B;
-    --color-arctic: #F4F7FB;
-  }
-  html { scroll-behavior: smooth; }
-  body { background: #fff; color: #0B1120; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-  h1,h2,h3,h4,h5,h6 { font-family: var(--font-display), 'Barlow Condensed', sans-serif; }
-  ::selection { background: rgba(45,143,204,.16); color: #0B1120; }
+  :root { --color-carbon:#0B1120; --color-blue:#2D8FCC; --color-orange:#E8862B; --color-arctic:#F4F7FB; }
+  html { scroll-behavior:smooth; }
+  body { background:#fff; color:#0B1120; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  h1,h2,h3,h4,h5,h6 { font-family:var(--font-display), 'Barlow Condensed', sans-serif; }
+  ::selection { background:rgba(45,143,204,.16); color:#0B1120; }
 }
 
 @layer components {
@@ -28,7 +23,7 @@
   .btn-whatsapp { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20BD5A] hover:shadow-lg active:translate-y-0; letter-spacing:.06em; }
   .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(15,23,42,.05)] transition-all duration-300; }
   .card-interactive { @apply card cursor-pointer; }
-  .card-interactive:hover { @apply -translate-y-1 shadow-[0_18px_45px_rgba(15,23,42,.10)]; border-color: rgba(45,143,204,.28); }
+  .card-interactive:hover { @apply -translate-y-1 shadow-[0_18px_45px_rgba(15,23,42,.10)]; border-color:rgba(45,143,204,.28); }
   .input { @apply w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-body text-carbon transition-all focus:border-blue focus:outline-none focus:ring-4 focus:ring-blue/10; }
   .input::placeholder { color:#8094B4; }
   .admin-input { @apply w-full rounded-lg border border-steel-700 bg-steel-900 px-3 py-2 text-body-sm text-arctic transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20; }
@@ -48,9 +43,17 @@
   .label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; @apply text-slate-500; }
   .overline { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.14em; @apply text-blue; }
   .data-text { @apply font-mono text-data text-steel-300; letter-spacing:.02em; }
+
+  /* Admin: restore dark surfaces so the storefront redesign does not leak into /admin. */
+  .admin-shell .card { @apply rounded-lg border border-steel-900/40 bg-carbon-light shadow-card; }
+  .admin-shell .card-interactive:hover { @apply -translate-y-0 shadow-card-hover; border-color:rgba(45,143,204,.35); }
+  .admin-shell .input { @apply rounded-lg border border-steel-600 bg-steel-900 text-arctic focus:border-blue focus:ring-blue/20; }
+  .admin-shell .input::placeholder { color:#4A5E80; }
+  .admin-shell .btn-secondary { @apply border-steel-700 bg-carbon-light text-steel-300 hover:border-blue/40 hover:bg-steel-900 hover:text-arctic; }
+  .admin-shell .badge-neutral { @apply bg-steel-900 text-steel-300; }
 }
 
 @layer utilities {
-  .text-balance { text-wrap: balance; }
+  .text-balance { text-wrap:balance; }
   .surface-muted { background:linear-gradient(180deg,#F8FAFC 0%,#F4F7FB 100%); }
 }
