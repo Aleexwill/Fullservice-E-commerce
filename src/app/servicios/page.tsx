@@ -2,222 +2,32 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import type { Metadata } from 'next';
-import {
-  Wrench,
-  HardHat,
-  Factory,
-  Zap,
-  Droplets,
-  Paintbrush,
-  ShieldCheck,
-  Thermometer,
-  ArrowRight,
-  MessageCircle,
-  Phone,
-  ChevronRight,
-} from 'lucide-react';
+import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, ArrowRight, MessageCircle, Phone, ChevronRight } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 
-/* ============================================================
-   DATA
-   ============================================================ */
-
 type ServiceCategory = 'todos' | 'mantenimiento' | 'civil' | 'metalurgica';
-
-const categories: { id: ServiceCategory; label: string }[] = [
-  { id: 'todos', label: 'Todos' },
-  { id: 'mantenimiento', label: 'Mantenimiento' },
-  { id: 'civil', label: 'Construccion civil' },
-  { id: 'metalurgica', label: 'Metalurgica' },
-];
-
+const categories = [{id:'todos',label:'Todos'},{id:'mantenimiento',label:'Mantenimiento'},{id:'civil',label:'Construcción civil'},{id:'metalurgica',label:'Metalúrgica'}] as const;
 const ICON_MAP: Record<string, any> = { Zap, Droplets, Paintbrush, Wrench, HardHat, Factory, ShieldCheck, Thermometer };
-const CAT_STYLE: Record<string, { bg: string; color: string }> = {
-  mantenimiento: { bg: 'bg-blue-muted', color: 'text-blue-bright' },
-  civil: { bg: 'bg-yellow-muted', color: 'text-yellow-bright' },
-  metalurgica: { bg: 'bg-success-light', color: 'text-[#48BB78]' },
-};
-
 const defaultServices = [
-  { id: '1', icon: Zap, title: 'Instalaciones electricas', description: 'Instalacion, mantenimiento y reparacion de sistemas electricos.', category: 'mantenimiento' as ServiceCategory, features: ['Tableros electricos', 'Iluminacion LED', 'Puesta a tierra', 'Mantenimiento preventivo'], iconBg: 'bg-blue-muted', iconColor: 'text-blue-bright' },
-  { id: '2', icon: Droplets, title: 'Plomeria e hidraulica', description: 'Reparacion de canerias, instalacion de sanitarios, bombas de agua.', category: 'mantenimiento' as ServiceCategory, features: ['Reparacion de perdidas', 'Instalacion sanitaria', 'Bombas de agua'], iconBg: 'bg-blue-muted', iconColor: 'text-blue-bright' },
-  { id: '3', icon: Paintbrush, title: 'Pintura y acabados', description: 'Pintura interior y exterior, impermeabilizacion y revestimientos.', category: 'mantenimiento' as ServiceCategory, features: ['Pintura interior/exterior', 'Impermeabilizacion', 'Texturizados'], iconBg: 'bg-blue-muted', iconColor: 'text-blue-bright' },
-  { id: '4', icon: HardHat, title: 'Obras nuevas', description: 'Construccion de viviendas, locales comerciales y naves industriales.', category: 'civil' as ServiceCategory, features: ['Viviendas', 'Locales comerciales', 'Galpones'], iconBg: 'bg-yellow-muted', iconColor: 'text-yellow-bright' },
-  { id: '5', icon: Factory, title: 'Estructuras metalicas', description: 'Diseno, fabricacion y montaje de estructuras metalicas.', category: 'metalurgica' as ServiceCategory, features: ['Naves industriales', 'Galpones', 'Entrepisos'], iconBg: 'bg-success-light', iconColor: 'text-[#48BB78]' },
-  { id: '6', icon: Factory, title: 'Herreria y soldadura', description: 'Portones, rejas, escaleras, barandas y trabajos a medida.', category: 'metalurgica' as ServiceCategory, features: ['Portones automaticos', 'Rejas de seguridad', 'Escaleras'], iconBg: 'bg-success-light', iconColor: 'text-[#48BB78]' },
+{id:'1',icon:Zap,title:'Instalaciones eléctricas',description:'Instalación, mantenimiento y reparación de sistemas eléctricos.',category:'mantenimiento' as ServiceCategory,features:['Tableros eléctricos','Iluminación LED','Puesta a tierra','Mantenimiento preventivo']},
+{id:'2',icon:Droplets,title:'Plomería e hidráulica',description:'Reparación de cañerías, instalación de sanitarios y bombas de agua.',category:'mantenimiento' as ServiceCategory,features:['Reparación de pérdidas','Instalación sanitaria','Bombas de agua']},
+{id:'3',icon:Paintbrush,title:'Pintura y acabados',description:'Pintura interior y exterior, impermeabilización y revestimientos.',category:'mantenimiento' as ServiceCategory,features:['Pintura interior/exterior','Impermeabilización','Texturizados']},
+{id:'4',icon:HardHat,title:'Obras nuevas',description:'Construcción de viviendas, locales comerciales y naves industriales.',category:'civil' as ServiceCategory,features:['Viviendas','Locales comerciales','Galpones']},
+{id:'5',icon:Factory,title:'Estructuras metálicas',description:'Diseño, fabricación y montaje de estructuras metálicas.',category:'metalurgica' as ServiceCategory,features:['Naves industriales','Galpones','Entrepisos']},
+{id:'6',icon:Factory,title:'Herrería y soldadura',description:'Portones, rejas, escaleras, barandas y trabajos a medida.',category:'metalurgica' as ServiceCategory,features:['Portones automáticos','Rejas de seguridad','Escaleras']},
 ];
 
-/* ============================================================
-   PAGE
-   ============================================================ */
-
-export default function ServiciosPage() {
-  const [activeCategory, setActiveCategory] = useState<ServiceCategory>('todos');
-  const [services, setServices] = useState(defaultServices);
-
-  useEffect(() => {
-    fetch('/api/servicios-cms?active=true')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.services && d.services.length > 0) {
-          setServices(d.services.map((s: any) => ({
-            ...s,
-            icon: ICON_MAP[s.icon] || Wrench,
-            iconBg: CAT_STYLE[s.category]?.bg || 'bg-blue-muted',
-            iconColor: CAT_STYLE[s.category]?.color || 'text-blue-bright',
-          })));
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const filtered = activeCategory === 'todos'
-    ? services
-    : services.filter((s) => s.category === activeCategory);
-
-  const whatsappUrl = formatWhatsAppUrl(
-    siteConfig.whatsapp,
-    'Hola, quiero consultar sobre sus servicios.'
-  );
-
-  return (
-    <>
-      {/* Breadcrumb */}
-      <div className="border-b border-gray-200 bg-white">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
-          <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="text-[#0B1120]">Servicios</span>
-        </div>
-      </div>
-
-      {/* Hero — fondo blanco */}
-      <section className="relative overflow-hidden border-b border-gray-200 bg-white py-16 md:py-20">
-        <div className="container-main relative">
-          <span className="mb-3 block text-xs font-bold uppercase tracking-widest text-blue-bright">Lo que hacemos</span>
-          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-[#0B1120]">
-            Nuestros Servicios
-          </h1>
-          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue-500 to-orange-400" />
-          <p className="mt-6 max-w-lg font-body text-body-lg text-gray-500">
-            Mantenimiento, obras civiles y metalúrgica para empresas y hogares.
-            Presupuesto detallado sin compromiso.
-          </p>
-        </div>
-      </section>
-
-      {/* Filters */}
-      <section className="sticky top-[95px] z-40 border-b border-gray-200 bg-white/95 backdrop-blur-lg">
-        <div className="container-main flex gap-1 overflow-x-auto py-3">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              aria-pressed={activeCategory === cat.id}
-              className={`whitespace-nowrap rounded px-5 py-3 font-body text-[0.75rem] font-medium uppercase tracking-[0.04em] transition-all min-h-[44px] ${
-                activeCategory === cat.id
-                  ? 'bg-[#0B1120] text-white'
-                  : 'text-gray-500 hover:text-[#0B1120]'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* Services Grid */}
-      <section className="bg-gray-50 py-12">
-        <div className="container-main">
-          <p className="mb-6 font-body text-body-sm text-gray-400" aria-live="polite">
-            Mostrando {filtered.length} servicio{filtered.length !== 1 ? 's' : ''}
-          </p>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((service) => {
-              const Icon = service.icon;
-              const waUrl = formatWhatsAppUrl(
-                siteConfig.whatsapp,
-                `Hola, quiero solicitar información sobre ${service.title}. Mi proyecto es...`
-              );
-              return (
-                <div key={service.id} className="group flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                  {/* Header */}
-                  <div className="mb-4 flex items-start gap-3">
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${service.iconBg} ${service.iconColor}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h2 className="font-display text-h4 text-[#0B1120] transition-colors group-hover:text-blue-bright">
-                        {service.title}
-                      </h2>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="mb-4 font-body text-body-sm text-gray-500 leading-relaxed">
-                    {service.description}
-                  </p>
-
-                  {/* Features */}
-                  <ul className="mb-5 space-y-1.5">
-                    {service.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 font-body text-caption text-gray-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-bright shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* CTA */}
-                  <div className="mt-auto flex gap-2">
-                    <Link
-                      href={`/contacto?tipo=presupuesto&servicio=${encodeURIComponent(service.title)}&categoria=${encodeURIComponent(service.category)}`}
-                      className="btn-primary flex-1 text-[0.7rem]"
-                    >
-                      Cotizar
-                    </Link>
-                    <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Consultar por WhatsApp sobre ${service.title}`}
-                      className="flex items-center justify-center rounded-lg border border-[#25D366]/30 bg-[#25D366]/10 px-3 text-[#25D366] transition-colors hover:bg-[#25D366]/20"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Bottom CTA */}
-      <section className="border-t border-gray-200 bg-white py-16">
-        <div className="container-main text-center">
-          <h2 className="font-display text-h2 text-[#0B1120]">
-            ¿No encontrás lo que buscás?
-          </h2>
-          <p className="mx-auto mt-3 max-w-md font-body text-body text-gray-500">
-            Contactanos y te ayudamos a encontrar la solución ideal para tu proyecto.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-whatsapp">
-              <MessageCircle className="h-4 w-4" />
-              Consultar por WhatsApp
-            </a>
-            <Link href="/contacto" className="btn-secondary">
-              <Phone className="h-4 w-4" />
-              Contactar
-            </Link>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+export default function ServiciosPage(){
+ const [activeCategory,setActiveCategory]=useState<ServiceCategory>('todos'); const [services,setServices]=useState(defaultServices);
+ useEffect(()=>{fetch('/api/servicios-cms?active=true').then(r=>r.json()).then(d=>{if(d.services?.length)setServices(d.services.map((s:any)=>({...s,icon:ICON_MAP[s.icon]||Wrench})));}).catch(()=>{});},[]);
+ const filtered=activeCategory==='todos'?services:services.filter((s:any)=>s.category===activeCategory); const whatsappUrl=formatWhatsAppUrl(siteConfig.whatsapp,'Hola, quiero consultar sobre sus servicios.');
+ return <>
+  <div className="border-b border-gray-200 bg-white"><div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]"><Link href="/" className="hover:text-[#0B1120]">Inicio</Link><ChevronRight className="h-3 w-3"/><span className="font-medium text-[#0B1120]">Servicios</span></div></div>
+  <section className="relative overflow-hidden border-b border-gray-200 bg-[#0B1120] py-20 md:py-24"><div className="container-main flex items-center justify-between gap-8"><div><span className="overline text-[#7CC4EF]">Lo que hacemos</span><h1 className="mt-3 max-w-3xl font-display text-[clamp(2.4rem,6vw,4.8rem)] font-bold uppercase leading-[.92] tracking-tight text-white">Soluciones para cada proyecto</h1><p className="mt-6 max-w-2xl font-body text-body-lg leading-relaxed text-[#C0CEDF]">Mantenimiento, obras civiles y metalúrgica para empresas y hogares. Presupuesto detallado sin compromiso.</p></div><div className="hidden shrink-0 md:block"><Isotipo size={150} color="#2D8FCC55"/></div></div></section>
+  <section className="sticky top-[95px] z-40 border-b border-gray-200 bg-white/95 backdrop-blur-lg"><div className="container-main flex gap-1 overflow-x-auto py-3">{categories.map(cat=><button key={cat.id} onClick={()=>setActiveCategory(cat.id)} aria-pressed={activeCategory===cat.id} className={`min-h-[44px] whitespace-nowrap rounded-lg px-5 py-3 font-body text-[.75rem] font-semibold uppercase tracking-[.04em] transition-all ${activeCategory===cat.id?'bg-[#0B1120] text-white shadow-sm':'text-[#8094B4] hover:bg-[#F4F7FB] hover:text-[#0B1120]'}`}>{cat.label}</button>)}</div></section>
+  <section className="section bg-[#F4F7FB]"><div className="container-main"><div className="mb-7 flex items-center justify-between"><span className="overline">Servicios profesionales</span><span className="font-body text-body-sm text-[#8094B4]">{filtered.length} servicio{filtered.length!==1?'s':''}</span></div><div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{filtered.map((service:any)=>{const Icon=service.icon;const wa=formatWhatsAppUrl(siteConfig.whatsapp,`Hola, quiero solicitar información sobre ${service.title}.`);return <article key={service.id} className="card-interactive group flex flex-col p-6"><div className="flex items-start justify-between gap-4"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EBF5FB] text-[#2D8FCC]"><Icon className="h-5 w-5"/></div><span className="badge-blue">{service.category==='civil'?'Civil':service.category==='metalurgica'?'Metalúrgica':'Mantenimiento'}</span></div><h2 className="mt-6 font-display text-h3 leading-tight text-[#0B1120] group-hover:text-[#2D8FCC]">{service.title}</h2><p className="mt-2 font-body text-body-sm leading-relaxed text-[#4A5E80]">{service.description}</p><ul className="mt-5 space-y-2">{service.features?.map((f:string)=><li key={f} className="flex items-center gap-2 font-body text-caption text-[#4A5E80]"><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#2D8FCC]"/>{f}</li>)}</ul><div className="mt-auto flex gap-2 pt-6"><Link href={`/contacto?tipo=presupuesto&servicio=${encodeURIComponent(service.title)}&categoria=${encodeURIComponent(service.category)}`} className="btn-primary flex-1">Cotizar <ArrowRight className="h-4 w-4"/></Link><a href={wa} target="_blank" rel="noopener noreferrer" aria-label={`Consultar ${service.title} por WhatsApp`} className="btn-whatsapp px-3"><MessageCircle className="h-4 w-4"/></a></div></article>})}</div></div></section>
+  <section className="border-t border-gray-200 bg-white py-16"><div className="container-main text-center"><span className="overline">¿Necesitás algo más?</span><h2 className="mt-2 font-display text-h2 text-[#0B1120]">Hablemos de tu proyecto</h2><p className="mx-auto mt-3 max-w-md font-body text-body text-[#4A5E80]">Contanos qué necesitás y te ayudamos a encontrar la solución ideal.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-whatsapp"><MessageCircle className="h-4 w-4"/> WhatsApp</a><Link href="/contacto" className="btn-secondary"><Phone className="h-4 w-4"/> Contactar</Link></div></div></section>
+ </>;
 }
