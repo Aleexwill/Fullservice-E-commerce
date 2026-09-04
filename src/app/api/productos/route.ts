@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllProducts, createProduct, getEffectivePrice, type Product } from '@/lib/products-store';
 
