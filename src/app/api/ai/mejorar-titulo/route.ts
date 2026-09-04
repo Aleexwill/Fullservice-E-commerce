@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const MINUSCULAS = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'y', 'e', 'o', 'u', 'en', 'a', 'con', 'por', 'para', 'sin', 'al']);
 
@@ -12,7 +12,6 @@ function titleCase(str: string): string {
     .join(' ');
 }
 
-// Expandir abreviaturas y corregir errores comunes en presupuestos
 function corregirTexto(texto: string): string {
   let result = texto.trim().replace(/\s+/g, ' ').replace(/\.+$/, '');
 
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest) {
     const { texto, contexto } = await request.json();
     if (!texto?.trim()) return NextResponse.json({ error: 'Texto requerido' }, { status: 400 });
 
-    if (OPENAI_API_KEY && OPENAI_API_KEY.length > 10) {
+    if (GEMINI_API_KEY && GEMINI_API_KEY.length > 10) {
       const prompt = `Eres un asistente especializado en redacción técnica para presupuestos de servicios de construcción, mantenimiento, metalúrgica y limpieza industrial en Paraguay.
 
 Dado el texto de una sección de presupuesto (puede tener abreviaturas, errores ortográficos o redacción informal), devuelve un JSON con exactamente estos campos:
@@ -92,20 +91,26 @@ TEXTO: ${texto}
 Responde SOLO el JSON sin markdown ni explicaciones.`;
 
       try {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 300,
-            temperature: 0.3,
-            response_format: { type: 'json_object' },
-          }),
-        });
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.3,
+                maxOutputTokens: 400,
+                responseMimeType: 'application/json',
+              },
+            }),
+          }
+        );
+
         if (res.ok) {
           const data = await res.json();
-          const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? '{}');
+          const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+          const parsed = JSON.parse(raw);
           if (parsed.corregido || parsed.mejorado) {
             return NextResponse.json({
               corregido: parsed.corregido ?? corregirTexto(texto),
