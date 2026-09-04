@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = 'gemini-1.5-flash'; // stable model with broad availability
 
 const MINUSCULAS = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'y', 'e', 'o', 'u', 'en', 'a', 'con', 'por', 'para', 'sin', 'al']);
 
@@ -70,6 +71,34 @@ function fallbackAlcance(texto: string, contexto?: string): string {
   return `Comprende todos los trabajos, materiales y mano de obra necesarios para la correcta ejecución del ${base}, conforme a especificaciones acordadas con el cliente.`;
 }
 
+export async function GET() {
+  // Diagnostic endpoint: GET /api/ai/mejorar-titulo
+  const hasKey = !!(GEMINI_API_KEY && GEMINI_API_KEY.length > 10);
+  if (!hasKey) {
+    return NextResponse.json({ ok: false, reason: 'GEMINI_API_KEY not set', model: GEMINI_MODEL });
+  }
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Responde solo la palabra: OK' }] }],
+          generationConfig: { maxOutputTokens: 5 },
+        }),
+      }
+    );
+    const data = await res.json();
+    if (res.ok) {
+      return NextResponse.json({ ok: true, model: GEMINI_MODEL, response: data.candidates?.[0]?.content?.parts?.[0]?.text });
+    }
+    return NextResponse.json({ ok: false, model: GEMINI_MODEL, status: res.status, error: data });
+  } catch (e) {
+    return NextResponse.json({ ok: false, model: GEMINI_MODEL, error: String(e) });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { texto, contexto } = await request.json();
@@ -88,11 +117,11 @@ ${contexto ? `Contexto del presupuesto: ${contexto}` : ''}
 
 TEXTO: ${texto}
 
-Responde SOLO el JSON sin markdown ni explicaciones.`;
+Responde SOLO el JSON sin markdown ni explicaciones adicionales.`;
 
       try {
         const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -110,17 +139,28 @@ Responde SOLO el JSON sin markdown ni explicaciones.`;
         if (res.ok) {
           const data = await res.json();
           const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-          const parsed = JSON.parse(raw);
-          if (parsed.corregido || parsed.mejorado) {
-            return NextResponse.json({
-              corregido: parsed.corregido ?? corregirTexto(texto),
-              titulo: parsed.mejorado ?? parsed.corregido ?? corregirTexto(texto),
-              alcance: parsed.alcance ?? fallbackAlcance(texto, contexto),
-              source: 'ai',
-            });
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed.corregido || parsed.mejorado) {
+              return NextResponse.json({
+                corregido: parsed.corregido ?? corregirTexto(texto),
+                titulo: parsed.mejorado ?? parsed.corregido ?? corregirTexto(texto),
+                alcance: parsed.alcance ?? fallbackAlcance(texto, contexto),
+                source: 'gemini',
+              });
+            }
+          } catch {
+            console.error('Gemini JSON parse error, raw:', raw);
           }
+        } else {
+          const errBody = await res.text();
+          console.error(`Gemini API error ${res.status}:`, errBody);
         }
-      } catch { /* fall through to fallback */ }
+      } catch (fetchErr) {
+        console.error('Gemini fetch error:', fetchErr);
+      }
+    } else {
+      console.warn('GEMINI_API_KEY not configured, using template fallback');
     }
 
     // Fallback sin API
