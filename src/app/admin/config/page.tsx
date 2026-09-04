@@ -19,7 +19,120 @@ import {
   Truck,
   CreditCard,
   X,
+  Database,
+  RefreshCw,
+  HardDrive,
 } from 'lucide-react';
+
+interface DbStats {
+  totalBytes: number;
+  version: string;
+  tables: { table: string; rows: number | null }[];
+  sizes: { table: string; totalBytes: number; tableBytes: number; indexBytes: number }[];
+}
+
+function formatBytes(b: number) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+function DbStatsPanel() {
+  const [stats, setStats] = useState<DbStats | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function load() {
+    setLoading(true);
+    setError('');
+    const data = await fetchJson<DbStats>('/api/admin/db-stats');
+    if (data) setStats(data);
+    else setError('No se pudo obtener la información de la base de datos.');
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  const TABLE_LABELS: Record<string, string> = {
+    Presupuesto: 'Presupuestos', Pedido: 'Pedidos', Product: 'Productos',
+    Cliente: 'Clientes', Lead: 'Leads', Service: 'Servicios',
+    Portfolio: 'Portfolio', Material: 'Materiales', User: 'Usuarios',
+    CarouselSlide: 'Carousel', PromoBanner: 'Banners', SiteSettings: 'Config',
+  };
+
+  return (
+    <div className="card p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 font-display text-h4 text-arctic">
+          <Database className="h-4 w-4 text-blue-bright" /> Base de datos
+        </h2>
+        <button onClick={load} disabled={loading} className="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-body text-caption text-steel-400 transition-colors hover:bg-steel-900 hover:text-arctic disabled:opacity-40">
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          Actualizar
+        </button>
+      </div>
+
+      {error && <p className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">{error}</p>}
+
+      {stats && (
+        <>
+          {/* Summary row */}
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="rounded-md bg-steel-900/50 p-3">
+              <p className="mb-0.5 font-body text-[0.6rem] uppercase tracking-widest text-steel-500">Tamaño total</p>
+              <p className="font-display text-h4 text-arctic">{formatBytes(stats.totalBytes)}</p>
+            </div>
+            <div className="rounded-md bg-steel-900/50 p-3">
+              <p className="mb-0.5 font-body text-[0.6rem] uppercase tracking-widest text-steel-500">Tablas</p>
+              <p className="font-display text-h4 text-arctic">{stats.sizes.length}</p>
+            </div>
+            <div className="rounded-md bg-steel-900/50 p-3 col-span-2 sm:col-span-1">
+              <p className="mb-0.5 font-body text-[0.6rem] uppercase tracking-widest text-steel-500">Motor</p>
+              <p className="truncate font-body text-body-sm font-medium text-arctic">{stats.version}</p>
+            </div>
+          </div>
+
+          {/* Row counts */}
+          <p className="mb-2 font-body text-[0.6rem] font-semibold uppercase tracking-widest text-steel-500">Registros por tabla</p>
+          <div className="mb-4 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+            {stats.tables.filter(t => t.rows !== null).map(t => (
+              <div key={t.table} className="flex items-center justify-between py-1 border-b border-steel-900/40 last:border-0">
+                <span className="font-body text-caption text-steel-400">{TABLE_LABELS[t.table] ?? t.table}</span>
+                <span className="font-body text-caption font-semibold tabular-nums text-arctic">{t.rows?.toLocaleString('es-PY')}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Top tables by size */}
+          <p className="mb-2 font-body text-[0.6rem] font-semibold uppercase tracking-widest text-steel-500">Tamaño por tabla</p>
+          <div className="space-y-1.5">
+            {stats.sizes.slice(0, 8).map(s => {
+              const pct = stats.totalBytes > 0 ? (s.totalBytes / stats.totalBytes) * 100 : 0;
+              return (
+                <div key={s.table}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="font-body text-caption text-steel-400">{TABLE_LABELS[s.table] ?? s.table}</span>
+                    <span className="font-body text-[0.6rem] tabular-nums text-steel-500">{formatBytes(s.totalBytes)}</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-steel-900">
+                    <div className="h-full rounded-full bg-blue-bright/60 transition-all" style={{ width: `${Math.max(pct, 0.5)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {loading && !stats && (
+        <div className="flex items-center justify-center gap-2 py-8 text-steel-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="font-body text-caption">Consultando base de datos…</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface SiteSettings {
   general: { siteName: string; siteDescription: string; siteUrl: string; logo: string };
@@ -271,6 +384,9 @@ export default function AdminConfigPage() {
               </div>
             </div>
           )}
+
+          {/* DB Stats */}
+          <DbStatsPanel />
         </div>
       </div>
     </div>
