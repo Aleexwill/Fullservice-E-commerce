@@ -100,7 +100,7 @@ export async function createPresupuesto(
 }
 
 export async function updatePresupuesto(id: string, data: Partial<Presupuesto>): Promise<Presupuesto | null> {
-  const { id: _id, code: _code, createdAt: _createdAt, ...rest } = data;
+  const { id: _id, code: _code, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = data;
   try {
     const p = await prisma.presupuesto.update({
       where: { id },

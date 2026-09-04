@@ -74,6 +74,8 @@ export default function AdminPresupuestosPage() {
   const [editingService, setEditingService] = useState(false);
   const [editService, setEditService] = useState({ serviceTitle: '', serviceType: '', description: '', details: '' });
   const [savingService, setSavingService] = useState(false);
+  const [customerError, setCustomerError] = useState('');
+  const [serviceError, setServiceError] = useState('');
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -140,17 +142,25 @@ export default function AdminPresupuestosPage() {
   const saveCustomer = async () => {
     if (!selected) return;
     setSavingCustomer(true);
-    const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: editCustomer }) });
-    if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingCustomer(false); }
-    setSavingCustomer(false);
+    setCustomerError('');
+    try {
+      const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: editCustomer }) });
+      if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingCustomer(false); }
+      else { const err = await res.json().catch(() => ({})); setCustomerError(err?.error || `Error ${res.status} al guardar cliente`); }
+    } catch { setCustomerError('Error de red al guardar. Intentá de nuevo.'); }
+    finally { setSavingCustomer(false); }
   };
 
   const saveService = async () => {
     if (!selected) return;
     setSavingService(true);
-    const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceTitle: editService.serviceTitle, serviceType: editService.serviceType, description: editService.description, details: editService.details }) });
-    if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingService(false); }
-    setSavingService(false);
+    setServiceError('');
+    try {
+      const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceTitle: editService.serviceTitle, serviceType: editService.serviceType, description: editService.description, details: editService.details }) });
+      if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingService(false); }
+      else { const err = await res.json().catch(() => ({})); setServiceError(err?.error || `Error ${res.status} al guardar servicio`); }
+    } catch { setServiceError('Error de red al guardar. Intentá de nuevo.'); }
+    finally { setSavingService(false); }
   };
 
   const sendWhatsApp = () => {
@@ -366,6 +376,7 @@ export default function AdminPresupuestosPage() {
                     <div><label className="label mb-1 block">Email</label><input className="input" type="email" value={editCustomer.email} onChange={(e) => setEditCustomer((c) => ({ ...c, email: e.target.value }))} /></div>
                     <div><label className="label mb-1 block">Teléfono</label><input className="input" value={editCustomer.phone} onChange={(e) => setEditCustomer((c) => ({ ...c, phone: e.target.value }))} /></div>
                     <div><label className="label mb-1 block">Dirección</label><input className="input" value={editCustomer.address} onChange={(e) => setEditCustomer((c) => ({ ...c, address: e.target.value }))} /></div>
+                    {customerError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">{customerError}</p>}
                   </div>
                 ) : (
                   <div className="space-y-1 font-body text-body-sm">
@@ -392,6 +403,7 @@ export default function AdminPresupuestosPage() {
                     <div><label className="label mb-1 block">Tipo</label><select className="input" value={editService.serviceType} onChange={(e) => setEditService((s) => ({ ...s, serviceType: e.target.value }))}>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
                     <div><label className="label mb-1 block">Descripción</label><textarea className="input min-h-[80px]" value={editService.description} onChange={(e) => setEditService((s) => ({ ...s, description: e.target.value }))} /></div>
                     <div><label className="label mb-1 block">Detalles adicionales</label><textarea className="input min-h-[60px]" value={editService.details} onChange={(e) => setEditService((s) => ({ ...s, details: e.target.value }))} /></div>
+                    {serviceError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">{serviceError}</p>}
                   </div>
                 ) : (
                   <>
