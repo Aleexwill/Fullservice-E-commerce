@@ -9,212 +9,48 @@
     --color-orange: #E8862B;
     --color-arctic: #F4F7FB;
   }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  body {
-    background-color: #FFFFFF;
-    color: #0B1120;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display), 'Barlow Condensed', sans-serif;
-  }
-
-  ::selection {
-    background: rgba(45, 143, 204, 0.15);
-    color: #0B1120;
-  }
+  html { scroll-behavior: smooth; }
+  body { background: #fff; color: #0B1120; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  h1,h2,h3,h4,h5,h6 { font-family: var(--font-display), 'Barlow Condensed', sans-serif; }
+  ::selection { background: rgba(45,143,204,.16); color: #0B1120; }
 }
 
 @layer components {
-  /* Contenedores */
-  .container-main {
-    @apply mx-auto max-w-content px-4 sm:px-6 lg:px-8;
-  }
-
-  .container-narrow {
-    @apply mx-auto max-w-narrow px-4 sm:px-6;
-  }
-
-  .container-wide {
-    @apply mx-auto max-w-wide px-4 sm:px-6 lg:px-8;
-  }
-
-  /* Secciones */
-  .section {
-    @apply py-16 md:py-20;
-  }
-
-  .section-sm {
-    @apply py-10 md:py-14;
-  }
-
-  /* Botones */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded bg-blue px-6 py-3 text-label font-semibold uppercase text-white transition-all hover:bg-blue-bright focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
-    letter-spacing: 0.06em;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded border-2 border-blue px-6 py-3 text-label font-semibold uppercase text-blue transition-all hover:bg-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
-    letter-spacing: 0.06em;
-  }
-
-  .btn-urgency {
-    @apply inline-flex items-center justify-center gap-2 rounded px-6 py-3 text-label font-semibold uppercase text-white transition-all focus:outline-none focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
-    background-color: #E8862B;
-    letter-spacing: 0.06em;
-  }
-
-  .btn-urgency:hover {
-    background-color: #F5993D;
-  }
-
-  .btn-urgency:focus {
-    box-shadow: 0 0 0 2px rgba(232, 134, 43, 0.3);
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded px-6 py-3 text-label font-semibold uppercase text-steel-500 transition-all hover:bg-gray-100 hover:text-carbon focus:outline-none focus:ring-2 focus:ring-blue/30 active:scale-[0.98];
-    letter-spacing: 0.06em;
-  }
-
-  .btn-whatsapp {
-    @apply inline-flex items-center justify-center gap-2 rounded bg-[#25D366] px-6 py-3 text-label font-semibold uppercase text-white transition-all hover:bg-[#20BD5A] focus:outline-none focus:ring-2 focus:ring-[#25D366]/30 focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
-    letter-spacing: 0.06em;
-  }
-
-  /* Cards */
-  .card {
-    @apply rounded-md border border-gray-200 bg-white shadow-card transition-all;
-  }
-
-  .card-interactive {
-    @apply card cursor-pointer;
-  }
-
-  .card-interactive:hover {
-    @apply shadow-card-hover;
-    border-color: rgba(45, 143, 204, 0.35);
-    transform: translateY(-3px);
-  }
-
-  /* Inputs */
-  .input {
-    @apply w-full rounded border border-gray-300 bg-white px-4 py-3 text-body text-carbon transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20;
-  }
-
-  .input::placeholder {
-    color: #8094B4;
-  }
-
-  .admin-input {
-    @apply w-full rounded border border-steel-700 bg-steel-900 px-3 py-2 text-body-sm text-arctic transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20;
-  }
-
-  .admin-input::placeholder {
-    @apply text-steel-500;
-  }
-
-  .input-error {
-    @apply border-danger focus:border-danger focus:ring-danger/20;
-  }
-
-  /* Badges */
-  .badge {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold uppercase;
-    font-size: 0.65rem;
-    letter-spacing: 0.04em;
-  }
-
-  .badge-blue {
-    @apply badge bg-blue-muted text-blue-bright;
-  }
-
-  .badge-yellow {
-    @apply badge;
-    background-color: #3D2A10;
-    color: #F5993D;
-  }
-
-  .badge-orange {
-    @apply badge;
-    background-color: #3D2A10;
-    color: #F5993D;
-  }
-
-  .badge-green {
-    @apply badge text-[#48BB78];
-    background-color: #1A3D2A;
-  }
-
-  .badge-red {
-    @apply badge text-[#FC8181];
-    background-color: #3D1A1A;
-  }
-
-  .badge-neutral {
-    @apply badge bg-steel-900 text-steel-300;
-  }
-
-  /* Alertas */
-  .alert {
-    @apply flex items-start gap-3 rounded px-4 py-3 text-body-sm;
-    border-left-width: 3px;
-  }
-
-  .alert-info {
-    @apply alert border-blue bg-blue-muted text-cloud;
-  }
-
-  .alert-success {
-    @apply alert border-success text-cloud;
-    background-color: #1A3D2A;
-  }
-
-  .alert-warning {
-    @apply alert text-cloud;
-    border-color: #E8862B;
-    background-color: #3D2A10;
-  }
-
-  .alert-danger {
-    @apply alert border-danger text-cloud;
-    background-color: #3D1A1A;
-  }
-
-  /* Labels */
-  .label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    @apply text-steel-300;
-  }
-
-  /* Overline */
-  .overline {
-    font-size: 0.625rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    @apply text-blue;
-  }
-
-  /* Data/Mono */
-  .data-text {
-    @apply font-mono text-data text-steel-300;
-    letter-spacing: 0.02em;
-  }
+  .container-main { @apply mx-auto max-w-content px-4 sm:px-6 lg:px-8; }
+  .container-narrow { @apply mx-auto max-w-narrow px-4 sm:px-6; }
+  .container-wide { @apply mx-auto max-w-wide px-4 sm:px-6 lg:px-8; }
+  .section { @apply py-16 md:py-24; }
+  .section-sm { @apply py-10 md:py-14; }
+  .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-blue px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-blue-bright hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 active:translate-y-0; letter-spacing:.06em; }
+  .btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-3 text-label font-semibold uppercase text-carbon shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue/40 hover:bg-arctic hover:text-blue hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue/20 active:translate-y-0; letter-spacing:.06em; }
+  .btn-urgency { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-orange px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#F5993D] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange/30 active:translate-y-0; letter-spacing:.06em; }
+  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-label font-semibold uppercase text-slate-500 transition-all hover:bg-slate-100 hover:text-carbon focus:outline-none focus:ring-2 focus:ring-blue/20 active:scale-[.98]; letter-spacing:.06em; }
+  .btn-whatsapp { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20BD5A] hover:shadow-lg active:translate-y-0; letter-spacing:.06em; }
+  .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(15,23,42,.05)] transition-all duration-300; }
+  .card-interactive { @apply card cursor-pointer; }
+  .card-interactive:hover { @apply -translate-y-1 shadow-[0_18px_45px_rgba(15,23,42,.10)]; border-color: rgba(45,143,204,.28); }
+  .input { @apply w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-body text-carbon transition-all focus:border-blue focus:outline-none focus:ring-4 focus:ring-blue/10; }
+  .input::placeholder { color:#8094B4; }
+  .admin-input { @apply w-full rounded-lg border border-steel-700 bg-steel-900 px-3 py-2 text-body-sm text-arctic transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20; }
+  .admin-input::placeholder { @apply text-steel-500; }
+  .input-error { @apply border-danger focus:border-danger focus:ring-danger/20; }
+  .badge { @apply inline-flex items-center rounded-full px-2.5 py-1 font-semibold uppercase; font-size:.65rem; letter-spacing:.04em; }
+  .badge-blue { @apply badge bg-blue-muted text-blue-bright; }
+  .badge-yellow,.badge-orange { @apply badge; background:#FFF4E8; color:#B85B12; }
+  .badge-green { @apply badge bg-emerald-50 text-emerald-700; }
+  .badge-red { @apply badge bg-red-50 text-red-700; }
+  .badge-neutral { @apply badge bg-slate-100 text-slate-600; }
+  .alert { @apply flex items-start gap-3 rounded-xl px-4 py-3 text-body-sm; border-left-width:3px; }
+  .alert-info { @apply alert border-blue bg-blue-muted text-cloud; }
+  .alert-success { @apply alert border-success bg-emerald-50 text-emerald-800; }
+  .alert-warning { @apply alert border-orange bg-orange-50 text-orange-900; }
+  .alert-danger { @apply alert border-danger bg-red-50 text-red-800; }
+  .label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; @apply text-slate-500; }
+  .overline { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.14em; @apply text-blue; }
+  .data-text { @apply font-mono text-data text-steel-300; letter-spacing:.02em; }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
+  .surface-muted { background:linear-gradient(180deg,#F8FAFC 0%,#F4F7FB 100%); }
 }
