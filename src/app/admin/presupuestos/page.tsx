@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator, GitBranch, Printer } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
@@ -50,6 +51,7 @@ const formatScheduledDate = (d: string) => {
 };
 
 export default function AdminPresupuestosPage() {
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<Presupuesto[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -60,6 +62,7 @@ export default function AdminPresupuestosPage() {
   const [newNote, setNewNote] = useState('');
   const [addingNote, setAddingNote] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [leadPrefill, setLeadPrefill] = useState<Record<string, string> | null>(null);
   const [editFinal, setEditFinal] = useState('');
   const [editingFinal, setEditingFinal] = useState(false);
   const [editSched, setEditSched] = useState('');
@@ -88,6 +91,30 @@ export default function AdminPresupuestosPage() {
   }, [search, filterStatus, filterType, filterDate]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Open create modal pre-filled when coming from lead
+  useEffect(() => {
+    const fromLead = searchParams.get('from_lead');
+    if (!fromLead) return;
+    setLeadPrefill({
+      customerName: searchParams.get('name') || '',
+      customerEmail: searchParams.get('email') || '',
+      customerPhone: searchParams.get('phone') || '',
+      customerCompany: searchParams.get('company') || '',
+      serviceTitle: searchParams.get('subject') || '',
+    });
+    setShowCreate(true);
+    // Clean URL without reloading
+    const url = new URL(window.location.href);
+    url.searchParams.delete('from_lead');
+    url.searchParams.delete('name');
+    url.searchParams.delete('email');
+    url.searchParams.delete('phone');
+    url.searchParams.delete('company');
+    url.searchParams.delete('subject');
+    window.history.replaceState({}, '', url.toString());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateStatus = async (id: string, status: string) => {
     const res = await fetch(`/api/presupuestos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
@@ -568,9 +595,11 @@ export default function AdminPresupuestosPage() {
       {/* Create modal */}
       {showCreate && (
         <CreatePresupuestoModal
-          onClose={() => setShowCreate(false)}
+          initialData={leadPrefill ?? undefined}
+          onClose={() => { setShowCreate(false); setLeadPrefill(null); }}
           onCreated={async (id) => {
             setShowCreate(false);
+            setLeadPrefill(null);
             fetchData();
             if (id) {
               const nuevo = await fetchJson<Presupuesto>(`/api/presupuestos/${id}`);
@@ -631,13 +660,15 @@ function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
 const DRAFT_KEY = 'presupuesto_draft';
 const EMPTY_FORM = { customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '', serviceTitle: '', serviceType: 'mantenimiento', description: '', details: '', estimatedValue: '', finalValue: '', estimatedDuration: '', scheduledDate: '', assignedTo: '', priority: 'media' };
 
-function CreatePresupuestoModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id?: string) => void }) {
+function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: () => void; onCreated: (id?: string) => void; initialData?: Record<string, string> }) {
   const [saving, setSaving] = useState<null | 'borrador' | 'nuevo'>(null);
   const [autoSaved, setAutoSaved] = useState(false);
   const [restored, setRestored] = useState(false);
   const [saveError, setSaveError] = useState('');
 
   const [f, setF] = useState(() => {
+    // If coming from a lead, skip draft restore and use lead data
+    if (initialData) return { ...EMPTY_FORM, ...initialData };
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
       if (saved) { setRestored(true); return { ...EMPTY_FORM, ...JSON.parse(saved) }; }

@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { fetchJson } from '@/lib/utils';
 import {
   Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, MessageSquare,
   Clock, ChevronRight, AlertTriangle, Star, Loader2, Users, LayoutGrid, List,
   Building, ArrowRight, CheckCircle2, XCircle, DollarSign, Tag, Calendar,
   PhoneCall, MessageCircle, Video, CheckSquare, Square, MoreHorizontal, Sparkles,
-  TrendingUp, Eye, Edit3, Globe, UserPlus,
+  TrendingUp, Eye, Edit3, Globe, UserPlus, Calculator,
 } from 'lucide-react';
 
 interface Activity { id: string; type: string; text: string; metadata?: Record<string, string>; createdAt: string; }
@@ -68,6 +69,7 @@ const AVATAR_COLORS = ['bg-blue-muted', 'bg-orange-muted', 'bg-[#1A3D2A]', 'bg-[
 const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
 
 export default function AdminLeadsCRM() {
+  const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -255,6 +257,25 @@ export default function AdminLeadsCRM() {
                 {selected.customer.email && <a href={`mailto:${selected.customer.email}`} onClick={() => api(selected.id, { _addActivity: { type: 'email', text: `Email enviado a ${selected.customer.email}` } })} className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-blue-muted py-2 font-body text-[0.6rem] font-medium text-blue-bright transition-colors hover:bg-blue-muted/80"><Mail className="h-3.5 w-3.5" />Email</a>}
                 {selected.customer.phone && <a href={`tel:${selected.customer.phone}`} onClick={() => api(selected.id, { _addActivity: { type: 'call', text: `Llamada a ${selected.customer.phone}` } })} className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-[#1A3D2A] py-2 font-body text-[0.6rem] font-medium text-[#48BB78] transition-colors hover:bg-[#1A3D2A]/80"><PhoneCall className="h-3.5 w-3.5" />Llamar</a>}
               </div>
+
+              {/* Convert to presupuesto */}
+              <button
+                onClick={() => {
+                  const q = new URLSearchParams({
+                    from_lead: selected.id,
+                    name: selected.customer.name,
+                    email: selected.customer.email,
+                    phone: selected.customer.phone,
+                    company: selected.customer.company,
+                    subject: selected.subject,
+                  });
+                  router.push(`/admin/presupuestos?${q.toString()}`);
+                }}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-blue-bright/30 bg-blue-bright/10 py-2 font-body text-[0.65rem] font-semibold text-blue-bright transition-colors hover:bg-blue-bright/20"
+              >
+                <Calculator className="h-3.5 w-3.5" />
+                Convertir en presupuesto
+              </button>
 
               {/* Pipeline stage selector */}
               <div className="mt-3 flex gap-1 overflow-x-auto">
