@@ -297,8 +297,8 @@ export default function AdminPresupuestosPage() {
               <button onClick={() => setShowPdfOpts(false)} className="btn-secondary flex-1">Cancelar</button>
               <button
                 onClick={() => {
-                  setShowPdfOpts(false);
                   imprimirPresupuesto({ code: selected.code, serviceTitle: selected.serviceTitle, serviceType: selected.serviceType, description: selected.description, scheduledDate: selected.scheduledDate, estimatedDuration: selected.estimatedDuration, assignedTo: selected.assignedTo, customer: selected.customer, calculationData: selected.calculationData, createdAt: selected.createdAt, opts: pdfOpts });
+                  setShowPdfOpts(false);
                 }}
                 className="btn-primary flex flex-1 items-center justify-center gap-2"
               >
