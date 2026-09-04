@@ -14,43 +14,51 @@
   .container-main { @apply mx-auto max-w-content px-4 sm:px-6 lg:px-8; }
   .container-narrow { @apply mx-auto max-w-narrow px-4 sm:px-6; }
   .container-wide { @apply mx-auto max-w-wide px-4 sm:px-6 lg:px-8; }
-  .section { @apply py-16 md:py-24; }
-  .section-sm { @apply py-10 md:py-14; }
-  .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-blue px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-blue-bright hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 active:translate-y-0; letter-spacing:.06em; }
-  .btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-3 text-label font-semibold uppercase text-carbon shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue/40 hover:bg-arctic hover:text-blue hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue/20 active:translate-y-0; letter-spacing:.06em; }
-  .btn-urgency { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-orange px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#F5993D] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange/30 active:translate-y-0; letter-spacing:.06em; }
-  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-label font-semibold uppercase text-slate-500 transition-all hover:bg-slate-100 hover:text-carbon focus:outline-none focus:ring-2 focus:ring-blue/20 active:scale-[.98]; letter-spacing:.06em; }
-  .btn-whatsapp { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#20BD5A] hover:shadow-lg active:translate-y-0; letter-spacing:.06em; }
+  .section { @apply py-12 sm:py-16 md:py-24; }
+  .section-sm { @apply py-8 sm:py-10 md:py-14; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-blue px-5 sm:px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-blue-deep hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 active:translate-y-0 disabled:pointer-events-none disabled:opacity-60; letter-spacing:.06em; }
+  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 sm:px-6 py-3 text-label font-semibold uppercase text-carbon shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue/50 hover:bg-arctic hover:text-blue-deep hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue/20 active:translate-y-0 disabled:pointer-events-none disabled:opacity-60; letter-spacing:.06em; }
+  .btn-urgency { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-orange-deep px-5 sm:px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-orange hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange/30 active:translate-y-0 disabled:pointer-events-none disabled:opacity-60; letter-spacing:.06em; }
+  .btn-ghost { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-3 text-label font-semibold uppercase text-slate-600 transition-all hover:bg-slate-100 hover:text-carbon focus:outline-none focus:ring-2 focus:ring-blue/20 active:scale-[.98]; letter-spacing:.06em; }
+  .btn-whatsapp { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#168F43] px-5 sm:px-6 py-3 text-label font-semibold uppercase text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#117A38] hover:shadow-lg active:translate-y-0; letter-spacing:.06em; }
   .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(15,23,42,.05)] transition-all duration-300; }
   .card-interactive { @apply card cursor-pointer; }
-  .card-interactive:hover { @apply -translate-y-1 shadow-[0_18px_45px_rgba(15,23,42,.10)]; border-color:rgba(45,143,204,.28); }
-  .input { @apply w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-body text-carbon transition-all focus:border-blue focus:outline-none focus:ring-4 focus:ring-blue/10; }
-  .input::placeholder { color:#8094B4; }
-  .admin-input { @apply w-full rounded-lg border border-steel-700 bg-steel-900 px-3 py-2 text-body-sm text-arctic transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20; }
-  .admin-input::placeholder { @apply text-steel-500; }
+  .card-interactive:hover { @apply -translate-y-1 shadow-[0_18px_45px_rgba(15,23,42,.10)]; border-color:rgba(45,143,204,.35); }
+  .input { @apply w-full min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-3 text-body text-carbon transition-all focus:border-blue-deep focus:outline-none focus:ring-4 focus:ring-blue/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500; }
+  .input::placeholder { color:#64748B; }
+  .admin-input { @apply w-full min-h-10 rounded-lg border border-steel-700 bg-steel-900 px-3 py-2 text-body-sm text-arctic transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20; }
+  .admin-input::placeholder { color:#8094B4; }
   .input-error { @apply border-danger focus:border-danger focus:ring-danger/20; }
   .badge { @apply inline-flex items-center rounded-full px-2.5 py-1 font-semibold uppercase; font-size:.65rem; letter-spacing:.04em; }
-  .badge-blue { @apply badge bg-blue-muted text-blue-bright; }
-  .badge-yellow,.badge-orange { @apply badge; background:#FFF4E8; color:#B85B12; }
-  .badge-green { @apply badge bg-emerald-50 text-emerald-700; }
-  .badge-red { @apply badge bg-red-50 text-red-700; }
-  .badge-neutral { @apply badge bg-slate-100 text-slate-600; }
+  .badge-blue { @apply badge bg-blue-muted text-[#6FC3F5]; }
+  .badge-yellow,.badge-orange { @apply badge; background:#FFF4E8; color:#9A4A0A; }
+  .badge-green { @apply badge bg-emerald-50 text-emerald-800; }
+  .badge-red { @apply badge bg-red-50 text-red-800; }
+  .badge-neutral { @apply badge bg-slate-100 text-slate-700; }
   .alert { @apply flex items-start gap-3 rounded-xl px-4 py-3 text-body-sm; border-left-width:3px; }
-  .alert-info { @apply alert border-blue bg-blue-muted text-cloud; }
+  .alert-info { @apply alert border-blue bg-[#EBF5FB] text-[#1E5577]; }
   .alert-success { @apply alert border-success bg-emerald-50 text-emerald-800; }
   .alert-warning { @apply alert border-orange bg-orange-50 text-orange-900; }
   .alert-danger { @apply alert border-danger bg-red-50 text-red-800; }
-  .label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; @apply text-slate-500; }
-  .overline { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.14em; @apply text-blue; }
-  .data-text { @apply font-mono text-data text-steel-300; letter-spacing:.02em; }
+  .label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; @apply text-slate-600; }
+  .overline { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.14em; @apply text-blue-deep; }
+  .data-text { @apply font-mono text-data text-steel-500; letter-spacing:.02em; }
 
-  /* Admin: restore dark surfaces so the storefront redesign does not leak into /admin. */
+  /* Storefront: secondary copy must stay readable on white/arctic surfaces. */
+  .public-site main .text-\[\#8094B4\] { color:#4A5E80; }
+  .public-site main .text-slate-400 { color:#64748B; }
+
+  /* Admin: preserve the original dark backoffice and restore readable controls. */
   .admin-shell .card { @apply rounded-lg border border-steel-900/40 bg-carbon-light shadow-card; }
   .admin-shell .card-interactive:hover { @apply -translate-y-0 shadow-card-hover; border-color:rgba(45,143,204,.35); }
   .admin-shell .input { @apply rounded-lg border border-steel-600 bg-steel-900 text-arctic focus:border-blue focus:ring-blue/20; }
-  .admin-shell .input::placeholder { color:#4A5E80; }
-  .admin-shell .btn-secondary { @apply border-steel-700 bg-carbon-light text-steel-300 hover:border-blue/40 hover:bg-steel-900 hover:text-arctic; }
-  .admin-shell .badge-neutral { @apply bg-steel-900 text-steel-300; }
+  .admin-shell .input::placeholder { color:#8094B4; }
+  .admin-shell .label { color:#C0CEDF; }
+  .admin-shell .data-text { color:#C0CEDF; }
+  .admin-shell .btn-secondary { @apply border-steel-700 bg-carbon-light text-steel-100 hover:border-blue/50 hover:bg-steel-900 hover:text-arctic; }
+  .admin-shell .btn-ghost { @apply text-steel-100 hover:bg-steel-900 hover:text-arctic; }
+  .admin-shell .badge-neutral { @apply bg-steel-900 text-steel-100; }
+  .admin-shell .alert-info { @apply border-blue bg-blue-muted text-cloud; }
 }
 
 @layer utilities {
