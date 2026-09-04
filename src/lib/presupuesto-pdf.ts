@@ -224,12 +224,6 @@ export function imprimirPresupuesto(p: PresupuestoData) {
 </body>
 </html>`;
 
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const win = window.open(url, '_blank', 'width=900,height=700');
-  if (win) {
-    win.addEventListener('load', () => URL.revokeObjectURL(url), { once: true });
-  } else {
-    URL.revokeObjectURL(url);
-  }
+  const win = window.open('', '_blank');
+  if (win) { win.document.write(html); win.document.close(); }
 }

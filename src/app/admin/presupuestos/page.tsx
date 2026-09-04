@@ -611,7 +611,7 @@ export default function AdminPresupuestosPage() {
               {/* Action buttons */}
               <div className="grid grid-cols-1 gap-2">
                 <button
-                  onClick={() => setShowPdfOpts(true)}
+                  onClick={() => { console.log('PDF btn clicked', showPdfOpts); setShowPdfOpts(true); }}
                   className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-bright/30 bg-blue-bright/10 px-4 py-2.5 font-body text-body-sm font-semibold text-blue-bright hover:bg-blue-bright/20 transition-colors"
                 >
                   <Printer className="h-4 w-4" /> Generar PDF del presupuesto
