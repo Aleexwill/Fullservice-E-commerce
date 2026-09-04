@@ -94,33 +94,33 @@ export default function ServiciosPage() {
         </div>
       </div>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-steel-900/40 bg-gradient-hero py-16 md:py-20">
-        <div className="absolute inset-0 bg-grid opacity-[0.03]" />
+      {/* Hero — fondo blanco */}
+      <section className="relative overflow-hidden border-b border-gray-200 bg-white py-16 md:py-20">
         <div className="container-main relative">
-          <span className="overline mb-2 block">Lo que hacemos</span>
-          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-arctic">
+          <span className="mb-3 block text-xs font-bold uppercase tracking-widest text-blue-bright">Lo que hacemos</span>
+          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-[#0B1120]">
             Nuestros Servicios
           </h1>
-          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-6 max-w-lg font-body text-body-lg text-steel-300">
-            Mantenimiento, obras civiles y metalurgica para empresas y hogares.
+          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue-500 to-orange-400" />
+          <p className="mt-6 max-w-lg font-body text-body-lg text-gray-500">
+            Mantenimiento, obras civiles y metalúrgica para empresas y hogares.
             Presupuesto detallado sin compromiso.
           </p>
         </div>
       </section>
 
       {/* Filters */}
-      <section className="sticky top-[95px] z-40 border-b border-steel-900/40 bg-carbon/95 backdrop-blur-lg">
+      <section className="sticky top-[95px] z-40 border-b border-gray-200 bg-white/95 backdrop-blur-lg">
         <div className="container-main flex gap-1 overflow-x-auto py-3">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
+              aria-pressed={activeCategory === cat.id}
               className={`whitespace-nowrap rounded px-5 py-3 font-body text-[0.75rem] font-medium uppercase tracking-[0.04em] transition-all min-h-[44px] ${
                 activeCategory === cat.id
-                  ? 'bg-steel-900 text-arctic'
-                  : 'text-steel-500 hover:text-arctic'
+                  ? 'bg-[#0B1120] text-white'
+                  : 'text-gray-500 hover:text-[#0B1120]'
               }`}
             >
               {cat.label}
@@ -130,57 +130,62 @@ export default function ServiciosPage() {
       </section>
 
       {/* Services Grid */}
-      <section className="section">
+      <section className="bg-gray-50 py-12">
         <div className="container-main">
-          <div className="mb-6 font-body text-body-sm text-steel-500">
+          <p className="mb-6 font-body text-body-sm text-gray-400" aria-live="polite">
             Mostrando {filtered.length} servicio{filtered.length !== 1 ? 's' : ''}
-          </div>
+          </p>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((service) => {
               const Icon = service.icon;
+              const waUrl = formatWhatsAppUrl(
+                siteConfig.whatsapp,
+                `Hola, quiero solicitar información sobre ${service.title}. Mi proyecto es...`
+              );
               return (
-                <div key={service.id} className="card-interactive group p-6">
+                <div key={service.id} className="group flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
                   {/* Header */}
                   <div className="mb-4 flex items-start gap-3">
                     <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${service.iconBg} ${service.iconColor}`}>
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="font-display text-h4 text-arctic transition-colors group-hover:text-blue-bright">
+                      <h2 className="font-display text-h4 text-[#0B1120] transition-colors group-hover:text-blue-bright">
                         {service.title}
-                      </h3>
+                      </h2>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className="mb-4 font-body text-body-sm text-steel-300 leading-relaxed">
+                  <p className="mb-4 font-body text-body-sm text-gray-500 leading-relaxed">
                     {service.description}
                   </p>
 
                   {/* Features */}
                   <ul className="mb-5 space-y-1.5">
                     {service.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 font-body text-caption text-steel-500">
-                        <span className="h-1 w-1 rounded-full bg-blue" />
+                      <li key={f} className="flex items-center gap-2 font-body text-caption text-gray-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-bright shrink-0" />
                         {f}
                       </li>
                     ))}
                   </ul>
 
                   {/* CTA */}
-                  <div className="flex gap-2">
+                  <div className="mt-auto flex gap-2">
                     <Link
                       href={`/contacto?tipo=presupuesto&servicio=${encodeURIComponent(service.title)}&categoria=${encodeURIComponent(service.category)}`}
-                      className="btn-primary flex-1 text-[0.6rem]"
+                      className="btn-primary flex-1 text-[0.7rem]"
                     >
                       Cotizar
                     </Link>
                     <a
-                      href={whatsappUrl}
+                      href={waUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn-ghost px-3 text-[#25D366] hover:bg-[#25D366]/10"
+                      aria-label={`Consultar por WhatsApp sobre ${service.title}`}
+                      className="flex items-center justify-center rounded-lg border border-[#25D366]/30 bg-[#25D366]/10 px-3 text-[#25D366] transition-colors hover:bg-[#25D366]/20"
                     >
                       <MessageCircle className="h-4 w-4" />
                     </a>
@@ -193,13 +198,13 @@ export default function ServiciosPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="border-t border-steel-900/40 py-16">
+      <section className="border-t border-gray-200 bg-white py-16">
         <div className="container-main text-center">
-          <h2 className="font-display text-h2 text-arctic">
-            No encontras lo que buscas?
+          <h2 className="font-display text-h2 text-[#0B1120]">
+            ¿No encontrás lo que buscás?
           </h2>
-          <p className="mx-auto mt-3 max-w-md font-body text-body text-steel-300">
-            Contactanos y te ayudamos a encontrar la solucion ideal para tu proyecto.
+          <p className="mx-auto mt-3 max-w-md font-body text-body text-gray-500">
+            Contactanos y te ayudamos a encontrar la solución ideal para tu proyecto.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-whatsapp">
