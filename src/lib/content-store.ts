@@ -5,54 +5,12 @@ import type { Prisma } from '@prisma/client';
 export const CONTENT_CACHE_TAG = 'site-content';
 
 export interface SiteContent {
-  hero: {
-    badge: string;
-    title: string;
-    highlight: string;
-    subtitle: string;
-    ctaPrimary: string;
-    ctaSecondary: string;
-    stats: { value: string; label: string }[];
-  };
-  about: {
-    title: string;
-    description: string;
-    mission: string;
-    vision: string;
-    image: string;
-    values: { title: string; description: string }[];
-  };
-  testimonials: {
-    id: string;
-    name: string;
-    role: string;
-    company: string;
-    text: string;
-    rating: number;
-    avatar: string;
-    isActive: boolean;
-  }[];
-  banners: {
-    id: string;
-    title: string;
-    subtitle: string;
-    image: string;
-    link: string;
-    position: string;
-    isActive: boolean;
-  }[];
-  branding: {
-    logo: string;
-    logoWhite: string;
-    favicon: string;
-    ogImage: string;
-    primaryColor: string;
-    accentColor: string;
-  };
-  footer: {
-    description: string;
-    copyright: string;
-  };
+  hero: { badge: string; title: string; highlight: string; subtitle: string; ctaPrimary: string; ctaSecondary: string; stats: { value: string; label: string }[]; };
+  about: { title: string; description: string; mission: string; vision: string; image: string; values: { title: string; description: string }[]; };
+  testimonials: { id: string; name: string; role: string; company: string; text: string; rating: number; avatar: string; isActive: boolean; }[];
+  banners: { id: string; title: string; subtitle: string; image: string; link: string; position: string; isActive: boolean; }[];
+  branding: { logo: string; logoWhite: string; favicon: string; ogImage: string; primaryColor: string; accentColor: string; };
+  footer: { description: string; copyright: string; };
 }
 
 const SINGLETON_ID = 'singleton';
@@ -60,15 +18,15 @@ const SINGLETON_ID = 'singleton';
 const DEFAULT_CONTENT: SiteContent = {
   hero: {
     badge: 'Soluciones integrales',
-    title: 'Ingenieria',
-    highlight: 'Construccion & Servicios',
-    subtitle: 'Brindamos soluciones profesionales en construccion civil, metalurgica, mantenimiento industrial y ferreteria especializada.',
+    title: 'Ingeniería',
+    highlight: 'Construcción & Servicios',
+    subtitle: 'Brindamos soluciones profesionales en construcción civil, metalúrgica, mantenimiento industrial y ferretería especializada.',
     ctaPrimary: 'Solicitar presupuesto',
     ctaSecondary: 'Ver servicios',
     stats: [
       { value: '+150', label: 'Proyectos' },
-      { value: '+12', label: 'Anos' },
-      { value: '98%', label: 'Satisfaccion' },
+      { value: '+12', label: 'Años' },
+      { value: '98%', label: 'Satisfacción' },
     ],
   },
   about: {
@@ -83,20 +41,9 @@ const DEFAULT_CONTENT: SiteContent = {
       { title: 'Experiencia', description: 'Más de 12 años en el mercado paraguayo' },
     ],
   },
-  testimonials: [],
-  banners: [],
-  branding: {
-    logo: '',
-    logoWhite: '',
-    favicon: '',
-    ogImage: '',
-    primaryColor: '#2D8FCC',
-    accentColor: '#D69E2E',
-  },
-  footer: {
-    description: 'Soluciones integrales en mantenimiento, limpieza y servicios profesionales.',
-    copyright: '© 2026 Full Service & Clean. Todos los derechos reservados.',
-  },
+  testimonials: [], banners: [],
+  branding: { logo: '', logoWhite: '', favicon: '', ogImage: '', primaryColor: '#2D8FCC', accentColor: '#D69E2E' },
+  footer: { description: 'Soluciones integrales en mantenimiento, limpieza y servicios profesionales.', copyright: '© 2026 Full Service & Clean. Todos los derechos reservados.' },
 };
 
 function deepMerge<T>(target: T, source: unknown): T {
@@ -104,11 +51,8 @@ function deepMerge<T>(target: T, source: unknown): T {
   const src = source as Record<string, unknown>;
   for (const key of Object.keys(src)) {
     const sourceVal = src[key];
-    if (sourceVal && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
-      output[key] = deepMerge((target as Record<string, unknown>)[key] || {}, sourceVal);
-    } else if (sourceVal !== undefined) {
-      output[key] = sourceVal;
-    }
+    if (sourceVal && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) output[key] = deepMerge((target as Record<string, unknown>)[key] || {}, sourceVal);
+    else if (sourceVal !== undefined) output[key] = sourceVal;
   }
   return output as T;
 }
@@ -119,21 +63,9 @@ export async function getContent(): Promise<SiteContent> {
   return deepMerge(DEFAULT_CONTENT, row.data);
 }
 
-/**
- * Igual que getContent() pero cacheada (60s) y resiliente ante fallas de DB
- * — usada en la home pública, donde un fallback a los defaults es preferible
- * a romper el render de toda la página.
- */
 export const getCachedContent = unstable_cache(
-  async () => {
-    try {
-      return await getContent();
-    } catch {
-      return DEFAULT_CONTENT;
-    }
-  },
-  ['site-content'],
-  { tags: [CONTENT_CACHE_TAG], revalidate: 60 }
+  async () => { try { return await getContent(); } catch { return DEFAULT_CONTENT; } },
+  ['site-content'], { tags: [CONTENT_CACHE_TAG], revalidate: 60 }
 );
 
 export async function updateContent(data: Partial<SiteContent>): Promise<SiteContent> {
@@ -143,11 +75,6 @@ export async function updateContent(data: Partial<SiteContent>): Promise<SiteCon
   if (data.banners !== undefined) updated.banners = data.banners;
   if (data.hero?.stats !== undefined) updated.hero.stats = data.hero.stats;
   if (data.about?.values !== undefined) updated.about.values = data.about.values;
-
-  await prisma.siteContent.upsert({
-    where: { id: SINGLETON_ID },
-    create: { id: SINGLETON_ID, data: updated as unknown as Prisma.InputJsonValue },
-    update: { data: updated as unknown as Prisma.InputJsonValue },
-  });
+  await prisma.siteContent.upsert({ where: { id: SINGLETON_ID }, create: { id: SINGLETON_ID, data: updated as unknown as Prisma.InputJsonValue }, update: { data: updated as unknown as Prisma.InputJsonValue } });
   return updated;
 }
