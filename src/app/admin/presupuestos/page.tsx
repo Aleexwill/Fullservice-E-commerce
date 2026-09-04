@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator, GitBranch, Printer } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
-import { imprimirPresupuesto } from '@/lib/presupuesto-pdf';
+import { imprimirPresupuesto, type PdfDetallOpts } from '@/lib/presupuesto-pdf';
 
 interface Presupuesto {
   id: string; code: string; status: string; serviceType: string; serviceTitle: string;
@@ -79,6 +79,8 @@ export default function AdminPresupuestosPage() {
   const [savingService, setSavingService] = useState(false);
   const [customerError, setCustomerError] = useState('');
   const [serviceError, setServiceError] = useState('');
+  const [showPdfOpts, setShowPdfOpts] = useState(false);
+  const [pdfOpts, setPdfOpts] = useState<PdfDetallOpts>({ incluirDetalle: true, mostrarTotalSeccion: true, mostrarObservaciones: true });
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -252,8 +254,61 @@ export default function AdminPresupuestosPage() {
 
   const del = async (id: string) => { if (!confirm('¿Eliminar este presupuesto?')) return; await fetch(`/api/presupuestos/${id}`, { method: 'DELETE' }); fetchData(); if (selected?.id === id) setSelected(null); };
 
+  const haySecciones = (selected?.calculationData?.filas ?? []).some(f => f.tipo === 'titulo');
+
   return (
     <div className="p-6 lg:p-8">
+      {/* PDF Options modal (detalle tab) */}
+      {showPdfOpts && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl border border-steel-900/60 bg-carbon shadow-2xl">
+            <div className="flex items-center justify-between border-b border-steel-900/40 px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Printer className="h-4 w-4 text-blue-bright" />
+                <span className="font-body text-body-sm font-semibold text-arctic">Opciones de PDF</span>
+              </div>
+              <button onClick={() => setShowPdfOpts(false)} className="rounded p-1 text-steel-600 hover:text-arctic transition-colors"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="space-y-1 px-5 py-4">
+              <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-600 mb-2">Contenido</p>
+              {haySecciones && (
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+                  <input type="checkbox" checked={pdfOpts.incluirDetalle} onChange={() => setPdfOpts(o => ({ ...o, incluirDetalle: !o.incluirDetalle }))}
+                    className="h-4 w-4 rounded border-steel-700 accent-blue" />
+                  <div>
+                    <p className="font-body text-body-sm text-arctic">Incluir detalle de ítems</p>
+                    <p className="font-body text-[0.65rem] text-steel-500">Muestra materiales y mano de obra bajo cada título</p>
+                  </div>
+                </label>
+              )}
+              <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-600 mb-2 mt-3">Columnas visibles</p>
+              <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+                <input type="checkbox" checked={pdfOpts.mostrarTotalSeccion} onChange={() => setPdfOpts(o => ({ ...o, mostrarTotalSeccion: !o.mostrarTotalSeccion }))}
+                  className="h-4 w-4 rounded border-steel-700 accent-blue" />
+                <p className="font-body text-body-sm text-arctic">Total por sección</p>
+              </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
+                <input type="checkbox" checked={pdfOpts.mostrarObservaciones} onChange={() => setPdfOpts(o => ({ ...o, mostrarObservaciones: !o.mostrarObservaciones }))}
+                  className="h-4 w-4 rounded border-steel-700 accent-blue" />
+                <p className="font-body text-body-sm text-arctic">Observaciones y condiciones</p>
+              </label>
+            </div>
+            <div className="flex gap-2 border-t border-steel-900/40 px-5 py-4">
+              <button onClick={() => setShowPdfOpts(false)} className="btn-secondary flex-1">Cancelar</button>
+              <button
+                onClick={() => {
+                  setShowPdfOpts(false);
+                  imprimirPresupuesto({ code: selected.code, serviceTitle: selected.serviceTitle, serviceType: selected.serviceType, description: selected.description, scheduledDate: selected.scheduledDate, estimatedDuration: selected.estimatedDuration, assignedTo: selected.assignedTo, customer: selected.customer, calculationData: selected.calculationData, createdAt: selected.createdAt, opts: pdfOpts });
+                }}
+                className="btn-primary flex flex-1 items-center justify-center gap-2"
+              >
+                <Printer className="h-4 w-4" /> Generar PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-h1 uppercase text-arctic">Presupuestos</h1>
@@ -557,7 +612,7 @@ export default function AdminPresupuestosPage() {
               <div className="grid grid-cols-1 gap-2">
                 {(selected.calculationData?.filas?.length ?? 0) > 0 && (
                   <button
-                    onClick={() => imprimirPresupuesto({ code: selected.code, serviceTitle: selected.serviceTitle, serviceType: selected.serviceType, description: selected.description, scheduledDate: selected.scheduledDate, estimatedDuration: selected.estimatedDuration, assignedTo: selected.assignedTo, customer: selected.customer, calculationData: selected.calculationData, createdAt: selected.createdAt })}
+                    onClick={() => setShowPdfOpts(true)}
                     className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-bright/30 bg-blue-bright/10 px-4 py-2.5 font-body text-body-sm font-semibold text-blue-bright hover:bg-blue-bright/20 transition-colors"
                   >
                     <Printer className="h-4 w-4" /> Generar PDF del presupuesto

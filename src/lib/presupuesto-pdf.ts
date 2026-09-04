@@ -1,5 +1,11 @@
 import type { CalculationData, FilaCalculo } from '@/components/admin/presupuesto-calculo';
 
+export interface PdfDetallOpts {
+  incluirDetalle: boolean;
+  mostrarTotalSeccion: boolean;
+  mostrarObservaciones: boolean;
+}
+
 interface PresupuestoData {
   code: string;
   serviceTitle: string;
@@ -11,6 +17,7 @@ interface PresupuestoData {
   customer: { name: string; email: string; phone: string; company: string; address: string };
   calculationData: CalculationData | null;
   createdAt: string;
+  opts?: PdfDetallOpts;
 }
 
 const gs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
@@ -38,6 +45,7 @@ function filasDeSeccion(titFila: FilaCalculo, todasFilas: FilaCalculo[]) {
 }
 
 export function imprimirPresupuesto(p: PresupuestoData) {
+  const opts: PdfDetallOpts = p.opts ?? { incluirDetalle: true, mostrarTotalSeccion: true, mostrarObservaciones: true };
   const cd = p.calculationData;
   const filas = cd?.filas ?? [];
   const titulos = filas.filter(f => f.tipo === 'titulo');
@@ -61,32 +69,31 @@ export function imprimirPresupuesto(p: PresupuestoData) {
     ? titulos.map(t => {
         const items = filasDeSeccion(t, filas);
         const stTotal = seccionTotal(t, filas);
-        const rowsHTML = items.map(f => `
+        const rowsHTML = opts.incluirDetalle ? items.map(f => `
           <tr>
-            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;">${f.descripcion || '—'}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:center;">${f.unidad}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;">${f.cantidad}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;">${gs(f.precioVenta)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;">${gs(f.cantidad * f.precioVenta)}</td>
-          </tr>`).join('');
+            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;padding-left:20px;color:#4a5568;">${f.descripcion || '—'}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:center;color:#718096;">${f.unidad}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;color:#718096;">${f.cantidad}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#4a5568;">${gs(f.cantidad * f.precioVenta)}</td>
+          </tr>`).join('') : '';
         return `
           <div style="margin-bottom:20px;">
-            <div style="background:#1e2d3d;color:#e2e8f0;padding:8px 12px;font-weight:700;font-size:13px;border-radius:4px 4px 0 0;display:flex;justify-content:space-between;">
+            <div style="background:#1e2d3d;color:#e2e8f0;padding:8px 12px;font-weight:700;font-size:13px;border-radius:4px 4px 0 0;display:flex;justify-content:space-between;align-items:center;">
               <span>${t.descripcion || 'Sección sin título'}</span>
-              <span style="color:#90cdf4;font-family:monospace;">${gs(stTotal)}</span>
+              ${opts.mostrarTotalSeccion ? `<span style="color:#90cdf4;font-family:monospace;">${gs(stTotal)}</span>` : ''}
             </div>
+            ${opts.incluirDetalle && items.length > 0 ? `
             <table style="width:100%;border-collapse:collapse;font-size:12px;">
               <thead>
                 <tr style="background:#f7fafc;">
-                  <th style="padding:6px 8px;text-align:left;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Descripción</th>
-                  <th style="padding:6px 8px;text-align:center;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Unidad</th>
-                  <th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Cant.</th>
-                  <th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">P. Unitario</th>
-                  <th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Total</th>
+                  <th style="padding:5px 8px 5px 20px;text-align:left;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Descripción</th>
+                  <th style="padding:5px 8px;text-align:center;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Unidad</th>
+                  <th style="padding:5px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Cant.</th>
+                  <th style="padding:5px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;">Total</th>
                 </tr>
               </thead>
               <tbody>${rowsHTML}</tbody>
-            </table>
+            </table>` : ''}
           </div>`;
       }).join('')
     : (() => {
@@ -95,7 +102,6 @@ export function imprimirPresupuesto(p: PresupuestoData) {
             <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;">${f.descripcion || '—'}</td>
             <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:center;">${f.unidad}</td>
             <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;">${f.cantidad}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;">${gs(f.precioVenta)}</td>
             <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;">${gs(f.cantidad * f.precioVenta)}</td>
           </tr>`).join('');
         return `
@@ -105,7 +111,6 @@ export function imprimirPresupuesto(p: PresupuestoData) {
                 <th style="padding:6px 8px;text-align:left;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Descripción</th>
                 <th style="padding:6px 8px;text-align:center;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Unidad</th>
                 <th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Cant.</th>
-                <th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">P. Unitario</th>
                 <th style="padding:6px 8px;text-align:right;color:#718096;font-weight:600;border-bottom:2px solid #e2e8f0;">Total</th>
               </tr>
             </thead>
@@ -213,7 +218,7 @@ export function imprimirPresupuesto(p: PresupuestoData) {
 
   <!-- FOOTER -->
   <div class="footer-info">
-    <div class="obs">${cd?.observaciones ? cd.observaciones : ''}</div>
+    <div class="obs">${opts.mostrarObservaciones && cd?.observaciones ? cd.observaciones : ''}</div>
     <div class="validity">Validez de la oferta: <strong>${cd?.validez ?? '10 días'}</strong></div>
   </div>
 </div>
