@@ -80,7 +80,7 @@ const DEFAULT_CONTENT: SiteContent = {
     values: [
       { title: 'Calidad', description: 'Materiales de primera y mano de obra certificada' },
       { title: 'Compromiso', description: 'Cumplimos plazos y presupuestos acordados' },
-      { title: 'Experiencia', description: 'Mas de 12 anos en el mercado paraguayo' },
+      { title: 'Experiencia', description: 'Más de 12 años en el mercado paraguayo' },
     ],
   },
   testimonials: [],
