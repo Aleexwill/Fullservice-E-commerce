@@ -124,7 +124,6 @@ export function imprimirPresupuesto(p: PresupuestoData) {
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <base href="${baseUrl}" />
   <title>Presupuesto ${p.code}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -168,7 +167,7 @@ export function imprimirPresupuesto(p: PresupuestoData) {
   <!-- HEADER -->
   <div class="header">
     <div class="brand">
-      <img src="/logo.png" alt="Full Service &amp; Clean" />
+      <img src="${baseUrl}/logo.png" alt="Full Service &amp; Clean" />
       <div class="brand-sub">Servicios industriales y construcción</div>
     </div>
     <div class="doc-info">
@@ -225,8 +224,12 @@ export function imprimirPresupuesto(p: PresupuestoData) {
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) return;
-  win.document.write(html);
-  win.document.close();
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank', 'width=900,height=700');
+  if (win) {
+    win.addEventListener('load', () => URL.revokeObjectURL(url), { once: true });
+  } else {
+    URL.revokeObjectURL(url);
+  }
 }
