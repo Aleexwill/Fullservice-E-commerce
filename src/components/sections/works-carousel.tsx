@@ -77,13 +77,13 @@ export function WorksCarousel() {
   }, [isHovered]);
 
   return (
-    <section className="section border-t border-steel-900/40">
+    <section className="section border-t border-gray-200 bg-[#F4F7FB]">
       <div className="container-main">
         <div className="mb-10">
-          <span className="overline mb-2 block">Galería de trabajos</span>
-          <h2 className="font-display text-h1 uppercase text-arctic">Nuestras obras</h2>
+          <span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Galería de trabajos</span>
+          <h2 className="font-display text-h1 uppercase text-[#0B1120]">Nuestras obras</h2>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-4 font-body text-body text-steel-300">
+          <p className="mt-4 font-body text-body text-[#4A5E80]">
             Cada proyecto refleja nuestro compromiso con la calidad y la precisión.
           </p>
         </div>

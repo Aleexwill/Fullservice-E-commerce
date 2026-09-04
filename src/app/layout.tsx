@@ -98,7 +98,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="font-body text-arctic bg-carbon antialiased">
+      <body className="font-body text-[#0B1120] bg-white antialiased">
         <PublicShell settings={settings}>{children}</PublicShell>
         <PageTracker />
         <Toaster position="top-center" theme="dark" richColors />

@@ -79,39 +79,39 @@ export default function CheckoutPage() {
       <section className="section">
         <div className="container-main max-w-lg text-center">
           <CheckCircle2 className="mx-auto h-14 w-14 text-success" />
-          <h1 className="mt-4 font-display text-h1 uppercase text-arctic">¡Pedido recibido!</h1>
-          <p className="mt-2 font-body text-body text-steel-300">
-            Tu número de pedido es <span className="font-mono font-bold text-arctic">{confirmedOrder.orderNumber}</span>
+          <h1 className="mt-4 font-display text-h1 uppercase text-[#0B1120]">¡Pedido recibido!</h1>
+          <p className="mt-2 font-body text-body text-[#4A5E80]">
+            Tu número de pedido es <span className="font-mono font-bold text-[#0B1120]">{confirmedOrder.orderNumber}</span>
           </p>
-          <p className="mt-1 font-display text-h3 text-arctic">{formatPrice(confirmedOrder.total)}</p>
+          <p className="mt-1 font-display text-h3 text-[#0B1120]">{formatPrice(confirmedOrder.total)}</p>
 
           {confirmedOrder.paymentMethod === 'transferencia' && payment && (
             <div className="card mt-8 space-y-3 p-5 text-left">
-              <h2 className="font-display text-h4 uppercase text-arctic">Datos para transferencia</h2>
+              <h2 className="font-display text-h4 uppercase text-[#0B1120]">Datos para transferencia</h2>
               {payment.qrImageUrl && (
                 <img src={payment.qrImageUrl} alt="QR de pago" className="mx-auto h-40 w-40 object-contain" />
               )}
-              {payment.bankName && <p className="font-body text-body-sm text-steel-300"><strong>Banco:</strong> {payment.bankName}</p>}
-              {payment.accountHolder && <p className="font-body text-body-sm text-steel-300"><strong>Titular:</strong> {payment.accountHolder}</p>}
+              {payment.bankName && <p className="font-body text-body-sm text-[#4A5E80]"><strong>Banco:</strong> {payment.bankName}</p>}
+              {payment.accountHolder && <p className="font-body text-body-sm text-[#4A5E80]"><strong>Titular:</strong> {payment.accountHolder}</p>}
               {payment.accountNumber && (
-                <p className="flex items-center gap-2 font-body text-body-sm text-steel-300">
+                <p className="flex items-center gap-2 font-body text-body-sm text-[#4A5E80]">
                   <strong>Cuenta:</strong> {payment.accountNumber} {payment.accountType && `(${payment.accountType})`}
                   <button
                     type="button"
                     onClick={() => navigator.clipboard.writeText(payment.accountNumber)}
-                    className="text-steel-500 hover:text-arctic"
+                    className="text-[#8094B4] hover:text-[#0B1120]"
                     aria-label="Copiar número de cuenta"
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </button>
                 </p>
               )}
-              <p className="font-body text-body-sm text-steel-500">{payment.instructions}</p>
+              <p className="font-body text-body-sm text-[#8094B4]">{payment.instructions}</p>
             </div>
           )}
 
           {confirmedOrder.paymentMethod === 'efectivo' && (
-            <p className="mt-8 font-body text-body-sm text-steel-300">
+            <p className="mt-8 font-body text-body-sm text-[#4A5E80]">
               Pagás en efectivo al recibir tu pedido. Nos pondremos en contacto para coordinar la entrega.
             </p>
           )}
@@ -129,23 +129,23 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <div className="border-b border-steel-900/40">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-steel-500">
-          <Link href="/" className="hover:text-arctic">Inicio</Link>
+      <div className="border-b border-gray-200">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
-          <Link href="/carrito" className="hover:text-arctic">Carrito</Link>
+          <Link href="/carrito" className="hover:text-[#0B1120]">Carrito</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-arctic">Checkout</span>
+          <span className="text-[#0B1120]">Checkout</span>
         </div>
       </div>
 
       <section className="section">
         <div className="container-main">
-          <h1 className="mb-8 font-display text-h1 uppercase text-arctic">Finalizar compra</h1>
+          <h1 className="mb-8 font-display text-h1 uppercase text-[#0B1120]">Finalizar compra</h1>
 
           {!hydrated ? null : items.length === 0 ? (
             <div className="py-16 text-center">
-              <p className="font-body text-body text-steel-300">Tu carrito está vacío.</p>
+              <p className="font-body text-body text-[#4A5E80]">Tu carrito está vacío.</p>
               <Link href="/tienda" className="btn-primary mt-4 inline-flex">Ir a la tienda</Link>
             </div>
           ) : (
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
               {/* Datos del cliente */}
               <div className="space-y-4 lg:col-span-2">
                 <div className="card space-y-4 p-5">
-                  <h2 className="font-display text-h4 uppercase text-arctic">Tus datos</h2>
+                  <h2 className="font-display text-h4 uppercase text-[#0B1120]">Tus datos</h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <input required placeholder="Nombre completo" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" />
                     <input required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input" />
@@ -165,23 +165,23 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="card space-y-3 p-5">
-                  <h2 className="font-display text-h4 uppercase text-arctic">Método de pago</h2>
+                  <h2 className="font-display text-h4 uppercase text-[#0B1120]">Método de pago</h2>
                   {(settings?.payment.bankTransferEnabled ?? true) && (
-                    <label className="flex cursor-pointer items-center gap-3 rounded-md border border-steel-900/40 p-3 has-[:checked]:border-blue">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-md border border-gray-200 p-3 has-[:checked]:border-blue">
                       <input type="radio" name="payment" checked={paymentMethod === 'transferencia'} onChange={() => setPaymentMethod('transferencia')} />
                       <span className="font-body text-body-sm text-cloud">Transferencia bancaria (QR)</span>
                     </label>
                   )}
                   {(settings?.payment.cashOnDeliveryEnabled ?? true) && (
-                    <label className="flex cursor-pointer items-center gap-3 rounded-md border border-steel-900/40 p-3 has-[:checked]:border-blue">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-md border border-gray-200 p-3 has-[:checked]:border-blue">
                       <input type="radio" name="payment" checked={paymentMethod === 'efectivo'} onChange={() => setPaymentMethod('efectivo')} />
                       <span className="font-body text-body-sm text-cloud">Efectivo contra entrega</span>
                     </label>
                   )}
                   {settings?.payment.gatewayEnabled && (
-                    <label className="flex cursor-pointer items-center gap-3 rounded-md border border-steel-900/40 p-3 has-[:checked]:border-blue">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-md border border-gray-200 p-3 has-[:checked]:border-blue">
                       <input type="radio" name="payment" disabled />
-                      <span className="font-body text-body-sm text-steel-500">Pago con tarjeta (próximamente)</span>
+                      <span className="font-body text-body-sm text-[#8094B4]">Pago con tarjeta (próximamente)</span>
                     </label>
                   )}
                 </div>
@@ -191,23 +191,23 @@ export default function CheckoutPage() {
 
               {/* Resumen */}
               <div className="card h-fit space-y-2 p-5">
-                <h2 className="mb-2 font-display text-h4 uppercase text-arctic">Resumen</h2>
+                <h2 className="mb-2 font-display text-h4 uppercase text-[#0B1120]">Resumen</h2>
                 {items.map((item) => (
-                  <div key={item.productId} className="flex justify-between font-body text-caption text-steel-300">
+                  <div key={item.productId} className="flex justify-between font-body text-caption text-[#4A5E80]">
                     <span className="truncate pr-2">{item.quantity}x {item.name}</span>
                     <span className="shrink-0">{formatPrice(item.price * item.quantity)}</span>
                   </div>
                 ))}
-                <div className="mt-2 border-t border-steel-900/40 pt-2">
-                  <div className="flex justify-between font-body text-body-sm text-steel-300">
+                <div className="mt-2 border-t border-gray-200 pt-2">
+                  <div className="flex justify-between font-body text-body-sm text-[#4A5E80]">
                     <span>Subtotal</span>
                     <span>{formatPrice(sub)}</span>
                   </div>
-                  <div className="flex justify-between font-body text-body-sm text-steel-300">
+                  <div className="flex justify-between font-body text-body-sm text-[#4A5E80]">
                     <span>Envío</span>
                     <span>{shipping === 0 ? 'Gratis' : formatPrice(shipping)}</span>
                   </div>
-                  <div className="mt-1 flex justify-between font-display text-h4 text-arctic">
+                  <div className="mt-1 flex justify-between font-display text-h4 text-[#0B1120]">
                     <span>Total</span>
                     <span>{formatPrice(total)}</span>
                   </div>

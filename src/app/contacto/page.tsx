@@ -132,45 +132,45 @@ function ContactoPageContent() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="border-b border-steel-900/40">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-steel-500">
-          <Link href="/" className="hover:text-arctic">Inicio</Link>
+      <div className="border-b border-gray-200">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#2D8FCC]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-arctic">Contacto</span>
+          <span className="text-[#0B1120]">Contacto</span>
         </div>
       </div>
 
       {/* Hero */}
-      <section className="border-b border-steel-900/40 bg-gradient-hero py-16">
+      <section className="border-b border-gray-200 bg-white py-16">
         <div className="container-main">
-          <span className="overline mb-2 block">Hablemos</span>
-          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-arctic">
+          <span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Hablemos</span>
+          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-[#0B1120]">
             Contacto
           </h1>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-6 max-w-lg font-body text-body-lg text-steel-300">
-            Escribinos y te respondemos en menos de 24 horas. Tambien podes llamarnos o visitarnos en nuestra oficina.
+          <p className="mt-6 max-w-lg font-body text-body-lg text-[#4A5E80]">
+            Escribinos y te respondemos en menos de 24 horas. También podés llamarnos o visitarnos en nuestra oficina.
           </p>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="section">
+      <section className="section bg-[#F4F7FB]">
         <div className="container-main">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-5">
             {/* Form — 3 cols */}
             <div className="lg:col-span-3">
               {submitted ? (
                 <div className="card p-8 text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-light">
-                    <CheckCircle className="h-8 w-8 text-[#48BB78]" />
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F0FFF4]">
+                    <CheckCircle className="h-8 w-8 text-[#2F855A]" />
                   </div>
-                  <h2 className="font-display text-h2 text-arctic">
-                    {formType === 'servicios' ? 'Solicitud de presupuesto enviada!' : 'Mensaje enviado!'}
+                  <h2 className="font-display text-h2 text-[#0B1120]">
+                    {formType === 'servicios' ? '¡Solicitud de presupuesto enviada!' : '¡Mensaje enviado!'}
                   </h2>
-                  <p className="mt-3 font-body text-body text-steel-300">
+                  <p className="mt-3 font-body text-body text-[#4A5E80]">
                     {formType === 'servicios'
-                      ? 'Recibimos tu solicitud de presupuesto. Nuestro equipo la revisara y te contactara con una cotizacion.'
+                      ? 'Recibimos tu solicitud de presupuesto. Nuestro equipo la revisará y te contactará con una cotización.'
                       : 'Recibimos tu consulta. Te responderemos en menos de 24 horas al email que nos indicaste.'}
                   </p>
                   <button onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', phone: '', company: '', address: '', subject: '', message: '', serviceTitle: '', serviceType: '' }); }} className="btn-secondary mt-6">Enviar otro mensaje</button>
@@ -179,20 +179,20 @@ function ContactoPageContent() {
                 <form onSubmit={handleSubmit} className="card p-6 md:p-8">
                   {/* Type selector */}
                   <div className="mb-6">
-                    <h2 className="mb-3 font-display text-h2 text-arctic">Tipo de consulta</h2>
+                    <h2 className="mb-3 font-display text-h2 text-[#0B1120]">Tipo de consulta</h2>
                     <div className="grid grid-cols-3 gap-2">
                       {(Object.entries(typeConfig) as [FormType, typeof typeConfig[FormType]][]).map(([key, cfg]) => {
                         const Icon = cfg.icon;
                         return (
                           <button key={key} type="button" onClick={() => setFormType(key)}
-                            className={`flex flex-col items-center gap-2 rounded-lg border p-3 transition-all ${formType === key ? `border-${cfg.color.replace('text-', '')} ${cfg.bg} ring-1 ring-${cfg.color.replace('text-', '')}` : 'border-steel-900/40 bg-carbon hover:border-steel-700'}`}>
-                            <Icon className={`h-5 w-5 ${formType === key ? cfg.color : 'text-steel-500'}`} />
-                            <span className={`font-body text-caption font-medium ${formType === key ? 'text-arctic' : 'text-steel-300'}`}>{cfg.label}</span>
+                            className={`flex flex-col items-center gap-2 rounded-lg border p-3 transition-all ${formType === key ? `${cfg.bg} border-[#2D8FCC] ring-1 ring-[#2D8FCC]` : 'border-gray-200 bg-white hover:border-[#2D8FCC]/40'}`}>
+                            <Icon className={`h-5 w-5 ${formType === key ? cfg.color : 'text-[#8094B4]'}`} />
+                            <span className={`font-body text-caption font-medium ${formType === key ? 'text-[#0B1120]' : 'text-[#4A5E80]'}`}>{cfg.label}</span>
                           </button>
                         );
                       })}
                     </div>
-                    <p className="mt-2 font-body text-caption text-steel-500">{typeConfig[formType].desc}</p>
+                    <p className="mt-2 font-body text-caption text-[#8094B4]">{typeConfig[formType].desc}</p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -242,53 +242,53 @@ function ContactoPageContent() {
             <div className="space-y-6 lg:col-span-2">
               {/* Contact info card */}
               <div className="card p-6">
-                <h3 className="mb-5 font-display text-h3 text-arctic">Informacion de contacto</h3>
+                <h3 className="mb-5 font-display text-h3 text-[#0B1120]">Información de contacto</h3>
                 <div className="space-y-4">
-                  <a href={`tel:${siteConfig.phone}`} className="flex items-start gap-3 rounded-md p-3 transition-colors hover:bg-steel-900">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-muted text-blue-bright"><Phone className="h-5 w-5" /></div>
-                    <div><div className="label text-steel-300">Telefono</div><div className="mt-0.5 font-body text-body font-medium text-arctic">{siteConfig.phone}</div></div>
+                  <a href={`tel:${siteConfig.phone}`} className="flex items-start gap-3 rounded-md p-3 transition-colors hover:bg-[#F4F7FB]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Phone className="h-5 w-5" /></div>
+                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Teléfono</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.phone}</div></div>
                   </a>
-                  <a href={`mailto:${siteConfig.email}`} className="flex items-start gap-3 rounded-md p-3 transition-colors hover:bg-steel-900">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-muted text-blue-bright"><Mail className="h-5 w-5" /></div>
-                    <div><div className="label text-steel-300">Email</div><div className="mt-0.5 font-body text-body font-medium text-arctic">{siteConfig.email}</div></div>
+                  <a href={`mailto:${siteConfig.email}`} className="flex items-start gap-3 rounded-md p-3 transition-colors hover:bg-[#F4F7FB]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Mail className="h-5 w-5" /></div>
+                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Email</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.email}</div></div>
                   </a>
                   <div className="flex items-start gap-3 rounded-md p-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-muted text-blue-bright"><MapPin className="h-5 w-5" /></div>
-                    <div><div className="label text-steel-300">Direccion</div><div className="mt-0.5 font-body text-body font-medium text-arctic">{siteConfig.address.street}</div><div className="font-body text-body-sm text-steel-300">{siteConfig.address.city}, {siteConfig.address.state}</div></div>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><MapPin className="h-5 w-5" /></div>
+                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Dirección</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.address.street}</div><div className="font-body text-body-sm text-[#4A5E80]">{siteConfig.address.city}, {siteConfig.address.state}</div></div>
                   </div>
                   <div className="flex items-start gap-3 rounded-md p-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-muted text-blue-bright"><Clock className="h-5 w-5" /></div>
-                    <div><div className="label text-steel-300">Horarios</div><div className="mt-0.5 font-body text-body font-medium text-arctic">{siteConfig.openingHours}</div></div>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Clock className="h-5 w-5" /></div>
+                    <div><div className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-[#8094B4]">Horarios</div><div className="mt-0.5 font-body text-body font-medium text-[#0B1120]">{siteConfig.openingHours}</div></div>
                   </div>
                 </div>
               </div>
 
               {/* WhatsApp card */}
               <div className="card overflow-hidden">
-                <div className="bg-[#25D366]/10 p-6">
+                <div className="bg-[#F0FDF4] p-6">
                   <div className="mb-3 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]"><MessageCircle className="h-5 w-5 text-white" /></div>
-                    <div><h3 className="font-display text-h4 text-arctic">Escribinos por WhatsApp</h3><p className="font-body text-caption text-steel-300">Respuesta rapida</p></div>
+                    <div><h3 className="font-display text-h4 text-[#0B1120]">Escribinos por WhatsApp</h3><p className="font-body text-caption text-[#4A5E80]">Respuesta rápida</p></div>
                   </div>
-                  <p className="mb-4 font-body text-body-sm text-steel-300">Consultanos directamente por WhatsApp para una respuesta inmediata.</p>
+                  <p className="mb-4 font-body text-body-sm text-[#4A5E80]">Consultanos directamente por WhatsApp para una respuesta inmediata.</p>
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-whatsapp w-full"><MessageCircle className="h-4 w-4" />Iniciar chat</a>
                 </div>
               </div>
 
               {/* Social */}
               <div className="card p-6">
-                <h3 className="mb-4 font-display text-h4 text-arctic">Seguinos en redes</h3>
+                <h3 className="mb-4 font-display text-h4 text-[#0B1120]">Seguinos en redes</h3>
                 <div className="flex gap-3">
-                  <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-steel-900 text-steel-300 transition-colors hover:bg-blue-muted hover:text-blue-bright"><Facebook className="h-5 w-5" /></a>
-                  <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-steel-900 text-steel-300 transition-colors hover:bg-blue-muted hover:text-blue-bright"><Instagram className="h-5 w-5" /></a>
-                  <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-steel-900 text-steel-300 transition-colors hover:bg-blue-muted hover:text-blue-bright"><Linkedin className="h-5 w-5" /></a>
+                  <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#F4F7FB] text-[#4A5E80] transition-colors hover:bg-[#EBF5FB] hover:text-[#2D8FCC]"><Facebook className="h-5 w-5" /></a>
+                  <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#F4F7FB] text-[#4A5E80] transition-colors hover:bg-[#EBF5FB] hover:text-[#2D8FCC]"><Instagram className="h-5 w-5" /></a>
+                  <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#F4F7FB] text-[#4A5E80] transition-colors hover:bg-[#EBF5FB] hover:text-[#2D8FCC]"><Linkedin className="h-5 w-5" /></a>
                 </div>
               </div>
 
               {/* Map placeholder */}
               <div className="card overflow-hidden">
-                <div className="flex h-48 items-center justify-center bg-steel-900">
-                  <div className="text-center"><MapPin className="mx-auto h-8 w-8 text-steel-500" /><p className="mt-2 font-body text-body-sm text-steel-500">Mapa interactivo</p><p className="font-body text-caption text-steel-700">Google Maps se integrara aqui</p></div>
+                <div className="flex h-48 items-center justify-center bg-[#F4F7FB]">
+                  <div className="text-center"><MapPin className="mx-auto h-8 w-8 text-[#8094B4]" /><p className="mt-2 font-body text-body-sm text-[#8094B4]">Mapa interactivo</p><p className="font-body text-caption text-[#C0CEDF]">Google Maps se integrará aquí</p></div>
                 </div>
               </div>
             </div>

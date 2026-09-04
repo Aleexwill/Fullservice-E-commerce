@@ -153,27 +153,27 @@ export default function TiendaPage() {
       <PromoBannerCarousel />
 
       {/* Breadcrumb */}
-      <div className="border-b border-steel-900/40">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-steel-500">
-          <Link href="/" className="hover:text-arctic">Inicio</Link>
+      <div className="border-b border-gray-200">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-arctic">Tienda</span>
+          <span className="text-[#0B1120]">Tienda</span>
         </div>
       </div>
 
       {/* Hero + Search */}
-      <section className="border-b border-steel-900/40 bg-gradient-hero py-12">
+      <section className="border-b border-gray-200 bg-white py-12">
         <div className="container-main">
           <span className="overline mb-2 block">Ferreteria online</span>
-          <h1 className="font-display text-h1 uppercase text-arctic">Nuestra Tienda</h1>
+          <h1 className="font-display text-h1 uppercase text-[#0B1120]">Nuestra Tienda</h1>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-4 max-w-lg font-body text-body text-steel-300">
+          <p className="mt-4 max-w-lg font-body text-body text-[#4A5E80]">
             Todo lo que necesitas para tu obra o reparacion, con envio a domicilio.
           </p>
 
           {/* Search bar */}
           <div className="relative mt-8 max-w-xl">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8094B4]" />
             <input
               type="text"
               placeholder="Buscar productos, marcas, SKU..."
@@ -186,10 +186,10 @@ export default function TiendaPage() {
       </section>
 
       {/* Categorias */}
-      <section className="section-sm border-b border-steel-900/40">
+      <section className="section-sm border-b border-gray-200">
         <div className="container-main">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="font-display text-h3 text-arctic">Categorias</h2>
+            <h2 className="font-display text-h3 text-[#0B1120]">Categorias</h2>
             {selectedCategory && (
               <button
                 onClick={() => setSelectedCategory(null)}
@@ -216,7 +216,7 @@ export default function TiendaPage() {
                   />
                 </div>
                 <div className="p-3 text-center">
-                  <h3 className="font-display text-h4 text-arctic">{cat.name}</h3>
+                  <h3 className="font-display text-h4 text-[#0B1120]">{cat.name}</h3>
                 </div>
               </button>
             ))}
@@ -225,7 +225,7 @@ export default function TiendaPage() {
       </section>
 
       {/* Trust strip */}
-      <section className="border-b border-steel-900/40 bg-carbon-light py-4">
+      <section className="border-b border-gray-200 bg-[#F4F7FB] py-4">
         <div className="container-main flex flex-wrap items-center justify-center gap-8 text-center">
           {[
             { icon: Truck, text: 'Envio a todo el pais' },
@@ -234,7 +234,7 @@ export default function TiendaPage() {
           ].map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-center gap-2">
               <Icon className="h-4 w-4 text-blue" />
-              <span className="font-body text-body-sm text-steel-300">{text}</span>
+              <span className="font-body text-body-sm text-[#4A5E80]">{text}</span>
             </div>
           ))}
         </div>
@@ -245,13 +245,13 @@ export default function TiendaPage() {
         <div className="container-main">
           {/* Toolbar */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div className="font-body text-body-sm text-steel-500">
+            <div className="font-body text-body-sm text-[#8094B4]">
               {sorted.length} producto{sorted.length !== 1 ? 's' : ''}
               {activeCategory && ` en "${activeCategory.name}"`}
               {searchTerm && ` para "${searchTerm}"`}
             </div>
             <div className="flex items-center gap-3">
-              <label className="flex cursor-pointer items-center gap-2 font-body text-body-sm text-steel-300">
+              <label className="flex cursor-pointer items-center gap-2 font-body text-body-sm text-[#4A5E80]">
                 <input type="checkbox" checked={onlyOnSale} onChange={(e) => setOnlyOnSale(e.target.checked)} />
                 Solo ofertas
               </label>
@@ -274,23 +274,23 @@ export default function TiendaPage() {
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="card animate-pulse overflow-hidden">
-                  <div className="h-44 bg-steel-900" />
+                  <div className="h-44 bg-[#F4F7FB]" />
                   <div className="space-y-2 p-4">
-                    <div className="h-3 w-16 rounded bg-steel-800" />
-                    <div className="h-4 w-full rounded bg-steel-800" />
-                    <div className="h-4 w-2/3 rounded bg-steel-800" />
-                    <div className="h-8 w-24 rounded bg-steel-800" />
+                    <div className="h-3 w-16 rounded bg-gray-200" />
+                    <div className="h-4 w-full rounded bg-gray-200" />
+                    <div className="h-4 w-2/3 rounded bg-gray-200" />
+                    <div className="h-8 w-24 rounded bg-gray-200" />
                   </div>
                 </div>
               ))}
             </div>
           ) : sorted.length === 0 ? (
             <div className="card p-12 text-center">
-              <Package className="mx-auto h-12 w-12 text-steel-700" />
-              <h3 className="mt-4 font-display text-h3 text-arctic">
+              <Package className="mx-auto h-12 w-12 text-[#C0CEDF]" />
+              <h3 className="mt-4 font-display text-h3 text-[#0B1120]">
                 {searchTerm || activeCategory ? 'Sin resultados' : 'Catalogo vacio'}
               </h3>
-              <p className="mt-2 font-body text-body-sm text-steel-500">
+              <p className="mt-2 font-body text-body-sm text-[#8094B4]">
                 {searchTerm
                   ? `No se encontraron productos para "${searchTerm}".`
                   : activeCategory
@@ -323,7 +323,7 @@ export default function TiendaPage() {
                   <div key={product.id} className="card-interactive group overflow-hidden">
                     <Link href={`/tienda/${product.slug}`}>
                       {/* Image */}
-                      <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
+                      <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
                         {product.images && product.images.length > 0 ? (
                           <NextImage
                             src={product.images[0]}
@@ -341,7 +341,7 @@ export default function TiendaPage() {
                           {product.isFeatured && <span className="badge-blue">Destacado</span>}
                         </div>
                         {product.stock === 0 && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-carbon/70">
+                          <div className="absolute inset-0 flex items-center justify-center bg-[#0B1120]/70">
                             <span className="badge-neutral">Sin stock</span>
                           </div>
                         )}
@@ -349,10 +349,10 @@ export default function TiendaPage() {
 
                       {/* Info */}
                       <div className="p-4 pb-0">
-                        <span className="font-body text-overline uppercase tracking-[0.08em] text-steel-500">
+                        <span className="font-body text-overline uppercase tracking-[0.08em] text-[#8094B4]">
                           {product.brand}
                         </span>
-                        <h3 className="mt-1 min-h-[2.5rem] font-body text-body-sm font-semibold leading-tight text-cloud line-clamp-2">
+                        <h3 className="mt-1 min-h-[2.5rem] font-body text-body-sm font-semibold leading-tight text-[#0B1120] line-clamp-2">
                           {product.name}
                         </h3>
 
@@ -365,11 +365,11 @@ export default function TiendaPage() {
                                 className={`h-3 w-3 ${
                                   i < Math.floor(product.rating)
                                     ? 'fill-yellow text-yellow'
-                                    : 'text-steel-700'
+                                    : 'text-[#C0CEDF]'
                                 }`}
                               />
                             ))}
-                            <span className="ml-1 font-body text-caption text-steel-500">
+                            <span className="ml-1 font-body text-caption text-[#8094B4]">
                               ({product.reviewCount})
                             </span>
                           </div>
@@ -377,18 +377,18 @@ export default function TiendaPage() {
 
                         {/* Price */}
                         <div className="mt-3 flex items-baseline gap-2">
-                          <span className="font-display text-[1.2rem] font-bold text-arctic">
+                          <span className="font-display text-[1.2rem] font-bold text-[#0B1120]">
                             {formatPrice(displayPrice)}
                           </span>
                           {strikePrice && (
-                            <span className="font-body text-caption text-steel-500 line-through">
+                            <span className="font-body text-caption text-[#8094B4] line-through">
                               {formatPrice(strikePrice)}
                             </span>
                           )}
                         </div>
 
                         {/* SKU */}
-                        <span className="mt-1 block font-mono text-[0.65rem] text-steel-700">
+                        <span className="mt-1 block font-mono text-[0.65rem] text-[#C0CEDF]">
                           {product.sku}
                         </span>
                       </div>

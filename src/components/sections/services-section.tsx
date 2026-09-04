@@ -43,20 +43,20 @@ const trustItems = [
 
 export function TrustBar() {
   return (
-    <section className="section-sm border-b border-steel-900/40">
+    <section className="section-sm border-y border-gray-200 bg-[#F4F7FB]">
       <div className="container-main">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
           {trustItems.map((item) => {
             const Icon = item.icon;
             return (
               <div key={item.title} className="flex flex-col items-center text-center">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-muted text-blue-bright">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]">
                   <Icon className="h-6 w-6" />
                 </div>
-                <h3 className="font-body text-body-sm font-semibold text-arctic">
+                <h3 className="font-body text-body-sm font-semibold text-[#0B1120]">
                   {item.title}
                 </h3>
-                <p className="mt-1 hidden font-body text-caption text-steel-500 sm:block">
+                <p className="mt-1 hidden font-body text-caption text-[#4A5E80] sm:block">
                   {item.description}
                 </p>
               </div>
@@ -107,16 +107,16 @@ const services = [
 
 export function ServicesSection() {
   return (
-    <section className="section">
+    <section className="section bg-white">
       <div className="container-main">
         <div className="mb-12">
-          <span className="overline mb-2 block">Nuestros servicios</span>
-          <h2 className="font-display text-h1 uppercase text-arctic">
+          <span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Nuestros servicios</span>
+          <h2 className="font-display text-h1 uppercase text-[#0B1120]">
             Servicios profesionales
           </h2>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-4 max-w-lg font-body text-body text-steel-300">
-            Cubrimos todas las necesidades de mantenimiento, construccion y metalurgica
+          <p className="mt-4 max-w-lg font-body text-body text-[#4A5E80]">
+            Cubrimos todas las necesidades de mantenimiento, construcción y metalúrgica
             para empresas y hogares.
           </p>
         </div>
@@ -137,19 +137,19 @@ export function ServicesSection() {
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-display text-h4 text-arctic transition-colors group-hover:text-blue-bright">
+                    <h3 className="font-display text-h4 text-[#0B1120] transition-colors group-hover:text-[#2D8FCC]">
                       {service.title}
                     </h3>
-                    <span className="font-body text-caption text-steel-500">
+                    <span className="font-body text-caption text-[#8094B4]">
                       {service.count}
                     </span>
                   </div>
                 </div>
-                <p className="font-body text-body-sm text-steel-300 leading-relaxed">
+                <p className="font-body text-body-sm leading-relaxed text-[#4A5E80]">
                   {service.description}
                 </p>
-                <div className="mt-4 inline-flex items-center gap-1 font-body text-label font-semibold uppercase tracking-[0.06em] text-blue">
-                  Ver mas
+                <div className="mt-4 inline-flex items-center gap-1 font-body text-label font-semibold uppercase tracking-[0.06em] text-[#2D8FCC]">
+                  Ver más
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                 </div>
               </Link>
@@ -172,25 +172,27 @@ export function CtaSection({ whatsapp }: { whatsapp?: string } = {}) {
   );
 
   return (
-    <section className="relative overflow-hidden border-t border-steel-900/40 py-16 md:py-20">
-      {/* Background accents */}
-      <div className="absolute inset-0 opacity-10">
-        <div
-          className="h-full w-full"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 25% 50%, #2D8FCC 0%, transparent 50%), radial-gradient(circle at 75% 50%, #D69E2E 0%, transparent 50%)',
-          }}
-        />
-      </div>
+    <section className="relative overflow-hidden bg-[#0B1120] py-16 md:py-20">
+      {/* Subtle radial glow */}
+      <div
+        className="absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 25% 50%, #2D8FCC 0%, transparent 55%), radial-gradient(circle at 78% 50%, #E8862B 0%, transparent 55%)',
+        }}
+      />
+      {/* Orange accent bar top */}
+      <div className="absolute left-0 top-0 h-[3px] w-full bg-gradient-to-r from-[#2D8FCC] via-[#E8862B] to-[#2D8FCC]" />
 
       <div className="container-main relative text-center">
-        <span className="overline mb-3 block">Contacto</span>
-        <h2 className="font-display text-h1 uppercase text-arctic text-balance">
-          Necesitas una cotizacion?
+        <span className="mb-3 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#3CAAE0]">
+          Contacto
+        </span>
+        <h2 className="text-balance font-display text-h1 uppercase text-white">
+          ¿Necesitás una cotización?
         </h2>
-        <div className="mx-auto mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-yellow" />
-        <p className="mx-auto mt-6 max-w-xl font-body text-body-lg text-steel-300">
+        <div className="mx-auto mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-[#2D8FCC] to-[#E8862B]" />
+        <p className="mx-auto mt-6 max-w-xl font-body text-body-lg text-[#8094B4]">
           Contanos tu proyecto y te respondemos en menos de 24 horas con un
           presupuesto detallado y sin compromiso.
         </p>

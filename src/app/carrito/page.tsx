@@ -16,24 +16,24 @@ export default function CarritoPage() {
 
   return (
     <>
-      <div className="border-b border-steel-900/40">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-steel-500">
-          <Link href="/" className="hover:text-arctic">Inicio</Link>
+      <div className="border-b border-gray-200">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
-          <Link href="/tienda" className="hover:text-arctic">Tienda</Link>
+          <Link href="/tienda" className="hover:text-[#0B1120]">Tienda</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-arctic">Carrito</span>
+          <span className="text-[#0B1120]">Carrito</span>
         </div>
       </div>
 
       <section className="section">
         <div className="container-main">
-          <h1 className="mb-8 font-display text-h1 uppercase text-arctic">Tu carrito</h1>
+          <h1 className="mb-8 font-display text-h1 uppercase text-[#0B1120]">Tu carrito</h1>
 
           {!hydrated ? null : items.length === 0 ? (
             <div className="flex flex-col items-center gap-4 py-16 text-center">
-              <ShoppingCart className="h-12 w-12 text-steel-700" />
-              <p className="font-body text-body text-steel-300">Tu carrito está vacío.</p>
+              <ShoppingCart className="h-12 w-12 text-[#C0CEDF]" />
+              <p className="font-body text-body text-[#4A5E80]">Tu carrito está vacío.</p>
               <Link href="/tienda" className="btn-primary">Ir a la tienda</Link>
             </div>
           ) : (
@@ -42,33 +42,33 @@ export default function CarritoPage() {
               <div className="space-y-4 lg:col-span-2">
                 {items.map((item) => (
                   <div key={item.productId} className="card flex items-center gap-4 p-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-steel-900">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#F4F7FB]">
                       {item.image ? (
                         <NextImage src={item.image} alt={item.name} width={64} height={64} className="h-full w-full object-cover" />
                       ) : (
-                        <ShoppingCart className="h-6 w-6 text-steel-700" />
+                        <ShoppingCart className="h-6 w-6 text-[#C0CEDF]" />
                       )}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-body text-body-sm font-semibold text-cloud">{item.name}</p>
-                      <p className="font-mono text-caption text-steel-500">{item.sku}</p>
-                      <p className="mt-1 font-display text-body font-bold text-arctic">{formatPrice(item.price)}</p>
+                      <p className="font-mono text-caption text-[#8094B4]">{item.sku}</p>
+                      <p className="mt-1 font-display text-body font-bold text-[#0B1120]">{formatPrice(item.price)}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setQuantity(item.productId, item.quantity - 1)}
-                        className="rounded p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"
+                        className="rounded p-1.5 text-[#8094B4] hover:bg-[#F4F7FB] hover:text-[#0B1120]"
                         aria-label="Restar"
                       >
                         <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="w-6 text-center font-body text-body-sm text-arctic">{item.quantity}</span>
+                      <span className="w-6 text-center font-body text-body-sm text-[#0B1120]">{item.quantity}</span>
                       <button
                         onClick={() => setQuantity(item.productId, item.quantity + 1)}
                         disabled={item.quantity >= item.stock}
-                        className="rounded p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic disabled:opacity-30"
+                        className="rounded p-1.5 text-[#8094B4] hover:bg-[#F4F7FB] hover:text-[#0B1120] disabled:opacity-30"
                         aria-label="Sumar"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -77,7 +77,7 @@ export default function CarritoPage() {
 
                     <button
                       onClick={() => removeItem(item.productId)}
-                      className="rounded p-2 text-steel-500 hover:bg-danger-light/10 hover:text-danger-light"
+                      className="rounded p-2 text-[#8094B4] hover:bg-danger-light/10 hover:text-danger-light"
                       aria-label="Quitar"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -88,12 +88,12 @@ export default function CarritoPage() {
 
               {/* Summary */}
               <div className="card h-fit p-5">
-                <h2 className="mb-4 font-display text-h4 uppercase text-arctic">Resumen</h2>
-                <div className="flex justify-between font-body text-body-sm text-steel-300">
+                <h2 className="mb-4 font-display text-h4 uppercase text-[#0B1120]">Resumen</h2>
+                <div className="flex justify-between font-body text-body-sm text-[#4A5E80]">
                   <span>Subtotal</span>
                   <span>{formatPrice(subtotal())}</span>
                 </div>
-                <p className="mt-1 font-body text-caption text-steel-500">
+                <p className="mt-1 font-body text-caption text-[#8094B4]">
                   El envío se calcula en el siguiente paso.
                 </p>
                 <Link href="/checkout" className="btn-primary mt-5 w-full justify-center">

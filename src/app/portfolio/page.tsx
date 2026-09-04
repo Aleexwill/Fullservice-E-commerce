@@ -91,32 +91,31 @@ export default function PortfolioPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="border-b border-steel-900/40">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-steel-500">
-          <Link href="/" className="hover:text-arctic">Inicio</Link>
+      <div className="border-b border-gray-200">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#2D8FCC]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-arctic">Portfolio</span>
+          <span className="text-[#0B1120]">Portfolio</span>
         </div>
       </div>
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-steel-900/40 bg-gradient-hero py-16 md:py-20">
-        <div className="absolute inset-0 bg-grid opacity-[0.03]" />
+      <section className="relative overflow-hidden border-b border-gray-200 bg-white py-16 md:py-20">
         <div className="container-main relative">
-          <span className="overline mb-2 block">Nuestro trabajo</span>
-          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-arctic">
+          <span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Nuestro trabajo</span>
+          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold uppercase leading-[0.95] text-[#0B1120]">
             Portfolio de Proyectos
           </h1>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-6 max-w-lg font-body text-body-lg text-steel-300">
-            Mira los trabajos que realizamos. Cada proyecto refleja nuestro
+          <p className="mt-6 max-w-lg font-body text-body-lg text-[#4A5E80]">
+            Mirá los trabajos que realizamos. Cada proyecto refleja nuestro
             compromiso con la calidad y el profesionalismo.
           </p>
         </div>
       </section>
 
       {/* Filters */}
-      <section className="sticky top-[95px] z-40 border-b border-steel-900/40 bg-carbon/95 backdrop-blur-lg">
+      <section className="sticky top-[95px] z-40 border-b border-gray-200 bg-white/95 backdrop-blur-lg">
         <div className="container-main flex gap-1 overflow-x-auto py-3">
           {categories.map((cat) => (
             <button
@@ -124,8 +123,8 @@ export default function PortfolioPage() {
               onClick={() => setActiveCategory(cat.id)}
               className={`whitespace-nowrap rounded px-5 py-3 font-body text-[0.75rem] font-medium uppercase tracking-[0.04em] transition-all min-h-[44px] ${
                 activeCategory === cat.id
-                  ? 'bg-steel-900 text-arctic'
-                  : 'text-steel-500 hover:text-arctic'
+                  ? 'bg-[#0B1120] text-white'
+                  : 'text-[#8094B4] hover:text-[#0B1120]'
               }`}
             >
               {cat.label}
@@ -135,9 +134,9 @@ export default function PortfolioPage() {
       </section>
 
       {/* Projects Grid */}
-      <section className="section">
+      <section className="section bg-gray-50">
         <div className="container-main">
-          <div className="mb-6 font-body text-body-sm text-steel-500">
+          <div className="mb-6 font-body text-body-sm text-[#8094B4]">
             {filtered.length} proyecto{filtered.length !== 1 ? 's' : ''}
           </div>
 
@@ -150,12 +149,12 @@ export default function PortfolioPage() {
                 }`}
               >
                 {/* Image */}
-                <div className="relative flex h-52 items-center justify-center bg-gradient-to-br from-carbon to-steel-900">
-                  <Isotipo size={80} color="#2D8FCC10" />
+                <div className="relative flex h-52 items-center justify-center bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
+                  <Isotipo size={80} color="#2D8FCC18" />
                   {/* Overlay on hover */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-blue/0 opacity-0 transition-all group-hover:bg-blue/20 group-hover:opacity-100">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-arctic/10 backdrop-blur">
-                      <Eye className="h-5 w-5 text-arctic" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#2D8FCC]/0 opacity-0 transition-all group-hover:bg-[#2D8FCC]/10 group-hover:opacity-100">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/80 backdrop-blur shadow">
+                      <Eye className="h-5 w-5 text-[#2D8FCC]" />
                     </div>
                   </div>
                 </div>
@@ -166,29 +165,29 @@ export default function PortfolioPage() {
                     {categoryLabel[project.category]}
                   </span>
 
-                  <h3 className="mt-3 font-display text-h3 text-arctic leading-tight">
+                  <h3 className="mt-3 font-display text-h3 leading-tight text-[#0B1120]">
                     {project.title}
                   </h3>
 
-                  <p className="mt-2 font-body text-body-sm text-steel-300 leading-relaxed line-clamp-2">
+                  <p className="mt-2 font-body text-body-sm leading-relaxed text-[#4A5E80] line-clamp-2">
                     {project.description}
                   </p>
 
                   {/* Meta */}
-                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-steel-900/40 pt-4">
-                    <div className="flex items-center gap-1.5 font-body text-caption text-steel-500">
+                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-gray-200 pt-4">
+                    <div className="flex items-center gap-1.5 font-body text-caption text-[#8094B4]">
                       <MapPin className="h-3 w-3" />
                       {project.location}
                     </div>
-                    <div className="flex items-center gap-1.5 font-body text-caption text-steel-500">
+                    <div className="flex items-center gap-1.5 font-body text-caption text-[#8094B4]">
                       <Calendar className="h-3 w-3" />
                       {project.duration} · {project.year}
                     </div>
                   </div>
 
                   {/* Client */}
-                  <p className="mt-2 font-body text-caption text-steel-500">
-                    Cliente: <span className="text-steel-300">{project.client}</span>
+                  <p className="mt-2 font-body text-caption text-[#8094B4]">
+                    Cliente: <span className="text-[#4A5E80]">{project.client}</span>
                   </p>
                 </div>
               </div>
@@ -198,13 +197,13 @@ export default function PortfolioPage() {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-steel-900/40 py-16">
+      <section className="border-t border-gray-200 bg-white py-16">
         <div className="container-main text-center">
-          <h2 className="font-display text-h2 text-arctic">
-            Tenes un proyecto similar?
+          <h2 className="font-display text-h2 text-[#0B1120]">
+            ¿Tenés un proyecto similar?
           </h2>
-          <p className="mx-auto mt-3 max-w-md font-body text-body text-steel-300">
-            Contanos que necesitas y te preparamos un presupuesto personalizado.
+          <p className="mx-auto mt-3 max-w-md font-body text-body text-[#4A5E80]">
+            Contanos qué necesitás y te preparamos un presupuesto personalizado.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link href="/contacto?tipo=presupuesto" className="btn-primary">

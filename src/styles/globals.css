@@ -15,8 +15,8 @@
   }
 
   body {
-    background-color: #0B1120;
-    color: #F4F7FB;
+    background-color: #FFFFFF;
+    color: #0B1120;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -26,8 +26,8 @@
   }
 
   ::selection {
-    background: rgba(45, 143, 204, 0.2);
-    color: #F4F7FB;
+    background: rgba(45, 143, 204, 0.15);
+    color: #0B1120;
   }
 }
 
@@ -56,17 +56,17 @@
 
   /* Botones */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded bg-blue px-6 py-3 text-label font-semibold uppercase text-arctic transition-all hover:bg-blue-bright focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 focus:ring-offset-carbon active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded bg-blue px-6 py-3 text-label font-semibold uppercase text-white transition-all hover:bg-blue-bright focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
     letter-spacing: 0.06em;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded border-2 border-blue px-6 py-3 text-label font-semibold uppercase text-blue transition-all hover:bg-blue hover:text-arctic focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 focus:ring-offset-carbon active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded border-2 border-blue px-6 py-3 text-label font-semibold uppercase text-blue transition-all hover:bg-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-blue/30 focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
     letter-spacing: 0.06em;
   }
 
   .btn-urgency {
-    @apply inline-flex items-center justify-center gap-2 rounded px-6 py-3 text-label font-semibold uppercase text-white transition-all focus:outline-none focus:ring-offset-2 focus:ring-offset-carbon active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded px-6 py-3 text-label font-semibold uppercase text-white transition-all focus:outline-none focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
     background-color: #E8862B;
     letter-spacing: 0.06em;
   }
@@ -80,19 +80,18 @@
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded px-6 py-3 text-label font-semibold uppercase text-steel-300 transition-all hover:bg-steel-900 focus:outline-none focus:ring-2 focus:ring-blue/30 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded px-6 py-3 text-label font-semibold uppercase text-steel-500 transition-all hover:bg-gray-100 hover:text-carbon focus:outline-none focus:ring-2 focus:ring-blue/30 active:scale-[0.98];
     letter-spacing: 0.06em;
   }
 
   .btn-whatsapp {
-    @apply inline-flex items-center justify-center gap-2 rounded bg-[#25D366] px-6 py-3 text-label font-semibold uppercase text-white transition-all hover:bg-[#20BD5A] focus:outline-none focus:ring-2 focus:ring-[#25D366]/30 focus:ring-offset-2 focus:ring-offset-carbon active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded bg-[#25D366] px-6 py-3 text-label font-semibold uppercase text-white transition-all hover:bg-[#20BD5A] focus:outline-none focus:ring-2 focus:ring-[#25D366]/30 focus:ring-offset-2 focus:ring-offset-white active:scale-[0.98];
     letter-spacing: 0.06em;
   }
 
   /* Cards */
   .card {
-    @apply rounded-md border bg-carbon-light shadow-card transition-all;
-    border-color: rgba(26, 38, 64, 0.6);
+    @apply rounded-md border border-gray-200 bg-white shadow-card transition-all;
   }
 
   .card-interactive {
@@ -101,17 +100,17 @@
 
   .card-interactive:hover {
     @apply shadow-card-hover;
-    border-color: rgba(45, 143, 204, 0.3);
+    border-color: rgba(45, 143, 204, 0.35);
     transform: translateY(-3px);
   }
 
   /* Inputs */
   .input {
-    @apply w-full rounded border border-steel-700 bg-steel-900 px-4 py-3 text-body text-arctic transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20;
+    @apply w-full rounded border border-gray-300 bg-white px-4 py-3 text-body text-carbon transition-colors focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20;
   }
 
   .input::placeholder {
-    @apply text-steel-500;
+    color: #8094B4;
   }
 
   .admin-input {

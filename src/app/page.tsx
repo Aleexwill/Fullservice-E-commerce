@@ -17,13 +17,13 @@ import { formatPrice, getEffectivePrice } from '@/lib/utils';
 
 function AboutSection({ about }: { about: SiteContent['about'] }) {
   return (
-    <section className="section border-t border-steel-900/40">
+    <section className="section border-t border-gray-200">
       <div className="container-main">
         <div className="mb-12 text-center">
           <span className="overline mb-2 block">Quienes somos</span>
-          <h2 className="font-display text-h1 uppercase text-arctic">{about.title}</h2>
+          <h2 className="font-display text-h1 uppercase text-[#0B1120]">{about.title}</h2>
           <div className="mx-auto mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mx-auto mt-4 max-w-2xl font-body text-body text-steel-300">
+          <p className="mx-auto mt-4 max-w-2xl font-body text-body text-[#4A5E80]">
             {about.description}
           </p>
         </div>
@@ -31,13 +31,13 @@ function AboutSection({ about }: { about: SiteContent['about'] }) {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="card p-6">
             <Target className="h-6 w-6 text-blue-bright" />
-            <h3 className="mt-3 font-display text-h3 text-arctic">Mision</h3>
-            <p className="mt-2 font-body text-body-sm text-steel-300 leading-relaxed">{about.mission}</p>
+            <h3 className="mt-3 font-display text-h3 text-[#0B1120]">Mision</h3>
+            <p className="mt-2 font-body text-body-sm text-[#4A5E80] leading-relaxed">{about.mission}</p>
           </div>
           <div className="card p-6">
             <Eye className="h-6 w-6 text-blue-bright" />
-            <h3 className="mt-3 font-display text-h3 text-arctic">Vision</h3>
-            <p className="mt-2 font-body text-body-sm text-steel-300 leading-relaxed">{about.vision}</p>
+            <h3 className="mt-3 font-display text-h3 text-[#0B1120]">Vision</h3>
+            <p className="mt-2 font-body text-body-sm text-[#4A5E80] leading-relaxed">{about.vision}</p>
           </div>
         </div>
 
@@ -46,8 +46,8 @@ function AboutSection({ about }: { about: SiteContent['about'] }) {
             {about.values.map((value, i) => (
               <div key={i} className="card p-5">
                 <Heart className="h-5 w-5 text-orange" />
-                <h4 className="mt-2 font-display text-h4 text-arctic">{value.title}</h4>
-                <p className="mt-1 font-body text-body-sm text-steel-300">{value.description}</p>
+                <h4 className="mt-2 font-display text-h4 text-[#0B1120]">{value.title}</h4>
+                <p className="mt-1 font-body text-body-sm text-[#4A5E80]">{value.description}</p>
               </div>
             ))}
           </div>
@@ -68,15 +68,15 @@ async function FeaturedProducts() {
   if (products.length === 0) return null;
 
   return (
-    <section className="section border-t border-steel-900/40">
+    <section className="section border-t border-gray-200">
       <div className="container-main">
         <div className="mb-12">
           <span className="overline mb-2 block">E-commerce</span>
-          <h2 className="font-display text-h1 uppercase text-arctic">
+          <h2 className="font-display text-h1 uppercase text-[#0B1120]">
             Productos destacados
           </h2>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-4 font-body text-body text-steel-300">
+          <p className="mt-4 font-body text-body text-[#4A5E80]">
             Herramientas y materiales de las mejores marcas, con envio a domicilio.
           </p>
         </div>
@@ -100,7 +100,7 @@ async function FeaturedProducts() {
               <div key={product.id} className="card-interactive group overflow-hidden">
                 <Link href={`/tienda/${product.slug}`}>
                   {/* Image */}
-                  <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
+                  <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
                     {product.images?.[0] ? (
                       <NextImage src={product.images[0]} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
                     ) : (
@@ -112,7 +112,7 @@ async function FeaturedProducts() {
                   </div>
                   {/* Info */}
                   <div className="p-4 pb-0">
-                    <span className="font-body text-overline uppercase tracking-[0.08em] text-steel-500">
+                    <span className="font-body text-overline uppercase tracking-[0.08em] text-[#8094B4]">
                       {product.brand}
                     </span>
                     <h3 className="mt-1 font-body text-body-sm font-semibold text-cloud leading-tight line-clamp-2">
@@ -123,19 +123,19 @@ async function FeaturedProducts() {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-3 w-3 ${i < Math.floor(product.rating) ? 'fill-yellow text-yellow' : 'text-steel-700'}`}
+                            className={`h-3 w-3 ${i < Math.floor(product.rating) ? 'fill-yellow text-yellow' : 'text-[#C0CEDF]'}`}
                           />
                         ))}
-                        <span className="ml-1 font-body text-caption text-steel-500">({product.reviewCount})</span>
+                        <span className="ml-1 font-body text-caption text-[#8094B4]">({product.reviewCount})</span>
                       </div>
                     )}
                     {/* Price */}
                     <div className="mt-3 flex items-baseline gap-2">
-                      <span className="font-display text-[1.3rem] font-bold text-arctic">
+                      <span className="font-display text-[1.3rem] font-bold text-[#0B1120]">
                         {formatPrice(displayPrice)}
                       </span>
                       {strikePrice && (
-                        <span className="font-body text-body-sm text-steel-500 line-through">
+                        <span className="font-body text-body-sm text-[#8094B4] line-through">
                           {formatPrice(strikePrice)}
                         </span>
                       )}
@@ -205,15 +205,15 @@ function PortfolioPreview() {
   };
 
   return (
-    <section className="section border-t border-steel-900/40">
+    <section className="section border-t border-gray-200">
       <div className="container-main">
         <div className="mb-12">
           <span className="overline mb-2 block">Proyectos</span>
-          <h2 className="font-display text-h1 uppercase text-arctic">
+          <h2 className="font-display text-h1 uppercase text-[#0B1120]">
             Proyectos que hablan por nosotros
           </h2>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-4 font-body text-body text-steel-300">
+          <p className="mt-4 font-body text-body text-[#4A5E80]">
             Mira algunos de los trabajos que realizamos.
           </p>
         </div>
@@ -222,7 +222,7 @@ function PortfolioPreview() {
           {projects.map((project) => (
             <div key={project.id} className="card-interactive group overflow-hidden">
               {/* Image placeholder */}
-              <div className="relative flex h-48 items-center justify-center bg-gradient-to-br from-carbon to-steel-900">
+              <div className="relative flex h-48 items-center justify-center bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
                 <Isotipo size={80} color="#2D8FCC15" />
                 <div className="absolute inset-0 bg-blue/0 transition-colors group-hover:bg-blue/10" />
               </div>
@@ -230,10 +230,10 @@ function PortfolioPreview() {
                 <span className={badgeClass[project.badge]}>
                   {project.category}
                 </span>
-                <h3 className="mt-3 font-display text-h3 text-arctic">
+                <h3 className="mt-3 font-display text-h3 text-[#0B1120]">
                   {project.title}
                 </h3>
-                <p className="mt-1 font-body text-body-sm text-steel-500">
+                <p className="mt-1 font-body text-body-sm text-[#8094B4]">
                   {project.location}
                 </p>
               </div>
@@ -282,11 +282,11 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="section border-t border-steel-900/40">
+    <section className="section border-t border-gray-200">
       <div className="container-main">
         <div className="mb-12 text-center">
           <span className="overline mb-2 block">Testimonios</span>
-          <h2 className="font-display text-h1 uppercase text-arctic">
+          <h2 className="font-display text-h1 uppercase text-[#0B1120]">
             Lo que dicen nuestros clientes
           </h2>
           <div className="mx-auto mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
@@ -304,14 +304,14 @@ function TestimonialsSection() {
                   />
                 ))}
               </div>
-              <blockquote className="font-body text-body italic text-steel-300 leading-relaxed">
+              <blockquote className="font-body text-body italic text-[#4A5E80] leading-relaxed">
                 &ldquo;{testimonial.text}&rdquo;
               </blockquote>
-              <div className="mt-4 border-t border-steel-900/40 pt-4">
-                <cite className="font-body text-body-sm font-semibold not-italic text-arctic">
+              <div className="mt-4 border-t border-gray-200 pt-4">
+                <cite className="font-body text-body-sm font-semibold not-italic text-[#0B1120]">
                   {testimonial.author}
                 </cite>
-                <p className="mt-0.5 font-body text-caption text-steel-500">
+                <p className="mt-0.5 font-body text-caption text-[#8094B4]">
                   {testimonial.company}
                 </p>
               </div>
