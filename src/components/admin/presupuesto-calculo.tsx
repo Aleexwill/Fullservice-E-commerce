@@ -309,7 +309,16 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ calculationData: calcToSave, finalValue: Math.round(totalGeneral) }),
       });
-      if (res.ok) { const u = await res.json(); onSaved(u.calculationData ?? calcToSave); setSaved(true); }
+      if (res.ok) {
+        const u = await res.json();
+        const saved = u.calculationData ?? calcToSave;
+        // Sync versions from server response back into local state so the banner persists
+        if (saved.versions && saved.versions !== (calcToSave as any).versions) {
+          setCalc((c) => ({ ...c, versions: saved.versions }));
+        }
+        onSaved(saved);
+        setSaved(true);
+      }
     } finally { setSaving(false); }
   };
   const save = () => doSave(calc);
