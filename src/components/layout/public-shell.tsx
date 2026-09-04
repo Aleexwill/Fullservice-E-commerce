@@ -10,12 +10,16 @@ export function PublicShell({ settings, children }: { settings: SiteSettings; ch
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
 
+  if (isAdmin) {
+    return <main>{children}</main>;
+  }
+
   return (
-    <>
-      {!isAdmin && <Navbar settings={settings} />}
-      <main className={isAdmin ? '' : 'min-h-screen'}>{children}</main>
-      {!isAdmin && <Footer settings={settings} />}
-      {!isAdmin && <WhatsAppButton settings={settings} />}
-    </>
+    <div className="public-site">
+      <Navbar settings={settings} />
+      <main className="min-h-screen">{children}</main>
+      <Footer settings={settings} />
+      <WhatsAppButton settings={settings} />
+    </div>
   );
 }
