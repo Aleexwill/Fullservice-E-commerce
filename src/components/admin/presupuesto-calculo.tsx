@@ -256,15 +256,22 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
 
   /* ─── Totals ─── */
   const filasTot = calc.filas.filter((f) => f.tipo !== 'titulo');
-  const subtotal = filasTot.reduce((s, f) => s + f.cantidad * f.precioVenta, 0);
+  const titulos = calc.filas.filter((f) => f.tipo === 'titulo');
+  const hayAprobados = calc.filas.some((f) => f.tipo !== 'titulo' && f.aprobado);
+
+  // Raw sum of qty*precioVenta (before GG/margin) — used for P.Venta column in footer
+  const rawSubtotal = filasTot.reduce((s, f) => s + f.cantidad * f.precioVenta, 0);
   const costoTotal = filasTot.reduce((s, f) => s + f.cantidad * f.precioUnitario, 0);
+
+  // When sections exist, subtotal = sum of sectionTotal (applies GG% and Margin% per section)
+  // When no sections, subtotal = simple sum of qty * precioVenta
+  const subtotal = titulos.length > 0
+    ? titulos.reduce((s, t) => s + sectionTotal(calc.filas, t), 0)
+    : rawSubtotal;
+
   const ivaMonto = subtotal * (calc.iva / 100);
   const totalGeneral = subtotal + ivaMonto - calc.descuento;
   const margenPct = subtotal > 0 ? ((subtotal - costoTotal) / subtotal) * 100 : 0;
-
-  /* ─── Approved totals (item-level) ─── */
-  const titulos = calc.filas.filter((f) => f.tipo === 'titulo');
-  const hayAprobados = calc.filas.some((f) => f.tipo !== 'titulo' && f.aprobado);
 
   const sectionAprobadoTotal = (t: FilaCalculo): number => {
     let inside = false, sub = 0;
@@ -621,7 +628,7 @@ export function PresupuestoCalculo({ presupuestoId, serviceTitle, customerName, 
             <span className="font-body text-caption font-semibold uppercase tracking-wider text-steel-500">Subtotal</span>
             <span /><span />
             <span className="text-right font-mono text-caption text-steel-600">{gs(costoTotal)}</span>
-            <span className="text-right font-mono text-caption text-steel-400">{gs(subtotal)}</span>
+            <span className="text-right font-mono text-caption text-steel-400">{gs(rawSubtotal)}</span>
             <span className="text-right font-mono text-body-sm font-bold text-[#48BB78]">{gs(subtotal)}</span>
             <span />
           </div>
