@@ -3,26 +3,107 @@
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useState, useEffect } from 'react';
-import { Trash2, Minus, Plus, ChevronRight, ShoppingCart, ShieldCheck, Truck, ArrowRight } from 'lucide-react';
+import { Trash2, Minus, Plus, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { formatPrice } from '@/lib/utils';
 
 export default function CarritoPage() {
   const { items, removeItem, setQuantity, subtotal } = useCartStore();
   const [hydrated, setHydrated] = useState(false);
+
+  // Evita mismatch de hidratación: el store persistido solo tiene datos reales tras montar en cliente.
   useEffect(() => setHydrated(true), []);
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <>
-      <div className="border-b border-gray-200 bg-white"><div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]"><Link href="/" className="hover:text-[#0B1120]">Inicio</Link><ChevronRight className="h-3 w-3"/><Link href="/tienda" className="hover:text-[#0B1120]">Tienda</Link><ChevronRight className="h-3 w-3"/><span className="font-medium text-[#0B1120]">Carrito</span></div></div>
-      <section className="section bg-[#F4F7FB]"><div className="container-main">
-        <div className="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between"><div><span className="overline">Tu selección</span><h1 className="mt-2 font-display text-h1 uppercase text-[#0B1120]">Tu carrito</h1></div>{hydrated && items.length > 0 && <span className="font-body text-body-sm text-[#8094B4]">{totalItems} {totalItems === 1 ? 'producto' : 'productos'}</span>}</div>
-        {!hydrated ? <div className="card h-48 animate-pulse"/> : items.length === 0 ? <div className="card flex flex-col items-center justify-center px-6 py-20 text-center"><div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#EBF5FB] text-[#2D8FCC]"><ShoppingCart className="h-7 w-7"/></div><h2 className="mt-5 font-display text-h2 uppercase text-[#0B1120]">Tu carrito está vacío</h2><p className="mt-2 max-w-md font-body text-body text-[#4A5E80]">Explorá nuestros productos y agregá lo que necesitás. Cuando estés listo, podés volver acá para finalizar tu compra.</p><Link href="/tienda" className="btn-primary mt-7">Explorar tienda <ArrowRight className="h-4 w-4"/></Link></div> : <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
-          <div className="space-y-3 lg:col-span-2">{items.map((item) => <div key={item.productId} className="card p-4 sm:p-5"><div className="flex gap-4 sm:gap-5"><div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#F4F7FB] sm:h-28 sm:w-28">{item.image ? <NextImage src={item.image} alt={item.name} width={112} height={112} className="h-full w-full object-cover"/> : <ShoppingCart className="h-7 w-7 text-[#C0CEDF]"/>}</div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div><p className="font-body text-body font-semibold text-[#0B1120] sm:text-body-lg">{item.name}</p><p className="mt-1 font-mono text-caption text-[#8094B4]">SKU {item.sku}</p></div><button onClick={() => removeItem(item.productId)} className="rounded-lg p-2 text-[#8094B4] hover:bg-[#FDECEC] hover:text-danger-light" aria-label="Quitar producto"><Trash2 className="h-4 w-4"/></button></div><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><div className="inline-flex items-center rounded-xl border border-gray-200 bg-white p-1"><button onClick={() => setQuantity(item.productId,item.quantity-1)} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#4A5E80] hover:bg-[#F4F7FB]" aria-label="Restar"><Minus className="h-3.5 w-3.5"/></button><span className="w-9 text-center font-body text-body-sm font-semibold text-[#0B1120]">{item.quantity}</span><button onClick={() => setQuantity(item.productId,item.quantity+1)} disabled={item.quantity>=item.stock} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#4A5E80] hover:bg-[#F4F7FB] disabled:opacity-30" aria-label="Sumar"><Plus className="h-3.5 w-3.5"/></button></div><p className="font-display text-h4 font-bold text-[#0B1120]">{formatPrice(item.price*item.quantity)}</p></div><p className="mt-2 font-body text-caption text-[#8094B4]">{formatPrice(item.price)} por unidad</p></div></div></div>)}<Link href="/tienda" className="inline-flex items-center gap-2 py-3 font-body text-body-sm font-semibold text-[#2D8FCC]"><ChevronRight className="h-4 w-4 rotate-180"/> Seguir comprando</Link></div>
-          <aside className="space-y-4 lg:sticky lg:top-28"><div className="card p-6"><span className="overline">Resumen de compra</span><div className="mt-5 flex justify-between font-body text-body text-[#4A5E80]"><span>Subtotal</span><span className="font-semibold text-[#0B1120]">{formatPrice(subtotal())}</span></div><p className="mt-2 font-body text-caption text-[#8094B4]">El costo de envío se calculará antes de confirmar el pedido.</p><div className="my-5 border-t border-gray-200"/><Link href="/checkout" className="btn-primary w-full justify-center py-4">Continuar compra <ArrowRight className="h-4 w-4"/></Link></div><div className="card p-5"><div className="space-y-4"><div className="flex gap-3"><Truck className="mt-0.5 h-5 w-5 shrink-0 text-[#2D8FCC]"/><div><p className="font-body text-body-sm font-semibold text-[#0B1120]">Envío coordinado</p><p className="font-body text-caption text-[#8094B4]">Calculamos el costo según tu pedido.</p></div></div><div className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#2D8FCC]"/><div><p className="font-body text-body-sm font-semibold text-[#0B1120]">Compra segura</p><p className="font-body text-caption text-[#8094B4]">Tus datos se procesan de forma segura.</p></div></div></div></div></aside>
-        </div>}
-      </div></section>
+      <div className="border-b border-gray-200">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
+          <ChevronRight className="h-3 w-3" />
+          <Link href="/tienda" className="hover:text-[#0B1120]">Tienda</Link>
+          <ChevronRight className="h-3 w-3" />
+          <span className="text-[#0B1120]">Carrito</span>
+        </div>
+      </div>
+
+      <section className="section">
+        <div className="container-main">
+          <h1 className="mb-8 font-display text-h1 uppercase text-[#0B1120]">Tu carrito</h1>
+
+          {!hydrated ? null : items.length === 0 ? (
+            <div className="flex flex-col items-center gap-4 py-16 text-center">
+              <ShoppingCart className="h-12 w-12 text-[#C0CEDF]" />
+              <p className="font-body text-body text-[#4A5E80]">Tu carrito está vacío.</p>
+              <Link href="/tienda" className="btn-primary">Ir a la tienda</Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              {/* Items */}
+              <div className="space-y-4 lg:col-span-2">
+                {items.map((item) => (
+                  <div key={item.productId} className="card flex items-center gap-4 p-4">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#F4F7FB]">
+                      {item.image ? (
+                        <NextImage src={item.image} alt={item.name} width={64} height={64} className="h-full w-full object-cover" />
+                      ) : (
+                        <ShoppingCart className="h-6 w-6 text-[#C0CEDF]" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-body text-body-sm font-semibold text-[#0B1120]">{item.name}</p>
+                      <p className="font-mono text-caption text-[#8094B4]">{item.sku}</p>
+                      <p className="mt-1 font-display text-body font-bold text-[#0B1120]">{formatPrice(item.price)}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setQuantity(item.productId, item.quantity - 1)}
+                        className="rounded p-1.5 text-[#8094B4] hover:bg-[#F4F7FB] hover:text-[#0B1120]"
+                        aria-label="Restar"
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="w-6 text-center font-body text-body-sm text-[#0B1120]">{item.quantity}</span>
+                      <button
+                        onClick={() => setQuantity(item.productId, item.quantity + 1)}
+                        disabled={item.quantity >= item.stock}
+                        className="rounded p-1.5 text-[#8094B4] hover:bg-[#F4F7FB] hover:text-[#0B1120] disabled:opacity-30"
+                        aria-label="Sumar"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => removeItem(item.productId)}
+                      className="rounded p-2 text-[#8094B4] hover:bg-danger-light/10 hover:text-danger-light"
+                      aria-label="Quitar"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Summary */}
+              <div className="card h-fit p-5">
+                <h2 className="mb-4 font-display text-h4 uppercase text-[#0B1120]">Resumen</h2>
+                <div className="flex justify-between font-body text-body-sm text-[#4A5E80]">
+                  <span>Subtotal</span>
+                  <span>{formatPrice(subtotal())}</span>
+                </div>
+                <p className="mt-1 font-body text-caption text-[#8094B4]">
+                  El envío se calcula en el siguiente paso.
+                </p>
+                <Link href="/checkout" className="btn-primary mt-5 w-full justify-center">
+                  Continuar compra
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
     </>
   );
 }
