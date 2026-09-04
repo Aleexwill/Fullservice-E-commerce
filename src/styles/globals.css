@@ -51,7 +51,7 @@
   /* Admin: preserve the original dark backoffice and restore readable controls. */
   .admin-shell .card { @apply rounded-lg border border-steel-900/40 bg-carbon-light shadow-card; }
   .admin-shell .card-interactive:hover { @apply -translate-y-0 shadow-card-hover; border-color:rgba(45,143,204,.35); }
-  .admin-shell .input { @apply rounded-lg border border-steel-600 bg-steel-900 text-arctic focus:border-blue focus:ring-blue/20; }
+  .admin-shell .input { @apply rounded-lg border border-steel-700 bg-steel-900 text-arctic focus:border-blue focus:ring-blue/20; }
   .admin-shell .input::placeholder { color:#8094B4; }
   .admin-shell .label { color:#C0CEDF; }
   .admin-shell .data-text { color:#C0CEDF; }
