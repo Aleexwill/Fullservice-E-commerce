@@ -260,7 +260,7 @@ export default function AdminPresupuestosPage() {
     <div className="p-6 lg:p-8">
       {/* PDF Options modal (detalle tab) */}
       {showPdfOpts && selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-xl border border-steel-900/60 bg-carbon shadow-2xl">
             <div className="flex items-center justify-between border-b border-steel-900/40 px-5 py-4">
               <div className="flex items-center gap-2">
@@ -394,8 +394,8 @@ export default function AdminPresupuestosPage() {
       {/* Detail panel */}
       {selected && (
         <div className="fixed inset-0 z-[100] flex">
-          <div className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" />
-          <div className="relative h-full w-full overflow-y-auto bg-carbon-light shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
+          <div className="relative h-full w-full overflow-y-auto bg-carbon-light shadow-2xl">
             <div className="sticky top-0 z-10 border-b border-steel-900/40 bg-carbon-light">
               <div className="flex items-center justify-between px-6 pt-4 pb-3">
                 <div><span className="font-mono text-caption text-blue-bright">{selected.code}</span><h2 className="font-display text-h3 text-arctic">{selected.serviceTitle}</h2></div>
