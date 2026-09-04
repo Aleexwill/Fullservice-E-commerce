@@ -96,6 +96,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="admin-shell flex min-h-screen bg-carbon">
+      <style jsx global>{`
+        .admin-shell .text-steel-400 {
+          color: #cbd5e1 !important;
+        }
+        .admin-shell .text-steel-600 {
+          color: #94a3b8 !important;
+        }
+      `}</style>
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-carbon/70 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
       <aside className={cn('fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200', 'lg:translate-x-0', sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}>
         <button onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú" className="absolute right-3 top-3 rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic lg:hidden"><X className="h-4 w-4" /></button>
