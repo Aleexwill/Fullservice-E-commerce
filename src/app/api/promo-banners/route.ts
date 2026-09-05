@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageContent');
   if (auth instanceof NextResponse) return auth;
   try {
     const body = await req.json();

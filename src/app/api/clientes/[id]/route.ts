@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageClients');
   if (auth instanceof NextResponse) return auth;
   try {
     const cliente = await prisma.cliente.findUnique({ where: { id: params.id } });
@@ -16,7 +16,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageClients');
   if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
@@ -43,7 +43,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageClients');
   if (auth instanceof NextResponse) return auth;
   try {
     await prisma.cliente.update({ where: { id: params.id }, data: { isActive: false } });

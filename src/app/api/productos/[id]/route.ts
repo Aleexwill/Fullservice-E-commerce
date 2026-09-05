@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { getProductById, updateProduct, deleteProduct } from '@/lib/products-store';
 
 // GET /api/productos/[id]
@@ -25,7 +25,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageProducts');
   if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
@@ -55,7 +55,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageProducts');
   if (auth instanceof NextResponse) return auth;
   try {
     const deleted = await deleteProduct(params.id);

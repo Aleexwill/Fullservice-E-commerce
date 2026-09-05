@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { getAllPresupuestos, createPresupuesto } from '@/lib/presupuestos-store';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManagePresupuestos');
   if (auth instanceof NextResponse) return auth;
   try {
     let data = await getAllPresupuestos();

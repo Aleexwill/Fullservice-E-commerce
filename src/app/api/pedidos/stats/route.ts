@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { getOrderStats } from '@/lib/orders-store';
 
 export async function GET() {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageOrders');
   if (auth instanceof NextResponse) return auth;
   try {
     return NextResponse.json(await getOrderStats());

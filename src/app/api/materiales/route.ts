@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 
 export async function GET(request: Request) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageInventory');
   if (auth instanceof NextResponse) return auth;
   try {
     
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageInventory');
   if (auth instanceof NextResponse) return auth;
   try {
     

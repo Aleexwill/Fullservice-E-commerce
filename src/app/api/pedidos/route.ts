@@ -1,13 +1,13 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { getAllOrders, createOrder } from '@/lib/orders-store';
 import { getEffectivePrice } from '@/lib/products-store';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageOrders');
   if (auth instanceof NextResponse) return auth;
   try {
     const orders = await getAllOrders();

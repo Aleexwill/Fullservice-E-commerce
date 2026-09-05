@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { getLeadStats } from '@/lib/leads-store';
 
 export async function GET() {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageLeads');
   if (auth instanceof NextResponse) return auth;
   try {
     return NextResponse.json(await getLeadStats());

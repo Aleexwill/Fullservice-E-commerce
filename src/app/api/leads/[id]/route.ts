@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { getLeadById, updateLead, addNoteToLead, addActivityToLead, addTaskToLead, toggleTask, deleteLead } from '@/lib/leads-store';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageLeads');
   if (auth instanceof NextResponse) return auth;
   try {
     const lead = await getLeadById(params.id);
@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageLeads');
   if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageLeads');
   if (auth instanceof NextResponse) return auth;
   try {
     const ok = await deleteLead(params.id);

@@ -2,10 +2,10 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllLeads, createLead } from '@/lib/leads-store';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageLeads');
   if (auth instanceof NextResponse) return auth;
   try {
     const leads = await getAllLeads();

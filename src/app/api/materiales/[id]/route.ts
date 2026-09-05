@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageInventory');
   if (auth instanceof NextResponse) return auth;
   try {
     
@@ -30,7 +30,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageInventory');
   if (auth instanceof NextResponse) return auth;
   try {
     

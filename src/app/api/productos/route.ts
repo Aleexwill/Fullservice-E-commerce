@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, requireRole } from '@/lib/auth';
 import { getAllProducts, createProduct, getEffectivePrice, type Product } from '@/lib/products-store';
 
 const SORTABLE_FIELDS = ['createdAt', 'name', 'price', 'rating', 'salesCount', 'stock'] as const;
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/productos
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth();
+  const auth = await requireRole('canManageProducts');
   if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
