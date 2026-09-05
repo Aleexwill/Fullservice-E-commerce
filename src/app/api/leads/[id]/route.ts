@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { getLeadById, updateLead, addNoteToLead, addActivityToLead, addTaskToLead, toggleTask, deleteLead } from '@/lib/leads-store';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const lead = await getLeadById(params.id);
     if (!lead) return NextResponse.json({ error: 'Lead no encontrado' }, { status: 404 });
@@ -14,6 +17,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
 
@@ -52,6 +57,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const ok = await deleteLead(params.id);
     if (!ok) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });

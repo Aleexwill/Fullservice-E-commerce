@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { getProductById, updateProduct, deleteProduct } from '@/lib/products-store';
 
 // GET /api/productos/[id]
@@ -24,6 +25,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
     const product = await updateProduct(params.id, {
@@ -52,6 +55,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const deleted = await deleteProduct(params.id);
     if (!deleted) {

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const cliente = await prisma.cliente.findUnique({ where: { id: params.id } });
     if (!cliente) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
@@ -13,6 +16,8 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
     const cliente = await prisma.cliente.update({
@@ -38,6 +43,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     await prisma.cliente.update({ where: { id: params.id }, data: { isActive: false } });
     return NextResponse.json({ ok: true });

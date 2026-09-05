@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { revalidateTag } from 'next/cache';
 import { getSettings, updateSettings, SETTINGS_CACHE_TAG } from '@/lib/settings-store';
 
@@ -15,6 +16,8 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
     const settings = await updateSettings(body);

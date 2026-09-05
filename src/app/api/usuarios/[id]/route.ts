@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/auth';
 import { can } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 
 async function requireAdmin(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = await verifySessionToken(token).catch(() => null);
   if (!session || !can(session.role, 'canManageUsers')) return null;
@@ -13,7 +16,7 @@ async function requireAdmin(request: NextRequest) {
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await requireAdmin(request);
-  if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  if (!session || session instanceof NextResponse) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
   const { name, role, isActive } = await request.json();
 
@@ -33,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await requireAdmin(request);
-  if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  if (!session || session instanceof NextResponse) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
   // Can't delete yourself
   const target = await prisma.user.findUnique({ where: { id: params.id } });

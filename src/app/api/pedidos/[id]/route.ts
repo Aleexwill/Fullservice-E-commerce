@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { getOrderById, updateOrder, deleteOrder } from '@/lib/orders-store';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const order = await getOrderById(params.id);
     if (!order) return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 });
@@ -14,6 +17,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
     const order = await updateOrder(params.id, body);
@@ -27,6 +32,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const ok = await deleteOrder(params.id);
     if (!ok) return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 });

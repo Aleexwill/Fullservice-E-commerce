@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     
     const body = await request.json();
@@ -27,6 +30,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     
     await prisma.material.delete({ where: { id: params.id } });

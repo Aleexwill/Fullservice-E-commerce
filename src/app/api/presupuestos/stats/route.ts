@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { getPresupuestoStats } from '@/lib/presupuestos-store';
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try { return NextResponse.json(await getPresupuestoStats()); }
   catch (error) {
     console.error('Error en GET /api/presupuestos/stats:', error);

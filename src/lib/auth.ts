@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 import type { Role } from './roles';
 
 const encoder = new TextEncoder();
@@ -31,6 +33,15 @@ export async function createSessionToken(username: string, role: Role = 'admin',
   const payloadB64 = Buffer.from(payload).toString('base64url');
   const sig = await hmac(payloadB64);
   return `${payloadB64}.${sig}`;
+}
+
+/** Call inside any API route handler that requires an authenticated admin session.
+ *  Returns the session payload on success, or a 401 NextResponse to return immediately. */
+export async function requireAuth(): Promise<SessionPayload | NextResponse> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const session = await verifySessionToken(token);
+  if (!session) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+  return session;
 }
 
 export async function verifySessionToken(token: string | undefined | null): Promise<SessionPayload | null> {

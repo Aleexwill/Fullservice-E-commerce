@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/auth';
@@ -6,6 +7,8 @@ import { can } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 
 async function requireAdmin(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = await verifySessionToken(token).catch(() => null);
   if (!session || !can(session.role, 'canManageUsers')) return null;
@@ -13,6 +16,8 @@ async function requireAdmin(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   const session = await requireAdmin(request);
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
@@ -25,6 +30,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   const session = await requireAdmin(request);
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 

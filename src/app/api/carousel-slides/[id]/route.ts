@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { del } from '@vercel/blob';
 
@@ -21,6 +22,8 @@ export async function GET(_r: NextRequest, { params }: { params: { id: string } 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await req.json();
     const updateData: any = {};
@@ -58,6 +61,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(_r: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const rows = await prisma.$queryRawUnsafe<any[]>(
       `SELECT "photoUrl" FROM "CarouselSlide" WHERE id = $1 LIMIT 1`, params.id

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { revalidateTag } from 'next/cache';
 import { getContent, updateContent, CONTENT_CACHE_TAG } from '@/lib/content-store';
 
@@ -12,6 +13,8 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await req.json();
     const content = await updateContent(body);

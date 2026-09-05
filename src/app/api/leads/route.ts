@@ -2,8 +2,11 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllLeads, createLead } from '@/lib/leads-store';
+import { requireAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const leads = await getAllLeads();
     const { searchParams } = new URL(request.url);
