@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { Search, RefreshCw, Plus, Trash2, X, Loader2, Package, Save } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Search, RefreshCw, Plus, Trash2, X, Loader2, Package, Save, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface Material {
   id: string; code: string; description: string; unit: string; unitPrice: number;
@@ -23,6 +23,7 @@ export default function AdminInventarioPage() {
   const [filterCat, setFilterCat] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -48,7 +49,10 @@ export default function AdminInventarioPage() {
           <h1 className="font-display text-h1 uppercase text-arctic">Inventario de Materiales</h1>
           <p className="mt-1 font-body text-body-sm text-steel-300">Lista interna de materiales y tarifas para presupuestos de servicios</p>
         </div>
-        <button onClick={() => setShowAdd(true)} className="btn-primary"><Plus className="h-4 w-4" /> Agregar material</button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-1.5"><Upload className="h-4 w-4" /> Importar Excel</button>
+          <button onClick={() => setShowAdd(true)} className="btn-primary"><Plus className="h-4 w-4" /> Agregar material</button>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -92,9 +96,224 @@ export default function AdminInventarioPage() {
           onSaved={() => { setShowAdd(false); setEditing(null); fetchData(); }}
         />
       )}
+
+      {showImport && (
+        <ImportModal
+          onClose={() => setShowImport(false)}
+          onImported={() => { setShowImport(false); fetchData(); }}
+        />
+      )}
     </div>
   );
 }
+
+// ── Import Modal ───────────────────────────────────────────────────
+
+interface ImportRow {
+  rowNum: number; description: string; unitPrice: number | null; unit: string;
+  provider: string; category: string; notes: string;
+  status: 'ok' | 'warning' | 'error'; errors: string[]; warnings: string[];
+}
+
+function ImportModal({ onClose, onImported }: { onClose: () => void; onImported: () => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [step, setStep] = useState<'upload' | 'preview' | 'done'>('upload');
+  const [parsing, setParsing] = useState(false);
+  const [rows, setRows] = useState<ImportRow[]>([]);
+  const [filter, setFilter] = useState<'all' | 'ok' | 'warning' | 'error'>('all');
+  const [importing, setImporting] = useState(false);
+  const [imported, setImported] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  const [fileName, setFileName] = useState('');
+
+  const parseFile = async (file: File) => {
+    if (!file.name.match(/\.(xlsx|xls)$/i)) { alert('Solo se admiten archivos .xlsx'); return; }
+    setFileName(file.name);
+    setParsing(true);
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch('/api/materiales/import', { method: 'POST', body: form });
+    const data = await res.json();
+    setParsing(false);
+    if (!res.ok) { alert(data.error || 'Error al leer el archivo'); return; }
+    setRows(data.rows || []);
+    setStep('preview');
+  };
+
+  const doImport = async () => {
+    setImporting(true);
+    const res = await fetch('/api/materiales/import?confirm=1', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: rows.filter(r => r.status !== 'error') }),
+    });
+    const data = await res.json();
+    setImporting(false);
+    if (!res.ok) { alert(data.error || 'Error al importar'); return; }
+    setImported(data.inserted);
+    setStep('done');
+  };
+
+  const visible = rows.filter(r => filter === 'all' || r.status === filter);
+  const okCount   = rows.filter(r => r.status === 'ok').length;
+  const warnCount = rows.filter(r => r.status === 'warning').length;
+  const errCount  = rows.filter(r => r.status === 'error').length;
+  const importable = okCount + warnCount;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-carbon/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative flex w-full max-w-4xl flex-col rounded-lg border border-steel-900/60 bg-carbon-light shadow-2xl" style={{ maxHeight: '90vh' }}>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-steel-900/40 px-6 py-4 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <FileSpreadsheet className="h-5 w-5 text-[#48BB78]" />
+            <h2 className="font-display text-h3 text-arctic">Importar desde Excel</h2>
+          </div>
+          <button onClick={onClose} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-6">
+
+          {/* ── Step: upload ── */}
+          {step === 'upload' && (
+            <div>
+              <p className="mb-4 font-body text-body-sm text-steel-300">
+                Subí tu archivo <span className="font-mono text-arctic">.xlsx</span> con el formato de precios.
+                La hoja debe tener columnas: <span className="font-mono text-steel-300">DESCRIPCION, P.U, UN/MED, PROVEEDOR</span>.
+              </p>
+              <div
+                className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-10 text-center cursor-pointer transition-colors ${dragOver ? 'border-[#2D8FCC] bg-[#2D8FCC]/5' : 'border-steel-900 hover:border-steel-700'}`}
+                onClick={() => fileRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) parseFile(f); }}
+              >
+                {parsing ? (
+                  <><Loader2 className="mb-3 h-8 w-8 animate-spin text-[#2D8FCC]" /><p className="font-body text-body-sm text-steel-300">Analizando archivo…</p></>
+                ) : (
+                  <><Upload className="mb-3 h-8 w-8 text-steel-500" /><p className="font-body text-body-sm text-arctic mb-1">Arrastrá el archivo acá</p><p className="font-body text-caption text-steel-500">o hacé clic para seleccionar — .xlsx, máx 5 MB</p></>
+                )}
+              </div>
+              <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) parseFile(f); }} />
+            </div>
+          )}
+
+          {/* ── Step: preview ── */}
+          {step === 'preview' && (
+            <div>
+              <p className="mb-3 font-mono text-caption text-steel-500">{fileName}</p>
+
+              {/* Summary tiles */}
+              <div className="mb-4 grid grid-cols-4 gap-3">
+                {[
+                  { label: 'Total filas', value: rows.length, color: 'text-arctic' },
+                  { label: 'Sin problemas', value: okCount, color: 'text-[#48BB78]' },
+                  { label: 'Con advertencias', value: warnCount, color: 'text-[#F6C90E]' },
+                  { label: 'Con errores', value: errCount, color: 'text-[#FC8181]' },
+                ].map(t => (
+                  <div key={t.label} className="rounded-lg border border-steel-900/40 bg-steel-900/30 px-4 py-3">
+                    <div className={`font-mono text-2xl font-semibold ${t.color}`}>{t.value}</div>
+                    <div className="mt-1 font-body text-caption text-steel-500">{t.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Filter chips */}
+              <div className="mb-3 flex gap-2">
+                {(['all', 'ok', 'warning', 'error'] as const).map(f => (
+                  <button key={f} onClick={() => setFilter(f)}
+                    className={`rounded-full border px-3 py-1 font-body text-caption transition-colors ${filter === f
+                      ? f === 'all' ? 'border-[#2D8FCC] bg-[#2D8FCC] text-white'
+                      : f === 'ok' ? 'border-[#48BB78] bg-[#48BB78] text-white'
+                      : f === 'warning' ? 'border-[#F6C90E] bg-[#F6C90E] text-carbon'
+                      : 'border-[#FC8181] bg-[#FC8181] text-white'
+                      : 'border-steel-900 bg-steel-900/30 text-steel-400 hover:border-steel-700'}`}>
+                    {f === 'all' ? 'Todas' : f === 'ok' ? '✓ OK' : f === 'warning' ? '⚠ Advertencias' : '✕ Errores'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Table */}
+              <div className="rounded-lg border border-steel-900/40 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-steel-900/50">
+                        <th className="px-3 py-2 text-left font-mono text-[0.6rem] uppercase tracking-wider text-steel-500 w-8">#</th>
+                        <th className="px-3 py-2 text-left font-mono text-[0.6rem] uppercase tracking-wider text-steel-500">Descripción</th>
+                        <th className="px-3 py-2 text-left font-mono text-[0.6rem] uppercase tracking-wider text-steel-500 w-16">Unidad</th>
+                        <th className="px-3 py-2 text-right font-mono text-[0.6rem] uppercase tracking-wider text-steel-500 w-28">Precio unit.</th>
+                        <th className="px-3 py-2 text-left font-mono text-[0.6rem] uppercase tracking-wider text-steel-500 w-28">Proveedor</th>
+                        <th className="px-3 py-2 text-left font-mono text-[0.6rem] uppercase tracking-wider text-steel-500 w-20">Categoría</th>
+                        <th className="px-3 py-2 w-6"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visible.map((r, i) => (
+                        <tr key={i} className={`border-t border-steel-900/30 hover:bg-steel-900/20 ${r.status === 'error' ? 'border-l-2 border-l-[#FC8181]' : r.status === 'warning' ? 'border-l-2 border-l-[#F6C90E]' : 'border-l-2 border-l-[#48BB78]'}`}>
+                          <td className="px-3 py-2 font-mono text-steel-600">{r.rowNum}</td>
+                          <td className="px-3 py-2">
+                            <div className="font-body text-arctic">{r.description || <span className="italic text-[#FC8181]">vacío</span>}</div>
+                            {r.errors.map((e, j) => <div key={j} className="text-[#FC8181] mt-0.5">✕ {e}</div>)}
+                            {r.warnings.map((w, j) => <div key={j} className="text-[#F6C90E] mt-0.5">⚠ {w}</div>)}
+                          </td>
+                          <td className="px-3 py-2 font-mono text-steel-400">{r.unit || '—'}</td>
+                          <td className="px-3 py-2 text-right font-mono text-[#48BB78]">{r.unitPrice != null ? 'Gs. ' + Math.round(r.unitPrice).toLocaleString('es-PY') : <span className="text-[#FC8181]">—</span>}</td>
+                          <td className="px-3 py-2 font-body text-steel-400 truncate max-w-[100px]">{r.provider || '—'}</td>
+                          <td className="px-3 py-2 font-mono text-steel-500">{r.category}</td>
+                          <td className="px-3 py-2">
+                            {r.status === 'ok' && <CheckCircle2 className="h-3.5 w-3.5 text-[#48BB78]" />}
+                            {r.status === 'warning' && <AlertTriangle className="h-3.5 w-3.5 text-[#F6C90E]" />}
+                            {r.status === 'error' && <AlertCircle className="h-3.5 w-3.5 text-[#FC8181]" />}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              {errCount > 0 && (
+                <p className="mt-2 font-body text-caption text-steel-500">
+                  Las filas con error no se importarán. Las {warnCount > 0 ? `${warnCount} con advertencias` : ''} sí se importan.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* ── Step: done ── */}
+          {step === 'done' && (
+            <div className="flex flex-col items-center py-8 text-center">
+              <CheckCircle2 className="mb-4 h-12 w-12 text-[#48BB78]" />
+              <h3 className="font-display text-h2 text-arctic mb-2">{imported} materiales importados</h3>
+              <p className="font-body text-body-sm text-steel-400">Ya están disponibles en el inventario.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 border-t border-steel-900/40 px-6 py-4 flex-shrink-0">
+          {step === 'upload' && <button onClick={onClose} className="btn-secondary">Cancelar</button>}
+          {step === 'preview' && (
+            <>
+              <button onClick={() => setStep('upload')} className="btn-secondary">← Cambiar archivo</button>
+              <button onClick={doImport} disabled={importing || importable === 0} className="btn-primary">
+                {importing ? <><Loader2 className="h-4 w-4 animate-spin" /> Importando…</> : `Importar ${importable} ítems`}
+              </button>
+            </>
+          )}
+          {step === 'done' && (
+            <>
+              <button onClick={() => setStep('upload')} className="btn-secondary">Nueva importación</button>
+              <button onClick={onImported} className="btn-primary">Ir al inventario</button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Material Modal ─────────────────────────────────────────────────
 
 function MaterialModal({ material, onClose, onSaved }: { material: Material | null; onClose: () => void; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
