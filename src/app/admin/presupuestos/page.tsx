@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator, GitBranch, Printer } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
@@ -51,6 +51,7 @@ const formatScheduledDate = (d: string) => {
 };
 
 export default function AdminPresupuestosPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Presupuesto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -349,7 +350,7 @@ export default function AdminPresupuestosPage() {
             const pr = PRIORITY_MAP[item.priority] || PRIORITY_MAP.media;
             const TpIcon = tp.icon;
             return (
-              <div key={item.id} className="card-interactive flex items-center gap-4 p-4" onClick={() => openDetail(item)}>
+              <div key={item.id} className="card-interactive flex items-center gap-4 p-4" onClick={() => router.push(`/admin/presupuestos/${item.id}`)}>
                 <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-steel-900 ${tp.color}`}><TpIcon className="h-5 w-5" /></div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -382,8 +383,10 @@ export default function AdminPresupuestosPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-700"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
+                  <button onClick={(e) => { e.stopPropagation(); router.push(`/admin/presupuestos/${item.id}`); }} className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-blue-bright hover:bg-blue-muted transition-colors">
+                    <Calculator className="h-3 w-3" /> Planilla
+                  </button>
                   <button onClick={(e) => { e.stopPropagation(); del(item.id); }} aria-label="Eliminar presupuesto" className="rounded p-1.5 text-steel-700 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
-                  <ChevronRight className="h-4 w-4 text-steel-700" />
                 </div>
               </div>
             );
