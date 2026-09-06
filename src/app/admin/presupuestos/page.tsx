@@ -165,9 +165,6 @@ export default function AdminPresupuestosPage() {
           <p className="mt-1 font-body text-body-sm text-steel-300">Tablero de control — Full Service & Clean</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => router.push('/admin/presupuestos/seguimiento')} className="btn-secondary flex items-center gap-1.5">
-            <TrendingUp className="h-4 w-4" /> Seguimiento 1·2·3·5·7
-          </button>
           <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo presupuesto</button>
         </div>
       </div>
@@ -189,6 +186,10 @@ export default function AdminPresupuestosPage() {
             </button>
           );
         })}
+        <button onClick={() => router.push('/admin/presupuestos/seguimiento')}
+          className="flex items-center gap-1.5 px-4 py-2.5 font-body text-body-sm font-medium transition-colors border-b-2 -mb-px border-transparent text-steel-500 hover:text-steel-300">
+          <TrendingUp className="h-3.5 w-3.5" />Seguimiento 1·2·3·5·7
+        </button>
         <div className="ml-auto flex items-center pb-1">
           <button onClick={fetchData} className="rounded p-1.5 text-steel-600 hover:text-arctic transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
         </div>
