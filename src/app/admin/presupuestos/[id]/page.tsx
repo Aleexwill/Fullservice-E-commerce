@@ -34,7 +34,8 @@ interface Rubro {
 
 interface DatosObra {
   cliente: string; obra: string; domicilio: string; contacto: string;
-  plazo: string; validez: string; alcance: string;
+  plazo: string; validez: string; pago: string; alcance: string;
+  condiciones: string;
   firmaNombre: string; firmaCargo: string;
   descuento: number; iva: number; empresa: string;
 }
@@ -97,13 +98,16 @@ function calcRubro(rb: Rubro) {
   return { matCosto, matPrecio, moCosto, moPrecio, otrosCosto, otrosPrecio, subCosto, subPrecio };
 }
 
+const CONDICIONES_DEFAULT = 'Los precios se mantienen dentro del plazo de validez indicado y están sujetos a la disponibilidad de materiales al momento de la aceptación. No se incluyen trabajos, materiales ni gestiones que no figuren en el alcance. Cualquier adicional se cotiza por separado y por escrito antes de ejecutarse.';
+
 const defaultDatos = (p: PresupuestoData): DatosObra => ({
   empresa: 'Full Service & Clean',
   cliente: p.customer.name || '',
   obra: p.serviceTitle || '',
   domicilio: p.customer.address || '',
   contacto: p.customer.phone || '',
-  plazo: '', validez: '30 días', alcance: '',
+  plazo: '', validez: '30 días', pago: 'A convenir', alcance: '',
+  condiciones: CONDICIONES_DEFAULT,
   firmaNombre: '', firmaCargo: 'Gerente de Proyecto',
   descuento: 0, iva: 10,
 });
@@ -461,6 +465,7 @@ function VistaPlanilla({ rubros, datos, onChange, onDatosChange }: {
               ['cliente','Cliente'],['obra','Obra / trabajo'],
               ['domicilio','Domicilio'],['contacto','Contacto del cliente'],
               ['plazo','Plazo de entrega'],['validez','Validez de la oferta'],
+              ['pago','Forma de pago'],['empresa','Empresa (encabezado)'],
             ] as [keyof DatosObra,string][]).map(([k,label]) => (
               <label key={k} className="flex flex-col gap-1.5">
                 <span className="font-mono text-[9px] uppercase tracking-widest text-steel-500">{label}</span>
@@ -471,6 +476,11 @@ function VistaPlanilla({ rubros, datos, onChange, onDatosChange }: {
             <label className="flex flex-col gap-1.5 col-span-2">
               <span className="font-mono text-[9px] uppercase tracking-widest text-steel-500">Alcance del trabajo</span>
               <textarea value={datos.alcance} onChange={e => onDatosChange({ ...datos, alcance: e.target.value })} rows={3}
+                className="rounded border border-steel-700 bg-steel-900/40 px-3 py-2 font-body text-xs text-arctic outline-none focus:border-blue transition-colors resize-y" />
+            </label>
+            <label className="flex flex-col gap-1.5 col-span-2">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-steel-500">Condiciones generales</span>
+              <textarea value={datos.condiciones} onChange={e => onDatosChange({ ...datos, condiciones: e.target.value })} rows={3}
                 className="rounded border border-steel-700 bg-steel-900/40 px-3 py-2 font-body text-xs text-arctic outline-none focus:border-blue transition-colors resize-y" />
             </label>
             {([['firmaNombre','Firma — nombre'],['firmaCargo','Firma — cargo']] as [keyof DatosObra,string][]).map(([k,label]) => (
@@ -558,160 +568,216 @@ function VistaPlanilla({ rubros, datos, onChange, onDatosChange }: {
   );
 }
 
-// ─── Vista Propuesta (imprimible) ─────────────────────────────────────────────
+// ─── Vista Propuesta (imprimible A4) ─────────────────────────────────────────
 
-function VistaPropuesta({ rubros, datos }: { rubros: Rubro[]; datos: DatosObra }) {
+function VistaPropuesta({ rubros, datos, ppto }: { rubros: Rubro[]; datos: DatosObra; ppto: PresupuestoData }) {
+  const mono = { fontFamily: "'IBM Plex Mono', monospace" };
   const incluidos = rubros.filter(r => r.enPropuesta);
-  const totales = incluidos.reduce((acc, r) => {
-    const c = calcRubro(r);
-    return { precio: acc.precio + c.subPrecio };
-  }, { precio: 0 });
-  const conDescuento = totales.precio * (1 - datos.descuento / 100);
-  const ivaM = conDescuento * datos.iva / 100;
-  const totalFinal = conDescuento + ivaM;
+  const subtotalGeneral = incluidos.reduce((s, r) => s + calcRubro(r).subPrecio, 0);
+  const montoDescuento = subtotalGeneral * datos.descuento / 100;
+  const neto = subtotalGeneral - montoDescuento;
+  const montoIva = neto * datos.iva / 100;
+  const totalFinal = neto + montoIva;
+  const fechaHoy = new Date().toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' });
 
   return (
-    <div className="max-w-[900px] mx-auto">
-      <div className="mb-4 flex items-center gap-3 text-steel-500">
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+      {/* Toolbar no-print */}
+      <div className="mb-4 flex items-center gap-3 text-steel-500 no-print">
         <Printer className="h-4 w-4" />
         <span className="font-mono text-xs">Vista de propuesta — tal como se imprime al cliente</span>
         <button onClick={() => window.print()} className="ml-auto flex items-center gap-2 rounded px-3 py-1.5 text-xs font-medium bg-steel-900 text-arctic hover:bg-steel-700 transition-colors">
-          <Printer className="h-3.5 w-3.5" /> Imprimir
+          <Printer className="h-3.5 w-3.5" /> Imprimir / PDF
         </button>
       </div>
 
-      {/* Documento */}
-      <div id="propuesta-print" className="rounded-xl border border-steel-700 bg-white text-[#1b1a18] overflow-hidden print:border-0 print:shadow-none">
-        {/* Header doc */}
-        <div className="flex items-center justify-between gap-4 px-8 py-6 border-b border-[#dedbd5]" style={{ background: '#1b1a18' }}>
-          <div>
-            <div className="text-xl font-bold text-white tracking-tight">{datos.empresa}</div>
-            <div className="text-[10px] uppercase tracking-[0.12em] text-[#86817b] mt-0.5">Costos y Presupuestos</div>
+      {/* ── Hoja A4 ── */}
+      <div id="propuesta-print" data-sheet="1" style={{
+        width: 820, maxWidth: '100%', margin: '0 auto', padding: '56px 60px 48px',
+        background: '#ffffff', border: '1px solid #dedbd5', borderRadius: 4,
+        boxShadow: '0 2px 20px rgba(0,0,0,0.05)', color: '#1b1a18',
+        fontFamily: "'IBM Plex Sans', Helvetica, Arial, sans-serif",
+      }}>
+
+        {/* Encabezado empresa + N° presupuesto */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 30, paddingBottom: 22, borderBottom: '2px solid #1b1a18' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5, paddingTop: 4 }}>
+            <div style={{ fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>{datos.empresa}</div>
+            <div style={{ fontSize: 11.5, lineHeight: 1.6, color: '#6f6b64' }}>Servicios de Limpieza y Mantenimiento</div>
+            <div style={{ ...mono, fontSize: 10.5, lineHeight: 1.6, color: '#6f6b64' }}>Full Service & Clean S.A.</div>
           </div>
-          <div className="text-right">
-            <div className="text-[10px] uppercase tracking-[0.1em] text-[#86817b]">Total al cliente</div>
-            <div className="text-2xl font-black text-white mt-0.5" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(totalFinal)}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'right' }}>
+            <div style={{ ...mono, fontSize: 10, letterSpacing: '0.11em', textTransform: 'uppercase', color: '#86817b' }}>Presupuesto</div>
+            <div style={{ ...mono, fontSize: 19, fontWeight: 600, color: '#1b1a18' }}>{ppto.code}</div>
+            <div style={{ ...mono, fontSize: 10.5, color: '#6f6b64', whiteSpace: 'nowrap' }}>{fechaHoy}</div>
           </div>
         </div>
 
-        {/* Datos cliente */}
-        <div className="grid px-8 py-5 gap-x-8 gap-y-3 border-b border-[#dedbd5]" style={{ gridTemplateColumns: 'repeat(3,minmax(0,1fr))', background: '#f4f3f0' }}>
-          {[['Cliente', datos.cliente],['Obra / trabajo', datos.obra],['Domicilio', datos.domicilio],
-            ['Contacto', datos.contacto],['Plazo de entrega', datos.plazo],['Validez oferta', datos.validez]
-          ].map(([l,v]) => (
-            <div key={l}>
-              <div className="text-[9px] uppercase tracking-[0.1em] text-[#86817b] mb-0.5" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{l}</div>
-              <div className="text-sm font-medium">{v || '—'}</div>
-            </div>
-          ))}
+        {/* Cliente + Obra */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '22px 34px', padding: '24px 0', borderBottom: '1px solid #e6e2da' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ ...mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86817b' }}>Cliente</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{datos.cliente || '—'}</div>
+            <div style={{ fontSize: 12, color: '#6f6b64' }}>{datos.contacto || ''}</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ ...mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86817b' }}>Obra / Trabajo</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{datos.obra || '—'}</div>
+            <div style={{ fontSize: 12, color: '#6f6b64' }}>{datos.domicilio || ''}</div>
+          </div>
         </div>
 
-        {/* Alcance */}
+        {/* Alcance del trabajo */}
         {datos.alcance && (
-          <div className="px-8 py-4 border-b border-[#dedbd5]">
-            <div className="text-[9px] uppercase tracking-[0.1em] text-[#86817b] mb-1.5" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Alcance del trabajo</div>
-            <p className="text-sm leading-relaxed">{datos.alcance}</p>
+          <div style={{ padding: '24px 0 4px' }}>
+            <div style={{ ...mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86817b', marginBottom: 8 }}>Alcance del trabajo</div>
+            <div style={{ fontSize: 13, lineHeight: 1.65, color: '#33312e', whiteSpace: 'pre-wrap' }}>{datos.alcance}</div>
           </div>
         )}
 
         {/* Rubros */}
-        {incluidos.map(rb => {
-          const { subPrecio } = calcRubro(rb);
-          return (
-            <div key={rb.id} className="border-b border-[#dedbd5]">
-              {/* Rubro header */}
-              <div className="flex items-center justify-between px-8 py-3" style={{ background: '#f0eee9' }}>
-                <span className="font-semibold text-sm">{rb.nombre}</span>
-                <span className="font-semibold" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(subPrecio)}</span>
-              </div>
+        <div style={{ paddingTop: 26 }}>
+          {incluidos.map((rb, idx) => {
+            const { subPrecio } = calcRubro(rb);
+            const itemsMats = rb.mats.filter(m => m.desc);
+            const itemsMos = rb.mos.filter(m => m.desc);
+            const hayTabla = itemsMats.length > 0 || itemsMos.length > 0;
+            return (
+              <div key={rb.id} style={{ paddingBottom: 22 }}>
+                {/* Rubro header */}
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20, padding: '0 0 8px', borderBottom: '1px solid #1b1a18' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                    <span style={{ ...mono, fontSize: 10, letterSpacing: '0.1em', color: '#86817b' }}>{String(idx + 1).padStart(2, '0')}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{rb.nombre}</span>
+                  </div>
+                  <span style={{ ...mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86817b' }}>Importe</span>
+                </div>
 
-              {/* Materiales */}
-              {rb.mats.some(m => m.desc) && (
-                <table className="w-full px-8" style={{ borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ background: '#faf9f7', borderBottom: '1px solid #efedea' }}>
-                      {['Descripción','Un.','Cant.','Costo unit.','Precio'].map(h => (
-                        <th key={h} className="px-4 py-2 text-left text-[9px] uppercase tracking-[0.08em] text-[#86817b] font-normal" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rb.mats.filter(m => m.desc).map(m => {
+                {/* Tabla de ítems */}
+                {hayTabla && (
+                  <>
+                    {/* Col headers */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px 62px 108px 132px', padding: '4px 0 3px', borderBottom: '1px solid #efedea', ...mono, fontSize: 8.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#86817b' }}>
+                      <div style={{ padding: '3px 8px 3px 0' }}>Descripción del trabajo</div>
+                      <div style={{ padding: '3px 4px', textAlign: 'center' }}>Un.</div>
+                      <div style={{ padding: '3px 4px', textAlign: 'right' }}>Cant.</div>
+                      <div style={{ padding: '3px 4px', textAlign: 'right' }}>P. unitario</div>
+                      <div style={{ padding: '3px 0 3px 4px', textAlign: 'right' }}>Importe</div>
+                    </div>
+
+                    {/* Descripción de materiales */}
+                    {rb.descMat && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px 62px 108px 132px', alignItems: 'baseline', borderBottom: '1px solid #f4f2ee' }}>
+                        <div style={{ padding: '8px 8px 8px 0', fontSize: 12, lineHeight: 1.55, color: '#33312e', whiteSpace: 'pre-wrap' }}>{rb.descMat}</div>
+                        <div /><div /><div /><div />
+                      </div>
+                    )}
+
+                    {/* Items materiales */}
+                    {itemsMats.map(m => {
                       const { precio } = calcMat(m);
                       return (
-                        <tr key={m.id} style={{ borderBottom: '1px solid #f0eee9' }}>
-                          <td className="px-4 py-2 text-sm">{m.desc}</td>
-                          <td className="px-4 py-2 text-sm text-[#86817b]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{m.unidad}</td>
-                          <td className="px-4 py-2 text-sm text-right" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{m.cant}</td>
-                          <td className="px-4 py-2 text-sm text-right" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(m.costo)}</td>
-                          <td className="px-4 py-2 text-sm text-right font-semibold" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(precio)}</td>
-                        </tr>
+                        <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px 62px 108px 132px', alignItems: 'center', borderBottom: '1px solid #f4f2ee' }}>
+                          <div style={{ padding: '7px 8px 7px 0', fontSize: 12, lineHeight: 1.5, color: '#33312e' }}>{m.desc}</div>
+                          <div style={{ ...mono, fontSize: 11, textAlign: 'center', color: '#6f6b64', padding: '7px 2px' }}>{m.unidad}</div>
+                          <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{m.cant}</div>
+                          <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{gs(m.costo)}</div>
+                          <div style={{ ...mono, fontSize: 12, fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap', padding: '7px 0 7px 4px' }}>{gs(precio)}</div>
+                        </div>
                       );
                     })}
-                  </tbody>
-                </table>
-              )}
 
-              {/* Mano de obra */}
-              {rb.mos.some(m => m.desc) && (
-                <table className="w-full" style={{ borderCollapse: 'collapse', borderTop: '1px solid #efedea' }}>
-                  <thead>
-                    <tr style={{ background: '#faf9f7', borderBottom: '1px solid #efedea' }}>
-                      {['Tarea / gremio','Pers.','Horas','Valor/hora','Precio'].map(h => (
-                        <th key={h} className="px-4 py-2 text-left text-[9px] uppercase tracking-[0.08em] text-[#86817b] font-normal" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rb.mos.filter(m => m.desc).map(m => {
+                    {/* Descripción de mano de obra */}
+                    {rb.descMo && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px 62px 108px 132px', alignItems: 'baseline', borderBottom: '1px solid #f4f2ee' }}>
+                        <div style={{ padding: '8px 8px 8px 0', fontSize: 12, lineHeight: 1.55, color: '#33312e', whiteSpace: 'pre-wrap' }}>{rb.descMo}</div>
+                        <div /><div /><div /><div />
+                      </div>
+                    )}
+
+                    {/* Items mano de obra */}
+                    {itemsMos.map(m => {
                       const { precio } = calcMo(m);
                       return (
-                        <tr key={m.id} style={{ borderBottom: '1px solid #f0eee9' }}>
-                          <td className="px-4 py-2 text-sm">{m.desc}</td>
-                          <td className="px-4 py-2 text-sm text-center" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{m.pers}</td>
-                          <td className="px-4 py-2 text-sm text-right" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{m.horas}</td>
-                          <td className="px-4 py-2 text-sm text-right" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(m.vh)}</td>
-                          <td className="px-4 py-2 text-sm text-right font-semibold" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(precio)}</td>
-                        </tr>
+                        <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px 62px 108px 132px', alignItems: 'center', borderBottom: '1px solid #f4f2ee' }}>
+                          <div style={{ padding: '7px 8px 7px 0', fontSize: 12, lineHeight: 1.5, color: '#33312e' }}>{m.desc}</div>
+                          <div style={{ ...mono, fontSize: 11, textAlign: 'center', color: '#6f6b64', padding: '7px 2px' }}>hs</div>
+                          <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{m.pers * m.horas}</div>
+                          <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{gs(m.vh)}</div>
+                          <div style={{ ...mono, fontSize: 12, fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap', padding: '7px 0 7px 4px' }}>{gs(precio)}</div>
+                        </div>
                       );
                     })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          );
-        })}
+                  </>
+                )}
 
-        {/* Totales finales */}
-        <div className="px-8 py-5">
-          <div className="ml-auto" style={{ maxWidth: 360 }}>
-            {datos.descuento > 0 && (
-              <div className="flex justify-between py-2 border-b border-[#efedea] text-sm">
-                <span className="text-[#86817b]">Descuento {datos.descuento}%</span>
-                <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>- {gs(totales.precio * datos.descuento / 100)}</span>
+                {/* Subtotal rubro */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 150px', alignItems: 'baseline', paddingTop: 11, borderTop: hayTabla ? '1px solid #efedea' : undefined }}>
+                  <div />
+                  <div style={{ ...mono, fontSize: 14, fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap' }}>{gs(subPrecio)}</div>
+                </div>
               </div>
-            )}
-            <div className="flex justify-between py-2 border-b border-[#efedea] text-sm">
-              <span className="text-[#86817b]">Subtotal</span>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(conDescuento)}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-[#efedea] text-sm">
-              <span className="text-[#86817b]">IVA {datos.iva}%</span>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(ivaM)}</span>
-            </div>
-            <div className="flex justify-between pt-3 items-baseline">
-              <span className="font-bold text-base">TOTAL</span>
-              <span className="font-black text-xl" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{gs(totalFinal)}</span>
+            );
+          })}
+
+          {/* Totales */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 10 }}>
+            <div style={{ width: 320, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '6px 0', fontSize: 12.5, borderTop: '1px solid #e6e2da' }}>
+                <span style={{ color: '#6f6b64' }}>Subtotal general</span>
+                <span style={{ ...mono, whiteSpace: 'nowrap' }}>{gs(subtotalGeneral)}</span>
+              </div>
+              {datos.descuento > 0 && (
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '6px 0', fontSize: 12.5 }}>
+                  <span style={{ color: '#6f6b64' }}>Descuento {datos.descuento}%</span>
+                  <span style={{ ...mono, whiteSpace: 'nowrap' }}>− {gs(montoDescuento)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '6px 0', fontSize: 12.5, borderTop: '1px solid #e6e2da' }}>
+                <span style={{ color: '#6f6b64' }}>Neto</span>
+                <span style={{ ...mono, whiteSpace: 'nowrap' }}>{gs(neto)}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '6px 0', fontSize: 12.5 }}>
+                <span style={{ color: '#6f6b64' }}>IVA {datos.iva}%</span>
+                <span style={{ ...mono, whiteSpace: 'nowrap' }}>{gs(montoIva)}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '14px 0 4px', marginTop: 6, borderTop: '2px solid #1b1a18' }}>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>Total</span>
+                <span style={{ ...mono, fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{gs(totalFinal)}</span>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Plazo / Pago / Validez */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 22, padding: '28px 0', marginTop: 24, borderTop: '1px solid #e6e2da', borderBottom: '1px solid #e6e2da' }}>
+          {[['Plazo de entrega', datos.plazo], ['Forma de pago', datos.pago], ['Validez de la oferta', datos.validez]].map(([l, v]) => (
+            <div key={l} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ ...mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86817b' }}>{l}</div>
+              <div style={{ fontSize: 12.5 }}>{v || '—'}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Condiciones */}
+        {datos.condiciones && (
+          <div style={{ padding: '22px 0 0' }}>
+            <div style={{ ...mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#86817b', marginBottom: 8 }}>Condiciones</div>
+            <div style={{ fontSize: 11.5, lineHeight: 1.7, color: '#6f6b64', whiteSpace: 'pre-wrap' }}>{datos.condiciones}</div>
+          </div>
+        )}
+
         {/* Firma */}
-        <div className="flex items-end justify-between px-8 py-8 border-t border-[#dedbd5]" style={{ background: '#faf9f7' }}>
-          <div className="text-xs text-[#86817b]">Este presupuesto es válido por {datos.validez || '30 días'}.</div>
-          <div className="text-center">
-            <div className="w-48 border-t border-[#1b1a18] pt-2 text-sm font-medium">{datos.firmaNombre || '____________________'}</div>
-            <div className="text-xs text-[#86817b] mt-0.5">{datos.firmaCargo}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 60, paddingTop: 62 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <div style={{ borderTop: '1px solid #1b1a18' }} />
+            <div style={{ fontSize: 12.5, fontWeight: 600, paddingTop: 2 }}>{datos.firmaNombre || '___________________________'}</div>
+            <div style={{ fontSize: 11.5, color: '#6f6b64' }}>{datos.firmaCargo}</div>
+            <div style={{ ...mono, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#86817b', paddingTop: 2 }}>Por {datos.empresa}</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <div style={{ borderTop: '1px solid #1b1a18' }} />
+            <div style={{ ...mono, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#86817b' }}>Conformidad del cliente</div>
           </div>
         </div>
       </div>
@@ -733,7 +799,8 @@ export default function PresupuestoDetailPage() {
   const [rubros, setRubros] = useState<Rubro[]>([newRubro(1)]);
   const [datos, setDatos] = useState<DatosObra>({
     empresa: 'Full Service & Clean', cliente: '', obra: '', domicilio: '',
-    contacto: '', plazo: '', validez: '30 días', alcance: '',
+    contacto: '', plazo: '', validez: '30 días', pago: 'A convenir', alcance: '',
+    condiciones: CONDICIONES_DEFAULT,
     firmaNombre: '', firmaCargo: 'Gerente de Proyecto', descuento: 0, iva: 10,
   });
 
@@ -845,16 +912,19 @@ export default function PresupuestoDetailPage() {
         {tab === 'planilla' ? (
           <VistaPlanilla rubros={rubros} datos={datos} onChange={handleRubrosChange} onDatosChange={handleDatosChange} />
         ) : (
-          <VistaPropuesta rubros={rubros} datos={datos} />
+          <VistaPropuesta rubros={rubros} datos={datos} ppto={ppto} />
         )}
       </main>
 
       {/* Print styles */}
       <style>{`
         @media print {
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           header, .no-print { display: none !important; }
-          body { background: white !important; }
-          #propuesta-print { border: none !important; }
+          body { background: white !important; margin: 0 !important; }
+          main { margin: 0 !important; padding: 0 !important; }
+          #propuesta-print { border: none !important; box-shadow: none !important; width: 100% !important; padding: 0 !important; }
+          @page { size: A4 portrait; margin: 9mm 10mm 13mm; }
         }
       `}</style>
     </div>
