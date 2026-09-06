@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone,
@@ -14,6 +14,24 @@ import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
 import { imprimirPresupuesto, type PdfDetallOpts } from '@/lib/presupuesto-pdf';
 
+interface SeguimientoData {
+  mes?: string;
+  mesHistorial?: string[];
+  alerta?: string;
+  vendido?: number;
+  avance?: string;
+  os?: string;
+  informe?: string;
+  facturado?: string;
+  nroFactura?: string;
+  tecnico?: string;
+  prioridad?: string;
+  obs?: string;
+  pct?: number;
+  dias?: number;
+  local?: string;
+}
+
 interface Presupuesto {
   id: string; code: string; status: string; serviceType: string; serviceTitle: string;
   customer: { name: string; email: string; phone: string; company: string; address: string };
@@ -22,6 +40,7 @@ interface Presupuesto {
   scheduledDate: string; calculationData: CalculationData | null; createdBy: string;
   notes: { id: string; text: string; createdAt: string }[];
   createdAt: string; updatedAt: string;
+  seguimientoData?: SeguimientoData;
 }
 
 const STATUS_MAP: Record<string, { label: string; badge: string; color: string }> = {
@@ -131,7 +150,7 @@ export default function AdminPresupuestosPage() {
   const tasaCierre = allArchive.length > 0 ? Math.round((items.filter(i => i.status === 'completado').length / (items.filter(i => i.status === 'completado').length + items.filter(i => i.status === 'rechazado').length || 1)) * 100) : 0;
 
   const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
-    { key: 'dashboard',    label: 'Dashboard',      icon: BarChart2 },
+    { key: 'dashboard',    label: 'Tablero de control', icon: BarChart2 },
     { key: 'solicitudes',  label: 'Solicitudes',    icon: List,         count: allActive.length },
     { key: 'archivo',      label: 'Archivo',        icon: Archive,      count: allArchive.length },
     { key: 'planificacion',label: 'Planificación',  icon: ClipboardList },
@@ -177,10 +196,7 @@ export default function AdminPresupuestosPage() {
 
       {/* Dashboard tab */}
       {activeTab === 'dashboard' && (
-        <DashboardTab items={items} loading={loading}
-          totalCotizado={totalCotizado} totalAprobado={totalAprobado}
-          totalCompletado={totalCompletado} tasaCierre={tasaCierre}
-          onNavigate={setActiveTab} />
+        <TableroDashboard items={items} loading={loading} onRefresh={fetchData} />
       )}
 
       {/* Solicitudes tab */}
@@ -228,115 +244,640 @@ export default function AdminPresupuestosPage() {
   );
 }
 
-// ─── Dashboard ───────────────────────────────────────────────
-function DashboardTab({ items, loading, totalCotizado, totalAprobado, totalCompletado, tasaCierre, onNavigate }: {
-  items: Presupuesto[]; loading: boolean;
-  totalCotizado: number; totalAprobado: number; totalCompletado: number; tasaCierre: number;
-  onNavigate: (tab: Tab) => void;
+// ─── Tablero de Control constants ─────────────────────────────
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const ALERTA_OPTS = ['','FALTA RELEVAR','FALTA PRESUPUESTAR','ENVIADO','APROBADO','DE BAJA'];
+const AVANCE_OPTS = ['Pendiente','En Proceso','En Espera / Bloqueado','Finalizado'];
+const CICLO_OS = ['NO','SI','NA'];
+const PLAN2_KEY = 'fsc-plan2-tareas-v1';
+
+function estadoDe(alerta?: string, avance?: string): string {
+  if (alerta === 'DE BAJA') return 'DE BAJA';
+  if (alerta === 'APROBADO' && avance === 'Finalizado') return 'FINALIZADO';
+  if (alerta === 'APROBADO') return 'EN EJECUCION';
+  if (alerta === 'ENVIADO') return 'PENDIENTE APROBACION';
+  if (alerta === 'FALTA PRESUPUESTAR') return 'EN PRESUPUESTO';
+  if (alerta === 'FALTA RELEVAR') return 'PENDIENTE RELEVO';
+  return 'SIN CARGAR';
+}
+
+function chipEstado(estado: string): string {
+  const map: Record<string, string> = {
+    'FINALIZADO': 'bg-[#48BB78]/15 text-[#48BB78] border border-[#48BB78]/30',
+    'EN EJECUCION': 'bg-blue-bright/15 text-blue-bright border border-blue-bright/30',
+    'PENDIENTE APROBACION': 'bg-yellow-bright/15 text-yellow-bright border border-yellow-bright/30',
+    'EN PRESUPUESTO': 'bg-[#F97316]/15 text-[#F97316] border border-[#F97316]/30',
+    'PENDIENTE RELEVO': 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
+    'DE BAJA': 'bg-[#FC8181]/15 text-[#FC8181] border border-[#FC8181]/30',
+    'SIN CARGAR': 'bg-steel-900 text-steel-500 border border-steel-800',
+  };
+  return map[estado] || map['SIN CARGAR'];
+}
+
+function flagColor(alerta?: string): string {
+  const map: Record<string, string> = {
+    'APROBADO': '#48BB78', 'ENVIADO': '#F59E0B',
+    'FALTA PRESUPUESTAR': '#F97316', 'FALTA RELEVAR': '#A78BFA',
+    'DE BAJA': '#FC8181',
+  };
+  return alerta ? (map[alerta] || '#6B7280') : '#6B7280';
+}
+
+const N = (v: unknown): number => Number(v) || 0;
+const money = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
+const ciclo = (v: string) => CICLO_OS[(CICLO_OS.indexOf(v) + 1) % 3];
+const prevMonth = (ym: string) => { const [y,m] = ym.split('-').map(Number); return m === 1 ? `${y-1}-12` : `${y}-${String(m-1).padStart(2,'0')}`; };
+const nextMonthStr = (ym: string) => { const [y,m] = ym.split('-').map(Number); return m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2,'0')}`; };
+const monthLabel = (ym: string) => { const [y,m] = ym.split('-').map(Number); return `${MONTH_NAMES[m-1]} ${y}`; };
+
+interface Plan2Tarea {
+  id: string; cliente: string; local: string; descripcion: string; tecnico: string;
+  avance: string; dias: number; obs: string; scheduledDate?: string;
+}
+
+// ─── TableroDashboard ─────────────────────────────────────────
+function TableroDashboard({ items, loading, onRefresh }: {
+  items: Presupuesto[]; loading: boolean; onRefresh: () => void;
 }) {
-  const byStatus = (s: string) => items.filter(i => i.status === s).length;
-  const kpis = [
-    { label: 'Total solicitudes', value: items.length, icon: FileText, color: 'text-steel-300' },
-    { label: 'Pend. aprobación', value: byStatus('cotizado'), icon: Clock, color: 'text-yellow-bright' },
-    { label: 'En ejecución', value: byStatus('en_ejecucion'), icon: Wrench, color: 'text-blue-bright' },
-    { label: 'Completados', value: byStatus('completado'), icon: CheckCircle2, color: 'text-[#48BB78]' },
-    { label: 'Rechazados', value: byStatus('rechazado'), icon: XCircle, color: 'text-[#FC8181]' },
-  ];
-  const financial = [
-    { label: 'Total cotizado', value: totalCotizado, icon: DollarSign, color: 'text-steel-300' },
-    { label: 'Aprobado / Vendido', value: totalAprobado, icon: CheckCircle2, color: 'text-[#48BB78]' },
-    { label: 'Facturado / Cobrado', value: totalCompletado, icon: TrendingUp, color: 'text-blue-bright' },
-    { label: 'Por facturar', value: Math.max(0, totalAprobado - totalCompletado), icon: Clock, color: 'text-yellow-bright' },
+  const now = new Date();
+  const currentYM = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  const [subTab, setSubTab] = useState<'dashboard'|'presupuestos'|'planificacion'>('dashboard');
+  const [selectedMes, setSelectedMes] = useState(currentYM);
+  const [yearView, setYearView] = useState(now.getFullYear());
+  const [overrides, setOverrides] = useState<Map<string, Partial<SeguimientoData>>>(new Map());
+  const [periodo, setPeriodo] = useState<'dia'|'semana'|'mes'|'anio'|'todo'>('mes');
+  const [ancla, setAncla] = useState(currentYM.slice(0,7) + '-' + String(now.getDate()).padStart(2,'0'));
+  const [plan2, setPlan2] = useState<Plan2Tarea[]>([]);
+  const [plan2Edit, setPlan2Edit] = useState<string|null>(null);
+  const [plan2Form, setPlan2Form] = useState<Partial<Plan2Tarea>>({});
+
+  useEffect(() => {
+    try { const d = localStorage.getItem(PLAN2_KEY); if (d) setPlan2(JSON.parse(d)); } catch {}
+  }, []);
+
+  const savePlan2 = (list: Plan2Tarea[]) => {
+    setPlan2(list);
+    try { localStorage.setItem(PLAN2_KEY, JSON.stringify(list)); } catch {}
+  };
+
+  const getSD = (item: Presupuesto): SeguimientoData => ({
+    ...((item.seguimientoData as SeguimientoData) || {}),
+    ...(overrides.get(item.id) || {}),
+  });
+
+  const getMes = (item: Presupuesto) => {
+    const sd = getSD(item);
+    return sd.mes || item.createdAt.slice(0, 7);
+  };
+
+  const patchSeg = async (id: string, fields: Partial<SeguimientoData>) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    const currentSD = getSD(item);
+    const merged = { ...currentSD, ...fields };
+    setOverrides(prev => { const m = new Map(prev); m.set(id, { ...(m.get(id) || {}), ...fields }); return m; });
+    try {
+      await fetch(`/api/presupuestos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seguimientoData: merged }),
+      });
+    } catch {}
+  };
+
+  // Items for selected month
+  const mesItems = useMemo(() => items.filter(i => getMes(i) === selectedMes), [items, selectedMes, overrides]);
+  const vivos = mesItems.filter(i => getSD(i).alerta !== 'DE BAJA');
+  const aprobados = mesItems.filter(i => getSD(i).alerta === 'APROBADO');
+  const facturadas = aprobados.filter(i => getSD(i).facturado === 'SI');
+
+  // KPIs
+  const cotizado = vivos.reduce((s, i) => s + N(i.finalValue || i.estimatedValue), 0);
+  const aprobadoMonto = aprobados.reduce((s, i) => s + N(i.finalValue || i.estimatedValue), 0);
+  const facturadoMonto = facturadas.reduce((s, i) => s + N(i.finalValue || i.estimatedValue), 0);
+  const porFacturar = aprobadoMonto - facturadoMonto;
+  const tasaCierre = cotizado > 0 ? Math.round((aprobadoMonto / cotizado) * 100) : 0;
+
+  // Cierre administrativo
+  const cierreAdm = [
+    { label: 'Orden de servicio', n: aprobados.filter(i => getSD(i).os === 'SI').length, total: aprobados.length },
+    { label: 'Informe al cliente', n: aprobados.filter(i => getSD(i).informe === 'SI').length, total: aprobados.length },
+    { label: 'Facturado', n: facturadas.length, total: aprobados.length },
   ];
 
-  if (loading) return <div className="space-y-4">{Array.from({length:3}).map((_,i) => <div key={i} className="card animate-pulse p-4 h-20 bg-steel-900/40" />)}</div>;
+  // Monto por cliente (top 6)
+  const porCliente = useMemo(() => {
+    const map: Record<string, number> = {};
+    aprobados.forEach(i => { map[i.customer.name] = (map[i.customer.name] || 0) + N(i.finalValue || i.estimatedValue); });
+    return Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,6);
+  }, [aprobados]);
+
+  // Months for year tabs
+  const yearMonths = Array.from({length:12},(_,i) => {
+    const m = String(i+1).padStart(2,'0');
+    return { ym: `${yearView}-${m}`, label: MONTH_NAMES[i].slice(0,3) };
+  });
+
+  // Pasar no aprobados al mes siguiente
+  const pasarPendientes = async () => {
+    const pendientes = mesItems.filter(i => { const a = getSD(i).alerta; return a !== 'APROBADO' && a !== 'DE BAJA'; });
+    if (!pendientes.length) return;
+    const next = nextMonthStr(selectedMes);
+    await Promise.all(pendientes.map(i => {
+      const sd = getSD(i);
+      return patchSeg(i.id, { mes: next, mesHistorial: [...(sd.mesHistorial || []), selectedMes] });
+    }));
+    setSelectedMes(next);
+  };
+
+  // Plan 1: all APROBADO presupuestos across all months (period filtered)
+  const planRanges = useMemo((): [string,string]|null => {
+    const d = new Date(ancla);
+    if (periodo === 'todo') return null;
+    if (periodo === 'dia') return [ancla, ancla];
+    if (periodo === 'semana') {
+      const dow = d.getDay(); const mon = new Date(d); mon.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+      const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+      return [mon.toISOString().slice(0,10), sun.toISOString().slice(0,10)];
+    }
+    if (periodo === 'mes') { const y = ancla.slice(0,4), m = ancla.slice(5,7); const last = new Date(Number(y), Number(m), 0).getDate(); return [`${y}-${m}-01`, `${y}-${m}-${last}`]; }
+    if (periodo === 'anio') { const y = ancla.slice(0,4); return [`${y}-01-01`, `${y}-12-31`]; }
+    return null;
+  }, [periodo, ancla]);
+
+  const plan1Items = useMemo(() => {
+    const all = items.filter(i => getSD(i).alerta === 'APROBADO');
+    if (!planRanges) return all;
+    const [from, to] = planRanges;
+    return all.filter(i => {
+      const d = i.scheduledDate || getSD(i).local || i.createdAt.slice(0,10);
+      return d >= from && d <= to;
+    });
+  }, [items, planRanges, overrides]);
+
+  // Arrastres: items whose mesHistorial contains a month < selectedMes
+  const arrastres = mesItems.filter(i => {
+    const h = getSD(i).mesHistorial || [];
+    return h.some(m => m < selectedMes);
+  });
+  const regularItems = mesItems.filter(i => !arrastres.includes(i));
+
+  const subTabs = [
+    { key: 'dashboard' as const, label: 'Dashboard' },
+    { key: 'presupuestos' as const, label: 'Presupuestos' },
+    { key: 'planificacion' as const, label: 'Planificación' },
+  ];
+
+  if (loading) return <div className="space-y-4">{Array.from({length:4}).map((_,i) => <div key={i} className="card animate-pulse p-4 h-16 bg-steel-900/40" />)}</div>;
 
   return (
-    <div className="space-y-6">
-      {/* Status KPIs */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        {kpis.map(k => {
-          const Icon = k.icon;
-          return (
-            <div key={k.label} className="card p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-body text-caption text-steel-500">{k.label}</span>
-                <Icon className={`h-4 w-4 ${k.color}`} />
-              </div>
-              <p className={`font-display text-3xl font-bold ${k.color}`}>{k.value}</p>
+    <div className="space-y-4">
+      {/* Sub-tab nav + month selector */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-1 rounded-lg bg-steel-900/60 p-1">
+          {subTabs.map(t => (
+            <button key={t.key} onClick={() => setSubTab(t.key)}
+              className={`px-4 py-1.5 rounded-md font-body text-body-sm font-medium transition-colors ${subTab === t.key ? 'bg-blue-bright text-white' : 'text-steel-400 hover:text-arctic'}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {subTab !== 'planificacion' && (
+          <div className="flex items-center gap-2">
+            <button onClick={() => setYearView(y => y-1)} className="p-1 text-steel-500 hover:text-arctic">‹</button>
+            <span className="font-mono text-caption text-steel-400 w-10 text-center">{yearView}</span>
+            <button onClick={() => setYearView(y => y+1)} className="p-1 text-steel-500 hover:text-arctic">›</button>
+            <div className="flex gap-1 flex-wrap">
+              {yearMonths.map(({ ym, label }) => {
+                const hasData = items.some(i => getMes(i) === ym);
+                return (
+                  <button key={ym} onClick={() => setSelectedMes(ym)}
+                    className={`px-2.5 py-1 rounded font-mono text-[0.65rem] font-medium transition-colors border ${
+                      selectedMes === ym ? 'border-blue-bright bg-blue-bright/15 text-blue-bright' :
+                      hasData ? 'border-steel-700 bg-steel-900/50 text-steel-300 hover:border-steel-500' :
+                      'border-steel-900 text-steel-700 hover:text-steel-500'
+                    }`}>{label}</button>
+                );
+              })}
             </div>
-          );
-        })}
+          </div>
+        )}
       </div>
 
-      {/* Financial KPIs */}
+      {/* ── DASHBOARD sub-tab ── */}
+      {subTab === 'dashboard' && (
+        <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-h3 text-arctic">{monthLabel(selectedMes)}</h2>
+            <button onClick={pasarPendientes} className="btn-secondary text-xs flex items-center gap-1.5">
+              <ChevronRight className="h-3.5 w-3.5" /> Pasar no aprobados a {monthLabel(nextMonthStr(selectedMes))}
+            </button>
+          </div>
+          {/* KPI tiles */}
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              { label: 'Cotizado', value: money(cotizado), color: 'text-steel-300' },
+              { label: 'Aprobado', value: money(aprobadoMonto), color: 'text-[#48BB78]' },
+              { label: 'Facturado', value: money(facturadoMonto), color: 'text-blue-bright' },
+              { label: 'Por facturar', value: money(porFacturar), color: 'text-yellow-bright' },
+            ].map(k => (
+              <div key={k.label} className="card p-4">
+                <span className="font-body text-caption text-steel-500">{k.label}</span>
+                <p className={`font-mono text-base font-bold mt-1 ${k.color}`}>{k.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              { label: 'Total presupuestos', value: mesItems.length, color: 'text-steel-300' },
+              { label: 'Aprobados', value: aprobados.length, color: 'text-[#48BB78]' },
+              { label: 'Tasa de cierre', value: `${tasaCierre}%`, color: 'text-blue-bright' },
+              { label: 'Arrastres', value: arrastres.length, color: 'text-yellow-bright' },
+            ].map(k => (
+              <div key={k.label} className="card p-4">
+                <span className="font-body text-caption text-steel-500">{k.label}</span>
+                <p className={`font-display text-2xl font-bold mt-1 ${k.color}`}>{k.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* Cierre administrativo */}
+            <div className="card p-5">
+              <h3 className="mb-4 font-display text-h4 text-arctic">Cierre administrativo</h3>
+              <div className="space-y-3">
+                {cierreAdm.map(c => {
+                  const pct = c.total > 0 ? Math.round((c.n / c.total) * 100) : 0;
+                  return (
+                    <div key={c.label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-body text-caption text-steel-400">{c.label}</span>
+                        <span className="font-mono text-caption text-steel-300">{c.n}/{c.total}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-steel-900/60">
+                        <div className="h-2 rounded-full bg-blue-bright transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Monto por cliente */}
+            <div className="card p-5">
+              <h3 className="mb-4 font-display text-h4 text-arctic">Monto por cliente</h3>
+              <div className="space-y-2">
+                {porCliente.length === 0 && <p className="font-body text-caption text-steel-600">Sin datos para este mes</p>}
+                {porCliente.map(([nombre, monto]) => {
+                  const pct = aprobadoMonto > 0 ? Math.round((monto / aprobadoMonto) * 100) : 0;
+                  return (
+                    <div key={nombre} className="flex items-center gap-3">
+                      <span className="w-28 shrink-0 font-body text-caption text-steel-400 truncate">{nombre}</span>
+                      <div className="flex-1 h-2 rounded-full bg-steel-900/60">
+                        <div className="h-2 rounded-full bg-[#48BB78]/70 transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="shrink-0 font-mono text-caption text-steel-300">{money(monto)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── PRESUPUESTOS sub-tab ── */}
+      {subTab === 'presupuestos' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-h3 text-arctic">{monthLabel(selectedMes)}</h2>
+            <button onClick={pasarPendientes} className="btn-secondary text-xs flex items-center gap-1.5">
+              <ChevronRight className="h-3.5 w-3.5" /> Pasar no aprobados → {MONTH_NAMES[Number(nextMonthStr(selectedMes).split('-')[1])-1]}
+            </button>
+          </div>
+          <TableroPresupuestosTable items={regularItems} arrastres={arrastres} getSD={getSD} patchSeg={patchSeg} />
+          {/* Footer totals */}
+          <div className="card p-3 flex flex-wrap gap-6">
+            {[
+              { label: 'Presupuestado', value: money(mesItems.reduce((s,i) => s + N(i.estimatedValue), 0)) },
+              { label: 'Cotizado vivo', value: money(cotizado) },
+              { label: 'Aprobado', value: money(aprobadoMonto) },
+              { label: 'Vendido', value: money(mesItems.reduce((s,i) => s + N(getSD(i).vendido), 0)) },
+            ].map(f => (
+              <div key={f.label}>
+                <span className="font-body text-caption text-steel-500">{f.label}: </span>
+                <span className="font-mono text-caption text-arctic">{f.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── PLANIFICACIÓN sub-tab ── */}
+      {subTab === 'planificacion' && (
+        <div className="space-y-4">
+          {/* Period filter */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex gap-1 rounded-lg bg-steel-900/60 p-1">
+              {(['dia','semana','mes','anio','todo'] as const).map(p => (
+                <button key={p} onClick={() => setPeriodo(p)}
+                  className={`px-3 py-1 rounded font-body text-caption font-medium transition-colors ${periodo === p ? 'bg-blue-bright text-white' : 'text-steel-400 hover:text-arctic'}`}>
+                  {p === 'dia' ? 'Día' : p === 'semana' ? 'Semana' : p === 'mes' ? 'Mes' : p === 'anio' ? 'Año' : 'Todo'}
+                </button>
+              ))}
+            </div>
+            {periodo !== 'todo' && (
+              <input type="date" value={ancla} onChange={e => setAncla(e.target.value)}
+                className="rounded border border-steel-800 bg-steel-950 px-2 py-1 font-mono text-caption text-arctic" />
+            )}
+          </div>
+
+          {/* Plan 1 */}
+          <div>
+            <h3 className="mb-2 font-display text-h4 text-arctic flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-blue-bright" /> Plan 1 — Aprobados
+              <span className="font-mono text-caption text-steel-500">({plan1Items.length})</span>
+            </h3>
+            <TableroPlantab items={plan1Items} getSD={getSD} patchSeg={patchSeg} showCierre />
+            <div className="mt-2 card p-3 flex flex-wrap gap-6">
+              {[
+                { label: 'Días total', value: plan1Items.reduce((s,i) => s + N(getSD(i).dias), 0) },
+                { label: 'Facturado', value: money(plan1Items.filter(i => getSD(i).facturado === 'SI').reduce((s,i) => s + N(i.finalValue||i.estimatedValue), 0)) },
+                { label: 'Por facturar', value: money(plan1Items.filter(i => getSD(i).facturado !== 'SI').reduce((s,i) => s + N(i.finalValue||i.estimatedValue), 0)) },
+              ].map(f => (
+                <div key={f.label}>
+                  <span className="font-body text-caption text-steel-500">{f.label}: </span>
+                  <span className="font-mono text-caption text-arctic">{f.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Plan 2 */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-display text-h4 text-arctic flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-[#48BB78]" /> Plan 2 — Tareas manuales
+                <span className="font-mono text-caption text-steel-500">({plan2.length})</span>
+              </h3>
+              <button onClick={() => { setPlan2Form({}); setPlan2Edit('new'); }} className="btn-primary text-xs">+ Agregar</button>
+            </div>
+            <Plan2Table tareas={plan2} onEdit={(t) => { setPlan2Form(t); setPlan2Edit(t.id); }} onDelete={id => savePlan2(plan2.filter(t => t.id !== id))} />
+            {plan2Edit && (
+              <Plan2Form
+                form={plan2Form} setForm={setPlan2Form}
+                onSave={() => {
+                  if (plan2Edit === 'new') {
+                    savePlan2([...plan2, { ...plan2Form, id: crypto.randomUUID() } as Plan2Tarea]);
+                  } else {
+                    savePlan2(plan2.map(t => t.id === plan2Edit ? { ...t, ...plan2Form } : t));
+                  }
+                  setPlan2Edit(null);
+                }}
+                onCancel={() => setPlan2Edit(null)}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Presupuestos inline table ─────────────────────────────────
+function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
+  items: Presupuesto[]; arrastres: Presupuesto[];
+  getSD: (i: Presupuesto) => SeguimientoData;
+  patchSeg: (id: string, fields: Partial<SeguimientoData>) => void;
+}) {
+  const cols = 'grid-cols-[120px_80px_140px_140px_minmax(160px,1fr)_120px_120px_140px_150px_80px_110px_28px]';
+  const hdrs = ['Código','Alerta','Estado','Avance','Descripción','Técnico','Vendido','OS/Inf/Fact','N° Factura','%','Días',''];
+  const renderRow = (item: Presupuesto, isArrastre?: boolean) => {
+    const sd = getSD(item);
+    const estado = estadoDe(sd.alerta, sd.avance);
+    return (
+      <div key={item.id} className={`grid ${cols} gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20 ${isArrastre ? 'opacity-75' : ''}`}>
+        <div className="px-2 py-1.5">
+          <span className="font-mono text-caption text-blue-bright">{item.code}</span>
+          {isArrastre && <span className="ml-1 font-mono text-[0.55rem] text-yellow-bright">↩</span>}
+        </div>
+        <div className="px-1">
+          <select value={sd.alerta||''} onChange={e => patchSeg(item.id, {alerta: e.target.value})}
+            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300"
+            style={{ color: flagColor(sd.alerta) }}>
+            {ALERTA_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o || '—'}</option>)}
+          </select>
+        </div>
+        <div className="px-1">
+          <span className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[0.55rem] font-medium ${chipEstado(estado)}`}>{estado}</span>
+        </div>
+        <div className="px-1">
+          <select value={sd.avance||''} onChange={e => patchSeg(item.id, {avance: e.target.value})}
+            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300">
+            <option value="" className="bg-[#0f1117]">—</option>
+            {AVANCE_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117]">{o}</option>)}
+          </select>
+        </div>
+        <div className="px-2 py-1 min-w-0">
+          <p className="font-body text-caption text-steel-300 truncate">{item.serviceTitle}</p>
+          <p className="font-body text-[0.6rem] text-steel-600 truncate">{item.customer.name}</p>
+        </div>
+        <div className="px-1">
+          <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
+            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
+        </div>
+        <div className="px-1">
+          <input type="number" value={sd.vendido||''} onChange={e => patchSeg(item.id, {vendido: Number(e.target.value)})}
+            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
+        </div>
+        <div className="flex gap-1 px-1">
+          {(['os','informe','facturado'] as const).map(f => (
+            <button key={f} onClick={() => patchSeg(item.id, {[f]: ciclo(sd[f]||'NO')})}
+              className={`flex-1 rounded px-1 py-0.5 font-mono text-[0.55rem] font-medium border transition-colors ${
+                sd[f]==='SI' ? 'bg-[#48BB78]/15 text-[#48BB78] border-[#48BB78]/30' :
+                sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
+                'bg-transparent text-steel-600 border-steel-800'
+              }`}>{sd[f]||'NO'}</button>
+          ))}
+        </div>
+        <div className="px-1">
+          <input value={sd.nroFactura||''} onChange={e => patchSeg(item.id, {nroFactura: e.target.value})}
+            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
+        </div>
+        <div className="px-1">
+          <input type="number" value={sd.pct||''} onChange={e => patchSeg(item.id, {pct: Number(e.target.value)})}
+            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
+        </div>
+        <div className="px-1">
+          <input type="number" value={sd.dias||''} onChange={e => patchSeg(item.id, {dias: Number(e.target.value)})}
+            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
+        </div>
+        <div className="px-1">
+          <button onClick={() => patchSeg(item.id, {})} className="p-1 text-steel-700 hover:text-steel-400"><X className="h-3 w-3" /></button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="card overflow-x-auto">
+      {/* Header */}
+      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/50`}>
+        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>)}
+      </div>
+      {items.length === 0 && arrastres.length === 0 && (
+        <p className="p-6 text-center font-body text-caption text-steel-600">Sin presupuestos para este mes</p>
+      )}
+      {items.map(i => renderRow(i))}
+      {arrastres.length > 0 && (
+        <>
+          <div className="border-b border-dashed border-yellow-bright/20 py-1 px-3">
+            <span className="font-mono text-[0.6rem] text-yellow-bright">↩ Arrastres de meses anteriores</span>
+          </div>
+          {arrastres.map(i => renderRow(i, true))}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Plan tab row grid ─────────────────────────────────────────
+function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
+  items: Presupuesto[];
+  getSD: (i: Presupuesto) => SeguimientoData;
+  patchSeg: (id: string, fields: Partial<SeguimientoData>) => void;
+  showCierre?: boolean;
+}) {
+  const cols = showCierre
+    ? 'grid-cols-[110px_100px_140px_minmax(150px,1fr)_100px_130px_60px_50px_60px_60px_60px_110px_minmax(130px,0.8fr)_24px]'
+    : 'grid-cols-[110px_100px_140px_minmax(150px,1fr)_100px_130px_60px_50px_minmax(130px,0.8fr)_24px]';
+  const hdrs = showCierre
+    ? ['Código','Mes','Cliente','Descripción','Técnico','Fecha','Días','%','OS','Inf','Fact','N° Fact','Obs','']
+    : ['Código','Mes','Cliente','Descripción','Técnico','Fecha','Días','%','Obs',''];
+
+  return (
+    <div className="card overflow-x-auto">
+      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/50`}>
+        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>)}
+      </div>
+      {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin items para el período</p>}
+      {items.map(item => {
+        const sd = getSD(item);
+        return (
+          <div key={item.id} className={`grid ${cols} gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20`}>
+            <div className="px-2 py-1.5 font-mono text-caption text-blue-bright">{item.code}</div>
+            <div className="px-1 font-mono text-[0.6rem] text-steel-500">{sd.mes || item.createdAt.slice(0,7)}</div>
+            <div className="px-1 font-body text-caption text-steel-400 truncate">{item.customer.name}</div>
+            <div className="px-1 font-body text-caption text-steel-300 truncate">{item.serviceTitle}</div>
+            <div className="px-1">
+              <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
+                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
+            </div>
+            <div className="px-1 font-mono text-[0.6rem] text-steel-500">{item.scheduledDate || '—'}</div>
+            <div className="px-1">
+              <input type="number" value={sd.dias||''} onChange={e => patchSeg(item.id, {dias: Number(e.target.value)})}
+                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
+            </div>
+            <div className="px-1">
+              <input type="number" value={sd.pct||''} onChange={e => patchSeg(item.id, {pct: Number(e.target.value)})}
+                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
+            </div>
+            {showCierre && (['os','informe','facturado'] as const).map(f => (
+              <div key={f} className="px-1">
+                <button onClick={() => patchSeg(item.id, {[f]: ciclo(sd[f]||'NO')})}
+                  className={`w-full rounded px-1 py-0.5 font-mono text-[0.55rem] font-medium border transition-colors ${
+                    sd[f]==='SI' ? 'bg-[#48BB78]/15 text-[#48BB78] border-[#48BB78]/30' :
+                    sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
+                    'bg-transparent text-steel-600 border-steel-800'
+                  }`}>{sd[f]||'NO'}</button>
+              </div>
+            ))}
+            {showCierre && (
+              <div className="px-1">
+                <input value={sd.nroFactura||''} onChange={e => patchSeg(item.id, {nroFactura: e.target.value})}
+                  className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
+              </div>
+            )}
+            <div className="px-1">
+              <input value={sd.obs||''} onChange={e => patchSeg(item.id, {obs: e.target.value})}
+                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="obs..." />
+            </div>
+            <div className="px-1">
+              <button className="p-1 text-steel-700 hover:text-steel-400"><X className="h-3 w-3" /></button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Plan 2 table ──────────────────────────────────────────────
+function Plan2Table({ tareas, onEdit, onDelete }: { tareas: Plan2Tarea[]; onEdit: (t: Plan2Tarea) => void; onDelete: (id: string) => void }) {
+  if (tareas.length === 0) return <p className="font-body text-caption text-steel-600 py-2">Sin tareas manuales</p>;
+  return (
+    <div className="card overflow-x-auto">
+      <div className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px border-b border-steel-800 bg-steel-900/50">
+        {['Fecha','Cliente','Descripción','Técnico','Avance','Días','Obs',''].map(h => (
+          <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>
+        ))}
+      </div>
+      {tareas.map(t => (
+        <div key={t.id} className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20">
+          <div className="px-2 py-1.5 font-mono text-[0.6rem] text-steel-500">{t.scheduledDate||'—'}</div>
+          <div className="px-2 font-body text-caption text-steel-400 truncate">{t.cliente}</div>
+          <div className="px-2 font-body text-caption text-steel-300 truncate">{t.descripcion}</div>
+          <div className="px-2 font-body text-caption text-steel-400">{t.tecnico}</div>
+          <div className="px-2 font-body text-caption text-steel-400">{t.avance}</div>
+          <div className="px-2 font-mono text-caption text-steel-400 tabular-nums">{t.dias||'—'}</div>
+          <div className="px-2 font-body text-caption text-steel-500 truncate">{t.obs}</div>
+          <div className="flex gap-1 px-2">
+            <button onClick={() => onEdit(t)} className="p-1 text-steel-500 hover:text-arctic"><FileText className="h-3 w-3" /></button>
+            <button onClick={() => onDelete(t.id)} className="p-1 text-steel-500 hover:text-[#FC8181]"><X className="h-3 w-3" /></button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Plan 2 form ───────────────────────────────────────────────
+function Plan2Form({ form, setForm, onSave, onCancel }: {
+  form: Partial<Plan2Tarea>; setForm: (f: Partial<Plan2Tarea>) => void;
+  onSave: () => void; onCancel: () => void;
+}) {
+  const f = (k: keyof Plan2Tarea) => (e: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+  return (
+    <div className="mt-3 card p-4 border border-blue-bright/20">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {financial.map(k => {
-          const Icon = k.icon;
-          return (
-            <div key={k.label} className="card p-4 bg-carbon">
-              <div className="flex items-center gap-2 mb-2">
-                <Icon className={`h-4 w-4 ${k.color}`} />
-                <span className="font-body text-caption text-steel-500">{k.label}</span>
-              </div>
-              <p className={`font-mono text-lg font-bold ${k.color}`}>{k.value > 0 ? formatGs(k.value) : '—'}</p>
-            </div>
-          );
-        })}
+        {[
+          { label: 'Cliente', key: 'cliente' as const, type: 'text' },
+          { label: 'Local', key: 'local' as const, type: 'text' },
+          { label: 'Descripción', key: 'descripcion' as const, type: 'text' },
+          { label: 'Técnico', key: 'tecnico' as const, type: 'text' },
+          { label: 'Fecha', key: 'scheduledDate' as const, type: 'date' },
+          { label: 'Días', key: 'dias' as const, type: 'number' },
+          { label: 'Obs', key: 'obs' as const, type: 'text' },
+        ].map(({ label, key, type }) => (
+          <div key={key}>
+            <label className="block font-body text-caption text-steel-500 mb-1">{label}</label>
+            <input type={type} value={(form[key] as string)||''} onChange={f(key)}
+              className="w-full rounded border border-steel-800 bg-steel-950 px-2 py-1.5 font-mono text-caption text-arctic" />
+          </div>
+        ))}
+        <div>
+          <label className="block font-body text-caption text-steel-500 mb-1">Avance</label>
+          <select value={form.avance||''} onChange={e => setForm({...form, avance: e.target.value})}
+            className="w-full rounded border border-steel-800 bg-steel-950 px-2 py-1.5 font-mono text-caption text-arctic">
+            <option value="">—</option>
+            {AVANCE_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
       </div>
-
-      {/* Tasa de cierre + by type */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="card p-5">
-          <h3 className="mb-4 font-display text-h4 text-arctic flex items-center gap-2">
-            <BarChart2 className="h-4 w-4 text-blue-bright" /> Estado de presupuestos
-          </h3>
-          <div className="space-y-2">
-            {Object.entries(STATUS_MAP).map(([key, val]) => {
-              const count = items.filter(i => i.status === key).length;
-              const pct = items.length ? Math.round((count / items.length) * 100) : 0;
-              return (
-                <div key={key} className="flex items-center gap-3">
-                  <span className="w-28 shrink-0 font-body text-caption text-steel-400">{val.label}</span>
-                  <div className="flex-1 h-2 rounded-full bg-steel-900/60">
-                    <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, background: val.color }} />
-                  </div>
-                  <span className="w-6 shrink-0 text-right font-mono text-caption text-steel-500">{count}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="card p-5">
-          <h3 className="mb-4 font-display text-h4 text-arctic flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-[#48BB78]" /> Métricas de cierre
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-body text-caption text-steel-400">Tasa de cierre</span>
-                <span className="font-mono text-body-sm text-[#48BB78] font-bold">{tasaCierre}%</span>
-              </div>
-              <div className="h-3 rounded-full bg-steel-900/60">
-                <div className="h-3 rounded-full bg-[#48BB78] transition-all" style={{ width: `${tasaCierre}%` }} />
-              </div>
-            </div>
-            {Object.entries(TYPE_MAP).map(([key, val]) => {
-              const count = items.filter(i => i.serviceType === key).length;
-              return (
-                <div key={key} className="flex items-center justify-between">
-                  <span className="font-body text-caption text-steel-400">{val.label}</span>
-                  <span className="font-mono text-body-sm text-arctic">{count}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-4 pt-4 border-t border-steel-900/40 flex gap-2">
-            <button onClick={() => onNavigate('solicitudes')} className="btn-secondary flex-1 justify-center text-xs">Ver solicitudes</button>
-            <button onClick={() => onNavigate('archivo')} className="btn-secondary flex-1 justify-center text-xs">Ver archivo</button>
-          </div>
-        </div>
+      <div className="mt-3 flex gap-2 justify-end">
+        <button onClick={onCancel} className="btn-secondary text-xs">Cancelar</button>
+        <button onClick={onSave} className="btn-primary text-xs">Guardar</button>
       </div>
     </div>
   );
