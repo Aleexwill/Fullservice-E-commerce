@@ -311,6 +311,7 @@ function TableroDashboard({ items, loading, onRefresh }: {
   const [plan2, setPlan2] = useState<Plan2Tarea[]>([]);
   const [plan2Edit, setPlan2Edit] = useState<string|null>(null);
   const [plan2Form, setPlan2Form] = useState<Partial<Plan2Tarea>>({});
+  const [searchPres, setSearchPres] = useState('');
 
   useEffect(() => {
     try { const d = localStorage.getItem(PLAN2_KEY); if (d) setPlan2(JSON.parse(d)); } catch {}
@@ -468,12 +469,7 @@ function TableroDashboard({ items, loading, onRefresh }: {
       {/* ── DASHBOARD sub-tab ── */}
       {subTab === 'dashboard' && (
         <div className="space-y-5">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-h3 text-arctic">{monthLabel(selectedMes)}</h2>
-            <button onClick={pasarPendientes} className="btn-secondary text-xs flex items-center gap-1.5">
-              <ChevronRight className="h-3.5 w-3.5" /> Pasar no aprobados a {monthLabel(nextMonthStr(selectedMes))}
-            </button>
-          </div>
+          <h2 className="font-display text-h3 text-arctic">{monthLabel(selectedMes)}</h2>
           {/* KPI tiles */}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
@@ -549,13 +545,25 @@ function TableroDashboard({ items, loading, onRefresh }: {
       {/* ── PRESUPUESTOS sub-tab ── */}
       {subTab === 'presupuestos' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-h3 text-arctic">{monthLabel(selectedMes)}</h2>
-            <button onClick={pasarPendientes} className="btn-secondary text-xs flex items-center gap-1.5">
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-steel-600 pointer-events-none" />
+              <input
+                value={searchPres} onChange={e => setSearchPres(e.target.value)}
+                placeholder="Buscar cliente, código, descripción…"
+                className="w-full rounded border border-steel-800 bg-steel-950 pl-7 pr-3 py-1.5 font-mono text-caption text-arctic placeholder:text-steel-700"
+              />
+            </div>
+            <button onClick={pasarPendientes} className="btn-secondary text-xs flex items-center gap-1.5 shrink-0">
               <ChevronRight className="h-3.5 w-3.5" /> Pasar no aprobados → {MONTH_NAMES[Number(nextMonthStr(selectedMes).split('-')[1])-1]}
             </button>
           </div>
-          <TableroPresupuestosTable items={regularItems} arrastres={arrastres} getSD={getSD} patchSeg={patchSeg} />
+          <TableroPresupuestosTable
+            items={regularItems.filter(i => !searchPres || [i.code, i.customer.name, i.serviceTitle, i.customer.company, getSD(i).tecnico||''].join(' ').toLowerCase().includes(searchPres.toLowerCase()))}
+            arrastres={arrastres.filter(i => !searchPres || [i.code, i.customer.name, i.serviceTitle].join(' ').toLowerCase().includes(searchPres.toLowerCase()))}
+            getSD={getSD} patchSeg={patchSeg}
+          />
           {/* Footer totals */}
           <div className="card p-3 flex flex-wrap gap-6">
             {[
@@ -645,98 +653,125 @@ function TableroDashboard({ items, loading, onRefresh }: {
 }
 
 // ─── Presupuestos inline table ─────────────────────────────────
+// Column order matches reference: Fecha · Cód · Cliente · Local · Descripción · Técnico · Alerta · Estado · Avance · OS·Inf·Fact · N°Fact · % · Días · Obs · ×
 function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
   items: Presupuesto[]; arrastres: Presupuesto[];
   getSD: (i: Presupuesto) => SeguimientoData;
   patchSeg: (id: string, fields: Partial<SeguimientoData>) => void;
 }) {
-  const cols = 'grid-cols-[120px_80px_140px_140px_minmax(160px,1fr)_120px_120px_140px_150px_80px_110px_28px]';
-  const hdrs = ['Código','Alerta','Estado','Avance','Descripción','Técnico','Vendido','OS/Inf/Fact','N° Factura','%','Días',''];
+  const cols = 'grid-cols-[90px_100px_130px_110px_minmax(160px,1fr)_110px_110px_130px_150px_156px_130px_64px_80px_minmax(120px,0.8fr)_28px]';
+  const hdrs = ['Fecha','Código','Cliente','Local','Descripción','Técnico','Alerta','Estado','Avance','OS · Inf · Fact','N° Factura','%','Días','Obs',''];
+
+  const inputCls = 'w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300';
+  const numCls = inputCls + ' tabular-nums';
+
   const renderRow = (item: Presupuesto, isArrastre?: boolean) => {
     const sd = getSD(item);
     const estado = estadoDe(sd.alerta, sd.avance);
+    const fechaCarga = item.createdAt.slice(0, 10);
     return (
-      <div key={item.id} className={`grid ${cols} gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20 ${isArrastre ? 'opacity-75' : ''}`}>
-        <div className="px-2 py-1.5">
-          <span className="font-mono text-caption text-blue-bright">{item.code}</span>
-          {isArrastre && <span className="ml-1 font-mono text-[0.55rem] text-yellow-bright">↩</span>}
+      <div key={item.id} className={`grid ${cols} gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20 ${isArrastre ? 'opacity-80' : ''}`}>
+        {/* Fecha carga */}
+        <div className="px-2 py-1.5 font-mono text-[0.6rem] text-steel-500 tabular-nums">
+          {fechaCarga}
+          {isArrastre && <span className="ml-1 text-yellow-bright">↩</span>}
         </div>
+        {/* Código */}
+        <div className="px-2 font-mono text-caption text-blue-bright">{item.code}</div>
+        {/* Cliente */}
+        <div className="px-1 font-body text-caption text-steel-300 truncate">{item.customer.name}</div>
+        {/* Local */}
+        <div className="px-1">
+          <input value={sd.local||''} onChange={e => patchSeg(item.id, {local: e.target.value})}
+            className={inputCls} placeholder={item.customer.address || '—'} />
+        </div>
+        {/* Descripción */}
+        <div className="px-2 py-1 min-w-0">
+          <p className="font-body text-caption text-steel-300 truncate">{item.serviceTitle}</p>
+        </div>
+        {/* Técnico */}
+        <div className="px-1">
+          <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
+            className={inputCls} placeholder="—" />
+        </div>
+        {/* Alerta */}
         <div className="px-1">
           <select value={sd.alerta||''} onChange={e => patchSeg(item.id, {alerta: e.target.value})}
-            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300"
-            style={{ color: flagColor(sd.alerta) }}>
+            className={inputCls} style={{ color: flagColor(sd.alerta) }}>
             {ALERTA_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o || '—'}</option>)}
           </select>
         </div>
+        {/* Estado chip */}
         <div className="px-1">
-          <span className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[0.55rem] font-medium ${chipEstado(estado)}`}>{estado}</span>
+          <span className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[0.52rem] font-medium leading-tight ${chipEstado(estado)}`}>{estado}</span>
         </div>
+        {/* Avance */}
         <div className="px-1">
           <select value={sd.avance||''} onChange={e => patchSeg(item.id, {avance: e.target.value})}
-            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300">
+            className={inputCls}>
             <option value="" className="bg-[#0f1117]">—</option>
             {AVANCE_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117]">{o}</option>)}
           </select>
         </div>
-        <div className="px-2 py-1 min-w-0">
-          <p className="font-body text-caption text-steel-300 truncate">{item.serviceTitle}</p>
-          <p className="font-body text-[0.6rem] text-steel-600 truncate">{item.customer.name}</p>
-        </div>
-        <div className="px-1">
-          <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
-            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
-        </div>
-        <div className="px-1">
-          <input type="number" value={sd.vendido||''} onChange={e => patchSeg(item.id, {vendido: Number(e.target.value)})}
-            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
-        </div>
+        {/* OS · Inf · Fact */}
         <div className="flex gap-1 px-1">
           {(['os','informe','facturado'] as const).map(f => (
             <button key={f} onClick={() => patchSeg(item.id, {[f]: ciclo(sd[f]||'NO')})}
-              className={`flex-1 rounded px-1 py-0.5 font-mono text-[0.55rem] font-medium border transition-colors ${
+              className={`flex-1 rounded px-1 py-0.5 font-mono text-[0.52rem] font-medium border transition-colors ${
                 sd[f]==='SI' ? 'bg-[#48BB78]/15 text-[#48BB78] border-[#48BB78]/30' :
                 sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
                 'bg-transparent text-steel-600 border-steel-800'
-              }`}>{sd[f]||'NO'}</button>
+              }`}>{f === 'os' ? 'OS' : f === 'informe' ? 'INF' : 'FCT'}<br/><span className="text-[0.5rem]">{sd[f]||'NO'}</span></button>
           ))}
         </div>
+        {/* N° Factura */}
         <div className="px-1">
           <input value={sd.nroFactura||''} onChange={e => patchSeg(item.id, {nroFactura: e.target.value})}
-            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
+            className={inputCls} placeholder="—" />
         </div>
+        {/* % */}
         <div className="px-1">
           <input type="number" value={sd.pct||''} onChange={e => patchSeg(item.id, {pct: Number(e.target.value)})}
-            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
+            className={numCls} placeholder="0" />
         </div>
+        {/* Días */}
         <div className="px-1">
           <input type="number" value={sd.dias||''} onChange={e => patchSeg(item.id, {dias: Number(e.target.value)})}
-            className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
+            className={numCls} placeholder="0" />
         </div>
+        {/* Obs */}
         <div className="px-1">
-          <button onClick={() => patchSeg(item.id, {})} className="p-1 text-steel-700 hover:text-steel-400"><X className="h-3 w-3" /></button>
+          <input value={sd.obs||''} onChange={e => patchSeg(item.id, {obs: e.target.value})}
+            className={inputCls} placeholder="obs…" />
+        </div>
+        {/* Delete */}
+        <div className="px-1">
+          <button className="p-1 text-steel-700 hover:text-[#FC8181]"><X className="h-3 w-3" /></button>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="card overflow-x-auto">
+    <div className="card overflow-x-auto bg-[#0c0e14]">
       {/* Header */}
-      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/50`}>
-        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>)}
+      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/60 min-w-max`}>
+        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
       </div>
-      {items.length === 0 && arrastres.length === 0 && (
-        <p className="p-6 text-center font-body text-caption text-steel-600">Sin presupuestos para este mes</p>
-      )}
-      {items.map(i => renderRow(i))}
-      {arrastres.length > 0 && (
-        <>
-          <div className="border-b border-dashed border-yellow-bright/20 py-1 px-3">
-            <span className="font-mono text-[0.6rem] text-yellow-bright">↩ Arrastres de meses anteriores</span>
-          </div>
-          {arrastres.map(i => renderRow(i, true))}
-        </>
-      )}
+      <div className="min-w-max">
+        {items.length === 0 && arrastres.length === 0 && (
+          <p className="p-6 text-center font-body text-caption text-steel-600">Sin presupuestos para este mes</p>
+        )}
+        {items.map(i => renderRow(i))}
+        {arrastres.length > 0 && (
+          <>
+            <div className="border-b border-dashed border-yellow-bright/20 py-1 px-3 bg-yellow-bright/5">
+              <span className="font-mono text-[0.6rem] text-yellow-bright">↩ Arrastres de meses anteriores</span>
+            </div>
+            {arrastres.map(i => renderRow(i, true))}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -756,10 +791,11 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
     : ['Código','Mes','Cliente','Descripción','Técnico','Fecha','Días','%','Obs',''];
 
   return (
-    <div className="card overflow-x-auto">
-      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/50`}>
-        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>)}
+    <div className="card overflow-x-auto bg-[#0c0e14]">
+      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/60 min-w-max`}>
+        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
       </div>
+      <div className="min-w-max">
       {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin items para el período</p>}
       {items.map(item => {
         const sd = getSD(item);
@@ -808,6 +844,7 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
@@ -816,8 +853,8 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
 function Plan2Table({ tareas, onEdit, onDelete }: { tareas: Plan2Tarea[]; onEdit: (t: Plan2Tarea) => void; onDelete: (id: string) => void }) {
   if (tareas.length === 0) return <p className="font-body text-caption text-steel-600 py-2">Sin tareas manuales</p>;
   return (
-    <div className="card overflow-x-auto">
-      <div className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px border-b border-steel-800 bg-steel-900/50">
+    <div className="card overflow-x-auto bg-[#0c0e14]">
+      <div className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px border-b border-steel-800 bg-steel-900/60">
         {['Fecha','Cliente','Descripción','Técnico','Avance','Días','Obs',''].map(h => (
           <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>
         ))}
