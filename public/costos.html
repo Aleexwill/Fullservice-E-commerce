@@ -122,18 +122,18 @@
 <div id="toast" class="toast"></div>
 
 <script>
-// ── Theme init (before render) ─────────────────────────────────────────────
+// ── Theme init — controlled by the admin portal toggle ─────────────────────
 (function(){
   const saved = localStorage.getItem("fs-theme") || "dark";
   document.documentElement.setAttribute("data-theme", saved);
 })();
-function toggleTheme() {
-  const cur = document.documentElement.getAttribute("data-theme") || "dark";
-  const next = cur === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem("fs-theme", next);
-  render();
-}
+// Sync when portal toggle changes localStorage
+window.addEventListener("storage", function(e) {
+  if (e.key === "fs-theme" && (e.newValue === "dark" || e.newValue === "light")) {
+    document.documentElement.setAttribute("data-theme", e.newValue);
+    render();
+  }
+});
 function isDark() { return (document.documentElement.getAttribute("data-theme") || "dark") === "dark"; }
 </script>
 
@@ -429,7 +429,6 @@ function render() {
         el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" }, "Total al cliente"),
         el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;letter-spacing:-0.02em;white-space:nowrap;color:var(--text);" }, money(G.totalFinal))
       ),
-      el("button", { class:"theme-toggle noprint", onclick: toggleTheme }, isDark() ? "☀️" : "🌙"),
       el("button", { style: "padding:9px 16px;font-size:13px;font-weight:500;color:var(--cta-text);background:var(--cta-bg);border:0;border-radius:7px;cursor:pointer;", onclick: () => window.print() }, "Imprimir")
     ),
 

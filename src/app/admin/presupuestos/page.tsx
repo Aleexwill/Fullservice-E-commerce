@@ -377,7 +377,7 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
         <div className="px-1">
           <select value={sd.alerta||''} onChange={e => patchSeg(item.id, {alerta: e.target.value})}
             className={inputCls} style={{ color: flagColor(sd.alerta) }}>
-            {ALERTA_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o || '—'}</option>)}
+            {ALERTA_OPTS.map(o => <option key={o} value={o}>{o || '—'}</option>)}
           </select>
         </div>
         {/* ESTADO — editable select */}
@@ -392,14 +392,14 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
               };
               return c[estado] || '#6B7280';
             })() }}>
-            {ESTADO_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o}</option>)}
+            {ESTADO_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </div>
         {/* PRIORIDAD */}
         <div className="px-1">
           <select value={sd.prioridad||''} onChange={e => patchSeg(item.id, {prioridad: e.target.value})}
             className={inputCls}>
-            {PRIORIDAD_SEG_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117]">{o||'—'}</option>)}
+            {PRIORIDAD_SEG_OPTS.map(o => <option key={o} value={o}>{o||'—'}</option>)}
           </select>
         </div>
         {/* TÉCNICO */}
@@ -416,11 +416,11 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
   };
 
   return (
-    <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
-      <div style={{minWidth:'1560px', backgroundColor:'#0c0e14'}}>
+    <div className="rounded-lg border border-steel-800 overflow-x-auto theme-table-bg">
+      <div className="theme-table-bg" style={{minWidth:'1560px'}}>
         {/* Header */}
-        <div style={{ display:'grid', gridTemplateColumns: colStyle, backgroundColor:'#111420' }}
-          className="border-b border-steel-800">
+        <div style={{ display:'grid', gridTemplateColumns: colStyle }}
+          className="border-b border-steel-800 theme-table-head">
           {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
         </div>
         {items.length === 0 && arrastres.length === 0 && (
@@ -458,9 +458,9 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
   const minW = showCierre ? '1500px' : '900px';
 
   return (
-    <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
-      <div style={{minWidth:minW, backgroundColor:'#0c0e14'}}>
-        <div style={{ display:'grid', gridTemplateColumns: colStyle, backgroundColor:'#111420' }} className="border-b border-steel-800">
+    <div className="rounded-lg border border-steel-800 overflow-x-auto theme-table-bg">
+      <div className="theme-table-bg" style={{minWidth:minW}}>
+        <div style={{ display:'grid', gridTemplateColumns: colStyle }} className="border-b border-steel-800 theme-table-head">
           {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
         </div>
         {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin items para el período</p>}
@@ -493,8 +493,8 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
               <div className="px-1">
                 <select value={sd.avance||''} onChange={e => patchSeg(item.id, {avance: e.target.value})}
                   className={inp} style={{ color: avanceColor[sd.avance||''] || '#6B7280' }}>
-                  <option value="" className="bg-[#0f1117] text-white">—</option>
-                  {AVANCE_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o}</option>)}
+                  <option value="">—</option>
+                  {AVANCE_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
               {/* % */}
@@ -559,9 +559,9 @@ function Plan2TableNew({ tareas, onEdit: _onEdit, onDelete, onField }: {
   };
 
   return (
-    <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
-      <div style={{minWidth:'900px', backgroundColor:'#0c0e14'}}>
-        <div style={{ display:'grid', gridTemplateColumns: colStyle, backgroundColor:'#111420' }} className="border-b border-steel-800">
+    <div className="rounded-lg border border-steel-800 overflow-x-auto theme-table-bg">
+      <div className="theme-table-bg" style={{minWidth:'900px'}}>
+        <div style={{ display:'grid', gridTemplateColumns: colStyle }} className="border-b border-steel-800 theme-table-head">
           {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
         </div>
         {tareas.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin tareas manuales</p>}
@@ -594,8 +594,8 @@ function Plan2TableNew({ tareas, onEdit: _onEdit, onDelete, onField }: {
             <div className="px-1">
               <select value={t.avance||''} onChange={e => onField(t.id, {avance: e.target.value})}
                 className={inp} style={{ color: avanceColor[t.avance||''] || '#6B7280' }}>
-                <option value="" className="bg-[#0f1117] text-white">—</option>
-                {AVANCE_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o}</option>)}
+                <option value="">—</option>
+                {AVANCE_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
             <div className="px-1">
