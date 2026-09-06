@@ -66,7 +66,7 @@ const LIGHT_CSS = `
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { theme } = useAdminTheme();
   return (
-    <div className="admin-shell" data-theme={theme}>
+    <div className="admin-shell" data-theme={theme} style={{ transition: 'background-color .2s, color .2s' }}>
       {/* eslint-disable-next-line react/no-danger */}
       <style dangerouslySetInnerHTML={{ __html: LIGHT_CSS }} />
       {children}
