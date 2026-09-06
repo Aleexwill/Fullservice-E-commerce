@@ -544,20 +544,30 @@ function TableroDashboard({ items, loading, onRefresh }: {
 
       {/* ── PRESUPUESTOS sub-tab ── */}
       {subTab === 'presupuestos' && (
-        <div className="space-y-4">
-          {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[180px]">
+        <div className="space-y-3">
+          {/* Toolbar — igual al ejemplo: título | pasar | buscador | contador */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="mr-auto">
+              <p className="font-display text-h4 text-arctic">Panel de control — {monthLabel(selectedMes)}</p>
+              <p className="font-body text-[0.65rem] text-steel-500">Cambiá el Estado a EN EJECUCION o FINALIZADO para que pase a Planificación</p>
+            </div>
+            <button
+              onClick={pasarPendientes}
+              className="shrink-0 rounded border border-blue-bright/40 bg-blue-bright/10 px-3 py-1.5 font-body text-caption font-medium text-blue-bright hover:bg-blue-bright/20 transition-colors"
+            >
+              Pasar no aprobados al mes siguiente
+            </button>
+            <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-steel-600 pointer-events-none" />
               <input
                 value={searchPres} onChange={e => setSearchPres(e.target.value)}
-                placeholder="Buscar cliente, código, descripción…"
-                className="w-full rounded border border-steel-800 bg-steel-950 pl-7 pr-3 py-1.5 font-mono text-caption text-arctic placeholder:text-steel-700"
+                placeholder="Buscar cliente, local, trabajo o N°"
+                className="w-56 rounded border border-steel-800 bg-steel-950 pl-7 pr-3 py-1.5 font-mono text-caption text-arctic placeholder:text-steel-700"
               />
             </div>
-            <button onClick={pasarPendientes} className="btn-secondary text-xs flex items-center gap-1.5 shrink-0">
-              <ChevronRight className="h-3.5 w-3.5" /> Pasar no aprobados → {MONTH_NAMES[Number(nextMonthStr(selectedMes).split('-')[1])-1]}
-            </button>
+            <span className="shrink-0 font-mono text-caption text-steel-500 tabular-nums">
+              {mesItems.length} de {items.length}
+            </span>
           </div>
           <TableroPresupuestosTable
             items={regularItems.filter(i => !searchPres || [i.code, i.customer.name, i.serviceTitle, i.customer.company, getSD(i).tecnico||''].join(' ').toLowerCase().includes(searchPres.toLowerCase()))}
