@@ -17,11 +17,11 @@ interface MaterialSuggestion {
 
 interface MatRow {
   id: string; desc: string; unidad: string; cant: number;
-  costo: number; desp: number; marg: number;
+  costo: number; prop: boolean;
 }
 
 interface MoRow {
-  id: string; desc: string; pers: number; horas: number; vh: number; marg: number;
+  id: string; desc: string; pers: number; horas: number; vh: number;
 }
 
 interface Rubro {
@@ -63,8 +63,8 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
 
 const gs = (n: number) => `Gs. ${Math.round(n).toLocaleString('es-PY')}`;
 const uid = () => crypto.randomUUID();
-const newMat = (): MatRow => ({ id: uid(), desc: '', unidad: 'un', cant: 1, costo: 0, desp: 0, marg: 20 });
-const newMo  = (): MoRow  => ({ id: uid(), desc: '', pers: 1, horas: 1, vh: 0, marg: 20 });
+const newMat = (): MatRow => ({ id: uid(), desc: '', unidad: 'un', cant: 1, costo: 0, prop: true });
+const newMo  = (): MoRow  => ({ id: uid(), desc: '', pers: 1, horas: 1, vh: 0 });
 const newRubro = (n = 1): Rubro => ({
   id: uid(), nombre: `Rubro ${n}`,
   mats: [newMat()], mos: [newMo()],
@@ -74,28 +74,22 @@ const newRubro = (n = 1): Rubro => ({
 });
 
 function calcMat(r: MatRow) {
-  const base = r.cant * r.costo;
-  const costo = base * (1 + r.desp / 100);
-  const precio = costo * (1 + r.marg / 100);
-  return { costo, precio };
+  const costo = r.cant * r.costo;
+  return { costo };
 }
 
 function calcMo(r: MoRow) {
   const costo = r.pers * r.horas * r.vh;
-  const precio = costo * (1 + r.marg / 100);
-  return { costo, precio };
+  return { costo };
 }
 
 function calcRubro(rb: Rubro) {
-  const matCosto  = rb.mats.reduce((s, r) => s + calcMat(r).costo, 0);
-  const matPrecio = rb.mats.reduce((s, r) => s + calcMat(r).precio, 0);
-  const moCosto   = rb.mos.reduce((s, r) => s + calcMo(r).costo, 0);
-  const moPrecio  = rb.mos.reduce((s, r) => s + calcMo(r).precio, 0);
+  const matCosto   = rb.mats.reduce((s, r) => s + calcMat(r).costo, 0);
+  const moCosto    = rb.mos.reduce((s, r) => s + calcMo(r).costo, 0);
   const otrosCosto = rb.flete + rb.equipos + rb.subcontratos + rb.varios;
-  const otrosPrecio = otrosCosto * (1 + rb.margen / 100);
-  const subCosto  = (matCosto + moCosto + otrosCosto) * (1 + rb.overhead / 100);
-  const subPrecio = (matPrecio + moPrecio + otrosPrecio) * (1 + rb.overhead / 100);
-  return { matCosto, matPrecio, moCosto, moPrecio, otrosCosto, otrosPrecio, subCosto, subPrecio };
+  const subCosto   = (matCosto + moCosto + otrosCosto) * (1 + rb.overhead / 100);
+  const subPrecio  = subCosto * (1 + rb.margen / 100);
+  return { matCosto, moCosto, otrosCosto, subCosto, subPrecio };
 }
 
 const CONDICIONES_DEFAULT = 'Los precios se mantienen dentro del plazo de validez indicado y están sujetos a la disponibilidad de materiales al momento de la aceptación. No se incluyen trabajos, materiales ni gestiones que no figuren en el alcance. Cualquier adicional se cotiza por separado y por escrito antes de ejecutarse.';
@@ -184,51 +178,49 @@ function TablaMateriales({ mats, onChange }: { mats: MatRow[]; onChange: (m: Mat
   const remove = (id: string) => onChange(mats.filter(r => r.id !== id));
   const add = () => onChange([...mats, newMat()]);
   const fromInv = (m: MaterialSuggestion) => onChange([...mats, { ...newMat(), desc: m.description, unidad: m.unit, costo: m.unitPrice }]);
+  const totalCosto = mats.reduce((s, r) => s + calcMat(r).costo, 0);
 
   return (
     <div className="rounded-xl border border-steel-700 overflow-hidden">
-      {/* header */}
       <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-steel-700 bg-steel-900/30">
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-blue-bright" />
           <span className="font-body text-sm font-semibold text-arctic">Materiales e insumos</span>
-          <span className="font-mono text-[10px] text-steel-500 uppercase tracking-widest">cantidad × costo + desperdicio</span>
+          <span className="font-mono text-[10px] text-steel-500 uppercase tracking-widest">cantidad × costo unitario</span>
         </div>
         <button onClick={add} className="flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-medium text-blue-bright hover:bg-blue-muted transition-colors">
           <Plus className="h-3.5 w-3.5" /> Agregar fila
         </button>
       </div>
 
-      {/* col headers */}
       <div className="grid px-4 py-2 bg-steel-900/20 border-b border-steel-700 font-mono text-[9px] uppercase tracking-widest text-steel-500"
-        style={{ gridTemplateColumns: '1fr 50px 60px 100px 52px 110px 54px 110px 28px' }}>
+        style={{ gridTemplateColumns: '30px 1fr 54px 64px 96px 126px 28px' }}>
+        <div className="text-center">Prop</div>
         <div>Descripción</div>
         <div className="text-center">Unidad</div>
         <div className="text-right">Cant.</div>
         <div className="text-right">Costo unit.</div>
-        <div className="text-right">Desp.%</div>
-        <div className="text-right">Subtotal costo</div>
-        <div className="text-right text-blue-bright">Marg.%</div>
-        <div className="text-right">Precio venta</div>
+        <div className="text-right">Costo</div>
         <div />
       </div>
 
-      {/* rows */}
       {mats.map(r => {
-        const { costo, precio } = calcMat(r);
+        const { costo } = calcMat(r);
         return (
           <div key={r.id} className="grid items-center px-4 border-b border-steel-900/60 hover:bg-steel-900/20"
-            style={{ gridTemplateColumns: '1fr 50px 60px 100px 52px 110px 54px 110px 28px' }}>
+            style={{ gridTemplateColumns: '30px 1fr 54px 64px 96px 126px 28px' }}>
+            <button onClick={() => update(r.id, { prop: !r.prop })}
+              className={`justify-self-center text-[9px] font-bold font-mono py-2.5 w-full text-center transition-colors ${r.prop ? 'text-[#48BB78]' : 'text-steel-700'}`}
+              title="Mostrar en propuesta">
+              {r.prop ? '✓' : '—'}
+            </button>
             <input value={r.desc} onChange={e => update(r.id, { desc: e.target.value })}
               placeholder="Descripción" className="py-2.5 pr-2 bg-transparent font-body text-xs text-arctic outline-none placeholder:text-steel-600 w-full" />
             <input value={r.unidad} onChange={e => update(r.id, { unidad: e.target.value })}
               className="py-2.5 px-1 bg-transparent font-mono text-xs text-steel-300 text-center outline-none w-full" />
             <div className="py-2.5 px-2"><NumInput value={r.cant} onChange={v => update(r.id, { cant: v })} /></div>
             <div className="py-2.5 px-2"><NumInput value={r.costo} onChange={v => update(r.id, { costo: v })} /></div>
-            <div className="py-2.5 px-2"><NumInput value={r.desp} onChange={v => update(r.id, { desp: v })} className="text-steel-400" /></div>
-            <div className="py-2.5 px-2 font-mono text-xs text-steel-400 text-right whitespace-nowrap">{gs(costo)}</div>
-            <div className="py-2.5 px-1"><NumInput value={r.marg} onChange={v => update(r.id, { marg: v })} className="text-blue-bright font-semibold" /></div>
-            <div className="py-2.5 pl-2 font-mono text-xs font-semibold text-arctic text-right whitespace-nowrap">{gs(precio)}</div>
+            <div className="py-2.5 px-2 font-mono text-xs font-semibold text-arctic text-right whitespace-nowrap">{gs(costo)}</div>
             <button onClick={() => remove(r.id)} className="justify-self-center rounded p-1 text-steel-700 hover:text-red-400 hover:bg-red-500/10 transition-colors">
               <X className="h-3.5 w-3.5" />
             </button>
@@ -236,15 +228,12 @@ function TablaMateriales({ mats, onChange }: { mats: MatRow[]; onChange: (m: Mat
         );
       })}
 
-      {/* footer: totales + buscador */}
       <div className="px-4 pt-3 pb-2 border-b border-steel-700">
         <MatSearch onSelect={fromInv} />
       </div>
       <div className="flex items-baseline justify-end gap-4 px-4 py-2.5 bg-steel-900/20 font-mono text-xs">
         <span className="text-steel-500">Costo materiales</span>
-        <span className="text-steel-300">{gs(mats.reduce((s, r) => s + calcMat(r).costo, 0))}</span>
-        <span className="text-steel-500 ml-3">Precio de venta</span>
-        <span className="text-arctic font-semibold text-sm">{gs(mats.reduce((s, r) => s + calcMat(r).precio, 0))}</span>
+        <span className="text-arctic font-semibold text-sm">{gs(totalCosto)}</span>
       </div>
     </div>
   );
@@ -271,30 +260,26 @@ function TablaMO({ mos, onChange }: { mos: MoRow[]; onChange: (m: MoRow[]) => vo
       </div>
 
       <div className="grid px-4 py-2 bg-steel-900/20 border-b border-steel-700 font-mono text-[9px] uppercase tracking-widest text-steel-500"
-        style={{ gridTemplateColumns: '1fr 60px 60px 100px 110px 54px 110px 28px' }}>
+        style={{ gridTemplateColumns: '1fr 66px 64px 100px 126px 28px' }}>
         <div>Tarea / gremio</div>
         <div className="text-center">Personas</div>
         <div className="text-right">Horas</div>
-        <div className="text-right">Valor/hora</div>
-        <div className="text-right">Subtotal costo</div>
-        <div className="text-right text-blue-bright">Marg.%</div>
-        <div className="text-right">Precio venta</div>
+        <div className="text-right">Valor hora</div>
+        <div className="text-right">Costo</div>
         <div />
       </div>
 
       {mos.map(r => {
-        const { costo, precio } = calcMo(r);
+        const { costo } = calcMo(r);
         return (
           <div key={r.id} className="grid items-center px-4 border-b border-steel-900/60 hover:bg-steel-900/20"
-            style={{ gridTemplateColumns: '1fr 60px 60px 100px 110px 54px 110px 28px' }}>
+            style={{ gridTemplateColumns: '1fr 66px 64px 100px 126px 28px' }}>
             <input value={r.desc} onChange={e => update(r.id, { desc: e.target.value })}
               placeholder="Tarea o gremio" className="py-2.5 pr-2 bg-transparent font-body text-xs text-arctic outline-none placeholder:text-steel-600 w-full" />
             <div className="py-2.5 px-2"><NumInput value={r.pers} onChange={v => update(r.id, { pers: v })} className="text-center" /></div>
             <div className="py-2.5 px-2"><NumInput value={r.horas} onChange={v => update(r.id, { horas: v })} /></div>
             <div className="py-2.5 px-2"><NumInput value={r.vh} onChange={v => update(r.id, { vh: v })} /></div>
-            <div className="py-2.5 px-2 font-mono text-xs text-steel-400 text-right whitespace-nowrap">{gs(costo)}</div>
-            <div className="py-2.5 px-1"><NumInput value={r.marg} onChange={v => update(r.id, { marg: v })} className="text-blue-bright font-semibold" /></div>
-            <div className="py-2.5 pl-2 font-mono text-xs font-semibold text-arctic text-right whitespace-nowrap">{gs(precio)}</div>
+            <div className="py-2.5 px-2 font-mono text-xs font-semibold text-arctic text-right whitespace-nowrap">{gs(costo)}</div>
             <button onClick={() => remove(r.id)} className="justify-self-center rounded p-1 text-steel-700 hover:text-red-400 hover:bg-red-500/10 transition-colors">
               <X className="h-3.5 w-3.5" />
             </button>
@@ -304,9 +289,7 @@ function TablaMO({ mos, onChange }: { mos: MoRow[]; onChange: (m: MoRow[]) => vo
 
       <div className="flex items-baseline justify-end gap-4 px-4 py-2.5 bg-steel-900/20 font-mono text-xs">
         <span className="text-steel-500">Costo mano de obra</span>
-        <span className="text-steel-300">{gs(mos.reduce((s, r) => s + calcMo(r).costo, 0))}</span>
-        <span className="text-steel-500 ml-3">Precio de venta</span>
-        <span className="text-arctic font-semibold text-sm">{gs(mos.reduce((s, r) => s + calcMo(r).precio, 0))}</span>
+        <span className="text-arctic font-semibold text-sm">{gs(mos.reduce((s, r) => s + calcMo(r).costo, 0))}</span>
       </div>
     </div>
   );
@@ -345,7 +328,7 @@ function VistaPlanilla({ rubros, datos, onChange, onDatosChange }: {
   const conDescuento = totales.precio * (1 - datos.descuento / 100);
   const totalFinal = conDescuento * (1 + datos.iva / 100);
 
-  const { matCosto, matPrecio, moCosto, moPrecio, otrosCosto, otrosPrecio, subCosto, subPrecio } = calcRubro(rb);
+  const { matCosto, moCosto, otrosCosto, subCosto, subPrecio } = calcRubro(rb);
 
   return (
     <div className="grid gap-5" style={{ gridTemplateColumns: 'minmax(0,1fr) 300px' }}>
@@ -416,8 +399,8 @@ function VistaPlanilla({ rubros, datos, onChange, onDatosChange }: {
               </label>
             ))}
             <div className="pt-2 border-t border-steel-700 flex justify-between font-mono text-xs">
-              <span className="text-steel-500">Precio otros</span>
-              <span className="text-arctic font-semibold">{gs(otrosPrecio)}</span>
+              <span className="text-steel-500">Subtotal otros</span>
+              <span className="text-arctic font-semibold">{gs(otrosCosto)}</span>
             </div>
           </div>
 
@@ -430,7 +413,7 @@ function VistaPlanilla({ rubros, datos, onChange, onDatosChange }: {
             <p className="font-mono text-[10px] text-steel-500 mb-4">Indirectos y margen son de este rubro. Descuento e IVA al total.</p>
             {([
               ['overhead','Costos indirectos % (rubro)','text-steel-300'],
-              ['margen','Margen % (default nuevos ítems)','text-blue-bright'],
+              ['margen','Margen % (sobre costo total del rubro)','text-blue-bright'],
             ] as [keyof Rubro,string,string][]).map(([k,label,cls]) => (
               <label key={k} className="flex items-center justify-between gap-3 mb-3 font-body text-xs text-arctic">
                 <span>{label}</span>
@@ -500,11 +483,10 @@ function VistaPlanilla({ rubros, datos, onChange, onDatosChange }: {
         <div className="rounded-xl border border-steel-700 bg-carbon-light p-4">
           <div className="font-mono text-[9px] uppercase tracking-widest text-steel-500 mb-3">Rubro: {rb.nombre}</div>
           {[
-            ['Materiales (costo)', matCosto, 'text-steel-400'],
-            ['Materiales (precio)', matPrecio, 'text-arctic'],
-            ['Mano de obra (costo)', moCosto, 'text-steel-400'],
-            ['Mano de obra (precio)', moPrecio, 'text-arctic'],
-            ['Otros (precio)', otrosPrecio, 'text-arctic'],
+            ['Materiales', matCosto, 'text-steel-400'],
+            ['Mano de obra', moCosto, 'text-steel-400'],
+            ['Otros directos', otrosCosto, 'text-steel-400'],
+            ['+ Indirectos/margen', subPrecio - matCosto - moCosto - otrosCosto, 'text-blue-bright'],
           ].map(([l,v,c]) => (
             <div key={l as string} className="flex justify-between items-baseline gap-2 py-1.5 border-b border-steel-900">
               <span className="font-body text-xs text-steel-500">{l as string}</span>
@@ -639,7 +621,7 @@ function VistaPropuesta({ rubros, datos, ppto }: { rubros: Rubro[]; datos: Datos
         <div style={{ paddingTop: 26 }}>
           {incluidos.map((rb, idx) => {
             const { subPrecio } = calcRubro(rb);
-            const itemsMats = rb.mats.filter(m => m.desc);
+            const itemsMats = rb.mats.filter(m => m.desc && m.prop !== false);
             const itemsMos = rb.mos.filter(m => m.desc);
             const hayTabla = itemsMats.length > 0 || itemsMos.length > 0;
             return (
@@ -673,16 +655,16 @@ function VistaPropuesta({ rubros, datos, ppto }: { rubros: Rubro[]; datos: Datos
                       </div>
                     )}
 
-                    {/* Items materiales */}
-                    {itemsMats.map(m => {
-                      const { precio } = calcMat(m);
+                    {/* Items materiales (solo los marcados con prop=true) */}
+                    {itemsMats.filter(m => m.prop !== false).map(m => {
+                      const { costo } = calcMat(m);
                       return (
                         <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px 62px 108px 132px', alignItems: 'center', borderBottom: '1px solid #f4f2ee' }}>
                           <div style={{ padding: '7px 8px 7px 0', fontSize: 12, lineHeight: 1.5, color: '#33312e' }}>{m.desc}</div>
                           <div style={{ ...mono, fontSize: 11, textAlign: 'center', color: '#6f6b64', padding: '7px 2px' }}>{m.unidad}</div>
                           <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{m.cant}</div>
                           <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{gs(m.costo)}</div>
-                          <div style={{ ...mono, fontSize: 12, fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap', padding: '7px 0 7px 4px' }}>{gs(precio)}</div>
+                          <div style={{ ...mono, fontSize: 12, fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap', padding: '7px 0 7px 4px' }}>{gs(costo)}</div>
                         </div>
                       );
                     })}
@@ -697,14 +679,14 @@ function VistaPropuesta({ rubros, datos, ppto }: { rubros: Rubro[]; datos: Datos
 
                     {/* Items mano de obra */}
                     {itemsMos.map(m => {
-                      const { precio } = calcMo(m);
+                      const { costo } = calcMo(m);
                       return (
                         <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px 62px 108px 132px', alignItems: 'center', borderBottom: '1px solid #f4f2ee' }}>
                           <div style={{ padding: '7px 8px 7px 0', fontSize: 12, lineHeight: 1.5, color: '#33312e' }}>{m.desc}</div>
                           <div style={{ ...mono, fontSize: 11, textAlign: 'center', color: '#6f6b64', padding: '7px 2px' }}>hs</div>
                           <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{m.pers * m.horas}</div>
                           <div style={{ ...mono, fontSize: 11.5, textAlign: 'right', color: '#33312e', padding: '7px 4px' }}>{gs(m.vh)}</div>
-                          <div style={{ ...mono, fontSize: 12, fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap', padding: '7px 0 7px 4px' }}>{gs(precio)}</div>
+                          <div style={{ ...mono, fontSize: 12, fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap', padding: '7px 0 7px 4px' }}>{gs(costo)}</div>
                         </div>
                       );
                     })}
