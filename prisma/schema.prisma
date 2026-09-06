@@ -126,6 +126,8 @@ model Presupuesto {
   assignedTo        String   @default("")
   scheduledDate     String   @default("")
   calculationData   Json     @default("{}")
+  createdBy         String   @default("")
+  seguimientoData   Json     @default("{}")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

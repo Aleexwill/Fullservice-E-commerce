@@ -2,7 +2,14 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, Building, MapPin, MessageSquare, Clock, Calendar, Loader2, FileText, ChevronRight, AlertTriangle, Wrench, HardHat, Factory, Calculator, GitBranch, Printer } from 'lucide-react';
+import {
+  Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone,
+  Building, MapPin, MessageSquare, Clock, Calendar, Loader2,
+  FileText, ChevronRight, AlertTriangle, Wrench, HardHat,
+  Factory, Calculator, GitBranch, Printer, BarChart2, List,
+  Archive, ClipboardList, TrendingUp, DollarSign, CheckCircle2,
+  XCircle, PauseCircle, Globe, Shield
+} from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
 import { imprimirPresupuesto, type PdfDetallOpts } from '@/lib/presupuesto-pdf';
@@ -11,91 +18,74 @@ interface Presupuesto {
   id: string; code: string; status: string; serviceType: string; serviceTitle: string;
   customer: { name: string; email: string; phone: string; company: string; address: string };
   description: string; details: string; estimatedValue: number | null; finalValue: number | null;
-  estimatedDuration: string; priority: string; source: string; assignedTo: string; scheduledDate: string;
-  calculationData: CalculationData | null;
+  estimatedDuration: string; priority: string; source: string; assignedTo: string;
+  scheduledDate: string; calculationData: CalculationData | null; createdBy: string;
   notes: { id: string; text: string; createdAt: string }[];
   createdAt: string; updatedAt: string;
 }
 
-const STATUS_MAP: Record<string, { label: string; badge: string }> = {
-  borrador: { label: 'Borrador', badge: 'badge-neutral' },
-  nuevo: { label: 'Nuevo', badge: 'badge-blue' },
-  en_revision: { label: 'En revision', badge: 'badge-yellow' },
-  cotizado: { label: 'Cotizado', badge: 'badge-yellow' },
-  aprobado: { label: 'Aprobado', badge: 'badge-green' },
-  en_ejecucion: { label: 'En ejecucion', badge: 'badge-green' },
-  completado: { label: 'Completado', badge: 'badge-neutral' },
-  rechazado: { label: 'Rechazado', badge: 'badge-red' },
+const STATUS_MAP: Record<string, { label: string; badge: string; color: string }> = {
+  borrador:     { label: 'Borrador',    badge: 'badge-neutral', color: '#6B7280' },
+  nuevo:        { label: 'Nuevo',       badge: 'badge-blue',    color: '#3B82F6' },
+  en_revision:  { label: 'En revisión', badge: 'badge-yellow',  color: '#F59E0B' },
+  cotizado:     { label: 'Cotizado',    badge: 'badge-yellow',  color: '#F59E0B' },
+  aprobado:     { label: 'Aprobado',    badge: 'badge-green',   color: '#48BB78' },
+  en_ejecucion: { label: 'En ejecución',badge: 'badge-green',   color: '#48BB78' },
+  completado:   { label: 'Completado',  badge: 'badge-neutral', color: '#9CA3AF' },
+  rechazado:    { label: 'Rechazado',   badge: 'badge-red',     color: '#FC8181' },
 };
 
 const TYPE_MAP: Record<string, { label: string; icon: any; color: string }> = {
-  mantenimiento: { label: 'Mantenimiento', icon: Wrench, color: 'text-blue-bright' },
-  civil: { label: 'Construccion civil', icon: HardHat, color: 'text-yellow-bright' },
-  metalurgica: { label: 'Metalurgica', icon: Factory, color: 'text-[#48BB78]' },
-  otro: { label: 'Otro', icon: FileText, color: 'text-steel-300' },
+  mantenimiento: { label: 'Mantenimiento',     icon: Wrench,   color: 'text-blue-bright' },
+  civil:         { label: 'Construcción civil', icon: HardHat,  color: 'text-yellow-bright' },
+  metalurgica:   { label: 'Metalúrgica',        icon: Factory,  color: 'text-[#48BB78]' },
+  otro:          { label: 'Otro',               icon: FileText, color: 'text-steel-300' },
 };
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
-  baja: { label: 'Baja', color: 'text-steel-500' }, media: { label: 'Media', color: 'text-yellow-bright' },
-  alta: { label: 'Alta', color: 'text-[#FC8181]' }, urgente: { label: 'Urgente', color: 'text-[#FC8181]' },
+  baja:    { label: 'Baja',    color: 'text-steel-500' },
+  media:   { label: 'Media',   color: 'text-yellow-bright' },
+  alta:    { label: 'Alta',    color: 'text-[#FC8181]' },
+  urgente: { label: 'Urgente', color: 'text-[#FC8181]' },
 };
 
-const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
-const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const ACTIVE_STATUSES = ['nuevo', 'en_revision', 'cotizado', 'aprobado', 'en_ejecucion', 'borrador'];
+const ARCHIVE_STATUSES = ['completado', 'rechazado'];
+
+const formatGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
+const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
+const formatDateFull = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 const formatScheduledDate = (d: string) => {
   if (!d) return null;
-  // ISO date YYYY-MM-DD — parse as local date to avoid timezone shift
   const [y, m, day] = d.split('-').map(Number);
   if (!y || !m || !day) return d;
   return new Date(y, m - 1, day).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
 };
+
+type Tab = 'dashboard' | 'solicitudes' | 'archivo' | 'planificacion';
 
 export default function AdminPresupuestosPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Presupuesto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
-  const [filterDate, setFilterDate] = useState('');
-  const [selected, setSelected] = useState<Presupuesto | null>(null);
-  const [newNote, setNewNote] = useState('');
-  const [addingNote, setAddingNote] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [leadPrefill, setLeadPrefill] = useState<Record<string, string> | null>(null);
-  const [editFinal, setEditFinal] = useState('');
-  const [editingFinal, setEditingFinal] = useState(false);
-  const [editSched, setEditSched] = useState('');
-  const [editDuration, setEditDuration] = useState('');
-  const [editAssigned, setEditAssigned] = useState('');
-  const [savingFields, setSavingFields] = useState(false);
-  const [fieldsError, setFieldsError] = useState('');
-  const [activeTab, setActiveTab] = useState<'detalle' | 'calculo'>('detalle');
-  const [editingCustomer, setEditingCustomer] = useState(false);
-  const [editCustomer, setEditCustomer] = useState({ name: '', email: '', phone: '', company: '', address: '' });
-  const [savingCustomer, setSavingCustomer] = useState(false);
-  const [editingService, setEditingService] = useState(false);
-  const [editService, setEditService] = useState({ serviceTitle: '', serviceType: '', description: '', details: '' });
-  const [savingService, setSavingService] = useState(false);
-  const [customerError, setCustomerError] = useState('');
-  const [serviceError, setServiceError] = useState('');
-  const [showPdfOpts, setShowPdfOpts] = useState(false);
-  const [pdfOpts, setPdfOpts] = useState<PdfDetallOpts>({ incluirDetalle: true, mostrarTotalSeccion: true, mostrarObservaciones: true });
 
   const fetchData = useCallback(() => {
     setLoading(true);
-    const p = new URLSearchParams();
-    if (search) p.set('search', search);
-    if (filterStatus) p.set('status', filterStatus);
-    if (filterType) p.set('type', filterType);
-    if (filterDate) { p.set('dateFrom', filterDate); p.set('dateTo', filterDate); }
-    fetchJson<any>(`/api/presupuestos?${p}`).then((d) => { setItems(d?.presupuestos || []); setLoading(false); });
-  }, [search, filterStatus, filterType, filterDate]);
+    fetchJson<any>('/api/presupuestos?limit=200').then((d) => {
+      setItems(d?.presupuestos || []);
+      setLoading(false);
+    });
+  }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Open create modal pre-filled when coming from lead
   useEffect(() => {
     const fromLead = searchParams.get('from_lead');
     if (!fromLead) return;
@@ -107,545 +97,118 @@ export default function AdminPresupuestosPage() {
       serviceTitle: searchParams.get('subject') || '',
     });
     setShowCreate(true);
-    // Clean URL without reloading
     const url = new URL(window.location.href);
-    url.searchParams.delete('from_lead');
-    url.searchParams.delete('name');
-    url.searchParams.delete('email');
-    url.searchParams.delete('phone');
-    url.searchParams.delete('company');
-    url.searchParams.delete('subject');
+    ['from_lead','name','email','phone','company','subject'].forEach(k => url.searchParams.delete(k));
     window.history.replaceState({}, '', url.toString());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateStatus = async (id: string, status: string) => {
-    const res = await fetch(`/api/presupuestos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (res.ok) { fetchData(); if (selected?.id === id) { const u = await res.json(); setSelected(u); } }
+  const del = async (id: string) => {
+    if (!confirm('¿Eliminar este presupuesto?')) return;
+    await fetch(`/api/presupuestos/${id}`, { method: 'DELETE' });
+    fetchData();
   };
 
-  const updateField = async (id: string, field: string, value: any) => {
-    const res = await fetch(`/api/presupuestos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [field]: value }) });
-    if (res.ok && selected?.id === id) { const u = await res.json(); setSelected(u); }
-  };
+  const allActive = items.filter(i => ACTIVE_STATUSES.includes(i.status));
+  const allArchive = items.filter(i => ARCHIVE_STATUSES.includes(i.status));
 
-  const openDetail = (item: Presupuesto) => {
-    setSelected(item);
-    setEditFinal(item.finalValue ? String(item.finalValue) : '');
-    setEditSched(item.scheduledDate || '');
-    setEditDuration(item.estimatedDuration || '');
-    setEditAssigned(item.assignedTo || '');
-    setEditingFinal(false);
-    setEditingCustomer(false);
-    setEditCustomer({ name: item.customer.name || '', email: item.customer.email || '', phone: item.customer.phone || '', company: item.customer.company || '', address: item.customer.address || '' });
-    setEditingService(false);
-    setEditService({ serviceTitle: item.serviceTitle || '', serviceType: item.serviceType || '', description: item.description || '', details: item.details || '' });
-    setActiveTab('detalle');
-  };
+  const filteredSolicitudes = allActive.filter(i => {
+    const matchSearch = !search || [i.code, i.customer.name, i.serviceTitle, i.customer.company].join(' ').toLowerCase().includes(search.toLowerCase());
+    const matchStatus = !filterStatus || i.status === filterStatus;
+    const matchType = !filterType || i.serviceType === filterType;
+    return matchSearch && matchStatus && matchType;
+  });
 
-  const saveWorkFields = async () => {
-    if (!selected) return;
-    setSavingFields(true);
-    setFieldsError('');
-    try {
-      const res = await fetch(`/api/presupuestos/${selected.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          finalValue: editFinal ? Number(editFinal) : null,
-          scheduledDate: editSched,
-          estimatedDuration: editDuration,
-          assignedTo: editAssigned,
-        }),
-      });
-      if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); }
-      else {
-        const err = await res.json().catch(() => ({}));
-        setFieldsError(err?.error || `Error ${res.status} al guardar`);
-      }
-    } catch {
-      setFieldsError('Error de red al guardar. Intentá de nuevo.');
-    } finally {
-      setSavingFields(false);
-    }
-  };
+  const filteredArchivo = allArchive.filter(i => {
+    const matchSearch = !search || [i.code, i.customer.name, i.serviceTitle].join(' ').toLowerCase().includes(search.toLowerCase());
+    return matchSearch;
+  });
 
-  const saveCustomer = async () => {
-    if (!selected) return;
-    setSavingCustomer(true);
-    setCustomerError('');
-    try {
-      const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: editCustomer }) });
-      if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingCustomer(false); }
-      else { const err = await res.json().catch(() => ({})); setCustomerError(err?.error || `Error ${res.status} al guardar cliente`); }
-    } catch { setCustomerError('Error de red al guardar. Intentá de nuevo.'); }
-    finally { setSavingCustomer(false); }
-  };
+  // KPI calcs
+  const totalCotizado = items.filter(i => ['cotizado','aprobado','en_ejecucion','completado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || Number(i.estimatedValue) || 0), 0);
+  const totalAprobado = items.filter(i => ['aprobado','en_ejecucion','completado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
+  const totalCompletado = items.filter(i => i.status === 'completado').reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
+  const tasaCierre = allArchive.length > 0 ? Math.round((items.filter(i => i.status === 'completado').length / (items.filter(i => i.status === 'completado').length + items.filter(i => i.status === 'rechazado').length || 1)) * 100) : 0;
 
-  const saveService = async () => {
-    if (!selected) return;
-    setSavingService(true);
-    setServiceError('');
-    try {
-      const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceTitle: editService.serviceTitle, serviceType: editService.serviceType, description: editService.description, details: editService.details }) });
-      if (res.ok) { const u = await res.json(); setSelected(u); fetchData(); setEditingService(false); }
-      else { const err = await res.json().catch(() => ({})); setServiceError(err?.error || `Error ${res.status} al guardar servicio`); }
-    } catch { setServiceError('Error de red al guardar. Intentá de nuevo.'); }
-    finally { setSavingService(false); }
-  };
-
-  const sendWhatsApp = () => {
-    if (!selected) return;
-    const phone = selected.customer.phone.replace(/\D/g, '');
-    const value = editFinal ? Number(editFinal) : selected.finalValue;
-    const valueText = value ? `un valor de *${formatGs(value)}*` : 'un valor a definir';
-    const msg = `Hola ${selected.customer.name}, le comunicamos que el presupuesto *${selected.code}* para el servicio *"${selected.serviceTitle}"* tiene ${valueText}. ¿Lo aprobamos? Quedamos a su disposición. — Full Service & Clean`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
-  const aprobar = async () => {
-    if (!selected) return;
-    if (!confirm('¿Marcar como aprobado y pasar a ejecución?')) return;
-    await saveWorkFields();
-    await updateStatus(selected.id, 'aprobado');
-  };
-
-  const crearNuevaVersion = async () => {
-    if (!selected) return;
-    if (!confirm(`¿Iniciar modificación de ${selected.code}? El cálculo actual se guardará como versión anterior y el código pasará a la siguiente versión.`)) return;
-
-    // Detect current version and increment
-    const baseCode = selected.code.replace(/-v\d+$/, '');
-    const currentV = Number(selected.code.match(/-v(\d+)$/)?.[1] ?? 1);
-    const nextV = currentV + 1;
-    const newCode = `${baseCode}-v${nextV}`;
-
-    // Build updated calculationData: push current filas into versions history
-    const currentCalc = selected.calculationData ?? { filas: [], iva: 10, descuento: 0, validez: '10 días', ubicacion: '', observaciones: '' };
-    const prevVersions: { v: number; filas: any[] }[] = (currentCalc as any).versions ?? [];
-    const updatedCalc = {
-      ...currentCalc,
-      versions: [...prevVersions, { v: currentV, filas: currentCalc.filas ?? [] }],
-    };
-
-    // Update same record: new code, status en_revision, updated calculationData
-    const res = await fetch(`/api/presupuestos/${selected.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ _forceCode: newCode }),
-    });
-    if (!res.ok) return;
-
-    const res2 = await fetch(`/api/presupuestos/${selected.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'en_revision', calculationData: updatedCalc }),
-    });
-    if (res2.ok) {
-      const updated = await res2.json();
-      setSelected(updated);
-      fetchData();
-    }
-  };
-
-  const addNote = async () => {
-    if (!selected || !newNote.trim()) return;
-    setAddingNote(true);
-    const res = await fetch(`/api/presupuestos/${selected.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _addNote: newNote.trim() }) });
-    if (res.ok) { const u = await res.json(); setSelected(u); setNewNote(''); }
-    setAddingNote(false);
-  };
-
-  const del = async (id: string) => { if (!confirm('¿Eliminar este presupuesto?')) return; await fetch(`/api/presupuestos/${id}`, { method: 'DELETE' }); fetchData(); if (selected?.id === id) setSelected(null); };
-
-  const haySecciones = (selected?.calculationData?.filas ?? []).some(f => f.tipo === 'titulo');
+  const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
+    { key: 'dashboard',    label: 'Dashboard',      icon: BarChart2 },
+    { key: 'solicitudes',  label: 'Solicitudes',    icon: List,         count: allActive.length },
+    { key: 'archivo',      label: 'Archivo',        icon: Archive,      count: allArchive.length },
+    { key: 'planificacion',label: 'Planificación',  icon: ClipboardList },
+  ];
 
   return (
     <div className="p-6 lg:p-8">
-      {/* PDF Options modal (detalle tab) */}
-      {showPdfOpts && selected && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl border border-steel-900/60 bg-carbon shadow-2xl">
-            <div className="flex items-center justify-between border-b border-steel-900/40 px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Printer className="h-4 w-4 text-blue-bright" />
-                <span className="font-body text-body-sm font-semibold text-arctic">Opciones de PDF</span>
-              </div>
-              <button onClick={() => setShowPdfOpts(false)} className="rounded p-1 text-steel-600 hover:text-arctic transition-colors"><X className="h-4 w-4" /></button>
-            </div>
-            <div className="space-y-1 px-5 py-4">
-              <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-600 mb-2">Contenido</p>
-              {haySecciones && (
-                <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
-                  <input type="checkbox" checked={pdfOpts.incluirDetalle} onChange={() => setPdfOpts(o => ({ ...o, incluirDetalle: !o.incluirDetalle }))}
-                    className="h-4 w-4 rounded border-steel-700 accent-blue" />
-                  <div>
-                    <p className="font-body text-body-sm text-arctic">Incluir detalle de ítems</p>
-                    <p className="font-body text-[0.65rem] text-steel-500">Muestra materiales y mano de obra bajo cada título</p>
-                  </div>
-                </label>
-              )}
-              <p className="font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-600 mb-2 mt-3">Columnas visibles</p>
-              <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
-                <input type="checkbox" checked={pdfOpts.mostrarTotalSeccion} onChange={() => setPdfOpts(o => ({ ...o, mostrarTotalSeccion: !o.mostrarTotalSeccion }))}
-                  className="h-4 w-4 rounded border-steel-700 accent-blue" />
-                <p className="font-body text-body-sm text-arctic">Total por sección</p>
-              </label>
-              <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-steel-900/30">
-                <input type="checkbox" checked={pdfOpts.mostrarObservaciones} onChange={() => setPdfOpts(o => ({ ...o, mostrarObservaciones: !o.mostrarObservaciones }))}
-                  className="h-4 w-4 rounded border-steel-700 accent-blue" />
-                <p className="font-body text-body-sm text-arctic">Observaciones y condiciones</p>
-              </label>
-            </div>
-            <div className="flex gap-2 border-t border-steel-900/40 px-5 py-4">
-              <button onClick={() => setShowPdfOpts(false)} className="btn-secondary flex-1">Cancelar</button>
-              <button
-                onClick={() => {
-                  imprimirPresupuesto({ code: selected.code, serviceTitle: selected.serviceTitle, serviceType: selected.serviceType, description: selected.description, scheduledDate: selected.scheduledDate, estimatedDuration: selected.estimatedDuration, assignedTo: selected.assignedTo, customer: selected.customer, calculationData: selected.calculationData, createdAt: selected.createdAt, opts: pdfOpts });
-                  setShowPdfOpts(false);
-                }}
-                className="btn-primary flex flex-1 items-center justify-center gap-2"
-              >
-                <Printer className="h-4 w-4" /> Generar PDF
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-h1 uppercase text-arctic">Presupuestos</h1>
-          <p className="mt-1 font-body text-body-sm text-steel-300">Solicitudes de presupuesto de servicios</p>
+          <p className="mt-1 font-body text-body-sm text-steel-300">Tablero de control — Full Service & Clean</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo presupuesto</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => router.push('/admin/presupuestos/seguimiento')} className="btn-secondary flex items-center gap-1.5">
+            <TrendingUp className="h-4 w-4" /> Seguimiento 1·2·3·5·7
+          </button>
+          <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo presupuesto</button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="relative min-w-[240px] flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" /><input type="text" placeholder="Buscar por codigo, cliente, servicio..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" /></div>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input max-w-[160px]"><option value="">Todo estado</option>{Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="input max-w-[160px]"><option value="">Todo tipo</option>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
-        <div className="relative">
-          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="input max-w-[160px]" title="Filtrar por fecha programada" />
-          {filterDate && (
-            <button onClick={() => setFilterDate('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-steel-600 hover:text-red-400 transition-colors" title="Limpiar fecha"><X className="h-3.5 w-3.5" /></button>
-          )}
+      {/* Tab nav */}
+      <div className="mb-6 flex gap-1 border-b border-steel-900/50">
+        {tabs.map(t => {
+          const Icon = t.icon;
+          const active = activeTab === t.key;
+          return (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 font-body text-body-sm font-medium transition-colors border-b-2 -mb-px ${
+                active ? 'border-blue-bright text-arctic' : 'border-transparent text-steel-500 hover:text-steel-300'
+              }`}>
+              <Icon className="h-3.5 w-3.5" />{t.label}
+              {t.count !== undefined && (
+                <span className={`flex h-4.5 min-w-[1.25rem] items-center justify-center rounded-full px-1 font-mono text-[0.6rem] ${active ? 'bg-blue-bright/20 text-blue-bright' : 'bg-steel-900 text-steel-500'}`}>{t.count}</span>
+              )}
+            </button>
+          );
+        })}
+        <div className="ml-auto flex items-center pb-1">
+          <button onClick={fetchData} className="rounded p-1.5 text-steel-600 hover:text-arctic transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
         </div>
-        <button onClick={fetchData} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
       </div>
 
-      {/* List */}
-      {loading ? (
-        <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="card animate-pulse p-4"><div className="h-16 rounded bg-steel-900" /></div>)}</div>
-      ) : items.length === 0 ? (
-        <div className="card p-12 text-center">
-          <FileText className="mx-auto h-12 w-12 text-steel-700" />
-          <h3 className="mt-4 font-display text-h3 text-arctic">Sin presupuestos</h3>
-          <p className="mt-2 font-body text-body-sm text-steel-500">Las solicitudes de presupuesto de servicios apareceran aqui.</p>
-          <button onClick={() => setShowCreate(true)} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Crear solicitud</button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {items.map((item) => {
-            const st = STATUS_MAP[item.status] || STATUS_MAP.nuevo;
-            const tp = TYPE_MAP[item.serviceType] || TYPE_MAP.otro;
-            const pr = PRIORITY_MAP[item.priority] || PRIORITY_MAP.media;
-            const TpIcon = tp.icon;
-            return (
-              <div key={item.id} className="card-interactive flex items-center gap-4 p-4" onClick={() => router.push(`/admin/presupuestos/${item.id}`)}>
-                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-steel-900 ${tp.color}`}><TpIcon className="h-5 w-5" /></div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-caption text-blue-bright">{item.code}</span>
-                    <span className={st.badge}>{st.label}</span>
-                    {(item.priority === 'alta' || item.priority === 'urgente') && <AlertTriangle className={`h-3.5 w-3.5 ${pr.color}`} />}
-                  </div>
-                  <p className="mt-0.5 font-body text-body-sm font-medium text-arctic">{item.serviceTitle}</p>
-                  <p className="truncate font-body text-caption text-steel-500">{item.customer.name}{item.customer.company ? ` — ${item.customer.company}` : ''}</p>
-                </div>
-                <div className="hidden shrink-0 text-right md:block">
-                  {(item.finalValue || item.estimatedValue) && (
-                    <div>
-                      <p className="font-mono text-body-sm text-arctic">
-                        {formatGs(item.finalValue ?? item.estimatedValue!)}
-                      </p>
-                      {item.finalValue && item.estimatedValue && item.finalValue !== item.estimatedValue && (
-                        <p className="font-mono text-[0.6rem] text-steel-600 line-through">{formatGs(item.estimatedValue)}</p>
-                      )}
-                      <p className="font-body text-[0.6rem] text-steel-600">
-                        {item.finalValue ? 'calculado' : 'estimado'}
-                      </p>
-                    </div>
-                  )}
-                  {item.scheduledDate ? (
-                    <p className="font-body text-caption text-blue-bright/70" title="Fecha programada">📅 {formatScheduledDate(item.scheduledDate)}</p>
-                  ) : (
-                    <p className="font-body text-caption text-steel-700">{formatDate(item.createdAt)}</p>
-                  )}
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-700"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
-                  <button onClick={(e) => { e.stopPropagation(); router.push(`/admin/presupuestos/${item.id}`); }} className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-blue-bright hover:bg-blue-muted transition-colors">
-                    <Calculator className="h-3 w-3" /> Planilla
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); del(item.id); }} aria-label="Eliminar presupuesto" className="rounded p-1.5 text-steel-700 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* Dashboard tab */}
+      {activeTab === 'dashboard' && (
+        <DashboardTab items={items} loading={loading}
+          totalCotizado={totalCotizado} totalAprobado={totalAprobado}
+          totalCompletado={totalCompletado} tasaCierre={tasaCierre}
+          onNavigate={setActiveTab} />
       )}
 
-      {/* Detail panel */}
-      {selected && (
-        <div className="fixed inset-0 z-[100] flex">
-          <div className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative h-full w-full overflow-y-auto bg-carbon-light shadow-2xl">
-            <div className="sticky top-0 z-10 border-b border-steel-900/40 bg-carbon-light">
-              <div className="flex items-center justify-between px-6 pt-4 pb-3">
-                <div><span className="font-mono text-caption text-blue-bright">{selected.code}</span><h2 className="font-display text-h3 text-arctic">{selected.serviceTitle}</h2></div>
-                <button onClick={() => setSelected(null)} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
-              </div>
-              {/* Tabs */}
-              <div className="flex gap-1 px-6 pb-0">
-                <button onClick={() => setActiveTab('detalle')} className={`flex items-center gap-1.5 rounded-t-md px-4 py-2 font-body text-body-sm transition-colors ${activeTab === 'detalle' ? 'bg-steel-900 text-arctic' : 'text-steel-500 hover:text-arctic'}`}>
-                  <FileText className="h-3.5 w-3.5" /> Detalle
-                </button>
-                <button onClick={() => setActiveTab('calculo')} className={`flex items-center gap-1.5 rounded-t-md px-4 py-2 font-body text-body-sm transition-colors ${activeTab === 'calculo' ? 'bg-steel-900 text-arctic' : 'text-steel-500 hover:text-arctic'}`}>
-                  <Calculator className="h-3.5 w-3.5" /> Cálculo interno
-                  {!!(selected.calculationData?.filas?.length) && (
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#48BB78]/20 font-mono text-[0.6rem] text-[#48BB78]">
-                      {selected.calculationData!.filas!.length}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-            <div className="mx-auto w-full max-w-7xl space-y-5 p-6">
-              {/* ── PESTAÑA CÁLCULO INTERNO — siempre montado, solo oculto ── */}
-              <div className={activeTab === 'calculo' ? '' : 'hidden'}>
-                <PresupuestoCalculo
-                  presupuestoId={selected.id}
-                  serviceTitle={selected.serviceTitle}
-                  customerName={selected.customer.name}
-                  customerEmail={selected.customer.email}
-                  customerPhone={selected.customer.phone}
-                  customerCompany={selected.customer.company}
-                  customerAddress={selected.customer.address}
-                  description={selected.description}
-                  scheduledDate={selected.scheduledDate}
-                  code={selected.code}
-                  initial={selected.calculationData}
-                  onSaved={(data) => setSelected((s) => s ? { ...s, calculationData: data } : s)}
-                />
-              </div>
+      {/* Solicitudes tab */}
+      {activeTab === 'solicitudes' && (
+        <SolicitudesTab
+          items={filteredSolicitudes} loading={loading}
+          search={search} setSearch={setSearch}
+          filterStatus={filterStatus} setFilterStatus={setFilterStatus}
+          filterType={filterType} setFilterType={setFilterType}
+          onOpen={(id) => router.push(`/admin/presupuestos/${id}`)}
+          onDelete={del}
+          onNew={() => setShowCreate(true)}
+        />
+      )}
 
-              {/* ── PESTAÑA DETALLE ── */}
-              {activeTab === 'detalle' && <>
-              {/* Status + Priority */}
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="label mb-1 block">Estado</label><select value={selected.status} onChange={(e) => updateStatus(selected.id, e.target.value)} className="input">{Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
-                <div><label className="label mb-1 block">Prioridad</label><select value={selected.priority} onChange={(e) => updateField(selected.id, 'priority', e.target.value)} className="input">{Object.entries(PRIORITY_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
-              </div>
-              {/* Customer */}
-              <div className="card p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="flex items-center gap-2 font-display text-h4 text-arctic"><User className="h-4 w-4 text-blue-bright" /> Cliente</h3>
-                  {!editingCustomer
-                    ? <button onClick={() => { setEditCustomer({ name: selected.customer.name || '', email: selected.customer.email || '', phone: selected.customer.phone || '', company: selected.customer.company || '', address: selected.customer.address || '' }); setEditingCustomer(true); }} className="font-body text-caption text-blue-bright hover:underline">Editar</button>
-                    : <div className="flex gap-2"><button onClick={() => setEditingCustomer(false)} className="font-body text-caption text-steel-400 hover:underline">Cancelar</button><button onClick={saveCustomer} disabled={savingCustomer} className="font-body text-caption text-[#48BB78] hover:underline">{savingCustomer ? 'Guardando…' : 'Guardar'}</button></div>
-                  }
-                </div>
-                {editingCustomer ? (
-                  <div className="space-y-2">
-                    <div><label className="label mb-1 block">Nombre</label><input className="input" value={editCustomer.name} onChange={(e) => setEditCustomer((c) => ({ ...c, name: e.target.value }))} /></div>
-                    <div><label className="label mb-1 block">Empresa</label><input className="input" value={editCustomer.company} onChange={(e) => setEditCustomer((c) => ({ ...c, company: e.target.value }))} /></div>
-                    <div><label className="label mb-1 block">Email</label><input className="input" type="email" value={editCustomer.email} onChange={(e) => setEditCustomer((c) => ({ ...c, email: e.target.value }))} /></div>
-                    <div><label className="label mb-1 block">Teléfono</label><input className="input" value={editCustomer.phone} onChange={(e) => setEditCustomer((c) => ({ ...c, phone: e.target.value }))} /></div>
-                    <div><label className="label mb-1 block">Dirección</label><input className="input" value={editCustomer.address} onChange={(e) => setEditCustomer((c) => ({ ...c, address: e.target.value }))} /></div>
-                    {customerError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">{customerError}</p>}
-                  </div>
-                ) : (
-                  <div className="space-y-1 font-body text-body-sm">
-                    <p className="font-medium text-arctic">{selected.customer.name}</p>
-                    {selected.customer.company && <p className="flex items-center gap-1 text-steel-300"><Building className="h-3 w-3" />{selected.customer.company}</p>}
-                    {selected.customer.email && <p className="flex items-center gap-1 text-steel-300"><Mail className="h-3 w-3" />{selected.customer.email}</p>}
-                    {selected.customer.phone && <p className="flex items-center gap-1 text-steel-300"><Phone className="h-3 w-3" />{selected.customer.phone}</p>}
-                    {selected.customer.address && <p className="flex items-center gap-1 text-steel-300"><MapPin className="h-3 w-3" />{selected.customer.address}</p>}
-                  </div>
-                )}
-              </div>
-              {/* Description */}
-              <div className="card p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-display text-h4 text-arctic">Servicio</h3>
-                  {!editingService
-                    ? <button onClick={() => { setEditService({ serviceTitle: selected.serviceTitle || '', serviceType: selected.serviceType || '', description: selected.description || '', details: selected.details || '' }); setEditingService(true); }} className="font-body text-caption text-blue-bright hover:underline">Editar</button>
-                    : <div className="flex gap-2"><button onClick={() => setEditingService(false)} className="font-body text-caption text-steel-400 hover:underline">Cancelar</button><button onClick={saveService} disabled={savingService} className="font-body text-caption text-[#48BB78] hover:underline">{savingService ? 'Guardando…' : 'Guardar'}</button></div>
-                  }
-                </div>
-                {editingService ? (
-                  <div className="space-y-2">
-                    <div><label className="label mb-1 block">Título del servicio</label><input className="input" value={editService.serviceTitle} onChange={(e) => setEditService((s) => ({ ...s, serviceTitle: e.target.value }))} /></div>
-                    <div><label className="label mb-1 block">Tipo</label><select className="input" value={editService.serviceType} onChange={(e) => setEditService((s) => ({ ...s, serviceType: e.target.value }))}>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
-                    <div><label className="label mb-1 block">Descripción</label><textarea className="input min-h-[80px]" value={editService.description} onChange={(e) => setEditService((s) => ({ ...s, description: e.target.value }))} /></div>
-                    <div><label className="label mb-1 block">Detalles adicionales</label><textarea className="input min-h-[60px]" value={editService.details} onChange={(e) => setEditService((s) => ({ ...s, details: e.target.value }))} /></div>
-                    {serviceError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">{serviceError}</p>}
-                  </div>
-                ) : (
-                  <>
-                    <p className="mb-1 font-body text-body-sm font-medium text-arctic">{selected.serviceTitle}</p>
-                    <p className="whitespace-pre-line font-body text-body-sm text-steel-300">{selected.description || 'Sin descripcion'}</p>
-                    {selected.details && <><div className="my-2 border-t border-steel-900/30" /><p className="whitespace-pre-line font-body text-caption text-steel-500">{selected.details}</p></>}
-                  </>
-                )}
-              </div>
+      {/* Archivo tab */}
+      {activeTab === 'archivo' && (
+        <ArchivoTab
+          items={filteredArchivo} loading={loading}
+          search={search} setSearch={setSearch}
+          onOpen={(id) => router.push(`/admin/presupuestos/${id}`)}
+          onDelete={del}
+        />
+      )}
 
-              {/* Resumen del cálculo interno */}
-              {(() => {
-                const cd = selected.calculationData;
-                if (!cd?.filas?.length) return null;
-                const titulos = cd.filas.filter((f: any) => f.tipo === 'titulo');
-                const filasTot = cd.filas.filter((f: any) => f.tipo !== 'titulo');
-                const subtotal = filasTot.reduce((s: number, f: any) => s + f.cantidad * f.precioVenta, 0);
-                const iva = subtotal * ((cd.iva ?? 10) / 100);
-                const total = subtotal + iva - (cd.descuento ?? 0);
-
-                // section total applying GG+Mg
-                const secTotal = (t: any) => {
-                  let inside = false, sub = 0;
-                  for (const r of cd.filas) {
-                    if (r.id === t.id) { inside = true; continue; }
-                    if (inside && r.tipo === 'titulo') break;
-                    if (inside) sub += r.cantidad * r.precioVenta;
-                  }
-                  const conGG = sub * (1 + (t.gastosGeneralesPct ?? 0) / 100);
-                  return conGG * (1 + (t.margenPct ?? 0) / 100);
-                };
-
-                // approved-only total (item level)
-                const secAprobado = (t: any) => {
-                  let inside = false, sub = 0;
-                  for (const r of cd.filas) {
-                    if (r.id === t.id) { inside = true; continue; }
-                    if (inside && r.tipo === 'titulo') break;
-                    if (inside && r.aprobado) sub += r.cantidad * r.precioVenta;
-                  }
-                  const conGG = sub * (1 + (t.gastosGeneralesPct ?? 0) / 100);
-                  return conGG * (1 + (t.margenPct ?? 0) / 100);
-                };
-
-                const totalConGG = titulos.length > 0
-                  ? titulos.reduce((s: number, t: any) => s + secTotal(t), 0)
-                  : subtotal;
-                const ivaFinal = totalConGG * ((cd.iva ?? 10) / 100);
-                const totalFinal = totalConGG + ivaFinal - (cd.descuento ?? 0);
-
-                const hayAprobadosDetalle = cd.filas.some((f: any) => f.aprobado);
-                const totalAprobadoDetalle = titulos.reduce((s: number, t: any) => s + secAprobado(t), 0);
-                const ivaAprobadoDetalle = totalAprobadoDetalle * ((cd.iva ?? 10) / 100);
-                const totalAprobadoFinal = totalAprobadoDetalle + ivaAprobadoDetalle - (cd.descuento ?? 0);
-
-                return (
-                  <div className="card p-4">
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 font-display text-h4 text-arctic">
-                        <Calculator className="h-4 w-4 text-blue-bright" /> Resumen del presupuesto
-                      </h3>
-                      <button onClick={() => setActiveTab('calculo')} className="font-body text-caption text-blue-bright hover:underline">Ver detalle →</button>
-                    </div>
-                    <div className="space-y-1">
-                      {titulos.length > 0 ? titulos.map((t: any) => {
-                        const st = secTotal(t);
-                        const sa = secAprobado(t);
-                        const items = cd.filas.filter((r: any) => {
-                          let inside = false;
-                          for (const f of cd.filas) { if (f.id === t.id) { inside = true; continue; } if (inside && f.tipo === 'titulo') break; if (inside && f.id === r.id) return true; } return false;
-                        });
-                        const allApproved = items.length > 0 && items.every((i: any) => i.aprobado);
-                        const someApproved = items.some((i: any) => i.aprobado);
-                        return (
-                          <div key={t.id} className="rounded-md bg-steel-900/30 px-3 py-2">
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-2">
-                                {someApproved && <span className={`text-[0.6rem] font-bold ${allApproved ? 'text-[#48BB78]' : 'text-yellow-400'}`}>{allApproved ? '✓' : '~'}</span>}
-                                <span className="font-body text-body-sm text-arctic">{t.descripcion || 'Sin título'}</span>
-                              </div>
-                              <div className="flex flex-col items-end shrink-0">
-                                <span className="font-mono text-body-sm text-[#48BB78]">{formatGs(st)}</span>
-                                {someApproved && !allApproved && <span className="font-mono text-caption text-yellow-400">{formatGs(sa)} aprobado</span>}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }) : filasTot.map((f: any) => (
-                        <div key={f.id} className="flex items-center justify-between gap-3 rounded-md bg-steel-900/30 px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            {f.aprobado && <span className="text-[0.6rem] font-bold text-[#48BB78]">✓</span>}
-                            <span className="font-body text-caption text-steel-300">{f.descripcion}</span>
-                          </div>
-                          <span className="shrink-0 font-mono text-caption text-[#48BB78]">{formatGs(f.cantidad * f.precioVenta)}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 space-y-1 border-t border-steel-900/40 pt-3 font-body text-body-sm">
-                      <div className="flex justify-between text-steel-500"><span>Subtotal</span><span className="font-mono">{formatGs(totalConGG)}</span></div>
-                      <div className="flex justify-between text-steel-500"><span>IVA ({cd.iva ?? 10}%)</span><span className="font-mono">{formatGs(ivaFinal)}</span></div>
-                      {cd.descuento > 0 && <div className="flex justify-between text-[#FC8181]"><span>Descuento</span><span className="font-mono">-{formatGs(cd.descuento)}</span></div>}
-                      <div className="flex justify-between font-semibold text-arctic"><span>TOTAL</span><span className="font-mono text-[#48BB78]">{formatGs(totalFinal)}</span></div>
-                      {hayAprobadosDetalle && totalAprobadoDetalle > 0 && (
-                        <div className="flex justify-between font-semibold border-t border-[#48BB78]/20 pt-2 mt-2"><span className="text-[#48BB78]">TOTAL APROBADO</span><span className="font-mono text-[#48BB78]">{formatGs(totalAprobadoFinal)}</span></div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-              {/* Scheduling fields */}
-              <div className="card p-4 space-y-3">
-                <h3 className="font-display text-h4 text-arctic flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-bright" /> Programación</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><label className="label mb-1 block">Fecha programada</label><input type="date" value={editSched} onChange={(e) => setEditSched(e.target.value)} className="input" /></div>
-                  <div><label className="label mb-1 block">Duración estimada</label><input type="text" value={editDuration} onChange={(e) => setEditDuration(e.target.value)} className="input" placeholder="ej: 2 días" /></div>
-                </div>
-                <div><label className="label mb-1 block">Responsable / Equipo</label><input type="text" value={editAssigned} onChange={(e) => setEditAssigned(e.target.value)} className="input" placeholder="Nombre del técnico o equipo" /></div>
-                {fieldsError && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">{fieldsError}</p>}
-                <button onClick={saveWorkFields} disabled={savingFields} className="btn-secondary w-full justify-center gap-2">
-                  {savingFields ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : 'Guardar cambios'}
-                </button>
-              </div>
-              {/* Action buttons */}
-              <div className="grid grid-cols-1 gap-2">
-                <button
-                  onClick={() => setShowPdfOpts(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-bright/30 bg-blue-bright/10 px-4 py-2.5 font-body text-body-sm font-semibold text-blue-bright hover:bg-blue-bright/20 transition-colors"
-                >
-                  <Printer className="h-4 w-4" /> Generar PDF del presupuesto
-                </button>
-                {selected.customer.phone && (
-                  <button onClick={sendWhatsApp} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2.5 font-body text-body-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors">
-                    <MessageSquare className="h-4 w-4" /> Enviar presupuesto al cliente por WhatsApp
-                  </button>
-                )}
-                {selected.status !== 'aprobado' && selected.status !== 'completado' && (
-                  <button onClick={aprobar} className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#48BB78]/20 border border-[#48BB78]/40 px-4 py-2.5 font-body text-body-sm font-semibold text-[#48BB78] hover:bg-[#48BB78]/30 transition-colors">
-                    <ChevronRight className="h-4 w-4" /> Aprobar y pasar a ejecución
-                  </button>
-                )}
-                {selected.status !== 'completado' && selected.status !== 'rechazado' && (
-                  <button onClick={crearNuevaVersion} className="flex w-full items-center justify-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2.5 font-body text-body-sm font-semibold text-yellow-400 hover:bg-yellow-500/20 transition-colors">
-                    <GitBranch className="h-4 w-4" /> Modificar presupuesto (nueva versión)
-                  </button>
-                )}
-              </div>
-              {/* Notes */}
-              <div>
-                <h3 className="mb-3 flex items-center gap-2 font-display text-h4 text-arctic"><MessageSquare className="h-4 w-4 text-blue-bright" /> Seguimiento</h3>
-                {selected.notes.length > 0 && <div className="mb-3 space-y-2">{selected.notes.map((n) => (<div key={n.id} className="rounded-md border border-steel-900/30 bg-carbon p-3"><p className="font-body text-body-sm text-steel-300">{n.text}</p><p className="mt-1 font-mono text-[0.6rem] text-steel-700">{formatDate(n.createdAt)}</p></div>))}</div>}
-                <div className="flex gap-2"><input type="text" value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Agregar nota de seguimiento..." className="input flex-1" onKeyDown={(e) => e.key === 'Enter' && addNote()} /><button onClick={addNote} disabled={addingNote || !newNote.trim()} className="btn-primary shrink-0 px-3 disabled:opacity-50">{addingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</button></div>
-              </div>
-              <p className="font-mono text-[0.6rem] text-steel-700">Creado: {formatDate(selected.createdAt)} | Actualizado: {formatDate(selected.updatedAt)}</p>
-              </>}
-            </div>
-          </div>
-        </div>
+      {/* Planificación tab */}
+      {activeTab === 'planificacion' && (
+        <PlanificacionTab items={allActive} loading={loading} onOpen={(id) => router.push(`/admin/presupuestos/${id}`)} />
       )}
 
       {/* Create modal */}
@@ -657,10 +220,7 @@ export default function AdminPresupuestosPage() {
             setShowCreate(false);
             setLeadPrefill(null);
             fetchData();
-            if (id) {
-              const nuevo = await fetchJson<Presupuesto>(`/api/presupuestos/${id}`);
-              if (nuevo) { setSelected(nuevo); setActiveTab('calculo'); }
-            }
+            if (id) router.push(`/admin/presupuestos/${id}`);
           }}
         />
       )}
@@ -668,6 +228,316 @@ export default function AdminPresupuestosPage() {
   );
 }
 
+// ─── Dashboard ───────────────────────────────────────────────
+function DashboardTab({ items, loading, totalCotizado, totalAprobado, totalCompletado, tasaCierre, onNavigate }: {
+  items: Presupuesto[]; loading: boolean;
+  totalCotizado: number; totalAprobado: number; totalCompletado: number; tasaCierre: number;
+  onNavigate: (tab: Tab) => void;
+}) {
+  const byStatus = (s: string) => items.filter(i => i.status === s).length;
+  const kpis = [
+    { label: 'Total solicitudes', value: items.length, icon: FileText, color: 'text-steel-300' },
+    { label: 'Pend. aprobación', value: byStatus('cotizado'), icon: Clock, color: 'text-yellow-bright' },
+    { label: 'En ejecución', value: byStatus('en_ejecucion'), icon: Wrench, color: 'text-blue-bright' },
+    { label: 'Completados', value: byStatus('completado'), icon: CheckCircle2, color: 'text-[#48BB78]' },
+    { label: 'Rechazados', value: byStatus('rechazado'), icon: XCircle, color: 'text-[#FC8181]' },
+  ];
+  const financial = [
+    { label: 'Total cotizado', value: totalCotizado, icon: DollarSign, color: 'text-steel-300' },
+    { label: 'Aprobado / Vendido', value: totalAprobado, icon: CheckCircle2, color: 'text-[#48BB78]' },
+    { label: 'Facturado / Cobrado', value: totalCompletado, icon: TrendingUp, color: 'text-blue-bright' },
+    { label: 'Por facturar', value: Math.max(0, totalAprobado - totalCompletado), icon: Clock, color: 'text-yellow-bright' },
+  ];
+
+  if (loading) return <div className="space-y-4">{Array.from({length:3}).map((_,i) => <div key={i} className="card animate-pulse p-4 h-20 bg-steel-900/40" />)}</div>;
+
+  return (
+    <div className="space-y-6">
+      {/* Status KPIs */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {kpis.map(k => {
+          const Icon = k.icon;
+          return (
+            <div key={k.label} className="card p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-body text-caption text-steel-500">{k.label}</span>
+                <Icon className={`h-4 w-4 ${k.color}`} />
+              </div>
+              <p className={`font-display text-3xl font-bold ${k.color}`}>{k.value}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Financial KPIs */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {financial.map(k => {
+          const Icon = k.icon;
+          return (
+            <div key={k.label} className="card p-4 bg-carbon">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon className={`h-4 w-4 ${k.color}`} />
+                <span className="font-body text-caption text-steel-500">{k.label}</span>
+              </div>
+              <p className={`font-mono text-lg font-bold ${k.color}`}>{k.value > 0 ? formatGs(k.value) : '—'}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Tasa de cierre + by type */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="card p-5">
+          <h3 className="mb-4 font-display text-h4 text-arctic flex items-center gap-2">
+            <BarChart2 className="h-4 w-4 text-blue-bright" /> Estado de presupuestos
+          </h3>
+          <div className="space-y-2">
+            {Object.entries(STATUS_MAP).map(([key, val]) => {
+              const count = items.filter(i => i.status === key).length;
+              const pct = items.length ? Math.round((count / items.length) * 100) : 0;
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <span className="w-28 shrink-0 font-body text-caption text-steel-400">{val.label}</span>
+                  <div className="flex-1 h-2 rounded-full bg-steel-900/60">
+                    <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, background: val.color }} />
+                  </div>
+                  <span className="w-6 shrink-0 text-right font-mono text-caption text-steel-500">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="card p-5">
+          <h3 className="mb-4 font-display text-h4 text-arctic flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-[#48BB78]" /> Métricas de cierre
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-body text-caption text-steel-400">Tasa de cierre</span>
+                <span className="font-mono text-body-sm text-[#48BB78] font-bold">{tasaCierre}%</span>
+              </div>
+              <div className="h-3 rounded-full bg-steel-900/60">
+                <div className="h-3 rounded-full bg-[#48BB78] transition-all" style={{ width: `${tasaCierre}%` }} />
+              </div>
+            </div>
+            {Object.entries(TYPE_MAP).map(([key, val]) => {
+              const count = items.filter(i => i.serviceType === key).length;
+              return (
+                <div key={key} className="flex items-center justify-between">
+                  <span className="font-body text-caption text-steel-400">{val.label}</span>
+                  <span className="font-mono text-body-sm text-arctic">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 pt-4 border-t border-steel-900/40 flex gap-2">
+            <button onClick={() => onNavigate('solicitudes')} className="btn-secondary flex-1 justify-center text-xs">Ver solicitudes</button>
+            <button onClick={() => onNavigate('archivo')} className="btn-secondary flex-1 justify-center text-xs">Ver archivo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Shared list row ───────────────────────────────────────────
+function PresupuestoRow({ item, onOpen, onDelete }: { item: Presupuesto; onOpen: () => void; onDelete: () => void }) {
+  const st = STATUS_MAP[item.status] || STATUS_MAP.nuevo;
+  const tp = TYPE_MAP[item.serviceType] || TYPE_MAP.otro;
+  const pr = PRIORITY_MAP[item.priority] || PRIORITY_MAP.media;
+  const TpIcon = tp.icon;
+  const isWeb = item.source === 'web' || item.createdBy === 'Web' || (!item.createdBy && item.source !== 'admin');
+  return (
+    <div className="card-interactive flex items-center gap-4 p-4" onClick={onOpen}>
+      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-steel-900 ${tp.color}`}><TpIcon className="h-5 w-5" /></div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono text-caption text-blue-bright">{item.code}</span>
+          <span className={st.badge}>{st.label}</span>
+          {(item.priority === 'alta' || item.priority === 'urgente') && <AlertTriangle className={`h-3.5 w-3.5 ${pr.color}`} />}
+          {isWeb ? (
+            <span className="flex items-center gap-1 rounded-full border border-blue/30 bg-blue/10 px-2 py-0.5 font-mono text-[0.55rem] text-blue-bright"><Globe className="h-2.5 w-2.5" />Web</span>
+          ) : item.createdBy ? (
+            <span className="flex items-center gap-1 rounded-full border border-steel-700/40 bg-steel-900/40 px-2 py-0.5 font-mono text-[0.55rem] text-steel-400"><Shield className="h-2.5 w-2.5" />{item.createdBy}</span>
+          ) : null}
+        </div>
+        <p className="mt-0.5 font-body text-body-sm font-medium text-arctic">{item.serviceTitle}</p>
+        <p className="truncate font-body text-caption text-steel-500">{item.customer.name}{item.customer.company ? ` — ${item.customer.company}` : ''}</p>
+      </div>
+      <div className="hidden shrink-0 text-right md:block">
+        {(item.finalValue || item.estimatedValue) && (
+          <p className="font-mono text-body-sm text-arctic">{formatGs(Number(item.finalValue ?? item.estimatedValue))}</p>
+        )}
+        {item.scheduledDate ? (
+          <p className="font-body text-caption text-blue-bright/70">📅 {formatScheduledDate(item.scheduledDate)}</p>
+        ) : (
+          <p className="font-body text-caption text-steel-700">{formatDate(item.createdAt)}</p>
+        )}
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-700"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
+        <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-blue-bright hover:bg-blue-muted transition-colors">
+          <Calculator className="h-3 w-3" /> Planilla
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label="Eliminar" className="rounded p-1.5 text-steel-700 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Solicitudes tab ──────────────────────────────────────────
+function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFilterStatus, filterType, setFilterType, onOpen, onDelete, onNew }: {
+  items: Presupuesto[]; loading: boolean;
+  search: string; setSearch: (v: string) => void;
+  filterStatus: string; setFilterStatus: (v: string) => void;
+  filterType: string; setFilterType: (v: string) => void;
+  onOpen: (id: string) => void; onDelete: (id: string) => void; onNew: () => void;
+}) {
+  const activeStatuses = Object.entries(STATUS_MAP).filter(([k]) => !ARCHIVE_STATUSES.includes(k));
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[240px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
+          <input type="text" placeholder="Buscar por código, cliente, servicio..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" />
+        </div>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input max-w-[160px]">
+          <option value="">Todo estado</option>
+          {activeStatuses.map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="input max-w-[160px]">
+          <option value="">Todo tipo</option>
+          {Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
+      </div>
+      {loading ? (
+        <div className="space-y-3">{Array.from({length:4}).map((_,i) => <div key={i} className="card animate-pulse p-4"><div className="h-16 rounded bg-steel-900" /></div>)}</div>
+      ) : items.length === 0 ? (
+        <div className="card p-12 text-center">
+          <List className="mx-auto h-12 w-12 text-steel-700" />
+          <h3 className="mt-4 font-display text-h3 text-arctic">Sin solicitudes activas</h3>
+          <p className="mt-2 font-body text-body-sm text-steel-500">Las solicitudes de presupuesto activas aparecerán aquí.</p>
+          <button onClick={onNew} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Nueva solicitud</button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {items.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Archivo tab ──────────────────────────────────────────────
+function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete }: {
+  items: Presupuesto[]; loading: boolean; search: string; setSearch: (v: string) => void;
+  onOpen: (id: string) => void; onDelete: (id: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="relative min-w-[240px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
+          <input type="text" placeholder="Buscar en archivo..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" />
+        </div>
+      </div>
+      {loading ? (
+        <div className="space-y-3">{Array.from({length:3}).map((_,i) => <div key={i} className="card animate-pulse p-4"><div className="h-14 rounded bg-steel-900" /></div>)}</div>
+      ) : items.length === 0 ? (
+        <div className="card p-12 text-center">
+          <Archive className="mx-auto h-12 w-12 text-steel-700" />
+          <h3 className="mt-4 font-display text-h3 text-arctic">Archivo vacío</h3>
+          <p className="mt-2 font-body text-body-sm text-steel-500">Los presupuestos completados y rechazados aparecerán aquí.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {items.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Planificación tab ────────────────────────────────────────
+function PlanificacionTab({ items, loading, onOpen }: { items: Presupuesto[]; loading: boolean; onOpen: (id: string) => void }) {
+  const withDate = items.filter(i => i.scheduledDate).sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+  const withoutDate = items.filter(i => !i.scheduledDate);
+
+  if (loading) return <div className="card animate-pulse p-6 h-40 bg-steel-900/40" />;
+
+  return (
+    <div className="space-y-6">
+      {withDate.length > 0 && (
+        <div>
+          <h3 className="mb-3 font-display text-h4 uppercase text-steel-500 tracking-wider flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Con fecha programada
+          </h3>
+          <div className="space-y-2">
+            {withDate.map(item => {
+              const st = STATUS_MAP[item.status] || STATUS_MAP.nuevo;
+              const tp = TYPE_MAP[item.serviceType] || TYPE_MAP.otro;
+              const TpIcon = tp.icon;
+              return (
+                <div key={item.id} className="card-interactive flex items-center gap-4 p-4" onClick={() => onOpen(item.id)}>
+                  <div className="shrink-0 text-center w-14">
+                    <p className="font-mono text-[0.6rem] text-steel-600 uppercase">{new Date(item.scheduledDate + 'T00:00:00').toLocaleDateString('es-PY', { month: 'short' })}</p>
+                    <p className="font-display text-2xl font-bold text-arctic">{new Date(item.scheduledDate + 'T00:00:00').getDate()}</p>
+                  </div>
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-steel-900 ${tp.color}`}><TpIcon className="h-4 w-4" /></div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-caption text-blue-bright">{item.code}</span>
+                      <span className={st.badge}>{st.label}</span>
+                    </div>
+                    <p className="font-body text-body-sm font-medium text-arctic">{item.serviceTitle}</p>
+                    <p className="font-body text-caption text-steel-500">{item.customer.name}{item.assignedTo ? ` — ${item.assignedTo}` : ''}</p>
+                  </div>
+                  {(item.finalValue || item.estimatedValue) && (
+                    <p className="shrink-0 font-mono text-body-sm text-arctic hidden md:block">{formatGs(Number(item.finalValue ?? item.estimatedValue))}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {withoutDate.length > 0 && (
+        <div>
+          <h3 className="mb-3 font-display text-h4 uppercase text-steel-500 tracking-wider flex items-center gap-2">
+            <Clock className="h-4 w-4" /> Sin fecha asignada
+          </h3>
+          <div className="space-y-2">
+            {withoutDate.map(item => {
+              const st = STATUS_MAP[item.status] || STATUS_MAP.nuevo;
+              return (
+                <div key={item.id} className="card-interactive flex items-center gap-4 p-3" onClick={() => onOpen(item.id)}>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-caption text-blue-bright">{item.code}</span>
+                      <span className={st.badge}>{st.label}</span>
+                    </div>
+                    <p className="font-body text-body-sm text-arctic">{item.serviceTitle} — {item.customer.name}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-steel-600 shrink-0" />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {withDate.length === 0 && withoutDate.length === 0 && (
+        <div className="card p-12 text-center">
+          <ClipboardList className="mx-auto h-12 w-12 text-steel-700" />
+          <h3 className="mt-4 font-display text-h3 text-arctic">Sin solicitudes activas</h3>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Create modal ─────────────────────────────────────────────
 function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -723,7 +593,6 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
   const [saveError, setSaveError] = useState('');
 
   const [f, setF] = useState(() => {
-    // If coming from a lead, skip draft restore and use lead data
     if (initialData) return { ...EMPTY_FORM, ...initialData };
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
@@ -732,14 +601,9 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
     return EMPTY_FORM;
   });
 
-  // Auto-save to localStorage on every change
   useEffect(() => {
     const t = setTimeout(() => {
-      try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(f));
-        setAutoSaved(true);
-        setTimeout(() => setAutoSaved(false), 1500);
-      } catch (_) {}
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(f)); setAutoSaved(true); setTimeout(() => setAutoSaved(false), 1500); } catch (_) {}
     }, 800);
     return () => clearTimeout(t);
   }, [f]);
@@ -747,18 +611,14 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
   const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY); } catch (_) {} };
 
   const fillFromCliente = (c: any) => setF((prev: typeof EMPTY_FORM) => ({
-    ...prev,
-    customerName: c.name || prev.customerName,
-    customerEmail: c.email || prev.customerEmail,
-    customerPhone: c.phone || prev.customerPhone,
-    customerCompany: c.company || prev.customerCompany,
+    ...prev, customerName: c.name || prev.customerName, customerEmail: c.email || prev.customerEmail,
+    customerPhone: c.phone || prev.customerPhone, customerCompany: c.company || prev.customerCompany,
     customerAddress: c.address || prev.customerAddress,
   }));
 
   const guardar = async (status: 'borrador' | 'nuevo') => {
     if (!f.serviceTitle.trim()) return;
-    setSaving(status);
-    setSaveError('');
+    setSaving(status); setSaveError('');
     try {
       const res = await fetch('/api/presupuestos', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -772,64 +632,43 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
         }),
       });
       if (res.ok) { clearDraft(); const d = await res.json(); onCreated(d?.id); }
-      else {
-        const err = await res.json().catch(() => ({}));
-        setSaveError(err?.error || `Error ${res.status} al guardar. Verificá la conexión e intentá de nuevo.`);
-      }
-    } catch (e) {
-      setSaveError('Error de red. Verificá tu conexión e intentá de nuevo.');
-    } finally {
-      setSaving(null);
-    }
+      else { const err = await res.json().catch(() => ({})); setSaveError(err?.error || `Error ${res.status}`); }
+    } catch { setSaveError('Error de red. Intentá de nuevo.'); }
+    finally { setSaving(null); }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-carbon/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex w-full max-w-2xl flex-col rounded-lg border border-steel-900/60 bg-carbon-light shadow-2xl" style={{ maxHeight: '92vh' }}>
-        {/* Header */}
         <div className="shrink-0 border-b border-steel-900/40">
           <div className="flex items-center justify-between px-6 py-4">
             <div>
               <h2 className="font-display text-h2 text-arctic">Nuevo presupuesto</h2>
-              <p className="mt-0.5 font-body text-caption text-steel-500">Los datos se guardan automaticamente</p>
+              <p className="mt-0.5 font-body text-caption text-steel-500">Los datos se guardan automáticamente</p>
             </div>
             <div className="flex items-center gap-3">
-              {autoSaved && (
-                <span className="flex items-center gap-1 font-body text-caption text-[#48BB78] animate-pulse">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#48BB78]" /> Auto-guardado
-                </span>
-              )}
+              {autoSaved && <span className="flex items-center gap-1 font-body text-caption text-[#48BB78] animate-pulse"><span className="h-1.5 w-1.5 rounded-full bg-[#48BB78]" /> Auto-guardado</span>}
               <button onClick={onClose} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
             </div>
           </div>
           {restored && (
             <div className="mx-6 mb-3 flex items-center justify-between gap-3 rounded-md border border-blue/30 bg-blue/10 px-4 py-2.5">
-              <p className="font-body text-caption text-blue-bright">
-                <span className="font-semibold">Datos recuperados</span> — se restauro el borrador que habia quedado pendiente.
-              </p>
-              <button
-                onClick={() => { setF(EMPTY_FORM); clearDraft(); setRestored(false); }}
-                className="shrink-0 font-body text-caption text-steel-500 hover:text-arctic underline"
-              >
-                Empezar de cero
-              </button>
+              <p className="font-body text-caption text-blue-bright"><span className="font-semibold">Datos recuperados</span> — se restauró el borrador pendiente.</p>
+              <button onClick={() => { setF(EMPTY_FORM); clearDraft(); setRestored(false); }} className="shrink-0 font-body text-caption text-steel-500 hover:text-arctic underline">Empezar de cero</button>
             </div>
           )}
         </div>
-
-        {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto">
           <div className="space-y-5 p-6">
-            {/* Servicio */}
             <div className="card p-4">
               <h3 className="mb-3 font-display text-h4 text-arctic">Servicio</h3>
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder="Titulo del servicio *" value={f.serviceTitle} onChange={(e) => setF({ ...f, serviceTitle: e.target.value })} className="input col-span-2" />
+                <input type="text" placeholder="Título del servicio *" value={f.serviceTitle} onChange={(e) => setF({ ...f, serviceTitle: e.target.value })} className="input col-span-2" />
                 <select value={f.serviceType} onChange={(e) => setF({ ...f, serviceType: e.target.value })} className="input">
                   <option value="mantenimiento">Mantenimiento</option>
-                  <option value="civil">Construccion civil</option>
-                  <option value="metalurgica">Metalurgica</option>
+                  <option value="civil">Construcción civil</option>
+                  <option value="metalurgica">Metalúrgica</option>
                   <option value="otro">Otro</option>
                 </select>
                 <select value={f.priority} onChange={(e) => setF({ ...f, priority: e.target.value })} className="input">
@@ -839,38 +678,19 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
                   <option value="urgente">Urgente</option>
                 </select>
               </div>
-              <textarea placeholder="Descripcion del trabajo a realizar" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className="input mt-3 resize-none" rows={3} />
+              <textarea placeholder="Descripción del trabajo a realizar" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className="input mt-3 resize-none" rows={3} />
               <textarea placeholder="Detalles adicionales, observaciones..." value={f.details} onChange={(e) => setF({ ...f, details: e.target.value })} className="input mt-2 resize-none" rows={2} />
             </div>
-
-            {/* Valores y programacion */}
             <div className="card p-4">
-              <h3 className="mb-3 font-display text-h4 text-arctic">Valores y programacion</h3>
+              <h3 className="mb-3 font-display text-h4 text-arctic">Valores y programación</h3>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label mb-1 block">Valor estimado (Gs.)</label>
-                  <input type="number" placeholder="0" value={f.estimatedValue} onChange={(e) => setF({ ...f, estimatedValue: e.target.value })} className="input font-mono" />
-                </div>
-                <div>
-                  <label className="label mb-1 block">Valor cotizado (Gs.)</label>
-                  <input type="number" placeholder="0" value={f.finalValue} onChange={(e) => setF({ ...f, finalValue: e.target.value })} className="input font-mono" />
-                </div>
-                <div>
-                  <label className="label mb-1 block">Duracion estimada</label>
-                  <input type="text" placeholder="ej: 3 dias" value={f.estimatedDuration} onChange={(e) => setF({ ...f, estimatedDuration: e.target.value })} className="input" />
-                </div>
-                <div>
-                  <label className="label mb-1 block">Fecha programada</label>
-                  <input type="date" value={f.scheduledDate} onChange={(e) => setF({ ...f, scheduledDate: e.target.value })} className="input" />
-                </div>
-                <div className="col-span-2">
-                  <label className="label mb-1 block">Responsable / Equipo</label>
-                  <input type="text" placeholder="Nombre del tecnico o equipo asignado" value={f.assignedTo} onChange={(e) => setF({ ...f, assignedTo: e.target.value })} className="input" />
-                </div>
+                <div><label className="label mb-1 block">Valor estimado (Gs.)</label><input type="number" placeholder="0" value={f.estimatedValue} onChange={(e) => setF({ ...f, estimatedValue: e.target.value })} className="input font-mono" /></div>
+                <div><label className="label mb-1 block">Valor cotizado (Gs.)</label><input type="number" placeholder="0" value={f.finalValue} onChange={(e) => setF({ ...f, finalValue: e.target.value })} className="input font-mono" /></div>
+                <div><label className="label mb-1 block">Duración estimada</label><input type="text" placeholder="ej: 3 días" value={f.estimatedDuration} onChange={(e) => setF({ ...f, estimatedDuration: e.target.value })} className="input" /></div>
+                <div><label className="label mb-1 block">Fecha programada</label><input type="date" value={f.scheduledDate} onChange={(e) => setF({ ...f, scheduledDate: e.target.value })} className="input" /></div>
+                <div className="col-span-2"><label className="label mb-1 block">Responsable / Equipo</label><input type="text" placeholder="Nombre del técnico o equipo" value={f.assignedTo} onChange={(e) => setF({ ...f, assignedTo: e.target.value })} className="input" /></div>
               </div>
             </div>
-
-            {/* Cliente */}
             <div className="card p-4">
               <h3 className="mb-3 font-display text-h4 text-arctic">Cliente</h3>
               <ClienteBuscador onSelect={fillFromCliente} />
@@ -879,39 +699,21 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
                 <input type="text" placeholder="Nombre del cliente" value={f.customerName} onChange={(e) => setF({ ...f, customerName: e.target.value })} className="input" />
                 <input type="text" placeholder="Empresa" value={f.customerCompany} onChange={(e) => setF({ ...f, customerCompany: e.target.value })} className="input" />
                 <input type="email" placeholder="Email" value={f.customerEmail} onChange={(e) => setF({ ...f, customerEmail: e.target.value })} className="input" />
-                <input type="text" placeholder="Telefono" value={f.customerPhone} onChange={(e) => setF({ ...f, customerPhone: e.target.value })} className="input" />
-                <input type="text" placeholder="Direccion" value={f.customerAddress} onChange={(e) => setF({ ...f, customerAddress: e.target.value })} className="input col-span-2" />
+                <input type="text" placeholder="Teléfono" value={f.customerPhone} onChange={(e) => setF({ ...f, customerPhone: e.target.value })} className="input" />
+                <input type="text" placeholder="Dirección" value={f.customerAddress} onChange={(e) => setF({ ...f, customerAddress: e.target.value })} className="input col-span-2" />
               </div>
             </div>
           </div>
         </div>
-
-        {/* Footer con botones */}
         <div className="shrink-0 border-t border-steel-900/40 bg-carbon-light px-6 py-4">
-          {saveError && (
-            <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-body text-caption text-red-400">
-              {saveError}
-            </div>
-          )}
-          <p className="mb-3 font-body text-caption text-steel-500">
-            <span className="text-steel-700">Borrador:</span> guarda y podés continuar después. <span className="text-steel-700">Crear:</span> queda como solicitud nueva activa.
-          </p>
+          {saveError && <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-body text-caption text-red-400">{saveError}</div>}
+          <p className="mb-3 font-body text-caption text-steel-500"><span className="text-steel-700">Borrador:</span> guardá y continuá después. <span className="text-steel-700">Crear:</span> queda como solicitud activa.</p>
           <div className="flex gap-3">
-            <button
-              onClick={() => guardar('borrador')}
-              disabled={!!saving || !f.serviceTitle.trim()}
-              className="btn-secondary flex-1 justify-center gap-2 disabled:opacity-50"
-            >
-              {saving === 'borrador' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}
-              Guardar borrador
+            <button onClick={() => guardar('borrador')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-secondary flex-1 justify-center gap-2 disabled:opacity-50">
+              {saving === 'borrador' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />} Guardar borrador
             </button>
-            <button
-              onClick={() => guardar('nuevo')}
-              disabled={!!saving || !f.serviceTitle.trim()}
-              className="btn-primary flex-1 justify-center gap-2 disabled:opacity-50"
-            >
-              {saving === 'nuevo' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-              Crear presupuesto
+            <button onClick={() => guardar('nuevo')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-primary flex-1 justify-center gap-2 disabled:opacity-50">
+              {saving === 'nuevo' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Crear presupuesto
             </button>
           </div>
         </div>
