@@ -8,7 +8,98 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  html, body { margin: 0; padding: 0; background: #f4f3f0; font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18; }
+  /* ── Dark theme (default) ── */
+  :root {
+    --bg:          #0c0e14;
+    --card:        #111520;
+    --inp-bg:      #0f1420;
+    --inp-bdr:     #253347;
+    --btn-bg:      #131825;
+    --btn-bdr:     #253347;
+    --btn-text:    #C0CEDF;
+    --border:      #1e2a3a;
+    --border2:     #182030;
+    --text:        #F4F7FB;
+    --text2:       #C0CEDF;
+    --text3:       #8094B4;
+    --text4:       #607898;
+    --header-bg:   #0d1019;
+    --header-bdr:  #1e2a3a;
+    --active-bg:   #2D8FCC;
+    --active-text: #ffffff;
+    --active-bdr:  #2D8FCC;
+    --inactive-bg: #131825;
+    --inactive-text:#C0CEDF;
+    --inactive-bdr:#253347;
+    --tab-wrap:    #0d1019;
+    --tab-on-bg:   #1e2a3a;
+    --tab-on-text: #F4F7FB;
+    --tab-off-text:#8094B4;
+    --cta-bg:      #2D8FCC;
+    --cta-text:    #ffffff;
+    --tgl-btn:     #1e2a3a;
+    --tgl-icon:    #C0CEDF;
+    /* sidebar stays dark in both themes */
+    --sb-bg:       #0d1019;
+    --sb-text:     #F4F7FB;
+    --sb-text2:    #8094B4;
+    --sb-text3:    #607898;
+    --sb-bdr:      #1e2a3a;
+    --sb-acc:      #2D8FCC;
+    --sb-btn-bg:   #111520;
+    --sb-btn-text: #C0CEDF;
+  }
+  /* ── Light theme ── */
+  :root[data-theme="light"] {
+    --bg:          #f4f3f0;
+    --card:        #ffffff;
+    --inp-bg:      #faf9f7;
+    --inp-bdr:     #dedbd5;
+    --btn-bg:      #f0eee9;
+    --btn-bdr:     #dedbd5;
+    --btn-text:    #4a4741;
+    --border:      #dedbd5;
+    --border2:     #efedea;
+    --text:        #1b1a18;
+    --text2:       #4a4741;
+    --text3:       #86817b;
+    --text4:       #6f6b64;
+    --header-bg:   #ffffff;
+    --header-bdr:  #dedbd5;
+    --active-bg:   #1b1a18;
+    --active-text: #f4f3f0;
+    --active-bdr:  #1b1a18;
+    --inactive-bg: #f0eee9;
+    --inactive-text:#4a4741;
+    --inactive-bdr:#dedbd5;
+    --tab-wrap:    #f0eee9;
+    --tab-on-bg:   #ffffff;
+    --tab-on-text: #1b1a18;
+    --tab-off-text:#7a756e;
+    --cta-bg:      #1b1a18;
+    --cta-text:    #f4f3f0;
+    --tgl-btn:     #f0eee9;
+    --tgl-icon:    #4a4741;
+    --sb-bg:       #1b1a18;
+    --sb-text:     #f4f3f0;
+    --sb-text2:    #b8b3ac;
+    --sb-text3:    #8f8a83;
+    --sb-bdr:      #3a3833;
+    --sb-acc:      oklch(0.78 0.11 200);
+    --sb-btn-bg:   #2d2c29;
+    --sb-btn-text: #f4f3f0;
+  }
+  @media print {
+    :root { /* always light for print */
+      --bg:#fff; --card:#fff; --inp-bg:#fff; --border:#e6e2da; --border2:#efedea;
+      --text:#1b1a18; --text2:#4a4741; --text3:#86817b; --text4:#6f6b64;
+    }
+    .noprint { display: none !important; }
+    html, body { background: #fff !important; }
+    .print-sheet { box-shadow: none !important; border: 0 !important; margin: 0 !important; width: 100% !important; padding: 0 !important; }
+    .wrap-grid { padding: 0 !important; }
+  }
+  html, body { margin: 0; padding: 0; background: var(--bg); font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: var(--text); transition: background .2s, color .2s; }
   * { box-sizing: border-box; }
   a { color: oklch(0.50 0.09 220); text-decoration: none; }
   input, textarea, button, select { font-family: inherit; color: inherit; }
@@ -19,20 +110,32 @@
   }
   .sidebar span { white-space: nowrap; }
   .sidebar > div > span:first-child { white-space: normal; min-width: 0; }
-  @media print {
-    .noprint { display: none !important; }
-    html, body { background: #fff !important; }
-    .print-sheet { box-shadow: none !important; border: 0 !important; margin: 0 !important; width: 100% !important; padding: 0 !important; }
-    .wrap-grid { padding: 0 !important; }
-  }
-  .toast { position: fixed; bottom: 20px; right: 20px; padding: 10px 16px; background: #1b1a18; color: #f4f3f0; border-radius: 8px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast { position: fixed; bottom: 20px; right: 20px; padding: 10px 16px; background: var(--active-bg); color: var(--active-text); border-radius: 8px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   .toast.show { opacity: 1; }
+  .theme-toggle { display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--tgl-btn);background:var(--tgl-btn);border-radius:7px;cursor:pointer;font-size:16px;color:var(--tgl-icon);transition:background .15s; }
+  .theme-toggle:hover { filter:brightness(1.15); }
 </style>
 </head>
 <body>
 
-<div id="app" style="min-height:100vh;background:#f4f3f0;"></div>
+<div id="app" style="min-height:100vh;"></div>
 <div id="toast" class="toast"></div>
+
+<script>
+// ── Theme init (before render) ─────────────────────────────────────────────
+(function(){
+  const saved = localStorage.getItem("fs-theme") || "dark";
+  document.documentElement.setAttribute("data-theme", saved);
+})();
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme") || "dark";
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("fs-theme", next);
+  render();
+}
+function isDark() { return (document.documentElement.getAttribute("data-theme") || "dark") === "dark"; }
+</script>
 
 <script>
 // ─── Config ─────────────────────────────────────────────────────────────────
@@ -256,13 +359,13 @@ function resumenTexto(idxIncluidos, porRubro, G) {
 
 // ─── Style helpers ───────────────────────────────────────────────────────────
 function tabStyle(on) {
-  return "padding:7px 14px;font-size:12.5px;font-weight:500;border:0;border-radius:6px;cursor:pointer;background:" + (on?"#ffffff":"transparent") + ";color:" + (on?"#1b1a18":"#7a756e") + ";box-shadow:" + (on?"0 1px 3px rgba(0,0,0,0.10)":"none") + ";";
+  return "padding:7px 14px;font-size:12.5px;font-weight:500;border:0;border-radius:6px;cursor:pointer;background:" + (on?"var(--tab-on-bg)":"transparent") + ";color:" + (on?"var(--tab-on-text)":"var(--tab-off-text)") + ";box-shadow:" + (on?"0 1px 3px rgba(0,0,0,0.18)":"none") + ";";
 }
 function rubroTabStyle(on) {
-  return "padding:7px 14px;font-size:12.5px;font-weight:" + (on?"600":"500") + ";border-radius:7px;cursor:pointer;white-space:nowrap;color:" + (on?"#ffffff":"#4a4741") + ";background:" + (on?"#1b1a18":"#f0eee9") + ";border:1px solid " + (on?"#1b1a18":"#dedbd5") + ";";
+  return "padding:7px 14px;font-size:12.5px;font-weight:" + (on?"600":"500") + ";border-radius:7px;cursor:pointer;white-space:nowrap;color:var(" + (on?"--active-text":"--text2") + ");background:var(" + (on?"--active-bg":"--btn-bg") + ");border:1px solid var(" + (on?"--active-bdr":"--border") + ");";
 }
 function btnIAStyle(busy) {
-  return "padding:8px 12px;font-size:11.5px;font-weight:500;white-space:nowrap;border-radius:6px;cursor:" + (busy?"default":"pointer") + ";color:" + (busy?"#86817b":"oklch(0.42 0.09 220)") + ";background:" + (busy?"#f0eee9":"oklch(0.96 0.014 220)") + ";border:1px solid " + (busy?"#dedbd5":"oklch(0.86 0.03 220)") + ";";
+  return "padding:8px 12px;font-size:11.5px;font-weight:500;white-space:nowrap;border-radius:6px;cursor:" + (busy?"default":"pointer") + ";color:" + (busy?"var(--text3)":"oklch(0.42 0.09 220)") + ";background:" + (busy?"var(--btn-bg)":"oklch(0.96 0.014 220)") + ";border:1px solid " + (busy?"var(--border)":"oklch(0.86 0.03 220)") + ";";
 }
 
 // ─── DOM helper ─────────────────────────────────────────────────────────────
@@ -308,26 +411,26 @@ function render() {
   const detalleMos = (r) => r.mos.filter(x => x.desc).map(x => x.desc).join(" · ") || "Según detalle de planilla";
 
   const app = document.getElementById("app");
-  const newApp = el("div", { style: "min-height:100vh;background:#f4f3f0;" },
+  const newApp = el("div", { style: "min-height:100vh;" },
 
     // ── HEADER ────────────────────────────────────────────────────────────
-    el("div", { class: "noprint", style: "position:sticky;top:0;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:12px 22px;padding:13px 26px;background:#ffffff;border-bottom:1px solid #dedbd5;" },
+    el("div", { class: "noprint", style: "position:sticky;top:0;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:12px 22px;padding:13px 26px;background:var(--header-bg);border-bottom:1px solid var(--header-bdr);" },
       el("div", { style: "display:flex;flex-direction:column;gap:1px;" },
-        el("div", { style: "font-size:15px;font-weight:700;letter-spacing:-0.01em;" }, PROPS.empresa),
-        el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" }, "Costos y presupuestos")
+        el("div", { style: "font-size:15px;font-weight:700;letter-spacing:-0.01em;color:var(--text);" }, PROPS.empresa),
+        el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" }, "Costos y presupuestos")
       ),
-      el("button", { style: "padding:9px 14px;font-size:13px;font-weight:500;color:#4a4741;background:#f0eee9;border:1px solid #dedbd5;border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => { (window.top || window).location.href = "/admin/presupuestos"; } }, "← Solicitudes"),
-      el("div", { style: "display:flex;gap:4px;padding:3px;background:#f0eee9;border-radius:8px;" },
+      el("button", { style: "padding:9px 14px;font-size:13px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => { (window.top || window).location.href = "/admin/presupuestos"; } }, "← Solicitudes"),
+      el("div", { style: "display:flex;gap:4px;padding:3px;background:var(--tab-wrap);border-radius:8px;" },
         el("button", { style: tabStyle(S.tab === "costos"), onclick: () => setState({tab:"costos"}) }, "Planilla de costos"),
         el("button", { style: tabStyle(S.tab === "propuesta"), onclick: () => setState({tab:"propuesta"}) }, "Hoja de propuesta")
       ),
       el("div", { style: "flex:1;" }),
-      el("div", { style: "display:flex;align-items:baseline;gap:10px;padding:7px 14px;background:#f0eee9;border-radius:8px;" },
-        el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" }, "Total al cliente"),
-        el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;letter-spacing:-0.02em;white-space:nowrap;" }, money(G.totalFinal))
+      el("div", { style: "display:flex;align-items:baseline;gap:10px;padding:7px 14px;background:var(--btn-bg);border-radius:8px;border:1px solid var(--btn-bdr);" },
+        el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" }, "Total al cliente"),
+        el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;letter-spacing:-0.02em;white-space:nowrap;color:var(--text);" }, money(G.totalFinal))
       ),
-      el("span", { style: "padding:9px 16px;font-size:13px;font-weight:600;color:#ffffff;background:oklch(0.50 0.13 150);border-radius:7px;white-space:nowrap;" }, "Costos y propuestas"),
-      el("button", { style: "padding:9px 16px;font-size:13px;font-weight:500;color:#ffffff;background:#1b1a18;border:0;border-radius:7px;cursor:pointer;", onclick: () => window.print() }, "Imprimir")
+      el("button", { class:"theme-toggle noprint", onclick: toggleTheme }, isDark() ? "☀️" : "🌙"),
+      el("button", { style: "padding:9px 16px;font-size:13px;font-weight:500;color:var(--cta-text);background:var(--cta-bg);border:0;border-radius:7px;cursor:pointer;", onclick: () => window.print() }, "Imprimir")
     ),
 
     // ── COSTOS VIEW ───────────────────────────────────────────────────────
@@ -347,9 +450,9 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
     el("div", { style: "display:flex;flex-direction:column;gap:22px;min-width:0;" },
 
       // Rubros selector
-      el("div", { style: "background:#ffffff;border:1px solid #dedbd5;border-radius:12px;padding:16px 20px 18px;" },
+      el("div", { style: "background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px 18px;" },
         el("div", { style: "display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;" },
-          el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;margin-right:4px;" }, "Rubros del presupuesto"),
+          el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-right:4px;" }, "Rubros del presupuesto"),
           ...S.rubros.map((r,i) => el("button", { style: rubroTabStyle(i === activo), onclick: () => setState({activo:i}) }, r.nombre || "Rubro " + (i+1))),
           el("button", {
             style: "padding:7px 13px;font-size:12px;font-weight:500;color:oklch(0.42 0.09 220);background:oklch(0.96 0.014 220);border:1px solid oklch(0.86 0.03 220);border-radius:7px;cursor:pointer;white-space:nowrap;",
@@ -357,12 +460,12 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
           }, "+ Nuevo rubro")
         ),
         // Incluir checks
-        el("div", { style: "display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0 14px;margin-bottom:14px;border-top:1px solid #efedea;border-bottom:1px solid #efedea;" },
-          el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;margin-right:4px;" }, "Incluir en la propuesta"),
+        el("div", { style: "display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0 14px;margin-bottom:14px;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);" },
+          el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-right:4px;" }, "Incluir en la propuesta"),
           ...S.rubros.map((r,i) => {
             const on = incluido(r, porRubro[i]);
             const vacio = porRubro[i].precioRubro <= 0;
-            const style = "padding:6px 12px;font-size:12px;font-weight:500;border-radius:7px;cursor:pointer;white-space:nowrap;color:" + (on?"oklch(0.38 0.09 220)":"#86817b") + ";background:" + (on?"oklch(0.96 0.014 220)":"#f4f3f0") + ";border:1px solid " + (on?"oklch(0.86 0.03 220)":"#dedbd5") + ";";
+            const style = "padding:6px 12px;font-size:12px;font-weight:500;border-radius:7px;cursor:pointer;white-space:nowrap;color:" + (on?"oklch(0.38 0.09 220)":"var(--text3)") + ";background:" + (on?"oklch(0.96 0.014 220)":"var(--btn-bg)") + ";border:1px solid " + (on?"oklch(0.86 0.03 220)":"var(--border)") + ";";
             return el("button", { style, onclick: () => setState(p => { const arr = p.rubros.slice(); arr[i] = Object.assign({},arr[i],{incluir:arr[i].incluir===false}); return {rubros:arr}; }) },
               (on?"✓ ":"○ ") + (r.nombre || "Rubro " + (i+1)) + (vacio?" (sin cargar)":"")
             );
@@ -371,12 +474,12 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
         // Rubro name + actions
         el("div", { style: "display:flex;align-items:flex-end;gap:12px;" },
           el("label", { style: "flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;" },
-            el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" }, "Nombre del rubro activo"),
-            inp(R.nombre, { placeholder: "Ej.: Pintura", style: "width:100%;padding:9px 11px;font-size:13.5px;font-weight:600;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;" },
+            el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" }, "Nombre del rubro activo"),
+            inp(R.nombre, { placeholder: "Ej.: Pintura", style: "width:100%;padding:9px 11px;font-size:13.5px;font-weight:600;background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;color:var(--text);" },
               (e) => patchRubro({nombre: e.target.value}))
           ),
           el("button", {
-            style: "padding:9px 13px;font-size:12px;font-weight:500;background:#f0eee9;border:1px solid #dedbd5;border-radius:6px;cursor:pointer;white-space:nowrap;",
+            style: "padding:9px 13px;font-size:12px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:6px;cursor:pointer;white-space:nowrap;",
             onclick: () => setState(p => {
               const i = Math.min(p.activo, p.rubros.length-1);
               const copia = JSON.parse(JSON.stringify(p.rubros[i]));
@@ -403,11 +506,11 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
       // MO section toggle
       el("div", { style: "display:flex;align-items:center;gap:10px;flex-wrap:wrap;" },
         el("button", {
-          style: "padding:8px 14px;font-size:12.5px;font-weight:500;border-radius:7px;cursor:pointer;background:" + (S.mostrarMO?"#1b1a18":"#f0eee9") + ";color:" + (S.mostrarMO?"#f4f3f0":"#4a4741") + ";border:1px solid " + (S.mostrarMO?"#1b1a18":"#dedbd5") + ";",
+          style: "padding:8px 14px;font-size:12.5px;font-weight:500;border-radius:7px;cursor:pointer;background:var(" + (S.mostrarMO?"--active-bg":"--inactive-bg") + ");color:var(" + (S.mostrarMO?"--active-text":"--inactive-text") + ");border:1px solid var(" + (S.mostrarMO?"--active-bdr":"--inactive-bdr") + ");",
           onclick: () => setState({mostrarMO:!S.mostrarMO})
         }, S.mostrarMO ? "✓ Mano de obra activa" : "Incluir mano de obra"),
         el("button", {
-          style: "padding:8px 14px;font-size:12.5px;font-weight:500;border-radius:7px;cursor:pointer;background:" + (S.mostrarOtros?"#1b1a18":"#f0eee9") + ";color:" + (S.mostrarOtros?"#f4f3f0":"#4a4741") + ";border:1px solid " + (S.mostrarOtros?"#1b1a18":"#dedbd5") + ";",
+          style: "padding:8px 14px;font-size:12.5px;font-weight:500;border-radius:7px;cursor:pointer;background:var(" + (S.mostrarOtros?"--active-bg":"--inactive-bg") + ");color:var(" + (S.mostrarOtros?"--active-text":"--inactive-text") + ");border:1px solid var(" + (S.mostrarOtros?"--active-bdr":"--inactive-bdr") + ");",
           onclick: () => setState({mostrarOtros:!S.mostrarOtros})
         }, S.mostrarOtros ? "✓ Otros costos activos" : "Incluir otros costos")
       ),
@@ -431,20 +534,18 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
 }
 
 function renderMatsTable(R, v) {
-  return el("div", { style: "background:#ffffff;border:1px solid #dedbd5;border-radius:12px;overflow:hidden;" },
-    // Header
-    el("div", { style: "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid #dedbd5;" },
+  return el("div", { style: "background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;" },
+    el("div", { style: "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);" },
       el("div", { style: "display:flex;flex-direction:column;gap:2px;" },
-        el("div", { style: "font-size:14px;font-weight:600;" }, "Materiales e insumos — " + R.nombre),
-        el("div", { style: "font-size:12px;color:#86817b;" }, "Cantidad × costo unitario, más un porcentaje de desperdicio por ítem.")
+        el("div", { style: "font-size:14px;font-weight:600;color:var(--text);" }, "Materiales e insumos — " + R.nombre),
+        el("div", { style: "font-size:12px;color:var(--text3);" }, "Cantidad × costo unitario, más un porcentaje de desperdicio por ítem.")
       ),
       el("button", {
-        style: "padding:7px 13px;font-size:12px;font-weight:500;background:#f0eee9;border:1px solid #dedbd5;border-radius:6px;cursor:pointer;white-space:nowrap;",
+        style: "padding:7px 13px;font-size:12px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:6px;cursor:pointer;white-space:nowrap;",
         onclick: () => patchRubro({ mats: R.mats.concat([{id:Date.now(),desc:"",unidad:"un",cant:"0",costo:"0",desp:"0",marg:R.margen}]) })
       }, "+ Agregar ítem")
     ),
-    // Column headers
-    el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;padding:0 20px;background:#faf9f7;border-bottom:1px solid #dedbd5;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" },
+    el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;padding:0 20px;background:var(--inp-bg);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" },
       el("div",{style:"padding:9px 8px 9px 0;"}, "Descripción"),
       el("div",{style:"padding:9px 6px;text-align:center;"}, "Unidad"),
       el("div",{style:"padding:9px 8px;text-align:right;"}, "Cantidad"),
@@ -455,51 +556,48 @@ function renderMatsTable(R, v) {
       el("div",{style:"padding:9px 0 9px 8px;text-align:right;"}, "Precio"),
       el("div")
     ),
-    // Rows
-    ...R.mats.map((r,i) => el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid #efedea;" },
-      inp(r.desc, {placeholder:"Descripción",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;"}, e=>editRow("mats",i,"desc",e.target.value)),
-      inp(r.unidad, {style:"width:100%;padding:10px 4px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center;color:#6f6b64;background:transparent;border:0;"}, e=>editRow("mats",i,"unidad",e.target.value)),
-      inp(r.cant, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;"}, e=>editRow("mats",i,"cant",e.target.value)),
-      inp(r.costo, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;"}, e=>editRow("mats",i,"costo",e.target.value)),
-      inp(r.desp, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:#6f6b64;background:transparent;border:0;"}, e=>editRow("mats",i,"desp",e.target.value)),
-      el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:#6f6b64;white-space:nowrap;"}, money(costoMat(r))),
+    ...R.mats.map((r,i) => el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);" },
+      inp(r.desc, {placeholder:"Descripción",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"desc",e.target.value)),
+      inp(r.unidad, {style:"width:100%;padding:10px 4px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"unidad",e.target.value)),
+      inp(r.cant, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"cant",e.target.value)),
+      inp(r.costo, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"costo",e.target.value)),
+      inp(r.desp, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"desp",e.target.value)),
+      el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(costoMat(r))),
       inp(r.marg, {inputmode:"decimal",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"}, e=>editRow("mats",i,"marg",e.target.value)),
-      el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;"}, money(costoMat(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
-      el("button",{title:"Eliminar",style:"justify-self:end;width:24px;height:24px;font-size:16px;line-height:1;color:#b4aea5;background:transparent;border:0;border-radius:5px;cursor:pointer;",onclick:()=>delRow("mats",i)}, "×")
+      el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, money(costoMat(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
+      el("button",{title:"Eliminar",style:"justify-self:end;width:24px;height:24px;font-size:16px;line-height:1;color:var(--text3);background:transparent;border:0;border-radius:5px;cursor:pointer;",onclick:()=>delRow("mats",i)}, "×")
     )),
-    // Description + IA
-    el("div", { style: "display:flex;align-items:flex-end;gap:12px;padding:15px 20px;border-bottom:1px solid #efedea;" },
+    el("div", { style: "display:flex;align-items:flex-end;gap:12px;padding:15px 20px;border-bottom:1px solid var(--border2);" },
       el("label", { style: "flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;" },
-        el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" }, "Descripción del trabajo"),
-        ta(R.descMat, { rows:2, placeholder:"Ej.: Construcción de pared de ladrillo hueco con revoque", style:"width:100%;padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;color:#1b1a18;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;resize:vertical;" },
+        el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" }, "Descripción del trabajo"),
+        ta(R.descMat, { rows:2, placeholder:"Ej.: Construcción de pared de ladrillo hueco con revoque", style:"width:100%;padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;color:var(--text);background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;resize:vertical;" },
           e => patchRubro({descMat:e.target.value}))
       ),
       el("button", { style: btnIAStyle(!!S.busy_descMat), onclick: () => corregir("descMat","rubro") },
         S.busy_descMat ? "Corrigiendo…" : (S.err_descMat || "Corregir con IA"))
     ),
-    // Totals row
-    el("div", { style: "display:flex;align-items:baseline;justify-content:flex-end;gap:14px;padding:13px 20px;background:#faf9f7;white-space:nowrap;flex-wrap:wrap;" },
-      el("span",{style:"font-size:12px;color:#6f6b64;"}, "Costo materiales"),
-      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#6f6b64;"}, money(v.materiales)),
-      el("span",{style:"font-size:12px;color:#6f6b64;margin-left:10px;"}, "Precio de venta"),
-      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;"}, money(v.precioMateriales))
+    el("div", { style: "display:flex;align-items:baseline;justify-content:flex-end;gap:14px;padding:13px 20px;background:var(--inp-bg);white-space:nowrap;flex-wrap:wrap;" },
+      el("span",{style:"font-size:12px;color:var(--text4);"}, "Costo materiales"),
+      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--text4);"}, money(v.materiales)),
+      el("span",{style:"font-size:12px;color:var(--text4);margin-left:10px;"}, "Precio de venta"),
+      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--text);"}, money(v.precioMateriales))
     )
   );
 }
 
 function renderMOTable(R, v) {
-  return el("div", { style: "background:#ffffff;border:1px solid #dedbd5;border-radius:12px;overflow:hidden;" },
-    el("div", { style: "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid #dedbd5;" },
+  return el("div", { style: "background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;" },
+    el("div", { style: "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);" },
       el("div", { style: "display:flex;flex-direction:column;gap:2px;" },
-        el("div",{style:"font-size:14px;font-weight:600;"}, "Mano de obra y servicios — " + R.nombre),
-        el("div",{style:"font-size:12px;color:#86817b;"}, "Horas por valor hora, por gremio o cuadrilla.")
+        el("div",{style:"font-size:14px;font-weight:600;color:var(--text);"}, "Mano de obra y servicios — " + R.nombre),
+        el("div",{style:"font-size:12px;color:var(--text3);"}, "Horas por valor hora, por gremio o cuadrilla.")
       ),
       el("button", {
-        style: "padding:7px 13px;font-size:12px;font-weight:500;background:#f0eee9;border:1px solid #dedbd5;border-radius:6px;cursor:pointer;white-space:nowrap;",
+        style: "padding:7px 13px;font-size:12px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:6px;cursor:pointer;white-space:nowrap;",
         onclick: () => patchRubro({ mos: R.mos.concat([{id:Date.now(),desc:"",pers:"1",horas:"0",vh:"0",marg:R.margen}]) })
       }, "+ Agregar tarea")
     ),
-    el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 66px 64px 100px 126px 56px 134px 28px;padding:0 20px;background:#faf9f7;border-bottom:1px solid #dedbd5;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" },
+    el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 66px 64px 100px 126px 56px 134px 28px;padding:0 20px;background:var(--inp-bg);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" },
       el("div",{style:"padding:9px 8px 9px 0;"}, "Tarea"),
       el("div",{style:"padding:9px 6px;text-align:center;"}, "Personas"),
       el("div",{style:"padding:9px 8px;text-align:right;"}, "Horas"),
@@ -509,45 +607,45 @@ function renderMOTable(R, v) {
       el("div",{style:"padding:9px 0 9px 8px;text-align:right;"}, "Precio"),
       el("div")
     ),
-    ...R.mos.map((r,i) => el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 66px 64px 100px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid #efedea;" },
-      inp(r.desc, {placeholder:"Tarea o gremio",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;"}, e=>editRow("mos",i,"desc",e.target.value)),
-      inp(r.pers, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:center;background:transparent;border:0;"}, e=>editRow("mos",i,"pers",e.target.value)),
-      inp(r.horas, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;"}, e=>editRow("mos",i,"horas",e.target.value)),
-      inp(r.vh, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;"}, e=>editRow("mos",i,"vh",e.target.value)),
-      el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:#6f6b64;white-space:nowrap;"}, money(costoMo(r))),
+    ...R.mos.map((r,i) => el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 66px 64px 100px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);" },
+      inp(r.desc, {placeholder:"Tarea o gremio",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;color:var(--text);"}, e=>editRow("mos",i,"desc",e.target.value)),
+      inp(r.pers, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:center;background:transparent;border:0;color:var(--text);"}, e=>editRow("mos",i,"pers",e.target.value)),
+      inp(r.horas, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mos",i,"horas",e.target.value)),
+      inp(r.vh, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mos",i,"vh",e.target.value)),
+      el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(costoMo(r))),
       inp(r.marg, {inputmode:"decimal",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"}, e=>editRow("mos",i,"marg",e.target.value)),
-      el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;"}, money(costoMo(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
-      el("button",{title:"Eliminar",style:"justify-self:end;width:24px;height:24px;font-size:16px;line-height:1;color:#b4aea5;background:transparent;border:0;border-radius:5px;cursor:pointer;",onclick:()=>delRow("mos",i)}, "×")
+      el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, money(costoMo(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
+      el("button",{title:"Eliminar",style:"justify-self:end;width:24px;height:24px;font-size:16px;line-height:1;color:var(--text3);background:transparent;border:0;border-radius:5px;cursor:pointer;",onclick:()=>delRow("mos",i)}, "×")
     )),
-    el("div", { style: "display:flex;align-items:flex-end;gap:12px;padding:15px 20px;border-bottom:1px solid #efedea;" },
+    el("div", { style: "display:flex;align-items:flex-end;gap:12px;padding:15px 20px;border-bottom:1px solid var(--border2);" },
       el("label", { style: "flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;" },
-        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;"}, "Descripción de las tareas"),
-        ta(R.descMo, {rows:2,placeholder:"Ej.: Revoque grueso y fino en ambas caras",style:"width:100%;padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;color:#1b1a18;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;resize:vertical;"},
+        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"}, "Descripción de las tareas"),
+        ta(R.descMo, {rows:2,placeholder:"Ej.: Revoque grueso y fino en ambas caras",style:"width:100%;padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;color:var(--text);background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;resize:vertical;"},
           e => patchRubro({descMo:e.target.value}))
       ),
       el("button",{style:btnIAStyle(!!S.busy_descMo),onclick:()=>corregir("descMo","rubro")}, S.busy_descMo?"Corrigiendo…":(S.err_descMo||"Corregir con IA"))
     ),
-    el("div",{style:"display:flex;align-items:baseline;justify-content:flex-end;gap:14px;padding:13px 20px;background:#faf9f7;white-space:nowrap;flex-wrap:wrap;"},
-      el("span",{style:"font-size:12px;color:#6f6b64;"}, "Costo mano de obra"),
-      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#6f6b64;"}, money(v.manoObra)),
-      el("span",{style:"font-size:12px;color:#6f6b64;margin-left:10px;"}, "Precio de venta"),
-      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;"}, money(v.precioManoObra))
+    el("div",{style:"display:flex;align-items:baseline;justify-content:flex-end;gap:14px;padding:13px 20px;background:var(--inp-bg);white-space:nowrap;flex-wrap:wrap;"},
+      el("span",{style:"font-size:12px;color:var(--text4);"}, "Costo mano de obra"),
+      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--text4);"}, money(v.manoObra)),
+      el("span",{style:"font-size:12px;color:var(--text4);margin-left:10px;"}, "Precio de venta"),
+      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--text);"}, money(v.precioManoObra))
     )
   );
 }
 
 function renderOtrosPanel(R) {
-  return el("div", { style: "background:#ffffff;border:1px solid #dedbd5;border-radius:12px;padding:20px;" },
-    el("div",{style:"font-size:14px;font-weight:600;margin-bottom:3px;"}, "Otros costos directos"),
-    el("div",{style:"font-size:12px;color:#86817b;margin-bottom:16px;"}, "Lo que se imputa a este rubro."),
+  return el("div", { style: "background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;" },
+    el("div",{style:"font-size:14px;font-weight:600;margin-bottom:3px;color:var(--text);"}, "Otros costos directos"),
+    el("div",{style:"font-size:12px;color:var(--text3);margin-bottom:16px;"}, "Lo que se imputa a este rubro."),
     el("div",{style:"display:flex;flex-direction:column;gap:11px;"},
       ...[
         ["Flete y traslados","flete"],["Equipos y alquileres","equipos"],
         ["Subcontratos","subcontratos"],["Permisos y varios","varios"]
       ].map(([label,key]) =>
-        el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;"},
+        el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;color:var(--text2);"},
           el("span", {}, label),
-          inp(R[key],{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;"}, e=>patchRubro({[key]:e.target.value}))
+          inp(R[key],{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;color:var(--text);"}, e=>patchRubro({[key]:e.target.value}))
         )
       )
     )
@@ -555,25 +653,25 @@ function renderOtrosPanel(R) {
 }
 
 function renderMargenesPanel(R) {
-  return el("div", { style: "background:#ffffff;border:1px solid #dedbd5;border-radius:12px;padding:20px;" },
-    el("div",{style:"font-size:14px;font-weight:600;margin-bottom:3px;"}, "Márgenes y ajustes"),
-    el("div",{style:"font-size:12px;color:#86817b;margin-bottom:16px;"}, "Indirectos y margen son de este rubro. Descuento e IVA se aplican al presupuesto completo."),
+  return el("div", { style: "background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;" },
+    el("div",{style:"font-size:14px;font-weight:600;margin-bottom:3px;color:var(--text);"}, "Márgenes y ajustes"),
+    el("div",{style:"font-size:12px;color:var(--text3);margin-bottom:16px;"}, "Indirectos y margen son de este rubro. Descuento e IVA se aplican al presupuesto completo."),
     el("div",{style:"display:flex;flex-direction:column;gap:11px;"},
-      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;"},
-        el("span",{},"Costos indirectos % ", el("span",{style:"color:#86817b;"},"(rubro)")),
-        inp(R.overhead,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;"},e=>patchRubro({overhead:e.target.value}))
+      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;color:var(--text2);"},
+        el("span",{},"Costos indirectos % ", el("span",{style:"color:var(--text3);"},"(rubro)")),
+        inp(R.overhead,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;color:var(--text);"},e=>patchRubro({overhead:e.target.value}))
       ),
-      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;"},
-        el("span",{},"Margen % otros costos", el("br"), el("span",{style:"font-size:11px;color:#86817b;"},"También se usa al agregar ítems nuevos")),
-        inp(R.margen,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;"},e=>patchRubro({margen:e.target.value}))
+      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;color:var(--text2);"},
+        el("span",{},"Margen % otros costos", el("br"), el("span",{style:"font-size:11px;color:var(--text3);"},"También se usa al agregar ítems nuevos")),
+        inp(R.margen,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;color:var(--text);"},e=>patchRubro({margen:e.target.value}))
       ),
-      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;"},
-        el("span",{},"Descuento % ", el("span",{style:"color:#86817b;"},"(total)")),
-        inp(S.descuento,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;"},e=>setState({descuento:e.target.value}))
+      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;color:var(--text2);"},
+        el("span",{},"Descuento % ", el("span",{style:"color:var(--text3);"},"(total)")),
+        inp(S.descuento,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;color:var(--text);"},e=>setState({descuento:e.target.value}))
       ),
-      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;"},
-        el("span",{},"IVA % ", el("span",{style:"color:#86817b;"},"(total)")),
-        inp(S.iva,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;"},e=>setState({iva:e.target.value}))
+      el("label",{style:"display:grid;grid-template-columns:1fr 120px;align-items:center;gap:12px;font-size:13px;color:var(--text2);"},
+        el("span",{},"IVA % ", el("span",{style:"color:var(--text3);"},"(total)")),
+        inp(S.iva,{inputmode:"decimal",style:"width:100%;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;color:var(--text);"},e=>setState({iva:e.target.value}))
       )
     )
   );
@@ -586,29 +684,29 @@ function renderDatosObra() {
     ["Plazo de entrega","plazo"],["Validez de la oferta","validez"],
     ["Firma — nombre","firmaNombre"],["Firma — cargo","firmaCargo"]
   ];
-  return el("div", { style: "background:#ffffff;border:1px solid #dedbd5;border-radius:12px;padding:20px;" },
-    el("div",{style:"font-size:14px;font-weight:600;margin-bottom:3px;"}, "Datos de la obra"),
-    el("div",{style:"font-size:12px;color:#86817b;margin-bottom:16px;"}, "Se copian tal cual a la hoja de propuesta."),
+  return el("div", { style: "background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;" },
+    el("div",{style:"font-size:14px;font-weight:600;margin-bottom:3px;color:var(--text);"}, "Datos de la obra"),
+    el("div",{style:"font-size:12px;color:var(--text3);margin-bottom:16px;"}, "Se copian tal cual a la hoja de propuesta."),
     el("div",{style:"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;"},
       ...fields.map(([label,key]) =>
-        el("label",{style:"display:flex;flex-direction:column;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;"},
+        el("label",{style:"display:flex;flex-direction:column;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"},
           el("span",{},label),
-          inp(S[key]||"",{style:"width:100%;padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;letter-spacing:0;text-transform:none;color:#1b1a18;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;"},e=>setState({[key]:e.target.value}))
+          inp(S[key]||"",{style:"width:100%;padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;letter-spacing:0;text-transform:none;color:var(--text);background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;"},e=>setState({[key]:e.target.value}))
         )
       ),
-      el("label",{style:"display:flex;flex-direction:column;gap:5px;grid-column:span 2;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;"},
+      el("label",{style:"display:flex;flex-direction:column;gap:5px;grid-column:span 2;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"},
         el("span",{style:"display:flex;align-items:center;justify-content:space-between;gap:10px;"},
           "Forma de pago",
         ),
-        inp(S.pago||"",{style:"width:100%;padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;letter-spacing:0;text-transform:none;color:#1b1a18;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;"},e=>setState({pago:e.target.value}))
+        inp(S.pago||"",{style:"width:100%;padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;letter-spacing:0;text-transform:none;color:var(--text);background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;"},e=>setState({pago:e.target.value}))
       ),
-      el("label",{style:"display:flex;flex-direction:column;gap:5px;grid-column:span 2;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;"},
+      el("label",{style:"display:flex;flex-direction:column;gap:5px;grid-column:span 2;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"},
         el("span",{style:"display:flex;align-items:center;justify-content:space-between;gap:10px;"},
           "Alcance del trabajo",
           el("button",{style:btnIAStyle(!!S.busy_alcance)+"letter-spacing:0;text-transform:none;font-family:'IBM Plex Sans',sans-serif;padding:4px 9px;font-size:10.5px;",onclick:()=>corregir("alcance","global")},
             S.busy_alcance?"Corrigiendo…":(S.err_alcance||"Corregir con IA"))
         ),
-        ta(S.alcance||"",{rows:3,style:"width:100%;padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;letter-spacing:0;text-transform:none;color:#1b1a18;background:#faf9f7;border:1px solid #dedbd5;border-radius:6px;resize:vertical;"},
+        ta(S.alcance||"",{rows:3,style:"width:100%;padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;letter-spacing:0;text-transform:none;color:var(--text);background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:6px;resize:vertical;"},
           e=>setState({alcance:e.target.value}))
       )
     )
@@ -616,53 +714,59 @@ function renderDatosObra() {
 }
 
 function renderSidebar(R, v, porRubro, idxIncluidos, G) {
-  return el("div", { class: "sidebar", style: "position:sticky;top:84px;display:flex;flex-direction:column;gap:0;background:#1b1a18;border-radius:12px;padding:22px;color:#f4f3f0;" },
-    el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:#8f8a83;margin-bottom:4px;"}, "Rubro activo"),
+  return el("div", { class: "sidebar", style: "position:sticky;top:84px;display:flex;flex-direction:column;gap:0;background:var(--sb-bg);border-radius:12px;padding:22px;color:var(--sb-text);" },
+    el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:var(--sb-text3);margin-bottom:4px;"}, "Rubro activo"),
     el("div",{style:"font-size:14px;font-weight:600;margin-bottom:14px;"}, R.nombre || "—"),
-    row("#b8b3ac","Materiales",money(v.materiales)),
-    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;margin-top:5px;border-top:1px solid #3a3833;font-size:12.5px;font-weight:600;"},
+    sbRow("Materiales",money(v.materiales)),
+    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;margin-top:5px;border-top:1px solid var(--sb-bdr);font-size:12.5px;font-weight:600;"},
       el("span",{},"Costo directo"),el("span",{style:"font-family:'IBM Plex Mono',monospace;"},money(v.costoDirecto))
     ),
-    row("#b8b3ac","Indirectos " + pct(R.overhead),money(v.montoOverhead)),
-    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #3a3833;font-size:12.5px;font-weight:600;"},
+    sbRow("Indirectos " + pct(R.overhead),money(v.montoOverhead)),
+    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--sb-bdr);font-size:12.5px;font-weight:600;"},
       el("span",{},"Costo total"),el("span",{style:"font-family:'IBM Plex Mono',monospace;"},money(v.costoTotal))
     ),
     el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;font-size:12.5px;"},
-      el("span",{style:"color:#b8b3ac;"}, "Margen por ítem " + (v.costoTotal>0?(v.montoMargen/v.costoTotal*100).toLocaleString("es-PY",{maximumFractionDigits:1})+"%" : "0%")),
-      el("span",{style:"font-family:'IBM Plex Mono',monospace;color:oklch(0.78 0.11 200);"},money(v.montoMargen))
+      el("span",{style:"color:var(--sb-text2);"}, "Margen por ítem " + (v.costoTotal>0?(v.montoMargen/v.costoTotal*100).toLocaleString("es-PY",{maximumFractionDigits:1})+"%" : "0%")),
+      el("span",{style:"font-family:'IBM Plex Mono',monospace;color:var(--sb-acc);"},money(v.montoMargen))
     ),
-    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #3a3833;font-size:12.5px;font-weight:600;"},
+    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--sb-bdr);font-size:12.5px;font-weight:600;"},
       el("span",{},"Precio del rubro"),el("span",{style:"font-family:'IBM Plex Mono',monospace;"},money(v.precioRubro))
     ),
 
-    el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:#8f8a83;margin:22px 0 8px;padding-top:18px;border-top:1px solid #3a3833;"}, "Presupuesto completo"),
-    ...idxIncluidos.map(i => row("#b8b3ac", S.rubros[i].nombre||"Rubro "+(i+1), money(porRubro[i].precioRubro))),
-    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;margin-top:5px;border-top:1px solid #3a3833;font-size:12.5px;font-weight:600;"},
+    el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:var(--sb-text3);margin:22px 0 8px;padding-top:18px;border-top:1px solid var(--sb-bdr);"}, "Presupuesto completo"),
+    ...idxIncluidos.map(i => sbRow(S.rubros[i].nombre||"Rubro "+(i+1), money(porRubro[i].precioRubro))),
+    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;margin-top:5px;border-top:1px solid var(--sb-bdr);font-size:12.5px;font-weight:600;"},
       el("span",{},"Subtotal"),el("span",{style:"font-family:'IBM Plex Mono',monospace;"},money(G.subtotalCliente))
     ),
-    row("#b8b3ac","Descuento " + pct(S.descuento),money(G.montoDescuento)),
-    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #3a3833;font-size:12.5px;font-weight:600;"},
+    sbRow("Descuento " + pct(S.descuento),money(G.montoDescuento)),
+    el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--sb-bdr);font-size:12.5px;font-weight:600;"},
       el("span",{},"Neto a facturar"),el("span",{style:"font-family:'IBM Plex Mono',monospace;"},money(G.neto))
     ),
-    row("#b8b3ac","IVA " + pct(S.iva),money(G.montoIva)),
-    el("div",{style:"display:flex;flex-direction:column;gap:3px;padding:15px 0 3px;margin-top:7px;border-top:2px solid #f4f3f0;"},
-      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:#8f8a83;"}, "Total al cliente"),
+    sbRow("IVA " + pct(S.iva),money(G.montoIva)),
+    el("div",{style:"display:flex;flex-direction:column;gap:3px;padding:15px 0 3px;margin-top:7px;border-top:2px solid var(--sb-text);"},
+      el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:var(--sb-text3);"}, "Total al cliente"),
       el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;letter-spacing:-0.02em;"}, money(G.totalFinal))
     ),
-    el("div",{style:"display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid #3a3833;"},
+    el("div",{style:"display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--sb-bdr);"},
       el("div",{style:"display:flex;flex-direction:column;gap:3px;"},
-        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#8f8a83;"}, "Ganancia neta"),
+        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--sb-text3);"}, "Ganancia neta"),
         el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;"}, money(G.ganancia))
       ),
       el("div",{style:"display:flex;flex-direction:column;gap:3px;"},
-        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#8f8a83;"}, "Margen real"),
+        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--sb-text3);"}, "Margen real"),
         el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;"}, (G.neto>0?(G.ganancia/G.neto*100).toLocaleString("es-PY",{maximumFractionDigits:1}):"0") + "%")
       )
     ),
-    el("button", {class:"noprint",style:"margin-top:20px;padding:11px;font-size:13px;font-weight:500;color:#1b1a18;background:#f4f3f0;border:0;border-radius:7px;cursor:pointer;",onclick:()=>setState({tab:"propuesta"})}, "Ver hoja de propuesta →")
+    el("button", {class:"noprint",style:"margin-top:20px;padding:11px;font-size:13px;font-weight:500;color:var(--sb-bg);background:var(--sb-text);border:0;border-radius:7px;cursor:pointer;",onclick:()=>setState({tab:"propuesta"})}, "Ver hoja de propuesta →")
   );
 }
 
+function sbRow(label, value) {
+  return el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;font-size:12.5px;"},
+    el("span",{style:"color:var(--sb-text2);"},label),
+    el("span",{style:"font-family:'IBM Plex Mono',monospace;"},value)
+  );
+}
 function row(color, label, value) {
   return el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;font-size:12.5px;"},
     el("span",{style:"color:"+color+";"},label),
@@ -674,12 +778,12 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
   const fechaHoy = new Date().toLocaleDateString("es-PY",{day:"2-digit",month:"long",year:"numeric"});
   return el("div", { class: "wrap-grid", style: "padding:30px 26px 60px;" },
     // Ajuste de margen table
-    el("div", { class: "noprint", style: "width:820px;max-width:100%;margin:0 auto 22px;background:#ffffff;border:1px solid #dedbd5;border-radius:12px;overflow:hidden;" },
-      el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:15px 20px;border-bottom:1px solid #dedbd5;"},
-        el("div",{style:"font-size:14px;font-weight:600;"}, "Ajuste de margen antes de imprimir"),
-        el("div",{style:"font-size:11.5px;color:#86817b;"}, "No aparece en el PDF ni en la hoja impresa.")
+    el("div", { class: "noprint", style: "width:820px;max-width:100%;margin:0 auto 22px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;" },
+      el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:15px 20px;border-bottom:1px solid var(--border);"},
+        el("div",{style:"font-size:14px;font-weight:600;color:var(--text);"}, "Ajuste de margen antes de imprimir"),
+        el("div",{style:"font-size:11.5px;color:var(--text3);"}, "No aparece en el PDF ni en la hoja impresa.")
       ),
-      el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 118px 56px 112px 122px 70px 62px 118px;padding:0 20px;background:#faf9f7;border-bottom:1px solid #dedbd5;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#86817b;"},
+      el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 118px 56px 112px 122px 70px 62px 118px;padding:0 20px;background:var(--inp-bg);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);"},
         el("div",{style:"padding:9px 8px 9px 0;"}, "Rubro"),
         el("div",{style:"padding:9px 8px;text-align:right;"}, "Costo"),
         el("div",{style:"padding:9px 6px;text-align:right;color:oklch(0.50 0.09 220);"}, "%"),
@@ -696,7 +800,7 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
         const uniforme = margenes.length && margenes.every(x=>x===margenes[0]) ? String(margenes[0]) : "";
         const pctVal = uniforme !== "" ? uniforme : r.margen;
         const precioUnit = N(r.medida) > 0 ? money(calc.precioRubro / N(r.medida)) : "—";
-        const sel = el("select",{style:"width:100%;margin:4px 3px;padding:6px 2px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:center;background:#faf9f7;border:1px solid #dedbd5;border-radius:5px;"});
+        const sel = el("select",{style:"width:100%;margin:4px 3px;padding:6px 2px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:center;background:var(--inp-bg);border:1px solid var(--inp-bdr);border-radius:5px;color:var(--text);"});
         ["m2","ml","m3","un","gl"].forEach(u => {
           const opt = el("option",{value:u},u==="m2"?"m²":u==="m3"?"m³":u);
           if ((r.unidad||"m2")===u) opt.selected=true;
@@ -706,25 +810,25 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
           const val = e.target.value;
           setState(p => { const arr=p.rubros.slice(); arr[i]=Object.assign({},arr[i],{unidad:val}); return {rubros:arr}; });
         });
-        return el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 118px 56px 112px 122px 70px 62px 118px;align-items:center;padding:0 20px;border-bottom:1px solid #efedea;"},
-          el("div",{style:"padding:10px 8px 10px 0;font-size:13px;font-weight:500;"}, r.nombre||"Rubro "+(i+1)),
-          el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#6f6b64;white-space:nowrap;"}, money(calc.costoTotal)),
+        return el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 118px 56px 112px 122px 70px 62px 118px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);"},
+          el("div",{style:"padding:10px 8px 10px 0;font-size:13px;font-weight:500;color:var(--text);"}, r.nombre||"Rubro "+(i+1)),
+          el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(calc.costoTotal)),
           inp(pctVal,{inputmode:"decimal",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"},
             e => {
               const val=e.target.value;
               setState(p => { const arr=p.rubros.slice(); arr[i]=Object.assign({},arr[i],{margen:val,mats:arr[i].mats.map(x=>Object.assign({},x,{marg:val})),mos:arr[i].mos.map(x=>Object.assign({},x,{marg:val}))}); return {rubros:arr}; });
             }),
-          el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#6f6b64;white-space:nowrap;"}, money(calc.montoMargen)),
-          el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap;"}, money(calc.precioRubro)),
+          el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(calc.montoMargen)),
+          el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, money(calc.precioRubro)),
           inp(r.medida||"",{inputmode:"decimal",placeholder:"0",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"},
             e => { const val=e.target.value; setState(p=>{const arr=p.rubros.slice();arr[i]=Object.assign({},arr[i],{medida:val});return{rubros:arr};}); }),
           sel,
-          el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap;"}, precioUnit)
+          el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, precioUnit)
         );
       }),
-      el("div",{style:"display:flex;align-items:baseline;justify-content:flex-end;gap:14px;padding:13px 20px;background:#faf9f7;flex-wrap:wrap;"},
-        el("span",{style:"font-size:12px;color:#6f6b64;"}, "Total al cliente"),
-        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;white-space:nowrap;"}, money(G.totalFinal))
+      el("div",{style:"display:flex;align-items:baseline;justify-content:flex-end;gap:14px;padding:13px 20px;background:var(--inp-bg);flex-wrap:wrap;"},
+        el("span",{style:"font-size:12px;color:var(--text4);"}, "Total al cliente"),
+        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;white-space:nowrap;color:var(--text);"}, money(G.totalFinal))
       )
     ),
 
@@ -840,10 +944,10 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
     // Bottom actions
     el("div", { class: "noprint", style: "display:flex;flex-direction:column;gap:14px;align-items:center;margin:26px auto 0;max-width:820px;" },
       el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;"},
-        el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#ffffff;background:#1b1a18;border:0;border-radius:8px;cursor:pointer;",onclick:()=>window.print()}, "Imprimir / Guardar PDF"),
+        el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:var(--cta-text);background:var(--cta-bg);border:0;border-radius:8px;cursor:pointer;",onclick:()=>window.print()}, "Imprimir / Guardar PDF"),
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#ffffff;background:oklch(0.58 0.15 155);border:0;border-radius:8px;cursor:pointer;",onclick:()=>enviarWhatsapp(idxIncluidos, porRubro, G)}, S.waAviso||"Enviar por WhatsApp"),
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#ffffff;background:oklch(0.52 0.16 255);border:0;border-radius:8px;cursor:pointer;",onclick:()=>enviarCorreo(idxIncluidos, porRubro, G)}, "Enviar por correo"),
-        el("button",{style:"padding:11px 18px;font-size:13px;font-weight:500;color:#1b1a18;background:#f0eee9;border:1px solid #dedbd5;border-radius:8px;cursor:pointer;",onclick:()=>copiarResumen(idxIncluidos, porRubro, G)}, S.copiado?"Resumen copiado":"Copiar resumen")
+        el("button",{style:"padding:11px 18px;font-size:13px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:8px;cursor:pointer;",onclick:()=>copiarResumen(idxIncluidos, porRubro, G)}, S.copiado?"Resumen copiado":"Copiar resumen")
       ),
       el("div",{style:"display:flex;align-items:center;gap:10px;font-size:12px;color:#86817b;text-align:center;"},
         el("span",{}, "El mensaje va con el resumen del presupuesto."),
