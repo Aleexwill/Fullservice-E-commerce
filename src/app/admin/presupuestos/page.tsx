@@ -250,6 +250,8 @@ const ALERTA_OPTS = ['','FALTA RELEVAR','FALTA PRESUPUESTAR','ENVIADO','APROBADO
 const AVANCE_OPTS = ['Pendiente','En Proceso','En Espera / Bloqueado','Finalizado'];
 const CICLO_OS = ['NO','SI','NA'];
 const PLAN2_KEY = 'fsc-plan2-tareas-v1';
+const ESTADO_OPTS = ['SIN CARGAR','PENDIENTE RELEVO','EN PRESUPUESTO','PENDIENTE APROBACION','EN EJECUCION','FINALIZADO','DE BAJA'];
+const PRIORIDAD_SEG_OPTS = ['','Normal','Alta','Urgente'];
 
 function estadoDe(alerta?: string, avance?: string): string {
   if (alerta === 'DE BAJA') return 'DE BAJA';
@@ -259,6 +261,19 @@ function estadoDe(alerta?: string, avance?: string): string {
   if (alerta === 'FALTA PRESUPUESTAR') return 'EN PRESUPUESTO';
   if (alerta === 'FALTA RELEVAR') return 'PENDIENTE RELEVO';
   return 'SIN CARGAR';
+}
+
+function setEstadoFields(estado: string): Partial<SeguimientoData> {
+  const map: Record<string, Partial<SeguimientoData>> = {
+    'FINALIZADO':            { alerta: 'APROBADO',            avance: 'Finalizado' },
+    'EN EJECUCION':          { alerta: 'APROBADO',            avance: 'En Proceso' },
+    'PENDIENTE APROBACION':  { alerta: 'ENVIADO',             avance: 'Pendiente' },
+    'EN PRESUPUESTO':        { alerta: 'FALTA PRESUPUESTAR',  avance: 'Pendiente' },
+    'PENDIENTE RELEVO':      { alerta: 'FALTA RELEVAR',       avance: 'Pendiente' },
+    'DE BAJA':               { alerta: 'DE BAJA',             avance: 'Pendiente' },
+    'SIN CARGAR':            { alerta: '',                    avance: '' },
+  };
+  return map[estado] || { alerta: '', avance: '' };
 }
 
 function chipEstado(estado: string): string {
@@ -291,8 +306,8 @@ const nextMonthStr = (ym: string) => { const [y,m] = ym.split('-').map(Number); 
 const monthLabel = (ym: string) => { const [y,m] = ym.split('-').map(Number); return `${MONTH_NAMES[m-1]} ${y}`; };
 
 interface Plan2Tarea {
-  id: string; cliente: string; local: string; descripcion: string; tecnico: string;
-  avance: string; dias: number; obs: string; scheduledDate?: string;
+  id: string; nro?: string; cliente: string; local: string; descripcion: string; tecnico: string;
+  avance: string; pct?: number; dias: number; obs: string; scheduledDate?: string;
 }
 
 // ─── TableroDashboard ─────────────────────────────────────────
@@ -312,6 +327,10 @@ function TableroDashboard({ items, loading, onRefresh }: {
   const [plan2Edit, setPlan2Edit] = useState<string|null>(null);
   const [plan2Form, setPlan2Form] = useState<Partial<Plan2Tarea>>({});
   const [searchPres, setSearchPres] = useState('');
+  const [carpeta, setCarpeta] = useState<'plan1'|'plan2'>('plan1');
+  const [planClientFilter, setPlanClientFilter] = useState('');
+  const [soloPendientes, setSoloPendientes] = useState(false);
+  const [planCarpLabel, setPlanCarpLabel] = useState('');
 
   useEffect(() => {
     try { const d = localStorage.getItem(PLAN2_KEY); if (d) setPlan2(JSON.parse(d)); } catch {}
@@ -592,170 +611,248 @@ function TableroDashboard({ items, loading, onRefresh }: {
       )}
 
       {/* ── PLANIFICACIÓN sub-tab ── */}
-      {subTab === 'planificacion' && (
-        <div className="space-y-4">
-          {/* Period filter */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex gap-1 rounded-lg bg-steel-900/60 p-1">
-              {(['dia','semana','mes','anio','todo'] as const).map(p => (
-                <button key={p} onClick={() => setPeriodo(p)}
-                  className={`px-3 py-1 rounded font-body text-caption font-medium transition-colors ${periodo === p ? 'bg-blue-bright text-white' : 'text-steel-400 hover:text-arctic'}`}>
-                  {p === 'dia' ? 'Día' : p === 'semana' ? 'Semana' : p === 'mes' ? 'Mes' : p === 'anio' ? 'Año' : 'Todo'}
+      {subTab === 'planificacion' && (() => {
+        // carpeta label defaults
+        const carpLabel = planCarpLabel || (carpeta === 'plan1' ? 'Plan 1 — Aprobados' : 'Plan 2 — Tareas manuales');
+
+        // unique clients for filter
+        const allClients = Array.from(new Set([
+          ...plan1Items.map(i => i.customer.name),
+          ...plan2.map(t => t.cliente),
+        ])).filter(Boolean).sort();
+
+        // apply client + pendientes filter
+        const filteredPlan1 = plan1Items.filter(i => {
+          if (planClientFilter && i.customer.name !== planClientFilter) return false;
+          if (soloPendientes) { const a = getSD(i).avance; return !a || a === 'Pendiente' || a === 'En Proceso'; }
+          return true;
+        });
+        const filteredPlan2 = plan2.filter(t => {
+          if (planClientFilter && t.cliente !== planClientFilter) return false;
+          if (soloPendientes) return !t.avance || t.avance === 'Pendiente' || t.avance === 'En Proceso';
+          return true;
+        });
+        const hayFuera1 = plan1Items.length - plan1Items.filter(i => {
+          if (planClientFilter && i.customer.name !== planClientFilter) return false;
+          if (soloPendientes) { const a = getSD(i).avance; return !a || a === 'Pendiente' || a === 'En Proceso'; }
+          return true;
+        }).length;
+        const hayFuera2 = plan2.length - filteredPlan2.length;
+        const hayFuera = carpeta === 'plan1' ? hayFuera1 : hayFuera2;
+
+        return (
+          <div className="space-y-4">
+            {/* Toolbar */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Carpeta selector */}
+              <div className="flex gap-1 rounded-lg bg-steel-900/60 p-1">
+                {(['plan1','plan2'] as const).map(p => (
+                  <button key={p} onClick={() => setCarpeta(p)}
+                    className={`px-4 py-1.5 rounded-md font-body text-body-sm font-medium transition-colors ${carpeta === p ? 'bg-blue-bright text-white' : 'text-steel-400 hover:text-arctic'}`}>
+                    {p === 'plan1' ? 'Plan 1' : 'Plan 2'}
+                  </button>
+                ))}
+              </div>
+              {/* Editable carpeta label */}
+              <input value={planCarpLabel} onChange={e => setPlanCarpLabel(e.target.value)}
+                placeholder={carpeta === 'plan1' ? 'Plan 1 — Aprobados' : 'Plan 2 — Tareas manuales'}
+                className="rounded border border-steel-800 bg-transparent px-2 py-1 font-body text-caption text-steel-300 placeholder:text-steel-700 w-52" />
+              {/* Period filter */}
+              <div className="flex gap-1 rounded-lg bg-steel-900/60 p-1">
+                {(['dia','semana','mes','anio','todo'] as const).map(p => (
+                  <button key={p} onClick={() => setPeriodo(p)}
+                    className={`px-3 py-1 rounded font-body text-caption font-medium transition-colors ${periodo === p ? 'bg-blue-bright text-white' : 'text-steel-400 hover:text-arctic'}`}>
+                    {p === 'dia' ? 'Día' : p === 'semana' ? 'Semana' : p === 'mes' ? 'Mes' : p === 'anio' ? 'Año' : 'Todo'}
+                  </button>
+                ))}
+              </div>
+              {periodo !== 'todo' && (
+                <input type="date" value={ancla} onChange={e => setAncla(e.target.value)}
+                  className="rounded border border-steel-800 bg-steel-950 px-2 py-1 font-mono text-caption text-arctic" />
+              )}
+              {/* Cliente filter */}
+              <select value={planClientFilter} onChange={e => setPlanClientFilter(e.target.value)}
+                className="rounded border border-steel-800 bg-steel-950 px-2 py-1 font-body text-caption text-arctic">
+                <option value="">Todos los clientes</option>
+                {allClients.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              {/* + Agregar (plan2 only) */}
+              {carpeta === 'plan2' && (
+                <button onClick={() => { setPlan2Form({}); setPlan2Edit('new'); }}
+                  className="rounded border border-blue-bright/40 bg-blue-bright/10 px-3 py-1.5 font-body text-caption font-medium text-blue-bright hover:bg-blue-bright/20 transition-colors">
+                  + Agregar tarea
                 </button>
-              ))}
+              )}
+              {/* Ver solo pendientes toggle */}
+              <button onClick={() => setSoloPendientes(v => !v)}
+                className={`rounded border px-3 py-1.5 font-body text-caption font-medium transition-colors ${soloPendientes ? 'border-blue-bright/60 bg-blue-bright/15 text-blue-bright' : 'border-steel-800 text-steel-500 hover:text-arctic'}`}>
+                Ver solo pendientes
+              </button>
+              {/* Imprimir */}
+              <button onClick={() => window.print()}
+                className="rounded border border-steel-800 px-3 py-1.5 font-body text-caption text-steel-500 hover:text-arctic transition-colors flex items-center gap-1.5">
+                <Printer className="h-3.5 w-3.5" /> Imprimir
+              </button>
             </div>
-            {periodo !== 'todo' && (
-              <input type="date" value={ancla} onChange={e => setAncla(e.target.value)}
-                className="rounded border border-steel-800 bg-steel-950 px-2 py-1 font-mono text-caption text-arctic" />
-            )}
-          </div>
 
-          {/* Plan 1 */}
-          <div>
-            <h3 className="mb-2 font-display text-h4 text-arctic flex items-center gap-2">
-              <ClipboardList className="h-4 w-4 text-blue-bright" /> Plan 1 — Aprobados
-              <span className="font-mono text-caption text-steel-500">({plan1Items.length})</span>
-            </h3>
-            <TableroPlantab items={plan1Items} getSD={getSD} patchSeg={patchSeg} showCierre />
-            <div className="mt-2 card p-3 flex flex-wrap gap-6">
-              {[
-                { label: 'Días total', value: plan1Items.reduce((s,i) => s + N(getSD(i).dias), 0) },
-                { label: 'Facturado', value: money(plan1Items.filter(i => getSD(i).facturado === 'SI').reduce((s,i) => s + N(i.finalValue||i.estimatedValue), 0)) },
-                { label: 'Por facturar', value: money(plan1Items.filter(i => getSD(i).facturado !== 'SI').reduce((s,i) => s + N(i.finalValue||i.estimatedValue), 0)) },
-              ].map(f => (
-                <div key={f.label}>
-                  <span className="font-body text-caption text-steel-500">{f.label}: </span>
-                  <span className="font-mono text-caption text-arctic">{f.value}</span>
+            {/* hayFuera banner */}
+            {hayFuera > 0 && (
+              <div className="flex items-center gap-3 rounded border border-yellow-bright/20 bg-yellow-bright/5 px-4 py-2">
+                <span className="font-body text-caption text-yellow-bright">
+                  {hayFuera} tarea{hayFuera !== 1 ? 's' : ''} fuera de este filtro
+                </span>
+                <button onClick={() => { setPlanClientFilter(''); setSoloPendientes(false); setPeriodo('todo'); }}
+                  className="font-body text-caption text-yellow-bright underline">ver todas</button>
+              </div>
+            )}
+
+            {/* Plan 1 */}
+            {carpeta === 'plan1' && (
+              <div>
+                <TableroPlantab items={filteredPlan1} getSD={getSD} patchSeg={patchSeg} showCierre />
+                <div className="mt-2 card p-3 flex flex-wrap gap-6">
+                  {[
+                    { label: 'Días', value: filteredPlan1.reduce((s,i) => s + N(getSD(i).dias), 0) },
+                    { label: 'Avance total', value: `${filteredPlan1.filter(i => getSD(i).avance === 'Finalizado').length}/${filteredPlan1.length}` },
+                    { label: 'Facturado', value: money(filteredPlan1.filter(i => getSD(i).facturado === 'SI').reduce((s,i) => s + N(i.finalValue||i.estimatedValue), 0)) },
+                    { label: 'Por facturar', value: money(filteredPlan1.filter(i => getSD(i).facturado !== 'SI').reduce((s,i) => s + N(i.finalValue||i.estimatedValue), 0)) },
+                  ].map(f => (
+                    <div key={f.label}>
+                      <span className="font-body text-caption text-steel-500">{f.label}: </span>
+                      <span className="font-mono text-caption text-arctic">{f.value}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
 
-          {/* Plan 2 */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-display text-h4 text-arctic flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-[#48BB78]" /> Plan 2 — Tareas manuales
-                <span className="font-mono text-caption text-steel-500">({plan2.length})</span>
-              </h3>
-              <button onClick={() => { setPlan2Form({}); setPlan2Edit('new'); }} className="btn-primary text-xs">+ Agregar</button>
-            </div>
-            <Plan2Table tareas={plan2} onEdit={(t) => { setPlan2Form(t); setPlan2Edit(t.id); }} onDelete={id => savePlan2(plan2.filter(t => t.id !== id))} />
-            {plan2Edit && (
-              <Plan2Form
-                form={plan2Form} setForm={setPlan2Form}
-                onSave={() => {
-                  if (plan2Edit === 'new') {
-                    savePlan2([...plan2, { ...plan2Form, id: crypto.randomUUID() } as Plan2Tarea]);
-                  } else {
-                    savePlan2(plan2.map(t => t.id === plan2Edit ? { ...t, ...plan2Form } : t));
-                  }
-                  setPlan2Edit(null);
-                }}
-                onCancel={() => setPlan2Edit(null)}
-              />
+            {/* Plan 2 */}
+            {carpeta === 'plan2' && (
+              <div>
+                <Plan2TableNew
+                  tareas={filteredPlan2}
+                  onEdit={(t) => { setPlan2Form(t); setPlan2Edit(t.id); }}
+                  onDelete={id => savePlan2(plan2.filter(t => t.id !== id))}
+                  onField={(id, fields) => savePlan2(plan2.map(t => t.id === id ? { ...t, ...fields } : t))}
+                />
+                {plan2Edit && (
+                  <Plan2Form
+                    form={plan2Form} setForm={setPlan2Form}
+                    onSave={() => {
+                      if (plan2Edit === 'new') {
+                        savePlan2([...plan2, { ...plan2Form, id: crypto.randomUUID() } as Plan2Tarea]);
+                      } else {
+                        savePlan2(plan2.map(t => t.id === plan2Edit ? { ...t, ...plan2Form } : t));
+                      }
+                      setPlan2Edit(null);
+                    }}
+                    onCancel={() => setPlan2Edit(null)}
+                  />
+                )}
+                <div className="mt-2 card p-3 flex flex-wrap gap-6">
+                  {[
+                    { label: 'Días', value: filteredPlan2.reduce((s,t) => s + N(t.dias), 0) },
+                    { label: 'Avance total', value: `${filteredPlan2.filter(t => t.avance === 'Finalizado').length}/${filteredPlan2.length}` },
+                  ].map(f => (
+                    <div key={f.label}>
+                      <span className="font-body text-caption text-steel-500">{f.label}: </span>
+                      <span className="font-mono text-caption text-arctic">{f.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
 
 // ─── Presupuestos inline table ─────────────────────────────────
-// Column order matches reference: Fecha · Cód · Cliente · Local · Descripción · Técnico · Alerta · Estado · Avance · OS·Inf·Fact · N°Fact · % · Días · Obs · ×
+// Columns: N° PRESU · FECHA · CLIENTE · LOCAL · TRABAJO · PRECIO DE VENTA · VENDIDO · ALERTA · ESTADO · PRIORIDAD · TÉCNICO · ×
 function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
   items: Presupuesto[]; arrastres: Presupuesto[];
   getSD: (i: Presupuesto) => SeguimientoData;
   patchSeg: (id: string, fields: Partial<SeguimientoData>) => void;
 }) {
-  const cols = 'grid-cols-[90px_100px_130px_110px_minmax(160px,1fr)_110px_110px_130px_150px_156px_130px_64px_80px_minmax(120px,0.8fr)_28px]';
-  const hdrs = ['Fecha','Código','Cliente','Local','Descripción','Técnico','Alerta','Estado','Avance','OS · Inf · Fact','N° Factura','%','Días','Obs',''];
+  const colStyle = '132px 92px 150px 150px minmax(180px,1fr) 140px 140px 156px 170px 96px 130px 30px';
+  const hdrs = ['N° PRESU','FECHA','CLIENTE','LOCAL','TRABAJO','PRECIO DE VENTA','VENDIDO','ALERTA','ESTADO','PRIORIDAD','TÉCNICO',''];
 
   const inputCls = 'w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300';
-  const numCls = inputCls + ' tabular-nums';
 
   const renderRow = (item: Presupuesto, isArrastre?: boolean) => {
     const sd = getSD(item);
     const estado = estadoDe(sd.alerta, sd.avance);
     const fechaCarga = item.createdAt.slice(0, 10);
+    const precioVenta = N(item.finalValue || item.estimatedValue);
     return (
-      <div key={item.id} className={`grid ${cols} gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20 ${isArrastre ? 'opacity-80' : ''}`}>
-        {/* Fecha carga */}
-        <div className="px-2 py-1.5 font-mono text-[0.6rem] text-steel-500 tabular-nums">
-          {fechaCarga}
+      <div key={item.id}
+        className={`grid items-center border-b border-steel-900/40 hover:bg-steel-900/20 ${isArrastre ? 'opacity-80' : ''}`}
+        style={{ display:'grid', gridTemplateColumns: colStyle }}>
+        {/* N° PRESU */}
+        <div className="px-2 py-1.5 font-mono text-caption text-blue-bright whitespace-nowrap">
+          {item.code}
           {isArrastre && <span className="ml-1 text-yellow-bright">↩</span>}
         </div>
-        {/* Código */}
-        <div className="px-2 font-mono text-caption text-blue-bright">{item.code}</div>
-        {/* Cliente */}
+        {/* FECHA */}
+        <div className="px-2 font-mono text-[0.6rem] text-steel-500 tabular-nums whitespace-nowrap">{fechaCarga}</div>
+        {/* CLIENTE */}
         <div className="px-1 font-body text-caption text-steel-300 truncate">{item.customer.name}</div>
-        {/* Local */}
+        {/* LOCAL */}
         <div className="px-1">
           <input value={sd.local||''} onChange={e => patchSeg(item.id, {local: e.target.value})}
             className={inputCls} placeholder={item.customer.address || '—'} />
         </div>
-        {/* Descripción */}
+        {/* TRABAJO */}
         <div className="px-2 py-1 min-w-0">
           <p className="font-body text-caption text-steel-300 truncate">{item.serviceTitle}</p>
         </div>
-        {/* Técnico */}
-        <div className="px-1">
-          <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
-            className={inputCls} placeholder="—" />
+        {/* PRECIO DE VENTA */}
+        <div className="px-2 font-mono text-[0.6rem] text-steel-300 tabular-nums text-right whitespace-nowrap">
+          {precioVenta > 0 ? money(precioVenta) : '—'}
         </div>
-        {/* Alerta */}
+        {/* VENDIDO */}
+        <div className="px-1">
+          <input type="number" value={sd.vendido||''} onChange={e => patchSeg(item.id, {vendido: Number(e.target.value)})}
+            className={inputCls + ' tabular-nums'} placeholder="0" />
+        </div>
+        {/* ALERTA */}
         <div className="px-1">
           <select value={sd.alerta||''} onChange={e => patchSeg(item.id, {alerta: e.target.value})}
             className={inputCls} style={{ color: flagColor(sd.alerta) }}>
             {ALERTA_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o || '—'}</option>)}
           </select>
         </div>
-        {/* Estado chip */}
+        {/* ESTADO — editable select */}
         <div className="px-1">
-          <span className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[0.52rem] font-medium leading-tight ${chipEstado(estado)}`}>{estado}</span>
-        </div>
-        {/* Avance */}
-        <div className="px-1">
-          <select value={sd.avance||''} onChange={e => patchSeg(item.id, {avance: e.target.value})}
-            className={inputCls}>
-            <option value="" className="bg-[#0f1117]">—</option>
-            {AVANCE_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117]">{o}</option>)}
+          <select value={estado}
+            onChange={e => patchSeg(item.id, setEstadoFields(e.target.value))}
+            className={`${inputCls} font-semibold`}
+            style={{ color: (() => {
+              const c: Record<string,string> = {
+                'FINALIZADO':'#48BB78','EN EJECUCION':'#60A5FA','PENDIENTE APROBACION':'#F59E0B',
+                'EN PRESUPUESTO':'#F97316','PENDIENTE RELEVO':'#A78BFA','DE BAJA':'#FC8181',
+              };
+              return c[estado] || '#6B7280';
+            })() }}>
+            {ESTADO_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o}</option>)}
           </select>
         </div>
-        {/* OS · Inf · Fact */}
-        <div className="flex gap-1 px-1">
-          {(['os','informe','facturado'] as const).map(f => (
-            <button key={f} onClick={() => patchSeg(item.id, {[f]: ciclo(sd[f]||'NO')})}
-              className={`flex-1 rounded px-1 py-0.5 font-mono text-[0.52rem] font-medium border transition-colors ${
-                sd[f]==='SI' ? 'bg-[#48BB78]/15 text-[#48BB78] border-[#48BB78]/30' :
-                sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
-                'bg-transparent text-steel-600 border-steel-800'
-              }`}>{f === 'os' ? 'OS' : f === 'informe' ? 'INF' : 'FCT'}<br/><span className="text-[0.5rem]">{sd[f]||'NO'}</span></button>
-          ))}
-        </div>
-        {/* N° Factura */}
+        {/* PRIORIDAD */}
         <div className="px-1">
-          <input value={sd.nroFactura||''} onChange={e => patchSeg(item.id, {nroFactura: e.target.value})}
+          <select value={sd.prioridad||''} onChange={e => patchSeg(item.id, {prioridad: e.target.value})}
+            className={inputCls}>
+            {PRIORIDAD_SEG_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117]">{o||'—'}</option>)}
+          </select>
+        </div>
+        {/* TÉCNICO */}
+        <div className="px-1">
+          <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
             className={inputCls} placeholder="—" />
         </div>
-        {/* % */}
-        <div className="px-1">
-          <input type="number" value={sd.pct||''} onChange={e => patchSeg(item.id, {pct: Number(e.target.value)})}
-            className={numCls} placeholder="0" />
-        </div>
-        {/* Días */}
-        <div className="px-1">
-          <input type="number" value={sd.dias||''} onChange={e => patchSeg(item.id, {dias: Number(e.target.value)})}
-            className={numCls} placeholder="0" />
-        </div>
-        {/* Obs */}
-        <div className="px-1">
-          <input value={sd.obs||''} onChange={e => patchSeg(item.id, {obs: e.target.value})}
-            className={inputCls} placeholder="obs…" />
-        </div>
-        {/* Delete */}
-        <div className="px-1">
+        {/* × */}
+        <div className="px-1 flex justify-center">
           <button className="p-1 text-steel-700 hover:text-[#FC8181]"><X className="h-3 w-3" /></button>
         </div>
       </div>
@@ -763,10 +860,11 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
   };
 
   return (
-    <div className="rounded-lg border border-steel-800 overflow-x-auto bg-[#0c0e14]" style={{backgroundColor:'#0c0e14'}}>
-      <div style={{minWidth:'max-content', backgroundColor:'#0c0e14'}}>
+    <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
+      <div style={{minWidth:'1560px', backgroundColor:'#0c0e14'}}>
         {/* Header */}
-        <div className={`grid ${cols} gap-px border-b border-steel-800`} style={{backgroundColor:'#111420'}}>
+        <div style={{ display:'grid', gridTemplateColumns: colStyle, backgroundColor:'#111420' }}
+          className="border-b border-steel-800">
           {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
         </div>
         {items.length === 0 && arrastres.length === 0 && (
@@ -786,104 +884,182 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
   );
 }
 
-// ─── Plan tab row grid ─────────────────────────────────────────
+// ─── Plan 1 table (espejo aprobados) ──────────────────────────
+// Columns: FECHA · N° PRESU · CLIENTE/LOCAL · TRABAJO · TÉCNICO · AVANCE · % · DÍAS · O.SERV. · INFORME · FACT. · N°FACTURA · OBSERVACIONES · ×
 function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
   items: Presupuesto[];
   getSD: (i: Presupuesto) => SeguimientoData;
   patchSeg: (id: string, fields: Partial<SeguimientoData>) => void;
   showCierre?: boolean;
 }) {
-  const cols = showCierre
-    ? 'grid-cols-[110px_100px_140px_minmax(150px,1fr)_100px_130px_60px_50px_60px_60px_60px_110px_minmax(130px,0.8fr)_24px]'
-    : 'grid-cols-[110px_100px_140px_minmax(150px,1fr)_100px_130px_60px_50px_minmax(130px,0.8fr)_24px]';
+  const inp = 'w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300';
+  const colStyle = showCierre
+    ? '122px 118px 150px minmax(170px,1fr) 118px 146px 74px 60px 66px 66px 66px 130px minmax(140px,0.8fr) 28px'
+    : '122px 118px 150px minmax(170px,1fr) 118px 146px 74px 60px minmax(140px,0.8fr) 28px';
   const hdrs = showCierre
-    ? ['Código','Mes','Cliente','Descripción','Técnico','Fecha','Días','%','OS','Inf','Fact','N° Fact','Obs','']
-    : ['Código','Mes','Cliente','Descripción','Técnico','Fecha','Días','%','Obs',''];
+    ? ['FECHA','N° PRESU','CLIENTE / LOCAL','TRABAJO','TÉCNICO','AVANCE','%','DÍAS','O.SERV.','INFORME','FACT.','N°FACTURA','OBSERVACIONES','']
+    : ['FECHA','N° PRESU','CLIENTE / LOCAL','TRABAJO','TÉCNICO','AVANCE','%','DÍAS','OBSERVACIONES',''];
+  const minW = showCierre ? '1500px' : '900px';
 
   return (
     <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
-      <div style={{minWidth:'max-content', backgroundColor:'#0c0e14'}}>
-      <div className={`grid ${cols} gap-px border-b border-steel-800`} style={{backgroundColor:'#111420'}}>
-        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
-      </div>
-      {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin items para el período</p>}
-      {items.map(item => {
-        const sd = getSD(item);
-        return (
-          <div key={item.id} className={`grid ${cols} gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20`}>
-            <div className="px-2 py-1.5 font-mono text-caption text-blue-bright">{item.code}</div>
-            <div className="px-1 font-mono text-[0.6rem] text-steel-500">{sd.mes || item.createdAt.slice(0,7)}</div>
-            <div className="px-1 font-body text-caption text-steel-400 truncate">{item.customer.name}</div>
-            <div className="px-1 font-body text-caption text-steel-300 truncate">{item.serviceTitle}</div>
-            <div className="px-1">
-              <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
-                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
-            </div>
-            <div className="px-1 font-mono text-[0.6rem] text-steel-500">{item.scheduledDate || '—'}</div>
-            <div className="px-1">
-              <input type="number" value={sd.dias||''} onChange={e => patchSeg(item.id, {dias: Number(e.target.value)})}
-                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
-            </div>
-            <div className="px-1">
-              <input type="number" value={sd.pct||''} onChange={e => patchSeg(item.id, {pct: Number(e.target.value)})}
-                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300 tabular-nums" placeholder="0" />
-            </div>
-            {showCierre && (['os','informe','facturado'] as const).map(f => (
-              <div key={f} className="px-1">
-                <button onClick={() => patchSeg(item.id, {[f]: ciclo(sd[f]||'NO')})}
-                  className={`w-full rounded px-1 py-0.5 font-mono text-[0.55rem] font-medium border transition-colors ${
-                    sd[f]==='SI' ? 'bg-[#48BB78]/15 text-[#48BB78] border-[#48BB78]/30' :
-                    sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
-                    'bg-transparent text-steel-600 border-steel-800'
-                  }`}>{sd[f]||'NO'}</button>
+      <div style={{minWidth:minW, backgroundColor:'#0c0e14'}}>
+        <div style={{ display:'grid', gridTemplateColumns: colStyle, backgroundColor:'#111420' }} className="border-b border-steel-800">
+          {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
+        </div>
+        {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin items para el período</p>}
+        {items.map(item => {
+          const sd = getSD(item);
+          const avanceColor: Record<string,string> = {
+            'Finalizado':'#48BB78','En Proceso':'#60A5FA','En Espera / Bloqueado':'#F59E0B','Pendiente':'#6B7280',
+          };
+          return (
+            <div key={item.id}
+              className="items-center border-b border-steel-900/40 hover:bg-steel-900/20"
+              style={{ display:'grid', gridTemplateColumns: colStyle }}>
+              {/* FECHA */}
+              <div className="px-2 py-1.5 font-mono text-[0.6rem] text-steel-500 whitespace-nowrap">{item.scheduledDate || item.createdAt.slice(0,10)}</div>
+              {/* N° PRESU */}
+              <div className="px-2 font-mono text-caption text-blue-bright">{item.code}</div>
+              {/* CLIENTE / LOCAL */}
+              <div className="px-1 min-w-0">
+                <p className="font-body text-[0.6rem] text-steel-300 truncate">{item.customer.name}</p>
+                {sd.local && <p className="font-mono text-[0.55rem] text-steel-600 truncate">{sd.local}</p>}
               </div>
-            ))}
-            {showCierre && (
+              {/* TRABAJO */}
+              <div className="px-1 font-body text-caption text-steel-300 truncate">{item.serviceTitle}</div>
+              {/* TÉCNICO */}
               <div className="px-1">
-                <input value={sd.nroFactura||''} onChange={e => patchSeg(item.id, {nroFactura: e.target.value})}
-                  className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="—" />
+                <input value={sd.tecnico||''} onChange={e => patchSeg(item.id, {tecnico: e.target.value})}
+                  className={inp} placeholder="—" />
               </div>
-            )}
-            <div className="px-1">
-              <input value={sd.obs||''} onChange={e => patchSeg(item.id, {obs: e.target.value})}
-                className="w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300" placeholder="obs..." />
+              {/* AVANCE */}
+              <div className="px-1">
+                <select value={sd.avance||''} onChange={e => patchSeg(item.id, {avance: e.target.value})}
+                  className={inp} style={{ color: avanceColor[sd.avance||''] || '#6B7280' }}>
+                  <option value="" className="bg-[#0f1117] text-white">—</option>
+                  {AVANCE_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o}</option>)}
+                </select>
+              </div>
+              {/* % */}
+              <div className="px-1">
+                <input type="number" value={sd.pct||''} onChange={e => patchSeg(item.id, {pct: Number(e.target.value)})}
+                  className={inp + ' tabular-nums'} placeholder="0" />
+              </div>
+              {/* DÍAS */}
+              <div className="px-1">
+                <input type="number" value={sd.dias||''} onChange={e => patchSeg(item.id, {dias: Number(e.target.value)})}
+                  className={inp + ' tabular-nums'} placeholder="0" />
+              </div>
+              {/* O.SERV / INFORME / FACT */}
+              {showCierre && (['os','informe','facturado'] as const).map(f => (
+                <div key={f} className="px-1">
+                  <button onClick={() => patchSeg(item.id, {[f]: ciclo(sd[f]||'NO')})}
+                    className={`w-full rounded px-1 py-0.5 font-mono text-[0.55rem] font-medium border transition-colors ${
+                      sd[f]==='SI' ? 'bg-[#48BB78]/15 text-[#48BB78] border-[#48BB78]/30' :
+                      sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
+                      'bg-transparent text-steel-600 border-steel-800'
+                    }`}>{sd[f]||'NO'}</button>
+                </div>
+              ))}
+              {/* N°FACTURA */}
+              {showCierre && (
+                <div className="px-1">
+                  <input value={sd.nroFactura||''} onChange={e => patchSeg(item.id, {nroFactura: e.target.value})}
+                    className={inp} placeholder="—" />
+                </div>
+              )}
+              {/* OBSERVACIONES */}
+              <div className="px-1">
+                <input value={sd.obs||''} onChange={e => patchSeg(item.id, {obs: e.target.value})}
+                  className={inp} placeholder="obs..." />
+              </div>
+              {/* × — sets alerta back to ENVIADO (removes from espejo) */}
+              <div className="px-1 flex justify-center">
+                <button onClick={() => patchSeg(item.id, { alerta: 'ENVIADO', avance: 'Pendiente' })}
+                  className="p-1 text-steel-700 hover:text-steel-400"><X className="h-3 w-3" /></button>
+              </div>
             </div>
-            <div className="px-1">
-              <button className="p-1 text-steel-700 hover:text-steel-400"><X className="h-3 w-3" /></button>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
     </div>
   );
 }
 
-// ─── Plan 2 table ──────────────────────────────────────────────
-function Plan2Table({ tareas, onEdit, onDelete }: { tareas: Plan2Tarea[]; onEdit: (t: Plan2Tarea) => void; onDelete: (id: string) => void }) {
-  if (tareas.length === 0) return <p className="font-body text-caption text-steel-600 py-2">Sin tareas manuales</p>;
+// ─── Plan 2 table (inline editable, no cierre columns) ─────────
+// Columns: FECHA · N° PRESU · CLIENTE / LOCAL · TRABAJO · TÉCNICO · AVANCE · % · DÍAS · OBSERVACIONES · ×
+function Plan2TableNew({ tareas, onEdit: _onEdit, onDelete, onField }: {
+  tareas: Plan2Tarea[];
+  onEdit: (t: Plan2Tarea) => void;
+  onDelete: (id: string) => void;
+  onField: (id: string, fields: Partial<Plan2Tarea>) => void;
+}) {
+  const inp = 'w-full rounded bg-transparent border border-steel-800 px-1 py-0.5 font-mono text-[0.6rem] text-steel-300';
+  const colStyle = '122px 118px 150px minmax(170px,1fr) 118px 146px 74px 60px minmax(140px,0.8fr) 28px';
+  const hdrs = ['FECHA','N° PRESU','CLIENTE / LOCAL','TRABAJO','TÉCNICO','AVANCE','%','DÍAS','OBSERVACIONES',''];
+  const avanceColor: Record<string,string> = {
+    'Finalizado':'#48BB78','En Proceso':'#60A5FA','En Espera / Bloqueado':'#F59E0B','Pendiente':'#6B7280',
+  };
+
   return (
     <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
-      <div className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px border-b border-steel-800" style={{backgroundColor:'#111420'}}>
-        {['Fecha','Cliente','Descripción','Técnico','Avance','Días','Obs',''].map(h => (
-          <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>
+      <div style={{minWidth:'900px', backgroundColor:'#0c0e14'}}>
+        <div style={{ display:'grid', gridTemplateColumns: colStyle, backgroundColor:'#111420' }} className="border-b border-steel-800">
+          {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
+        </div>
+        {tareas.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin tareas manuales</p>}
+        {tareas.map(t => (
+          <div key={t.id}
+            className="items-center border-b border-steel-900/40 hover:bg-steel-900/20"
+            style={{ display:'grid', gridTemplateColumns: colStyle }}>
+            <div className="px-1">
+              <input type="date" value={t.scheduledDate||''} onChange={e => onField(t.id, {scheduledDate: e.target.value})}
+                className={inp} />
+            </div>
+            <div className="px-1">
+              <input value={t.nro||''} onChange={e => onField(t.id, {nro: e.target.value})}
+                className={inp} placeholder="—" />
+            </div>
+            <div className="px-1 min-w-0">
+              <input value={t.cliente} onChange={e => onField(t.id, {cliente: e.target.value})}
+                className={inp} placeholder="Cliente" />
+              <input value={t.local||''} onChange={e => onField(t.id, {local: e.target.value})}
+                className={inp + ' mt-0.5'} placeholder="Local" />
+            </div>
+            <div className="px-1">
+              <input value={t.descripcion} onChange={e => onField(t.id, {descripcion: e.target.value})}
+                className={inp} placeholder="Trabajo..." />
+            </div>
+            <div className="px-1">
+              <input value={t.tecnico||''} onChange={e => onField(t.id, {tecnico: e.target.value})}
+                className={inp} placeholder="—" />
+            </div>
+            <div className="px-1">
+              <select value={t.avance||''} onChange={e => onField(t.id, {avance: e.target.value})}
+                className={inp} style={{ color: avanceColor[t.avance||''] || '#6B7280' }}>
+                <option value="" className="bg-[#0f1117] text-white">—</option>
+                {AVANCE_OPTS.map(o => <option key={o} value={o} className="bg-[#0f1117] text-white">{o}</option>)}
+              </select>
+            </div>
+            <div className="px-1">
+              <input type="number" value={t.pct||''} onChange={e => onField(t.id, {pct: Number(e.target.value)})}
+                className={inp + ' tabular-nums'} placeholder="0" />
+            </div>
+            <div className="px-1">
+              <input type="number" value={t.dias||''} onChange={e => onField(t.id, {dias: Number(e.target.value)})}
+                className={inp + ' tabular-nums'} placeholder="0" />
+            </div>
+            <div className="px-1">
+              <input value={t.obs||''} onChange={e => onField(t.id, {obs: e.target.value})}
+                className={inp} placeholder="obs..." />
+            </div>
+            <div className="px-1 flex justify-center">
+              <button onClick={() => onDelete(t.id)} className="p-1 text-steel-700 hover:text-[#FC8181]"><X className="h-3 w-3" /></button>
+            </div>
+          </div>
         ))}
       </div>
-      {tareas.map(t => (
-        <div key={t.id} className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px items-center border-b border-steel-900/40 hover:bg-steel-900/20">
-          <div className="px-2 py-1.5 font-mono text-[0.6rem] text-steel-500">{t.scheduledDate||'—'}</div>
-          <div className="px-2 font-body text-caption text-steel-400 truncate">{t.cliente}</div>
-          <div className="px-2 font-body text-caption text-steel-300 truncate">{t.descripcion}</div>
-          <div className="px-2 font-body text-caption text-steel-400">{t.tecnico}</div>
-          <div className="px-2 font-body text-caption text-steel-400">{t.avance}</div>
-          <div className="px-2 font-mono text-caption text-steel-400 tabular-nums">{t.dias||'—'}</div>
-          <div className="px-2 font-body text-caption text-steel-500 truncate">{t.obs}</div>
-          <div className="flex gap-1 px-2">
-            <button onClick={() => onEdit(t)} className="p-1 text-steel-500 hover:text-arctic"><FileText className="h-3 w-3" /></button>
-            <button onClick={() => onDelete(t.id)} className="p-1 text-steel-500 hover:text-[#FC8181]"><X className="h-3 w-3" /></button>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -899,11 +1075,13 @@ function Plan2Form({ form, setForm, onSave, onCancel }: {
     <div className="mt-3 card p-4 border border-blue-bright/20">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
+          { label: 'N° Presu', key: 'nro' as const, type: 'text' },
           { label: 'Cliente', key: 'cliente' as const, type: 'text' },
           { label: 'Local', key: 'local' as const, type: 'text' },
           { label: 'Descripción', key: 'descripcion' as const, type: 'text' },
           { label: 'Técnico', key: 'tecnico' as const, type: 'text' },
           { label: 'Fecha', key: 'scheduledDate' as const, type: 'date' },
+          { label: '%', key: 'pct' as const, type: 'number' },
           { label: 'Días', key: 'dias' as const, type: 'number' },
           { label: 'Obs', key: 'obs' as const, type: 'text' },
         ].map(({ label, key, type }) => (
