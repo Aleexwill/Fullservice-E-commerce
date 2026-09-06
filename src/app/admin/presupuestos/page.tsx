@@ -516,8 +516,16 @@ function PlanificacionTab({ items, loading, onOpen, onPatch }: {
   const restante = items.filter(i => !['aprobado','en_ejecucion'].includes(i.status) && !['rechazado'].includes(i.status));
 
   const filteredPlan1 = plan1.filter(i => {
-    if (!clienteFilter) return true;
-    return i.customer.name.toLowerCase().includes(clienteFilter.toLowerCase());
+    if (clienteFilter && !i.customer.name.toLowerCase().includes(clienteFilter.toLowerCase())) return false;
+    if (periodFilter === 'todo') return true;
+    const sd = (i.seguimientoData as SeguimientoData) || {};
+    const fechaStr = i.scheduledDate || sd.local || '';
+    const fecha = fechaStr ? new Date(fechaStr + (fechaStr.includes('T') ? '' : 'T00:00:00')) : new Date(i.createdAt);
+    const ahora = new Date();
+    const diasMap: Record<string, number> = { semana: 7, '2semanas': 14, mes: 30, trimestre: 90 };
+    const dias = diasMap[periodFilter] ?? 30;
+    const limite = new Date(ahora.getTime() + dias * 86400000);
+    return fecha <= limite;
   });
   const plan2Items = items.filter(i => carpeta2.includes(i.id));
 
