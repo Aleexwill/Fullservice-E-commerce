@@ -29,6 +29,10 @@
 <div id="root"></div>
 <script>
 'use strict';
+window.onerror=function(msg,src,line,col,err){
+  document.getElementById('root').innerHTML='<div style="padding:40px;font-family:monospace;color:red;background:#fff;"><strong>Error en tablero.html:</strong><br>'+msg+'<br>'+src+':'+line+'</div>';
+  return false;
+};
 const N=(v)=>{const n=parseFloat(String(v??'').replace(/\./g,'').replace(/\s/g,'').replace(',','.'));return isFinite(n)?n:0;};
 const CICLO=['NO','SI','NA'];
 const KEY='twg-tablero-v1';
@@ -454,7 +458,7 @@ function renderPlan(){
 
   // items
   const aprobTodos=[];
-  S.rows.forEach(r=>{if(r.alerta==='APROBADO')aprobTodos.push(Object.assign({},r,{fecha:aIso(r.fecha)||r._mes||'',(r._mes?{_mes:r._mes}:{})}));});
+  S.rows.forEach(r=>{if(r.alerta==='APROBADO')aprobTodos.push(Object.assign({},r,{fecha:aIso(r.fecha)||r._mes||''},{_mes:r._mes||''} ));});
   const tareas=espejo?aprobTodos:(S.tareas||[]).filter(t=>!t.bajaNro&&String(t.carp||'1')===carp);
 
   const hIso=hoyIso();
@@ -600,8 +604,9 @@ function render(){
 // ─── init ────────────────────────────────────────────
 (async()=>{
   cargar();
+  render(); // render immediately so page is never blank
   await cargarDesdeAPI();
-  render();
+  render(); // re-render with API data
 })();
 </script>
 </body>
