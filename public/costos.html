@@ -316,7 +316,7 @@ function render() {
         el("div", { style: "font-size:15px;font-weight:700;letter-spacing:-0.01em;" }, PROPS.empresa),
         el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" }, "Costos y presupuestos")
       ),
-      el("button", { style: "padding:9px 14px;font-size:13px;font-weight:500;color:#4a4741;background:#f0eee9;border:1px solid #dedbd5;border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => { window.location.href = "/admin/presupuestos"; } }, "← Solicitudes"),
+      el("button", { style: "padding:9px 14px;font-size:13px;font-weight:500;color:#4a4741;background:#f0eee9;border:1px solid #dedbd5;border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => { (window.top || window).location.href = "/admin/presupuestos"; } }, "← Solicitudes"),
       el("div", { style: "display:flex;gap:4px;padding:3px;background:#f0eee9;border-radius:8px;" },
         el("button", { style: tabStyle(S.tab === "costos"), onclick: () => setState({tab:"costos"}) }, "Planilla de costos"),
         el("button", { style: tabStyle(S.tab === "propuesta"), onclick: () => setState({tab:"propuesta"}) }, "Hoja de propuesta")
