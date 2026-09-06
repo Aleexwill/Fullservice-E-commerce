@@ -763,19 +763,19 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
   };
 
   return (
-    <div className="card overflow-x-auto bg-[#0c0e14]">
-      {/* Header */}
-      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/60 min-w-max`}>
-        {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
-      </div>
-      <div className="min-w-max">
+    <div className="rounded-lg border border-steel-800 overflow-x-auto bg-[#0c0e14]" style={{backgroundColor:'#0c0e14'}}>
+      <div style={{minWidth:'max-content', backgroundColor:'#0c0e14'}}>
+        {/* Header */}
+        <div className={`grid ${cols} gap-px border-b border-steel-800`} style={{backgroundColor:'#111420'}}>
+          {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
+        </div>
         {items.length === 0 && arrastres.length === 0 && (
           <p className="p-6 text-center font-body text-caption text-steel-600">Sin presupuestos para este mes</p>
         )}
         {items.map(i => renderRow(i))}
         {arrastres.length > 0 && (
           <>
-            <div className="border-b border-dashed border-yellow-bright/20 py-1 px-3 bg-yellow-bright/5">
+            <div className="border-b border-dashed border-yellow-bright/20 py-1 px-3" style={{backgroundColor:'rgba(234,179,8,0.05)'}}>
               <span className="font-mono text-[0.6rem] text-yellow-bright">↩ Arrastres de meses anteriores</span>
             </div>
             {arrastres.map(i => renderRow(i, true))}
@@ -801,11 +801,11 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
     : ['Código','Mes','Cliente','Descripción','Técnico','Fecha','Días','%','Obs',''];
 
   return (
-    <div className="card overflow-x-auto bg-[#0c0e14]">
-      <div className={`grid ${cols} gap-px border-b border-steel-800 bg-steel-900/60 min-w-max`}>
+    <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
+      <div style={{minWidth:'max-content', backgroundColor:'#0c0e14'}}>
+      <div className={`grid ${cols} gap-px border-b border-steel-800`} style={{backgroundColor:'#111420'}}>
         {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
       </div>
-      <div className="min-w-max">
       {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin items para el período</p>}
       {items.map(item => {
         const sd = getSD(item);
@@ -863,8 +863,8 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
 function Plan2Table({ tareas, onEdit, onDelete }: { tareas: Plan2Tarea[]; onEdit: (t: Plan2Tarea) => void; onDelete: (id: string) => void }) {
   if (tareas.length === 0) return <p className="font-body text-caption text-steel-600 py-2">Sin tareas manuales</p>;
   return (
-    <div className="card overflow-x-auto bg-[#0c0e14]">
-      <div className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px border-b border-steel-800 bg-steel-900/60">
+    <div className="rounded-lg border border-steel-800 overflow-x-auto" style={{backgroundColor:'#0c0e14'}}>
+      <div className="grid grid-cols-[100px_120px_minmax(140px,1fr)_100px_130px_50px_minmax(100px,0.8fr)_60px] gap-px border-b border-steel-800" style={{backgroundColor:'#111420'}}>
         {['Fecha','Cliente','Descripción','Técnico','Avance','Días','Obs',''].map(h => (
           <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">{h}</div>
         ))}
