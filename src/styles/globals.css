@@ -48,7 +48,7 @@
   .public-site main .text-\[\#8094B4\] { color:#4A5E80; }
   .public-site main .text-slate-400 { color:#64748B; }
 
-  /* Admin: preserve the original dark backoffice and restore readable controls. */
+  /* Admin dark (default) — backoffice original. */
   .admin-shell .card { @apply rounded-lg border border-steel-900/40 bg-carbon-light shadow-card; }
   .admin-shell .card-interactive:hover { @apply -translate-y-0 shadow-card-hover; border-color:rgba(45,143,204,.35); }
   .admin-shell .input { @apply rounded-lg border border-steel-700 bg-steel-900 text-arctic focus:border-blue focus:ring-blue/20; }
@@ -59,6 +59,55 @@
   .admin-shell .btn-ghost { @apply text-steel-100 hover:bg-steel-900 hover:text-arctic; }
   .admin-shell .badge-neutral { @apply bg-steel-900 text-steel-100; }
   .admin-shell .alert-info { @apply border-blue bg-blue-muted text-cloud; }
+
+  /* Admin light theme — overrides para data-theme="light" en el wrapper. */
+  .admin-shell[data-theme="light"] { color-scheme: light; }
+
+  /* Shell backgrounds */
+  .admin-shell[data-theme="light"] .admin-shell-root,
+  .admin-shell[data-theme="light"] .bg-carbon { background-color:#f0f2f5 !important; }
+  .admin-shell[data-theme="light"] .bg-carbon-light { background-color:#ffffff !important; }
+  .admin-shell[data-theme="light"] .bg-steel-900 { background-color:#e8ecf2 !important; }
+  .admin-shell[data-theme="light"] .bg-steel-900\/50 { background-color:rgba(226,230,238,.6) !important; }
+  .admin-shell[data-theme="light"] .bg-blue-muted { background-color:#dbeeff !important; }
+
+  /* Borders */
+  .admin-shell[data-theme="light"] .border-steel-900\/40 { border-color:rgba(0,0,0,.1) !important; }
+  .admin-shell[data-theme="light"] .border-steel-700 { border-color:#d1d9e6 !important; }
+
+  /* Text */
+  .admin-shell[data-theme="light"] .text-arctic { color:#0B1120 !important; }
+  .admin-shell[data-theme="light"] .text-steel-100 { color:#1e2a40 !important; }
+  .admin-shell[data-theme="light"] .text-steel-300 { color:#3a4e6e !important; }
+  .admin-shell[data-theme="light"] .text-steel-400 { color:#4a5e80 !important; }
+  .admin-shell[data-theme="light"] .text-steel-500 { color:#6a7e9a !important; }
+  .admin-shell[data-theme="light"] .text-blue-bright { color:#1a5d9a !important; }
+
+  /* Hover states */
+  .admin-shell[data-theme="light"] .hover\:bg-steel-900:hover { background-color:#e8ecf2 !important; }
+  .admin-shell[data-theme="light"] .hover\:text-arctic:hover { color:#0B1120 !important; }
+
+  /* Nav active */
+  .admin-shell[data-theme="light"] .bg-blue-muted.text-blue-bright { background-color:#dbeeff !important; color:#1a5d9a !important; }
+
+  /* Toggle button itself in light mode */
+  .admin-shell[data-theme="light"] .hover\:bg-steel-900:hover { background-color:#e8ecf2 !important; }
+
+  /* Component overrides */
+  .admin-shell[data-theme="light"] .card { background-color:#ffffff !important; border-color:#e2e5ea !important; box-shadow:0 2px 8px rgba(0,0,0,.06) !important; }
+  .admin-shell[data-theme="light"] .input { background-color:#f8fafc !important; border-color:#d1d9e6 !important; color:#0B1120 !important; }
+  .admin-shell[data-theme="light"] .input::placeholder { color:#7a8ba6 !important; }
+  .admin-shell[data-theme="light"] .admin-input { background-color:#f8fafc !important; border-color:#d1d9e6 !important; color:#0B1120 !important; }
+  .admin-shell[data-theme="light"] .admin-input::placeholder { color:#7a8ba6 !important; }
+  .admin-shell[data-theme="light"] .label { color:#3a4e6e !important; }
+  .admin-shell[data-theme="light"] .data-text { color:#4a5e80 !important; }
+  .admin-shell[data-theme="light"] .btn-secondary { background-color:#ffffff !important; border-color:#d1d9e6 !important; color:#1e2a40 !important; }
+  .admin-shell[data-theme="light"] .btn-secondary:hover { background-color:#e8ecf2 !important; color:#0B1120 !important; }
+  .admin-shell[data-theme="light"] .btn-ghost { color:#3a4e6e !important; }
+  .admin-shell[data-theme="light"] .btn-ghost:hover { background-color:#e8ecf2 !important; color:#0B1120 !important; }
+  .admin-shell[data-theme="light"] .badge-neutral { background-color:#e8ecf2 !important; color:#1e2a40 !important; }
+  .admin-shell[data-theme="light"] .badge-blue { background-color:#dbeeff !important; color:#1a5d9a !important; }
+  .admin-shell[data-theme="light"] .alert-info { background-color:#ebf5fb !important; color:#1e5577 !important; }
 }
 
 @layer utilities {
