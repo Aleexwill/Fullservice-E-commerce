@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
+import { AdminThemeProvider, AdminShell } from '@/components/admin/theme-provider';
+import { ThemeToggle } from '@/components/admin/theme-toggle';
 
 interface NavGroup {
   label: string;
@@ -95,16 +97,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="admin-shell flex min-h-screen bg-carbon">
-      <style jsx global>{`
-        .admin-shell .text-steel-400 {
-          color: #cbd5e1 !important;
-        }
-        .admin-shell .text-steel-600 {
-          color: #94a3b8 !important;
-        }
-      `}</style>
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-carbon/70 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
+    <AdminThemeProvider>
+    <AdminShell>
+    <div className="flex min-h-screen bg-carbon">
+{sidebarOpen && <div className="fixed inset-0 z-40 bg-carbon/70 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
       <aside className={cn('fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200', 'lg:translate-x-0', sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}>
         <button onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú" className="absolute right-3 top-3 rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic lg:hidden"><X className="h-4 w-4" /></button>
         <SidebarContent />
@@ -112,10 +108,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="min-h-screen flex-1 lg:ml-[240px]">
         <div className="sticky top-0 z-40 flex h-[52px] items-center border-b border-steel-900/40 bg-carbon-light px-4">
           <button onClick={() => setSidebarOpen(true)} aria-label="Abrir menú" className="rounded-md p-2 text-steel-400 hover:bg-steel-900 hover:text-arctic lg:hidden"><Menu className="h-5 w-5" /></button>
-          <div className="ml-auto"><NotificationBell /></div>
+          <div className="ml-auto flex items-center gap-1"><ThemeToggle /><NotificationBell /></div>
         </div>
         {children}
       </main>
     </div>
+    </AdminShell>
+    </AdminThemeProvider>
   );
 }
