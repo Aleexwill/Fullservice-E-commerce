@@ -93,6 +93,7 @@
 <div id="root"></div>
 <script>
 (function(){const t=localStorage.getItem('fs-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+window.addEventListener('storage',function(e){if(e.key==='fs-theme'&&(e.newValue==='dark'||e.newValue==='light')){document.documentElement.setAttribute('data-theme',e.newValue);render();}});
 </script>
 <script>
 'use strict';
@@ -331,8 +332,7 @@ function renderHeader(){
       span("font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);",'Aprobado'),
       span("font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;letter-spacing:-0.02em;white-space:nowrap;",money(aprobMonto))
     ),
-    btn('padding:9px 14px;font-size:12.5px;font-weight:500;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:7px;white-space:nowrap;',()=>window.print(),'Imprimir PDF'),
-    btn('display:flex;align-items:center;justify-content:center;width:34px;height:34px;font-size:16px;border:1px solid var(--border);background:var(--bg3);border-radius:7px;',()=>{const cur=document.documentElement.getAttribute('data-theme')||'dark';const next=cur==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);localStorage.setItem('fs-theme',next);render();},(document.documentElement.getAttribute('data-theme')||'dark')==='dark'?'☀️':'🌙')
+    btn('padding:9px 14px;font-size:12.5px;font-weight:500;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:7px;white-space:nowrap;',()=>window.print(),'Imprimir PDF')
   );
 }
 
