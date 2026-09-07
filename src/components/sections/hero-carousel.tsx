@@ -93,144 +93,106 @@ export function HeroDiagonalCarousel() {
 
   return (
     <div className="w-full">
-      <div className="relative flex gap-0 overflow-hidden rounded-2xl border border-white/[0.06]" style={{ minHeight: '200px' }}>
+      <div className="relative overflow-hidden rounded-2xl border border-white/[0.06]" style={{ height: 'clamp(280px, 42vw, 520px)' }}>
 
-        {/* Left: numbered service list */}
-        <div className="relative z-10 flex flex-col border-r border-white/[0.08] bg-black/30 backdrop-blur-sm" style={{ width: 'clamp(160px, 22vw, 260px)', flexShrink: 0 }}>
-          {slides.map((slide, i) => {
-            const isActive = i === active;
-            return (
-              <button
-                key={slide.id}
-                onClick={() => handleSelect(i)}
-                className="group relative flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-300 focus:outline-none"
-                style={{
-                  background: isActive ? slide.accent + '12' : 'transparent',
-                  borderLeft: isActive ? `2px solid ${slide.accent}` : '2px solid transparent',
-                }}
-              >
-                {/* Number */}
-                <span
-                  className="font-display text-[0.65rem] font-bold tabular-nums transition-all duration-300"
-                  style={{ color: isActive ? slide.accent : 'rgba(255,255,255,0.2)', minWidth: '1.5rem' }}
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-
-                {/* Label */}
-                <div className="min-w-0">
-                  <p
-                    className="truncate font-body text-[0.68rem] font-semibold leading-tight transition-colors duration-300"
-                    style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.45)' }}
-                  >
-                    {slide.label}
-                  </p>
-                  <p
-                    className="mt-0.5 truncate font-body text-[0.55rem] uppercase tracking-wider transition-colors duration-300"
-                    style={{ color: isActive ? slide.accent : 'rgba(255,255,255,0.2)' }}
-                  >
-                    {slide.tag}
-                  </p>
-                </div>
-
-                {/* Active indicator dot */}
-                {isActive && (
-                  <span
-                    className="ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                    style={{ background: slide.accent, boxShadow: `0 0 6px ${slide.accent}` }}
-                  />
-                )}
-              </button>
-            );
-          })}
-
-          {/* Bottom progress bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/5">
-            <div
-              className="h-full transition-none"
-              style={{ width: `${progress}%`, background: current.accent, transition: 'width 50ms linear' }}
-            />
-          </div>
-        </div>
-
-        {/* Right: featured panel */}
-        <div className="relative flex-1 overflow-hidden" style={{ minHeight: '200px' }}>
-          {/* Background photo / gradient */}
-          {current.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={`img-${animKey}`}
-              src={current.photoUrl}
-              alt={current.label}
-              className="absolute inset-0 h-full w-full object-cover"
-              style={{ animation: 'fsKenBurns 5s ease-out forwards' }}
-            />
-          ) : null}
-
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${current.gradient}`}
-            style={{ opacity: current.photoUrl ? (current.overlayOpacity ?? 55) / 100 : 0.92 }}
+        {/* Background photo / gradient — full bleed */}
+        {current.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`img-${animKey}`}
+            src={current.photoUrl}
+            alt={current.label}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ animation: 'fsKenBurns 5s ease-out forwards' }}
           />
+        ) : null}
 
-          {/* Subtle texture grid */}
-          <svg className="absolute inset-0 h-full w-full opacity-[0.035]" aria-hidden="true">
-            <defs>
-              <pattern id="fs-grid" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#fs-grid)" />
-          </svg>
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${current.gradient}`}
+          style={{ opacity: current.photoUrl ? (current.overlayOpacity ?? 55) / 100 : 0.92 }}
+        />
 
-          {/* Accent glow blob */}
-          <div
-            className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full blur-3xl"
-            style={{ background: current.accent, opacity: 0.15 }}
-          />
-          <div
-            className="pointer-events-none absolute -bottom-8 left-1/3 h-32 w-32 rounded-full blur-2xl"
-            style={{ background: current.accent, opacity: 0.08 }}
-          />
+        {/* Subtle texture grid */}
+        <svg className="absolute inset-0 h-full w-full opacity-[0.035]" aria-hidden="true">
+          <defs>
+            <pattern id="fs-grid" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#fs-grid)" />
+        </svg>
 
-          {/* Content */}
-          <div key={animKey} className="relative z-10 flex h-full flex-col justify-between p-6" style={{ animation: 'fsSlideIn 0.45s cubic-bezier(0.22,1,0.36,1) forwards' }}>
-            {/* Top: tag */}
-            <div className="flex items-center gap-2">
-              <span
-                className="rounded-full px-2.5 py-0.5 font-body text-[0.55rem] font-bold uppercase tracking-widest"
-                style={{ background: current.accent + '20', color: current.accent, border: `1px solid ${current.accent}35` }}
-              >
-                {current.tag}
+        {/* Accent glow blobs */}
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full blur-3xl" style={{ background: current.accent, opacity: 0.12 }} />
+        <div className="pointer-events-none absolute -bottom-8 left-1/3 h-40 w-40 rounded-full blur-2xl" style={{ background: current.accent, opacity: 0.07 }} />
+
+        {/* Content overlay */}
+        <div key={animKey} className="relative z-10 flex h-full flex-col justify-between p-6 md:p-8" style={{ animation: 'fsSlideIn 0.45s cubic-bezier(0.22,1,0.36,1) forwards' }}>
+          {/* Top: tag + counter */}
+          <div className="flex items-start justify-between">
+            <span
+              className="rounded-full px-3 py-1 font-body text-[0.55rem] font-bold uppercase tracking-widest"
+              style={{ background: current.accent + '20', color: current.accent, border: `1px solid ${current.accent}35` }}
+            >
+              {current.tag}
+            </span>
+            <div className="flex items-baseline gap-0.5 font-display">
+              <span className="text-[1rem] font-black tabular-nums" style={{ color: current.accent }}>
+                {String(active + 1).padStart(2, '0')}
               </span>
-              <span className="h-px flex-1 max-w-[40px]" style={{ background: `linear-gradient(to right, ${current.accent}50, transparent)` }} />
+              <span className="text-[0.6rem] font-bold text-white/25">/{String(slides.length).padStart(2, '0')}</span>
             </div>
+          </div>
 
-            {/* Bottom: service info */}
-            <div>
-              <p className="font-body text-[0.5rem] uppercase tracking-[0.2em] text-white/35">Full Service & Clean</p>
-              <h3 className="mt-1 font-display text-[1.35rem] font-black uppercase leading-none tracking-tight text-white" style={{ textShadow: `0 0 40px ${current.accent}30` }}>
-                {current.label}
-              </h3>
-              {current.description && (
-                <p className="mt-2 font-body text-[0.68rem] leading-relaxed text-white/55 line-clamp-2 max-w-[340px]">
-                  {current.description}
-                </p>
-              )}
+          {/* Bottom: service info + nav dots */}
+          <div>
+            <p className="font-body text-[0.5rem] uppercase tracking-[0.2em] text-white/35">Full Service & Clean</p>
+            <h3 className="mt-1 font-display text-[1.5rem] md:text-[1.9rem] font-black uppercase leading-none tracking-tight text-white" style={{ textShadow: `0 0 40px ${current.accent}30` }}>
+              {current.label}
+            </h3>
+            {current.description && (
+              <p className="mt-2 font-body text-[0.7rem] leading-relaxed text-white/55 line-clamp-2 max-w-[420px]">
+                {current.description}
+              </p>
+            )}
 
-              {/* Accent underline bar */}
-              <div className="mt-3 flex items-center gap-2">
+            {/* Accent bar + nav dots */}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <div className="h-[3px] w-8 rounded-full" style={{ background: current.accent }} />
                 <div className="h-[1px] w-4 rounded-full" style={{ background: current.accent, opacity: 0.4 }} />
               </div>
-            </div>
-          </div>
 
-          {/* Slide counter (top-right corner) */}
-          <div className="absolute right-4 top-4 z-10 flex items-baseline gap-0.5 font-display">
-            <span className="text-[1rem] font-black tabular-nums" style={{ color: current.accent }}>
-              {String(active + 1).padStart(2, '0')}
-            </span>
-            <span className="text-[0.6rem] font-bold text-white/25">/{String(slides.length).padStart(2, '0')}</span>
+              {/* Dot navigation */}
+              <div className="flex items-center gap-2">
+                {slides.map((slide, i) => (
+                  <button
+                    key={slide.id}
+                    onClick={() => handleSelect(i)}
+                    className="focus:outline-none"
+                    aria-label={`Ir a ${slide.label}`}
+                  >
+                    <span
+                      className="block rounded-full transition-all duration-300"
+                      style={{
+                        width: i === active ? '20px' : '6px',
+                        height: '6px',
+                        background: i === active ? current.accent : 'rgba(255,255,255,0.3)',
+                        boxShadow: i === active ? `0 0 8px ${current.accent}80` : 'none',
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-[2px] w-20 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${progress}%`, background: current.accent, transition: 'width 50ms linear' }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
