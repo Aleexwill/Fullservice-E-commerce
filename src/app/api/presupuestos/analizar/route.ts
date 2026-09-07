@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireRole } from '@/lib/auth';
 import { getGeminiModel, generateWithRetry } from '@/lib/gemini';
 
 const SYSTEM_PROMPT = `Eres un asistente experto en elaborar presupuestos para Full Service & Clean, empresa de mantenimiento, limpieza y construcción civil en Paraguay.
@@ -59,6 +60,9 @@ Responde SOLO con JSON válido, sin texto adicional, con esta estructura exacta:
 }`;
 
 export async function POST(req: NextRequest) {
+  const auth = await requireRole('canManagePresupuestos');
+  if (auth instanceof NextResponse) return auth;
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY no configurada' }, { status: 503 });
@@ -106,10 +110,13 @@ export async function POST(req: NextRequest) {
     const resultado = JSON.parse(jsonMatch[0]);
 
     // Agregar IDs a las filas
+    if (!resultado.calculationData || !Array.isArray(resultado.calculationData.filas)) {
+      resultado.calculationData = { filas: [], iva: 10, descuento: 0, validez: '10 días', ubicacion: '', observaciones: '' };
+    }
     resultado.calculationData.filas = resultado.calculationData.filas.map((f: any) => ({
       ...f,
       id: crypto.randomUUID(),
-      precioVenta: f.precioVenta ?? f.precioUnitario * f.cantidad,
+      precioVenta: f.precioVenta ?? (f.precioUnitario ?? 0) * (f.cantidad ?? 1),
     }));
 
     return NextResponse.json(resultado);

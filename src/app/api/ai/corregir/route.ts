@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireRole } from '@/lib/auth';
 import { getGeminiModel, generateWithRetry } from '@/lib/gemini';
 
 const SYSTEM = 'Sos un corrector de textos técnicos de construcción en español paraguayo. Corregís ortografía, gramática y puntuación, y mejorás la redacción para que suene profesional en un presupuesto de obra. No inventás datos, precios, materiales ni plazos que no estén en el texto. No agregás comentarios ni comillas: devolvés únicamente el texto corregido, sin explicaciones.';
 
 export async function POST(req: NextRequest) {
+  const auth = await requireRole('canManagePresupuestos');
+  if (auth instanceof NextResponse) return auth;
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY no configurada' }, { status: 503 });

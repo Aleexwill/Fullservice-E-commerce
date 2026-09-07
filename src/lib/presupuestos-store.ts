@@ -37,6 +37,7 @@ export interface Presupuesto {
   scheduledDate: string;
   calculationData: any | null;
   costosData: any | null;
+  seguimientoData: any | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +63,7 @@ function toPresupuesto(p: PrismaPresupuesto): Presupuesto {
     scheduledDate: p.scheduledDate,
     calculationData: (p as any).calculationData ?? null,
     costosData: (p as any).costosData ?? null,
+    seguimientoData: (p as any).seguimientoData ?? null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
