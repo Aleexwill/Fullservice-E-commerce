@@ -319,16 +319,19 @@ async function corregir(key, scope) {
   if (!texto || S["busy_" + key]) return;
   setState({ ["busy_" + key]: true, ["err_" + key]: "" });
   try {
-    if (window.claude && window.claude.complete) {
-      const out = await window.claude.complete({
-        system: "Sos un corrector de textos técnicos de construcción en español paraguayo. Corregís ortografía, gramática y puntuación, y mejorás la redacción para que suene profesional en un presupuesto de obra. No inventás datos, precios, materiales ni plazos que no estén en el texto. No agregás comentarios ni comillas: devolvés únicamente el texto corregido.",
-        messages: [{ role: "user", content: texto }]
-      });
-      const limpio = String(out || "").trim().replace(/^["'"]|["'"]$/g, "");
-      if (limpio) { if (scope === "rubro") patchRubro({ [key]: limpio }); else setState({ [key]: limpio }); }
-    } else {
-      setState({ ["err_" + key]: "IA no disponible" });
+    const res = await fetch("/api/ai/corregir", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texto })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      setState({ ["err_" + key]: err.error || "IA no disponible" });
+      return;
     }
+    const { resultado } = await res.json();
+    const limpio = String(resultado || "").trim().replace(/^["'"]|["'"]$/g, "");
+    if (limpio) { if (scope === "rubro") patchRubro({ [key]: limpio }); else setState({ [key]: limpio }); }
   } catch(e) { setState({ ["err_" + key]: "No se pudo corregir" }); }
   finally { setState({ ["busy_" + key]: false }); }
 }
