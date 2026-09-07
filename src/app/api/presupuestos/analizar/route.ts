@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel, generateWithRetry } from '@/lib/gemini';
 
 const SYSTEM_PROMPT = `Eres un asistente experto en elaborar presupuestos para Full Service & Clean, empresa de mantenimiento, limpieza y construcción civil en Paraguay.
 
@@ -64,11 +64,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'GEMINI_API_KEY no configurada' }, { status: 503 });
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-3.6-flash',
-    systemInstruction: SYSTEM_PROMPT,
-  });
+  const model = getGeminiModel(apiKey, SYSTEM_PROMPT);
 
   const body = await req.json();
   const { texto, imagen, mimeType } = body as {
@@ -99,8 +95,7 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const result = await model.generateContent(parts);
-    const text = result.response.text();
+    const text = await generateWithRetry(model, parts);
 
     // Extraer JSON de la respuesta (por si viene con markdown)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -120,6 +115,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(resultado);
   } catch (err: any) {
     console.error('[analizar-presupuesto]', err);
-    return NextResponse.json({ error: err.message ?? 'Error al procesar' }, { status: 500 });
+    const is503 = err?.message?.includes('503');
+    return NextResponse.json(
+      { error: is503 ? 'El servicio de IA está temporalmente saturado. Intentá en unos segundos.' : (err.message ?? 'Error al procesar') },
+      { status: is503 ? 503 : 500 },
+    );
   }
 }
