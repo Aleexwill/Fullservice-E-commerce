@@ -50,10 +50,22 @@ const navGroups: NavGroup[] = [
   ]},
 ];
 
+function getPageLabel(pathname: string): string {
+  for (const group of navGroups) {
+    for (const item of group.items) {
+      if (item.exact ? pathname === item.href : pathname.startsWith(item.href)) {
+        return item.label;
+      }
+    }
+  }
+  return '';
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
+  const pageLabel = getPageLabel(pathname);
 
   if (pathname === '/admin/login') return <>{children}</>;
 
@@ -65,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
       <nav className="flex-1 overflow-y-auto p-3" aria-label="Navegación principal">
         {navGroups.map((group, gi) => (
-          <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
+          <div key={gi} className={gi > 0 ? 'mt-1 border-t border-steel-900/30 pt-3' : ''}>
             {group.label && <p className="mb-1.5 px-3 font-body text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-steel-500">{group.label}</p>}
             <div className="space-y-0.5">
               {group.items.map((item) => {
@@ -106,8 +118,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SidebarContent />
       </aside>
       <main className="min-h-screen flex-1 lg:ml-[240px]">
-        <div className="sticky top-0 z-40 flex h-[52px] items-center border-b border-steel-900/40 bg-carbon-light px-4">
+        <div className="sticky top-0 z-40 flex h-[52px] items-center gap-3 border-b border-steel-900/40 bg-carbon-light px-4">
           <button onClick={() => setSidebarOpen(true)} aria-label="Abrir menú" className="rounded-md p-2 text-steel-400 hover:bg-steel-900 hover:text-arctic lg:hidden"><Menu className="h-5 w-5" /></button>
+          {pageLabel && (
+            <span className="font-body text-body-sm font-medium text-steel-400 lg:block hidden">
+              {pageLabel}
+            </span>
+          )}
           <div className="ml-auto flex items-center gap-1"><ThemeToggle /><NotificationBell /></div>
         </div>
         {children}

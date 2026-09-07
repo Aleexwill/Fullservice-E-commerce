@@ -40,7 +40,7 @@ export default function AdminDashboard() {
     return (
       <div className="p-6 lg:p-8">
         <h1 className="mb-6 font-display text-h1 uppercase text-arctic">Dashboard</h1>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="card animate-pulse p-5"><div className="h-4 w-20 rounded bg-steel-900" /><div className="mt-3 h-8 w-28 rounded bg-steel-900" /></div>)}</div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="card animate-pulse p-5"><div className="h-4 w-20 rounded bg-steel-900/40" /><div className="mt-3 h-8 w-28 rounded bg-steel-900/40" /></div>)}</div>
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
       {/* Overview KPIs */}
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
         {[
-          { label: 'Visitas hoy', value: (analytics?.todayViews || 0).toString(), icon: Eye, color: 'text-blue-bright', bg: 'bg-blue-muted' },
+          { label: 'Visitas hoy', value: (analytics?.todayViews || 0).toString(), icon: Eye, color: 'text-steel-400', bg: 'bg-steel-900' },
           { label: 'Leads', value: (leads?.total || 0).toString(), icon: Users, color: 'text-blue-bright', bg: 'bg-blue-muted' },
           { label: 'Pedidos tienda', value: (orders?.total || 0).toString(), icon: ShoppingCart, color: 'text-success-bright', bg: 'bg-success-light' },
           { label: 'Presupuestos', value: (presupuestos?.total || 0).toString(), icon: Calculator, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
                   const labels: Record<string, string> = { pending: 'Pendiente', confirmed: 'Confirmado', processing: 'En proceso', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado' };
                   const colors: Record<string, string> = { pending: 'bg-yellow-muted', confirmed: 'bg-blue-muted', processing: 'bg-blue', shipped: 'bg-success-light', delivered: 'bg-success-bright', cancelled: 'bg-danger-light' };
                   const pct = orders.total > 0 ? Math.round((c / orders.total) * 100) : 0;
-                  return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{labels[s] || s}</span><span className="font-mono text-steel-500">{c} ({pct}%)</span></div><div className="h-1.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${colors[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
+                  return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{labels[s] || s}</span><span className="font-mono text-steel-500">{c} ({pct}%)</span></div><div className="h-2.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${colors[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
                 })}
               </div>
             ) : <p className="py-4 text-center font-body text-caption text-steel-500">Sin pedidos aun</p>}
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
                   const labels: Record<string, string> = { nuevo: 'Nuevo', en_revision: 'En revision', cotizado: 'Cotizado', aprobado: 'Aprobado', en_ejecucion: 'En ejecucion', completado: 'Completado', rechazado: 'Rechazado' };
                   const colors: Record<string, string> = { nuevo: 'bg-blue-muted', en_revision: 'bg-yellow-muted', cotizado: 'bg-yellow', aprobado: 'bg-success-bright', en_ejecucion: 'bg-blue', completado: 'bg-success-light', rechazado: 'bg-danger-light' };
                   const pct = presupuestos.total > 0 ? Math.round((c / presupuestos.total) * 100) : 0;
-                  return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{labels[s] || s}</span><span className="font-mono text-steel-500">{c} ({pct}%)</span></div><div className="h-1.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${colors[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
+                  return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{labels[s] || s}</span><span className="font-mono text-steel-500">{c} ({pct}%)</span></div><div className="h-2.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${colors[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
                 })}
               </div>
             ) : <p className="py-4 text-center font-body text-caption text-steel-500">Sin presupuestos aun</p>}
