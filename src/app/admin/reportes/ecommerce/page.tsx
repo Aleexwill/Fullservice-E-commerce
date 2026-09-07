@@ -24,7 +24,7 @@ const ORDER_STATUS: Record<string, { label: string; color: string; icon: any }> 
   confirmed: { label: 'Confirmado', color: 'bg-blue-muted', icon: CheckCircle2 },
   processing: { label: 'En proceso', color: 'bg-blue', icon: Package },
   shipped: { label: 'Enviado', color: 'bg-success-light', icon: Truck },
-  delivered: { label: 'Entregado', color: 'bg-[#48BB78]', icon: CheckCircle2 },
+  delivered: { label: 'Entregado', color: 'bg-success-bright', icon: CheckCircle2 },
   cancelled: { label: 'Cancelado', color: 'bg-danger-light', icon: XCircle },
 };
 
@@ -72,8 +72,8 @@ export default function ReporteEcommercePage() {
       {/* Financial KPIs */}
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
-          { label: 'Facturacion total', value: formatGs(orders?.totalRevenue || 0), icon: DollarSign, color: 'text-[#48BB78]', bg: 'bg-success-light', sub: `${orders?.total || 0} pedidos` },
-          { label: 'Cobrado', value: formatGs(orders?.paidRevenue || 0), icon: CheckCircle2, color: 'text-[#48BB78]', bg: 'bg-success-light', sub: `${orders?.byPayment?.paid || 0} pagos` },
+          { label: 'Facturacion total', value: formatGs(orders?.totalRevenue || 0), icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light', sub: `${orders?.total || 0} pedidos` },
+          { label: 'Cobrado', value: formatGs(orders?.paidRevenue || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light', sub: `${orders?.byPayment?.paid || 0} pagos` },
           { label: 'Pendiente cobro', value: formatGs(pendingRevenue), icon: Clock, color: 'text-yellow-bright', bg: 'bg-yellow-muted', sub: `${orders?.byPayment?.pending || 0} pendientes` },
           { label: 'Valor inventario', value: formatGs(products?.totalValue || 0), icon: Package, color: 'text-blue-bright', bg: 'bg-blue-muted', sub: `${products?.totalStock?.toLocaleString() || 0} unidades` },
         ].map((kpi) => {
@@ -122,11 +122,11 @@ export default function ReporteEcommercePage() {
 
         {/* Payment breakdown */}
         <div className="card p-6">
-          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><DollarSign className="h-5 w-5 text-[#48BB78]" /> Estado de pagos</h2>
+          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><DollarSign className="h-5 w-5 text-success-bright" /> Estado de pagos</h2>
           {orders && Object.keys(orders.byPayment || {}).length > 0 ? (
             <div className="space-y-3">
               {Object.entries(orders.byPayment).map(([status, count]) => {
-                const labels: Record<string, { label: string; color: string }> = { pending: { label: 'Pendiente', color: 'bg-yellow-muted' }, paid: { label: 'Pagado', color: 'bg-[#48BB78]' }, partial: { label: 'Parcial', color: 'bg-blue-muted' }, refunded: { label: 'Reembolsado', color: 'bg-danger-light' } };
+                const labels: Record<string, { label: string; color: string }> = { pending: { label: 'Pendiente', color: 'bg-yellow-muted' }, paid: { label: 'Pagado', color: 'bg-success-bright' }, partial: { label: 'Parcial', color: 'bg-blue-muted' }, refunded: { label: 'Reembolsado', color: 'bg-danger-light' } };
                 const cfg = labels[status] || { label: status, color: 'bg-steel-700' };
                 const pct = orders.total > 0 ? Math.round((count / orders.total) * 100) : 0;
                 return (
@@ -149,9 +149,9 @@ export default function ReporteEcommercePage() {
           <div className="space-y-2">
             {[
               { label: 'Total productos', value: (products?.total || 0).toString(), icon: Package, color: 'text-blue-bright' },
-              { label: 'Activos', value: (products?.active || 0).toString(), icon: CheckCircle2, color: 'text-[#48BB78]' },
+              { label: 'Activos', value: (products?.active || 0).toString(), icon: CheckCircle2, color: 'text-success-bright' },
               { label: 'Stock total', value: (products?.totalStock || 0).toLocaleString() + ' u.', icon: Layers, color: 'text-blue-bright' },
-              { label: 'Sin stock', value: (products?.outOfStock || 0).toString(), icon: AlertTriangle, color: (products?.outOfStock || 0) > 0 ? 'text-[#FC8181]' : 'text-steel-500' },
+              { label: 'Sin stock', value: (products?.outOfStock || 0).toString(), icon: AlertTriangle, color: (products?.outOfStock || 0) > 0 ? 'text-danger-bright' : 'text-steel-500' },
               { label: 'Destacados', value: (products?.featured || 0).toString(), icon: Star, color: 'text-yellow-bright' },
               { label: 'Categorias', value: (products?.categoriesCount || 0).toString(), icon: Layers, color: 'text-steel-300' },
               { label: 'Marcas', value: (products?.brandsCount || 0).toString(), icon: Tag, color: 'text-steel-300' },
@@ -173,9 +173,9 @@ export default function ReporteEcommercePage() {
               <p className="mt-1 font-display text-h1 text-arctic">{formatGs(orders?.totalRevenue || 0)}</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border border-[#48BB78]/20 bg-[#48BB78]/5 p-3 text-center">
+              <div className="rounded-lg border border-success-bright/20 bg-success-bright/5 p-3 text-center">
                 <p className="font-body text-caption text-steel-500">Cobrado</p>
-                <p className="mt-1 font-display text-h3 text-[#48BB78]">{formatGs(orders?.paidRevenue || 0)}</p>
+                <p className="mt-1 font-display text-h3 text-success-bright">{formatGs(orders?.paidRevenue || 0)}</p>
               </div>
               <div className="rounded-lg border border-yellow-bright/20 bg-yellow-bright/5 p-3 text-center">
                 <p className="font-body text-caption text-steel-500">Pendiente</p>

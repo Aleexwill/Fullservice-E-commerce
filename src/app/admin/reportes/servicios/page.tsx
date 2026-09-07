@@ -20,7 +20,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = 
   nuevo: { label: 'Nuevo', color: 'bg-blue-muted', icon: FileText },
   en_revision: { label: 'En revision', color: 'bg-yellow-muted', icon: Clock },
   cotizado: { label: 'Cotizado', color: 'bg-yellow', icon: Calculator },
-  aprobado: { label: 'Aprobado', color: 'bg-[#48BB78]', icon: CheckCircle2 },
+  aprobado: { label: 'Aprobado', color: 'bg-success-bright', icon: CheckCircle2 },
   en_ejecucion: { label: 'En ejecucion', color: 'bg-blue', icon: Wrench },
   completado: { label: 'Completado', color: 'bg-success-light', icon: CheckCircle2 },
   rechazado: { label: 'Rechazado', color: 'bg-danger-light', icon: AlertTriangle },
@@ -37,7 +37,7 @@ const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   baja: { label: 'Baja', color: 'bg-steel-700' },
   media: { label: 'Media', color: 'bg-yellow-muted' },
   alta: { label: 'Alta', color: 'bg-danger-light' },
-  urgente: { label: 'Urgente', color: 'bg-[#FC8181]' },
+  urgente: { label: 'Urgente', color: 'bg-danger-bright' },
 };
 
 export default function ReporteServiciosPage() {
@@ -84,8 +84,8 @@ export default function ReporteServiciosPage() {
         {[
           { label: 'Total presupuestos', value: (stats?.total || 0).toString(), icon: Calculator, color: 'text-blue-bright', bg: 'bg-blue-muted', sub: `${stats?.nuevos || 0} nuevos` },
           { label: 'Estimado total', value: formatGs(stats?.totalEstimated || 0), icon: DollarSign, color: 'text-yellow-bright', bg: 'bg-yellow-muted', sub: 'valor cotizado' },
-          { label: 'Facturado', value: formatGs(stats?.totalFinal || 0), icon: CheckCircle2, color: 'text-[#48BB78]', bg: 'bg-success-light', sub: `${stats?.completedCount || 0} completados` },
-          { label: 'Tasa aprobacion', value: `${stats?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-[#48BB78]', bg: 'bg-success-light', sub: `${stats?.approvedCount || 0} aprobados` },
+          { label: 'Facturado', value: formatGs(stats?.totalFinal || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light', sub: `${stats?.completedCount || 0} completados` },
+          { label: 'Tasa aprobacion', value: `${stats?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light', sub: `${stats?.approvedCount || 0} aprobados` },
         ].map((kpi) => {
           const Icon = kpi.icon;
           return (
@@ -152,7 +152,7 @@ export default function ReporteServiciosPage() {
 
         {/* Priority breakdown */}
         <div className="card p-6">
-          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><AlertTriangle className="h-5 w-5 text-[#FC8181]" /> Por prioridad</h2>
+          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><AlertTriangle className="h-5 w-5 text-danger-bright" /> Por prioridad</h2>
           {stats && Object.keys(stats.byPriority).length > 0 ? (
             <div className="space-y-2">
               {Object.entries(stats.byPriority).map(([priority, count]) => {
@@ -170,16 +170,16 @@ export default function ReporteServiciosPage() {
 
         {/* Financial summary */}
         <div className="card p-6">
-          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><BarChart3 className="h-5 w-5 text-[#48BB78]" /> Resumen financiero</h2>
+          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><BarChart3 className="h-5 w-5 text-success-bright" /> Resumen financiero</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg border border-yellow-bright/20 bg-yellow-bright/5 p-4 text-center">
                 <p className="font-body text-caption text-steel-500">Estimado</p>
                 <p className="mt-1 font-display text-h2 text-yellow-bright">{formatGs(stats?.totalEstimated || 0)}</p>
               </div>
-              <div className="rounded-lg border border-[#48BB78]/20 bg-[#48BB78]/5 p-4 text-center">
+              <div className="rounded-lg border border-success-bright/20 bg-success-bright/5 p-4 text-center">
                 <p className="font-body text-caption text-steel-500">Facturado</p>
-                <p className="mt-1 font-display text-h2 text-[#48BB78]">{formatGs(stats?.totalFinal || 0)}</p>
+                <p className="mt-1 font-display text-h2 text-success-bright">{formatGs(stats?.totalFinal || 0)}</p>
               </div>
             </div>
             <div className="rounded-lg bg-carbon p-4">
@@ -189,11 +189,11 @@ export default function ReporteServiciosPage() {
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <p className="font-body text-body-sm text-steel-300">Completados</p>
-                <p className="font-display text-h3 text-[#48BB78]">{stats?.completedCount || 0}</p>
+                <p className="font-display text-h3 text-success-bright">{stats?.completedCount || 0}</p>
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <p className="font-body text-body-sm text-steel-300">Margen estimado vs. final</p>
-                <p className={`font-display text-h3 ${margin >= 0 ? 'text-[#48BB78]' : 'text-[#FC8181]'}`}>{margin > 0 ? '+' : ''}{margin}%</p>
+                <p className={`font-display text-h3 ${margin >= 0 ? 'text-success-bright' : 'text-danger-bright'}`}>{margin > 0 ? '+' : ''}{margin}%</p>
               </div>
             </div>
             <div className="rounded-lg border border-blue-bright/20 bg-blue-bright/5 p-4 text-center">

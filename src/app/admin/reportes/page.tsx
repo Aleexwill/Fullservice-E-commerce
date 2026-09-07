@@ -62,7 +62,7 @@ export default function AdminReportesPage() {
 
       {/* Global financial */}
       <div className="mb-6 rounded-xl border border-steel-900/40 bg-carbon-light p-6">
-        <h2 className="mb-4 flex items-center gap-2 font-display text-h2 text-arctic"><DollarSign className="h-6 w-6 text-[#48BB78]" /> Resumen financiero consolidado</h2>
+        <h2 className="mb-4 flex items-center gap-2 font-display text-h2 text-arctic"><DollarSign className="h-6 w-6 text-success-bright" /> Resumen financiero consolidado</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="rounded-lg bg-carbon p-5 text-center">
             <p className="font-body text-caption uppercase text-steel-500">Facturacion total</p>
@@ -104,7 +104,7 @@ export default function AdminReportesPage() {
         {[
           { label: 'Visitas totales', value: (analytics?.totalViews || 0).toString(), icon: Eye, color: 'text-blue-bright', bg: 'bg-blue-muted' },
           { label: 'Leads total', value: (leads?.total || 0).toString(), icon: Users, color: 'text-blue-bright', bg: 'bg-blue-muted' },
-          { label: 'Conv. leads', value: `${leads?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-[#48BB78]', bg: 'bg-success-light' },
+          { label: 'Conv. leads', value: `${leads?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light' },
           { label: 'Productos', value: (products?.total || 0).toString(), icon: Package, color: 'text-blue-bright', bg: 'bg-blue-muted' },
           { label: 'Valor inv.', value: formatGs(products?.totalValue || 0), icon: BarChart3, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
         ].map((kpi) => { const Icon = kpi.icon; return (

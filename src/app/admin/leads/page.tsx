@@ -28,15 +28,15 @@ const PIPELINE: { key: string; label: string; color: string; bg: string; border:
   { key: 'in_progress', label: 'En progreso', color: 'text-orange-bright', bg: 'bg-orange-muted', border: 'border-orange-bright/30' },
   { key: 'quoted', label: 'Cotizados', color: 'text-yellow-bright', bg: 'bg-yellow-muted', border: 'border-yellow-bright/30' },
   { key: 'negotiation', label: 'Negociacion', color: 'text-[#A78BFA]', bg: 'bg-[#2D1B69]', border: 'border-[#A78BFA]/30' },
-  { key: 'converted', label: 'Ganados', color: 'text-[#48BB78]', bg: 'bg-[#1A3D2A]', border: 'border-[#48BB78]/30' },
-  { key: 'lost', label: 'Perdidos', color: 'text-[#FC8181]', bg: 'bg-[#3D1A1A]', border: 'border-[#FC8181]/30' },
+  { key: 'converted', label: 'Ganados', color: 'text-success-bright', bg: 'bg-success-light', border: 'border-success-bright/30' },
+  { key: 'lost', label: 'Perdidos', color: 'text-danger-bright', bg: 'bg-danger-light', border: 'border-danger-bright/30' },
 ];
 
 const PRIORITY_MAP: Record<string, { label: string; color: string; dot: string }> = {
   low: { label: 'Baja', color: 'text-steel-500', dot: 'bg-steel-500' },
   medium: { label: 'Media', color: 'text-yellow-bright', dot: 'bg-yellow-bright' },
   high: { label: 'Alta', color: 'text-orange', dot: 'bg-orange' },
-  urgent: { label: 'Urgente', color: 'text-[#FC8181]', dot: 'bg-[#FC8181]' },
+  urgent: { label: 'Urgente', color: 'text-danger-bright', dot: 'bg-danger-bright' },
 };
 
 const SOURCE_MAP: Record<string, { label: string; icon: any }> = {
@@ -53,7 +53,7 @@ const SOURCE_MAP: Record<string, { label: string; icon: any }> = {
 const ACTIVITY_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
   note: { icon: Edit3, color: 'text-blue-bright', bg: 'bg-blue-muted' },
   status_change: { icon: ArrowRight, color: 'text-orange-bright', bg: 'bg-orange-muted' },
-  call: { icon: PhoneCall, color: 'text-[#48BB78]', bg: 'bg-[#1A3D2A]' },
+  call: { icon: PhoneCall, color: 'text-success-bright', bg: 'bg-success-light' },
   email: { icon: Mail, color: 'text-[#38BDF8]', bg: 'bg-[#0C2D48]' },
   whatsapp: { icon: MessageCircle, color: 'text-[#25D366]', bg: 'bg-[#0D2E1A]' },
   meeting: { icon: Video, color: 'text-[#A78BFA]', bg: 'bg-[#2D1B69]' },
@@ -65,7 +65,7 @@ const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
 const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 const timeAgo = (d: string) => { const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (m < 60) return `${m}m`; const h = Math.floor(m / 60); if (h < 24) return `${h}h`; const dy = Math.floor(h / 24); return dy < 30 ? `${dy}d` : `${Math.floor(dy / 30)}mes`; };
 const getInitials = (n: string) => n.split(' ').map((w) => w[0]).join('').toUpperCase().substring(0, 2);
-const AVATAR_COLORS = ['bg-blue-muted', 'bg-orange-muted', 'bg-[#1A3D2A]', 'bg-[#2D1B69]', 'bg-[#0C2D48]', 'bg-[#3D1A1A]'];
+const AVATAR_COLORS = ['bg-blue-muted', 'bg-orange-muted', 'bg-success-light', 'bg-[#2D1B69]', 'bg-[#0C2D48]', 'bg-danger-light'];
 const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
 
 export default function AdminLeadsCRM() {
@@ -186,7 +186,7 @@ export default function AdminLeadsCRM() {
                             <p className="mb-2 truncate font-body text-caption text-steel-300">{lead.subject}</p>
                             <div className="flex flex-wrap gap-1">
                               {lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}
-                              {lead.estimatedValue ? <span className="rounded bg-[#1A3D2A] px-1.5 py-0.5 font-mono text-[0.6rem] text-[#48BB78]">{formatGs(lead.estimatedValue)}</span> : null}
+                              {lead.estimatedValue ? <span className="rounded bg-success-light px-1.5 py-0.5 font-mono text-[0.6rem] text-success-bright">{formatGs(lead.estimatedValue)}</span> : null}
                             </div>
                             <div className="mt-2 flex items-center justify-between">
                               <span className="font-mono text-[0.6rem] text-steel-700">{timeAgo(lead.updatedAt)}</span>
@@ -220,7 +220,7 @@ export default function AdminLeadsCRM() {
                       </div>
                       <div className="hidden shrink-0 md:flex md:items-center md:gap-2">{lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}</div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[0.55rem] font-medium ${stage.color} ${stage.bg}`}>{stage.label}</span>
-                      {lead.estimatedValue ? <span className="hidden shrink-0 font-mono text-caption text-[#48BB78] md:block">{formatGs(lead.estimatedValue)}</span> : null}
+                      {lead.estimatedValue ? <span className="hidden shrink-0 font-mono text-caption text-success-bright md:block">{formatGs(lead.estimatedValue)}</span> : null}
                       <span className="shrink-0 font-mono text-[0.55rem] text-steel-700">{timeAgo(lead.updatedAt)}</span>
                       <ChevronRight className="h-4 w-4 shrink-0 text-steel-700" />
                     </div>
@@ -255,7 +255,7 @@ export default function AdminLeadsCRM() {
               <div className="mt-3 flex gap-2">
                 {selected.customer.phone && <a href={`https://wa.me/${selected.customer.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" onClick={() => api(selected.id, { _addActivity: { type: 'whatsapp', text: 'Mensaje de WhatsApp enviado' } })} className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-[#25D366]/10 py-2 font-body text-[0.6rem] font-medium text-[#25D366] transition-colors hover:bg-[#25D366]/20"><MessageCircle className="h-3.5 w-3.5" />WhatsApp</a>}
                 {selected.customer.email && <a href={`mailto:${selected.customer.email}`} onClick={() => api(selected.id, { _addActivity: { type: 'email', text: `Email enviado a ${selected.customer.email}` } })} className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-blue-muted py-2 font-body text-[0.6rem] font-medium text-blue-bright transition-colors hover:bg-blue-muted/80"><Mail className="h-3.5 w-3.5" />Email</a>}
-                {selected.customer.phone && <a href={`tel:${selected.customer.phone}`} onClick={() => api(selected.id, { _addActivity: { type: 'call', text: `Llamada a ${selected.customer.phone}` } })} className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-[#1A3D2A] py-2 font-body text-[0.6rem] font-medium text-[#48BB78] transition-colors hover:bg-[#1A3D2A]/80"><PhoneCall className="h-3.5 w-3.5" />Llamar</a>}
+                {selected.customer.phone && <a href={`tel:${selected.customer.phone}`} onClick={() => api(selected.id, { _addActivity: { type: 'call', text: `Llamada a ${selected.customer.phone}` } })} className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-success-light py-2 font-body text-[0.6rem] font-medium text-success-bright transition-colors hover:bg-success-light/80"><PhoneCall className="h-3.5 w-3.5" />Llamar</a>}
               </div>
 
               {/* Convert to presupuesto */}
@@ -354,7 +354,7 @@ export default function AdminLeadsCRM() {
                   <div className="flex gap-2"><input type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addTask()} placeholder="Nueva tarea..." className="input h-9 flex-1 text-body-sm" /><button onClick={addTask} disabled={saving || !newTaskText.trim()} className="btn-primary h-9 shrink-0 px-3 disabled:opacity-50"><Plus className="h-3.5 w-3.5" /></button></div>
                   {selected.tasks?.length > 0 ? selected.tasks.map((t) => (
                     <div key={t.id} onClick={() => toggleTask(t.id)} className="flex cursor-pointer items-start gap-2.5 rounded-md border border-steel-900/30 bg-carbon p-3 transition-colors hover:border-steel-700">
-                      {t.completed ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#48BB78]" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-steel-500" />}
+                      {t.completed ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-bright" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-steel-500" />}
                       <div className="flex-1"><p className={`font-body text-body-sm ${t.completed ? 'text-steel-500 line-through' : 'text-arctic'}`}>{t.text}</p>{t.dueDate && <p className="mt-0.5 flex items-center gap-1 font-mono text-[0.55rem] text-steel-700"><Calendar className="h-2.5 w-2.5" />{t.dueDate}</p>}</div>
                     </div>
                   )) : <p className="py-6 text-center font-body text-caption text-steel-500">Sin tareas</p>}
@@ -377,11 +377,11 @@ export default function AdminLeadsCRM() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-md bg-carbon p-3"><p className="font-body text-[0.6rem] text-steel-500">Fuente</p><p className="mt-0.5 font-body text-body-sm text-arctic">{SOURCE_MAP[selected.source]?.label || selected.source}</p></div>
                     <div className="rounded-md bg-carbon p-3"><p className="font-body text-[0.6rem] text-steel-500">Prioridad</p><select value={selected.priority} onChange={(e) => api(selected.id, { priority: e.target.value })} className="mt-0.5 w-full bg-transparent font-body text-body-sm text-arctic outline-none">{Object.entries(PRIORITY_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
-                    <div className="rounded-md bg-carbon p-3"><p className="font-body text-[0.6rem] text-steel-500">Valor estimado</p><p className="mt-0.5 font-body text-body-sm text-[#48BB78]">{selected.estimatedValue ? formatGs(selected.estimatedValue) : '—'}</p></div>
+                    <div className="rounded-md bg-carbon p-3"><p className="font-body text-[0.6rem] text-steel-500">Valor estimado</p><p className="mt-0.5 font-body text-body-sm text-success-bright">{selected.estimatedValue ? formatGs(selected.estimatedValue) : '—'}</p></div>
                     <div className="rounded-md bg-carbon p-3"><p className="font-body text-[0.6rem] text-steel-500">Creado</p><p className="mt-0.5 font-mono text-caption text-arctic">{formatDate(selected.createdAt)}</p></div>
                   </div>
                   {selected.tags?.length > 0 && <div className="flex flex-wrap gap-1">{selected.tags.map((t) => <span key={t} className="rounded-full bg-blue-muted px-2.5 py-0.5 font-mono text-[0.55rem] text-blue-bright">{t}</span>)}</div>}
-                  <button onClick={() => del(selected.id)} className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#FC8181]/20 bg-[#3D1A1A]/30 py-2 font-body text-caption text-[#FC8181] transition-colors hover:bg-[#3D1A1A]"><Trash2 className="h-3.5 w-3.5" />Eliminar lead</button>
+                  <button onClick={() => del(selected.id)} className="flex w-full items-center justify-center gap-1.5 rounded-md border border-danger-bright/20 bg-danger-light/30 py-2 font-body text-caption text-danger-bright transition-colors hover:bg-danger-light"><Trash2 className="h-3.5 w-3.5" />Eliminar lead</button>
                 </div>
               )}
             </div>

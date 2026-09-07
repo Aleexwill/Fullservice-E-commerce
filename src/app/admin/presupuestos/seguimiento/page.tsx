@@ -192,16 +192,16 @@ export default function SeguimientoPage() {
 
       {/* Aviso toast */}
       {aviso && (
-        <div className="mb-4 rounded-lg border border-[#48BB78]/30 bg-[#48BB78]/10 px-4 py-2.5 font-body text-body-sm text-[#48BB78]">{aviso}</div>
+        <div className="mb-4 rounded-lg border border-success-bright/30 bg-success-bright/10 px-4 py-2.5 font-body text-body-sm text-success-bright">{aviso}</div>
       )}
 
       {/* KPIs */}
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: 'Toca hoy',       value: tocaHoy,         icon: Clock,         color: 'text-blue-bright' },
-          { label: 'Atrasados',      value: atrasados,       icon: AlertTriangle,  color: 'text-[#FC8181]' },
+          { label: 'Atrasados',      value: atrasados,       icon: AlertTriangle,  color: 'text-danger-bright' },
           { label: 'En seguimiento', value: activos.length,  icon: TrendingUp,     color: 'text-arctic' },
-          { label: 'Monto en juego', value: montoTotal > 0 ? formatGs(montoTotal) : '—', icon: DollarSign, color: 'text-[#48BB78]', isString: true },
+          { label: 'Monto en juego', value: montoTotal > 0 ? formatGs(montoTotal) : '—', icon: DollarSign, color: 'text-success-bright', isString: true },
         ].map(k => {
           const Icon = k.icon;
           return (
@@ -231,7 +231,7 @@ export default function SeguimientoPage() {
                 <span className="font-body text-body-sm font-semibold text-arctic">{cliente}</span>
                 <span className="truncate font-mono text-caption text-steel-600">{nro} · {obra} · {monto}</span>
                 <div>
-                  <span className={`font-body text-caption font-semibold ${vencido ? 'text-[#FC8181]' : 'text-blue-bright'}`}>
+                  <span className={`font-body text-caption font-semibold ${vencido ? 'text-danger-bright' : 'text-blue-bright'}`}>
                     Día {px.paso.n} — {px.paso.label}
                   </span>
                   <span className="ml-2 font-mono text-[0.6rem] text-steel-600">
@@ -241,7 +241,7 @@ export default function SeguimientoPage() {
               </div>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => { marcar(entry.id, px.paso.n); showAviso('Paso marcado como hecho.'); }}
-                  className="rounded-lg bg-[#48BB78] px-3 py-2 font-body text-caption font-semibold text-white hover:bg-[#3da766] transition-colors">
+                  className="rounded-lg bg-success-bright px-3 py-2 font-body text-caption font-semibold text-white hover:bg-[#3da766] transition-colors">
                   Hecho
                 </button>
                 <button onClick={() => parchear(entry.id, { pospuesto: (entry.pospuesto || 0) + 1 })}
@@ -298,11 +298,11 @@ export default function SeguimientoPage() {
           if (entry.cerrado) {
             proxLabel = entry.cerrado === 'aprobado' ? 'Aprobado' : (entry.cerrado === 'perdido' ? 'Perdido' : 'En pausa');
             proxCuando = 'Fuera del ciclo';
-            proxColor = entry.cerrado === 'aprobado' ? 'text-[#48BB78]' : 'text-steel-600';
+            proxColor = entry.cerrado === 'aprobado' ? 'text-success-bright' : 'text-steel-600';
           } else if (px) {
             proxLabel = `Día ${px.paso.n} — ${px.paso.label}`;
             proxCuando = px.atraso > 0 ? `Vencido hace ${px.atraso}d` : (px.atraso === 0 ? 'Hoy' : `El ${fmtDate(px.fecha)}`);
-            proxColor = px.atraso > 0 ? 'text-[#FC8181]' : (px.atraso === 0 ? 'text-blue-bright' : 'text-arctic');
+            proxColor = px.atraso > 0 ? 'text-danger-bright' : (px.atraso === 0 ? 'text-blue-bright' : 'text-arctic');
           }
 
           return (
@@ -386,7 +386,7 @@ export default function SeguimientoPage() {
       {/* Legend */}
       <div className="mt-6 flex flex-wrap gap-6 rounded-lg border border-steel-900/40 bg-carbon px-5 py-4 font-body text-caption text-steel-500">
         <div className="flex-1 min-w-[220px]"><span className="font-semibold text-steel-300">Cómo se cuenta.</span> El día 1 es cuando enviás el presupuesto. Los demás pasos se calculan automáticamente.</div>
-        <div className="flex-1 min-w-[220px]"><span className="font-semibold text-steel-300">Colores.</span> <span className="text-[#48BB78]">Verde</span>: cumplido. <span className="text-blue-bright">Azul</span>: toca hoy. <span className="text-[#FC8181]">Rojo</span>: vencido. Gris: todavía no corresponde.</div>
+        <div className="flex-1 min-w-[220px]"><span className="font-semibold text-steel-300">Colores.</span> <span className="text-success-bright">Verde</span>: cumplido. <span className="text-blue-bright">Azul</span>: toca hoy. <span className="text-danger-bright">Rojo</span>: vencido. Gris: todavía no corresponde.</div>
         <div className="flex-1 min-w-[220px]"><span className="font-semibold text-steel-300">Persistencia.</span> Los datos se guardan automáticamente en la base de datos.</div>
       </div>
     </div>

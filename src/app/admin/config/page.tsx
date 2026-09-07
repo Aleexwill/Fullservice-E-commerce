@@ -301,7 +301,7 @@ export default function AdminConfigPage() {
           {/* Business */}
           {activeTab === 'business' && (
             <div className="card p-6">
-              <h2 className="mb-4 flex items-center gap-2 border-b border-steel-900/40 pb-4 font-display text-h3 text-arctic"><DollarSign className="h-5 w-5 text-[#48BB78]" /> Configuracion de negocio</h2>
+              <h2 className="mb-4 flex items-center gap-2 border-b border-steel-900/40 pb-4 font-display text-h3 text-arctic"><DollarSign className="h-5 w-5 text-success-bright" /> Configuracion de negocio</h2>
               <div className="space-y-4">
                 <h3 className="flex items-center gap-2 font-display text-h4 text-arctic"><Clock className="h-4 w-4 text-steel-300" /> Horarios de atencion</h3>
                 <Field label="Lunes a Viernes" value={settings.business.openingHours.weekdays} onChange={(v) => updateNested('business', 'openingHours', 'weekdays', v)} />

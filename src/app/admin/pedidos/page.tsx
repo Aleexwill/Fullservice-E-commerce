@@ -46,9 +46,9 @@ const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; b
   pending: { label: 'Pendiente', icon: Clock, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
   confirmed: { label: 'Confirmado', icon: CheckCircle2, color: 'text-blue-bright', bg: 'bg-blue-muted' },
   processing: { label: 'En proceso', icon: Settings2, color: 'text-blue-bright', bg: 'bg-blue-muted' },
-  shipped: { label: 'Enviado', icon: Truck, color: 'text-[#48BB78]', bg: 'bg-success-light' },
-  delivered: { label: 'Entregado', icon: CheckCircle2, color: 'text-[#48BB78]', bg: 'bg-success-light' },
-  cancelled: { label: 'Cancelado', icon: XCircle, color: 'text-[#FC8181]', bg: 'bg-danger-light' },
+  shipped: { label: 'Enviado', icon: Truck, color: 'text-success-bright', bg: 'bg-success-light' },
+  delivered: { label: 'Entregado', icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
+  cancelled: { label: 'Cancelado', icon: XCircle, color: 'text-danger-bright', bg: 'bg-danger-light' },
 };
 
 const PAYMENT_CONFIG: Record<string, { label: string; badge: string }> = {
@@ -251,7 +251,7 @@ export default function AdminPedidosPage() {
                 <div className="space-y-2 font-body text-body-sm">
                   <div className="flex justify-between"><span className="text-steel-300">Subtotal</span><span className="font-mono text-arctic">{formatGs(selectedOrder.subtotal)}</span></div>
                   <div className="flex justify-between"><span className="text-steel-300">Envio</span><span className="font-mono text-arctic">{formatGs(selectedOrder.shipping)}</span></div>
-                  {selectedOrder.discount > 0 && <div className="flex justify-between"><span className="text-steel-300">Descuento</span><span className="font-mono text-[#48BB78]">-{formatGs(selectedOrder.discount)}</span></div>}
+                  {selectedOrder.discount > 0 && <div className="flex justify-between"><span className="text-steel-300">Descuento</span><span className="font-mono text-success-bright">-{formatGs(selectedOrder.discount)}</span></div>}
                   <div className="flex justify-between border-t border-steel-900/40 pt-2"><span className="font-display text-h4 text-arctic">Total</span><span className="font-display text-h3 text-arctic">{formatGs(selectedOrder.total)}</span></div>
                 </div>
               </div>
