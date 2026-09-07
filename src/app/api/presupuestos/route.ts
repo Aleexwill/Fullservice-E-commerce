@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     if (dateTo) data = data.filter((p) => p.scheduledDate <= dateTo);
 
     data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return NextResponse.json({ presupuestos: data, total: data.length });
+    return NextResponse.json({ presupuestos: data, total: data.length }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Error en GET /api/presupuestos:', error);
     const message = error instanceof Error ? error.message : 'Error desconocido';

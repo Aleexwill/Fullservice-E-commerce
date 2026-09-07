@@ -7,7 +7,7 @@ export default function PresupuestoDetalle() {
   return (
     <iframe
       key={id}
-      src={`/costos.html?id=${id}`}
+      src={`/costos.html?id=${id}&_t=${id}`}
       style={{ width: '100%', height: '100vh', border: 'none', display: 'block' }}
       title="Costos y Propuesta"
     />

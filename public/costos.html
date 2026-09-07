@@ -231,7 +231,7 @@ async function saveToAPI() {
 async function loadFromAPI() {
   if (!presupuestoId) return;
   try {
-    const res = await fetch("/api/presupuestos/" + presupuestoId);
+    const res = await fetch("/api/presupuestos/" + presupuestoId, { cache: "no-store" });
     if (!res.ok) return;
     const data = await res.json();
 

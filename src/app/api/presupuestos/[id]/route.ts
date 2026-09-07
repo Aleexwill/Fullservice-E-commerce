@@ -6,7 +6,11 @@ import { prisma } from '@/lib/prisma';
 export async function GET(_r: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireRole('canManagePresupuestos');
   if (auth instanceof NextResponse) return auth;
-  try { const p = await getPresupuestoById(params.id); return p ? NextResponse.json(p) : NextResponse.json({ error: 'No encontrado' }, { status: 404 }); }
+  try {
+    const p = await getPresupuestoById(params.id);
+    if (!p) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    return NextResponse.json(p, { headers: { 'Cache-Control': 'no-store' } });
+  }
   catch (error) {
     console.error('Error en GET /api/presupuestos/[id]:', error);
     const message = error instanceof Error ? error.message : 'Error desconocido';
