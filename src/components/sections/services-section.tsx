@@ -15,9 +15,9 @@ export function TrustBar() {
 }
 
 const services = [
-  { icon: Wrench, title: 'Mantenimiento general', description: 'Reparaciones, instalaciones y mantenimiento preventivo para tu empresa o hogar. Electricidad, plomería, pintura y más.', href: '/servicios/mantenimiento', iconBg: 'bg-blue-muted', iconColor: 'text-blue-bright', count: '12 servicios' },
-  { icon: HardHat, title: 'Construcción civil', description: 'Obras nuevas, ampliaciones, refacciones y terminaciones con calidad profesional. Presupuesto detallado sin compromiso.', href: '/servicios/construccion-civil', iconBg: 'bg-yellow-muted', iconColor: 'text-yellow-bright', count: '8 servicios' },
-  { icon: Factory, title: 'Metalúrgica', description: 'Estructuras metálicas, herrería, soldadura y trabajos a medida. Portones, rejas, escaleras y más.', href: '/servicios/metalurgica', iconBg: 'bg-success-light', iconColor: 'text-[#48BB78]', count: '6 servicios' },
+  { icon: Wrench, title: 'Mantenimiento general', description: 'Reparaciones, instalaciones y mantenimiento preventivo para tu empresa o hogar. Electricidad, plomería, pintura y más.', href: '/servicios?categoria=mantenimiento', iconBg: 'bg-blue-muted', iconColor: 'text-blue-bright', count: '12 servicios' },
+  { icon: HardHat, title: 'Construcción civil', description: 'Obras nuevas, ampliaciones, refacciones y terminaciones con calidad profesional. Presupuesto detallado sin compromiso.', href: '/servicios?categoria=civil', iconBg: 'bg-yellow-muted', iconColor: 'text-yellow-bright', count: '8 servicios' },
+  { icon: Factory, title: 'Metalúrgica', description: 'Estructuras metálicas, herrería, soldadura y trabajos a medida. Portones, rejas, escaleras y más.', href: '/servicios?categoria=metalurgica', iconBg: 'bg-success-light', iconColor: 'text-[#48BB78]', count: '6 servicios' },
 ];
 
 export function ServicesSection() {

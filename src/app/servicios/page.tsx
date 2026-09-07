@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, ArrowRight, MessageCircle, Phone, ChevronRight } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
@@ -20,7 +21,9 @@ const defaultServices = [
 ];
 
 export default function ServiciosPage(){
- const [activeCategory,setActiveCategory]=useState<ServiceCategory>('todos'); const [services,setServices]=useState(defaultServices);
+ const searchParams = useSearchParams();
+ const initialCategory = (searchParams.get('categoria') as ServiceCategory) || 'todos';
+ const [activeCategory,setActiveCategory]=useState<ServiceCategory>(initialCategory); const [services,setServices]=useState(defaultServices);
  useEffect(()=>{fetch('/api/servicios-cms?active=true').then(r=>r.json()).then(d=>{if(d.services?.length)setServices(d.services.map((s:any)=>({...s,icon:ICON_MAP[s.icon]||Wrench})));}).catch(()=>{});},[]);
  const filtered=activeCategory==='todos'?services:services.filter((s:any)=>s.category===activeCategory); const whatsappUrl=formatWhatsAppUrl(siteConfig.whatsapp,'Hola, quiero consultar sobre sus servicios.');
  return <>
