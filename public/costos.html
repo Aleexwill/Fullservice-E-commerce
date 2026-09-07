@@ -226,10 +226,19 @@ async function loadFromAPI() {
 
     // Restore saved costos state (only if it has rubros — empty object means unsaved)
     const cd = data.costosData;
-    if (cd && typeof cd === "object" && cd.rubros && Array.isArray(cd.rubros) && cd.rubros.length > 0) {
+    const isDemoData = (cd) => {
+      // Detect the old hardcoded default "Albañilería" data that was accidentally saved
+      if (!cd || !Array.isArray(cd.rubros) || cd.rubros.length !== 1) return false;
+      const r = cd.rubros[0];
+      return r.nombre === "Albañilería" && Array.isArray(r.mats) && r.mats.length === 3 &&
+        r.mats[0].desc === "Cemento portland x 50 kg" &&
+        r.mats[1].desc === "Arena gruesa" &&
+        r.mats[2].desc === "Ladrillo hueco 18";
+    };
+    if (cd && typeof cd === "object" && Array.isArray(cd.rubros) && cd.rubros.length > 0 && !isDemoData(cd)) {
       S = Object.assign({}, S, cd);
     } else {
-      // First time opening: reset rubros to a blank slate so default "Albañilería" data never shows
+      // First time opening (or stale demo data): reset to a blank slate
       S.rubros = [rubroBase("Rubro 1")];
     }
 
