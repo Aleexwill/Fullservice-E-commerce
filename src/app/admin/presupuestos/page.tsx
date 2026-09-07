@@ -263,7 +263,7 @@ export default function AdminPresupuestosPage() {
       {!showAsistente && (
         <button
           onClick={() => setShowAsistente(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-blue-bright px-4 py-3 font-body text-body-sm font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-xl"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-blue-600 px-4 py-3 font-body text-body-sm font-semibold text-white shadow-[0_4px_20px_rgba(37,99,235,0.5)] transition-transform hover:scale-105 hover:bg-blue-700 hover:shadow-[0_6px_24px_rgba(37,99,235,0.65)]"
           title="Asistente IA de presupuestos"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
