@@ -183,18 +183,7 @@ let S = {
   activo: 0,
   mostrarMO: false,
   mostrarOtros: false,
-  rubros: [{
-    id: 1, nombre: "Albañilería",
-    mats: [
-      { id: 1, desc: "Cemento portland x 50 kg", unidad: "bolsa", cant: "40", costo: "45000", desp: "5", marg: "20" },
-      { id: 2, desc: "Arena gruesa", unidad: "m3", cant: "6", costo: "180000", desp: "8", marg: "18" },
-      { id: 3, desc: "Ladrillo hueco 18", unidad: "un", cant: "1200", costo: "3500", desp: "6", marg: "22" },
-    ],
-    mos: [{ id: 1, desc: "Albañilería", pers: "3", horas: "160", vh: "25000", marg: "30" }],
-    flete: "0", equipos: "0", subcontratos: "0", varios: "0",
-    overhead: "12", margen: "25", descMat: "", descMo: "",
-    incluir: true, medida: "", unidad: "m2"
-  }],
+  rubros: [],
   descuento: "0", iva: "10",
   cliente: "", obra: "", domicilio: "", contacto: "",
   firmaNombre: "Ing. Edgar Mendez", firmaCargo: "Ejecutivo Comercial",
@@ -244,15 +233,15 @@ async function loadFromAPI() {
       S.rubros = [rubroBase("Rubro 1")];
     }
 
-    // Pre-fill client info from presupuesto record fields
+    // Pre-fill client info from presupuesto record fields (always overwrite from API source)
     if (data.customer && typeof data.customer === "object") {
       const cu = data.customer;
-      if (!S.cliente && cu.name) S.cliente = cu.name;
-      if (!S.contacto && cu.email) S.contacto = cu.email;
-      if (!S.domicilio && cu.address) S.domicilio = cu.address;
+      if (cu.name) S.cliente = cu.name;
+      if (cu.email) S.contacto = cu.email;
+      if (cu.address) S.domicilio = cu.address;
     }
-    // Pre-fill obra / descripción from serviceTitle
-    if (!S.obra && data.serviceTitle) S.obra = data.serviceTitle;
+    // Pre-fill obra from serviceTitle (always overwrite)
+    if (data.serviceTitle) S.obra = data.serviceTitle;
 
     if (data.code) PROPS.nroPresupuesto = data.code;
   } catch(e) {}
