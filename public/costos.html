@@ -399,6 +399,19 @@ function ta(value, attrs, onChange) {
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function render() {
+  // Save focused element index to restore after DOM rebuild
+  const focused = document.activeElement;
+  let focusIndex = -1, selStart = null, selEnd = null;
+  if (focused && focused !== document.body && (focused.tagName === "INPUT" || focused.tagName === "TEXTAREA")) {
+    const app = document.getElementById("app");
+    if (app && app.contains(focused)) {
+      const allInputs = Array.from(app.querySelectorAll("input, textarea"));
+      focusIndex = allInputs.indexOf(focused);
+      selStart = focused.selectionStart;
+      selEnd = focused.selectionEnd;
+    }
+  }
+
   const R = getRubro();
   const porRubro = S.rubros.map(r => calcRubro(r));
   const v = calcRubro(R);
@@ -438,6 +451,16 @@ function render() {
   );
   app.replaceWith(newApp);
   newApp.id = "app";
+
+  // Restore focus after DOM rebuild so typing isn't interrupted
+  if (focusIndex >= 0) {
+    const inputs = newApp.querySelectorAll("input, textarea");
+    const target = inputs[focusIndex];
+    if (target) {
+      target.focus();
+      try { if (selStart !== null) target.setSelectionRange(selStart, selEnd); } catch(e) {}
+    }
+  }
 }
 
 function renderCostos(R, v, porRubro, idxIncluidos, G) {
