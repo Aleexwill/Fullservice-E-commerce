@@ -36,6 +36,7 @@ export interface Presupuesto {
   assignedTo: string;
   scheduledDate: string;
   calculationData: any | null;
+  costosData: any | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -60,6 +61,7 @@ function toPresupuesto(p: PrismaPresupuesto): Presupuesto {
     assignedTo: p.assignedTo,
     scheduledDate: p.scheduledDate,
     calculationData: (p as any).calculationData ?? null,
+    costosData: (p as any).costosData ?? null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
@@ -76,7 +78,7 @@ export async function getPresupuestoById(id: string): Promise<Presupuesto | null
 }
 
 export async function createPresupuesto(
-  data: Omit<Presupuesto, 'id' | 'code' | 'createdAt' | 'updatedAt'>
+  data: Omit<Presupuesto, 'id' | 'code' | 'createdAt' | 'updatedAt' | 'costosData'>
 ): Promise<Presupuesto> {
   for (let attempt = 0; attempt < 5; attempt++) {
     const count = await prisma.presupuesto.count();

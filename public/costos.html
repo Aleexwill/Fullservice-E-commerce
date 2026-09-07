@@ -234,17 +234,26 @@ async function loadFromAPI() {
     const res = await fetch("/api/presupuestos/" + presupuestoId);
     if (!res.ok) return;
     const data = await res.json();
+
+    // Restore saved costos state (only if it has rubros — empty object means unsaved)
     const cd = data.costosData;
     if (cd && typeof cd === "object" && cd.rubros && Array.isArray(cd.rubros) && cd.rubros.length > 0) {
       S = Object.assign({}, S, cd);
+    } else {
+      // First time opening: reset rubros to a blank slate so default "Albañilería" data never shows
+      S.rubros = [rubroBase("Rubro 1")];
     }
-    // Pre-fill client info from presupuesto record
+
+    // Pre-fill client info from presupuesto record fields
     if (data.customer && typeof data.customer === "object") {
       const cu = data.customer;
       if (!S.cliente && cu.name) S.cliente = cu.name;
       if (!S.contacto && cu.email) S.contacto = cu.email;
+      if (!S.domicilio && cu.address) S.domicilio = cu.address;
     }
-    if (data.code && !S.nroPresupuesto) PROPS.nroPresupuesto = data.code;
+    // Pre-fill obra / descripción from serviceTitle
+    if (!S.obra && data.serviceTitle) S.obra = data.serviceTitle;
+
     if (data.code) PROPS.nroPresupuesto = data.code;
   } catch(e) {}
 }
@@ -999,8 +1008,14 @@ window.onerror = function(msg, src, line, col, err) {
   if (d) d.innerHTML = '<div style="padding:32px;color:#c0392b;font-family:monospace;font-size:13px;white-space:pre-wrap;background:#fff8f8;border:1px solid #e0b0b0;margin:20px;border-radius:8px;">Error: ' + msg + '\n' + src + ':' + line + ':' + col + (err?'\n'+err.stack:'') + '</div>';
 };
 
-render();
-loadFromAPI().then(() => render());
+if (presupuestoId) {
+  // Show minimal loading state while fetching the correct presupuesto
+  const appEl = document.getElementById("app");
+  if (appEl) appEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:60vh;gap:12px;font-family:system-ui;color:#64748b;font-size:14px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Cargando presupuesto…</div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+  loadFromAPI().then(() => render());
+} else {
+  render();
+}
 </script>
 </body>
 </html>
