@@ -57,15 +57,15 @@ const STATUS_MAP: Record<string, { label: string; badge: string; color: string }
 const TYPE_MAP: Record<string, { label: string; icon: any; color: string }> = {
   mantenimiento: { label: 'Mantenimiento',     icon: Wrench,   color: 'text-blue-bright' },
   civil:         { label: 'Construcción civil', icon: HardHat,  color: 'text-yellow-bright' },
-  metalurgica:   { label: 'Metalúrgica',        icon: Factory,  color: 'text-[#48BB78]' },
+  metalurgica:   { label: 'Metalúrgica',        icon: Factory,  color: 'text-success-bright' },
   otro:          { label: 'Otro',               icon: FileText, color: 'text-steel-300' },
 };
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   baja:    { label: 'Baja',    color: 'text-steel-500' },
   media:   { label: 'Media',   color: 'text-yellow-bright' },
-  alta:    { label: 'Alta',    color: 'text-[#FC8181]' },
-  urgente: { label: 'Urgente', color: 'text-[#FC8181]' },
+  alta:    { label: 'Alta',    color: 'text-danger-bright' },
+  urgente: { label: 'Urgente', color: 'text-danger-bright' },
 };
 
 const ACTIVE_STATUSES = ['nuevo', 'en_revision', 'cotizado', 'aprobado', 'en_ejecucion', 'borrador'];
@@ -279,12 +279,12 @@ function setEstadoFields(estado: string): Partial<SeguimientoData> {
 
 function chipEstado(estado: string): string {
   const map: Record<string, string> = {
-    'FINALIZADO': 'bg-[#48BB78]/15 text-[#48BB78] border border-[#48BB78]/30',
+    'FINALIZADO': 'bg-success-bright/15 text-success-bright border border-success-bright/30',
     'EN EJECUCION': 'bg-blue-bright/15 text-blue-bright border border-blue-bright/30',
     'PENDIENTE APROBACION': 'bg-yellow-bright/15 text-yellow-bright border border-yellow-bright/30',
     'EN PRESUPUESTO': 'bg-[#F97316]/15 text-[#F97316] border border-[#F97316]/30',
     'PENDIENTE RELEVO': 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
-    'DE BAJA': 'bg-[#FC8181]/15 text-[#FC8181] border border-[#FC8181]/30',
+    'DE BAJA': 'bg-danger-bright/15 text-danger-bright border border-danger-bright/30',
     'SIN CARGAR': 'bg-steel-900 text-steel-500 border border-steel-800',
   };
   return map[estado] || map['SIN CARGAR'];
@@ -409,7 +409,7 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
         </div>
         {/* × */}
         <div className="px-1 flex justify-center">
-          <button className="p-1 text-steel-700 hover:text-[#FC8181]"><X className="h-3 w-3" /></button>
+          <button className="p-1 text-steel-700 hover:text-danger-bright"><X className="h-3 w-3" /></button>
         </div>
       </div>
     );
@@ -512,7 +512,7 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
                 <div key={f} className="px-1">
                   <button onClick={() => patchSeg(item.id, {[f]: ciclo(sd[f]||'NO')})}
                     className={`w-full rounded px-1 py-0.5 font-mono text-[0.55rem] font-medium border transition-colors ${
-                      sd[f]==='SI' ? 'bg-[#48BB78]/15 text-[#48BB78] border-[#48BB78]/30' :
+                      sd[f]==='SI' ? 'bg-success-bright/15 text-success-bright border-success-bright/30' :
                       sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
                       'bg-transparent text-steel-600 border-steel-800'
                     }`}>{sd[f]||'NO'}</button>
@@ -611,7 +611,7 @@ function Plan2TableNew({ tareas, onEdit: _onEdit, onDelete, onField }: {
                 className={inp} placeholder="obs..." />
             </div>
             <div className="px-1 flex justify-center">
-              <button onClick={() => onDelete(t.id)} className="p-1 text-steel-700 hover:text-[#FC8181]"><X className="h-3 w-3" /></button>
+              <button onClick={() => onDelete(t.id)} className="p-1 text-steel-700 hover:text-danger-bright"><X className="h-3 w-3" /></button>
             </div>
           </div>
         ))}
@@ -970,7 +970,7 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
               <p className="mt-0.5 font-body text-caption text-steel-500">Los datos se guardan automáticamente</p>
             </div>
             <div className="flex items-center gap-3">
-              {autoSaved && <span className="flex items-center gap-1 font-body text-caption text-[#48BB78] animate-pulse"><span className="h-1.5 w-1.5 rounded-full bg-[#48BB78]" /> Auto-guardado</span>}
+              {autoSaved && <span className="flex items-center gap-1 font-body text-caption text-success-bright animate-pulse"><span className="h-1.5 w-1.5 rounded-full bg-success-bright" /> Auto-guardado</span>}
               <button onClick={onClose} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
             </div>
           </div>

@@ -57,10 +57,12 @@ const config: Config = {
         // Semánticos
         success: {
           DEFAULT: '#2F855A',
+          bright: '#48BB78',
           light: '#1A3D2A',
         },
         danger: {
           DEFAULT: '#C53030',
+          bright: '#FC8181',
           light: '#3D1A1A',
         },
       },

@@ -64,7 +64,7 @@ export default function AdminDashboard() {
         {[
           { label: 'Visitas hoy', value: (analytics?.todayViews || 0).toString(), icon: Eye, color: 'text-blue-bright', bg: 'bg-blue-muted' },
           { label: 'Leads', value: (leads?.total || 0).toString(), icon: Users, color: 'text-blue-bright', bg: 'bg-blue-muted' },
-          { label: 'Pedidos tienda', value: (orders?.total || 0).toString(), icon: ShoppingCart, color: 'text-[#48BB78]', bg: 'bg-success-light' },
+          { label: 'Pedidos tienda', value: (orders?.total || 0).toString(), icon: ShoppingCart, color: 'text-success-bright', bg: 'bg-success-light' },
           { label: 'Presupuestos', value: (presupuestos?.total || 0).toString(), icon: Calculator, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
           { label: 'Productos', value: (products?.total || 0).toString(), icon: Package, color: 'text-blue-bright', bg: 'bg-blue-muted' },
         ].map((kpi) => { const Icon = kpi.icon; return (
@@ -88,12 +88,12 @@ export default function AdminDashboard() {
           {/* E-commerce KPIs */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Ingresos', value: formatGs(orders?.totalRevenue || 0), icon: DollarSign, color: 'text-[#48BB78]', bg: 'bg-success-light' },
-              { label: 'Cobrado', value: formatGs(orders?.paidRevenue || 0), icon: CheckCircle2, color: 'text-[#48BB78]', bg: 'bg-success-light' },
+              { label: 'Ingresos', value: formatGs(orders?.totalRevenue || 0), icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light' },
+              { label: 'Cobrado', value: formatGs(orders?.paidRevenue || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
               { label: 'Valor inventario', value: formatGs(products?.totalValue || 0), icon: Package, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
-              { label: 'Sin stock', value: (products?.outOfStock || 0).toString(), icon: AlertTriangle, color: products?.outOfStock ? 'text-[#FC8181]' : 'text-steel-500', bg: 'bg-danger-light' },
+              { label: 'Sin stock', value: (products?.outOfStock || 0).toString(), icon: AlertTriangle, color: products?.outOfStock ? 'text-danger-bright' : 'text-steel-500', bg: 'bg-danger-light' },
             ].map((k) => { const Icon = k.icon; return (
-              <div key={k.label} className="rounded-lg border border-steel-900/30 bg-carbon p-3">
+              <div key={k.label} className="card p-3">
                 <div className="flex items-center gap-1.5"><Icon className={`h-3.5 w-3.5 ${k.color}`} /><span className="font-body text-caption text-steel-500">{k.label}</span></div>
                 <p className="mt-1 font-display text-h3 text-arctic">{k.value}</p>
               </div>
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 {Object.entries(orders.byStatus).map(([s, c]) => {
                   const labels: Record<string, string> = { pending: 'Pendiente', confirmed: 'Confirmado', processing: 'En proceso', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado' };
-                  const colors: Record<string, string> = { pending: 'bg-yellow-muted', confirmed: 'bg-blue-muted', processing: 'bg-blue', shipped: 'bg-success-light', delivered: 'bg-[#48BB78]', cancelled: 'bg-danger-light' };
+                  const colors: Record<string, string> = { pending: 'bg-yellow-muted', confirmed: 'bg-blue-muted', processing: 'bg-blue', shipped: 'bg-success-light', delivered: 'bg-success-bright', cancelled: 'bg-danger-light' };
                   const pct = orders.total > 0 ? Math.round((c / orders.total) * 100) : 0;
                   return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{labels[s] || s}</span><span className="font-mono text-steel-500">{c} ({pct}%)</span></div><div className="h-1.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${colors[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
                 })}
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
           {/* Quick actions ecommerce */}
           <div className="flex gap-2">
             <Link href="/admin/productos/nuevo" className="card-interactive flex flex-1 items-center gap-3 p-3"><Plus className="h-4 w-4 text-blue-bright" /><span className="font-body text-body-sm text-arctic">Nuevo producto</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
-            <Link href="/admin/reportes/ecommerce" className="card-interactive flex flex-1 items-center gap-3 p-3"><TrendingUp className="h-4 w-4 text-[#48BB78]" /><span className="font-body text-body-sm text-arctic">Reporte E-com</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
+            <Link href="/admin/reportes/ecommerce" className="card-interactive flex flex-1 items-center gap-3 p-3"><TrendingUp className="h-4 w-4 text-success-bright" /><span className="font-body text-body-sm text-arctic">Reporte E-com</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
           </div>
         </div>
 
@@ -136,11 +136,11 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: 'Estimado total', value: formatGs(presupuestos?.totalEstimated || 0), icon: DollarSign, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
-              { label: 'Facturado', value: formatGs(presupuestos?.totalFinal || 0), icon: CheckCircle2, color: 'text-[#48BB78]', bg: 'bg-success-light' },
+              { label: 'Facturado', value: formatGs(presupuestos?.totalFinal || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
               { label: 'Nuevos', value: (presupuestos?.nuevos || 0).toString(), icon: FileText, color: 'text-blue-bright', bg: 'bg-blue-muted' },
-              { label: 'Tasa aprobacion', value: `${presupuestos?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-[#48BB78]', bg: 'bg-success-light' },
+              { label: 'Tasa aprobacion', value: `${presupuestos?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light' },
             ].map((k) => { const Icon = k.icon; return (
-              <div key={k.label} className="rounded-lg border border-steel-900/30 bg-carbon p-3">
+              <div key={k.label} className="card p-3">
                 <div className="flex items-center gap-1.5"><Icon className={`h-3.5 w-3.5 ${k.color}`} /><span className="font-body text-caption text-steel-500">{k.label}</span></div>
                 <p className="mt-1 font-display text-h3 text-arctic">{k.value}</p>
               </div>
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 {Object.entries(presupuestos.byStatus || {}).map(([s, c]) => {
                   const labels: Record<string, string> = { nuevo: 'Nuevo', en_revision: 'En revision', cotizado: 'Cotizado', aprobado: 'Aprobado', en_ejecucion: 'En ejecucion', completado: 'Completado', rechazado: 'Rechazado' };
-                  const colors: Record<string, string> = { nuevo: 'bg-blue-muted', en_revision: 'bg-yellow-muted', cotizado: 'bg-yellow', aprobado: 'bg-[#48BB78]', en_ejecucion: 'bg-blue', completado: 'bg-success-light', rechazado: 'bg-danger-light' };
+                  const colors: Record<string, string> = { nuevo: 'bg-blue-muted', en_revision: 'bg-yellow-muted', cotizado: 'bg-yellow', aprobado: 'bg-success-bright', en_ejecucion: 'bg-blue', completado: 'bg-success-light', rechazado: 'bg-danger-light' };
                   const pct = presupuestos.total > 0 ? Math.round((c / presupuestos.total) * 100) : 0;
                   return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{labels[s] || s}</span><span className="font-mono text-steel-500">{c} ({pct}%)</span></div><div className="h-1.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${colors[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
                 })}
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
             <ArrowRight className="h-4 w-4 text-steel-500" />
           </Link>
           <Link href="/" className="card-interactive flex items-center gap-4 p-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-success-light text-[#48BB78]"><Eye className="h-6 w-6" /></div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-success-light text-success-bright"><Eye className="h-6 w-6" /></div>
             <div className="flex-1"><h3 className="font-display text-h4 text-arctic">Ver sitio</h3><p className="font-body text-caption text-steel-500">Visitar la pagina publica</p></div>
             <ArrowRight className="h-4 w-4 text-steel-500" />
           </Link>
