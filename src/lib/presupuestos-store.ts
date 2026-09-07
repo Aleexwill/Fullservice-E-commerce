@@ -80,7 +80,7 @@ export async function getPresupuestoById(id: string): Promise<Presupuesto | null
 }
 
 export async function createPresupuesto(
-  data: Omit<Presupuesto, 'id' | 'code' | 'createdAt' | 'updatedAt' | 'costosData'>
+  data: Omit<Presupuesto, 'id' | 'code' | 'createdAt' | 'updatedAt' | 'costosData' | 'seguimientoData'>
 ): Promise<Presupuesto> {
   for (let attempt = 0; attempt < 5; attempt++) {
     const count = await prisma.presupuesto.count();
