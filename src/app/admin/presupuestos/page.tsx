@@ -89,7 +89,7 @@ export default function AdminPresupuestosPage() {
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Presupuesto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>('solicitudes');
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
