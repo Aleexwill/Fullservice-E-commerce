@@ -50,7 +50,7 @@ const STATUS_MAP: Record<string, { label: string; badge: string; color: string }
   cotizado:     { label: 'Cotizado',    badge: 'badge-yellow',  color: '#F59E0B' },
   aprobado:     { label: 'Aprobado',    badge: 'badge-green',   color: '#48BB78' },
   en_ejecucion: { label: 'En ejecución',badge: 'badge-green',   color: '#48BB78' },
-  completado:   { label: 'Completado',  badge: 'badge-neutral', color: '#9CA3AF' },
+  completado:   { label: 'Completado',  badge: 'badge-green',   color: '#48BB78' },
   rechazado:    { label: 'Rechazado',   badge: 'badge-red',     color: '#FC8181' },
 };
 
