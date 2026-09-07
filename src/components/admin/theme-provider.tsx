@@ -117,8 +117,8 @@ const LIGHT_CSS = `
 /* Icon container bg-steel-900 inside card-interactive */
 .admin-shell[data-theme="light"] .card-interactive .bg-steel-900{background-color:#e2e8f2!important}
 
-/* Modal overlays */
-.admin-shell[data-theme="light"] .bg-carbon\/80{background-color:rgba(240,242,245,.85)!important}
+/* bg-carbon-light/50 → kanban column en leads */
+.admin-shell[data-theme="light"] [class~="bg-carbon-light/50"]{background-color:rgba(248,250,252,.85)!important}
 `;
 
 /** Aplica la clase admin-shell y el data-theme reactivo. Envuelve el contenido del layout. */
