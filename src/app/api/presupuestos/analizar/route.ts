@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const SYSTEM_PROMPT = `Eres un asistente experto en elaborar presupuestos para Full Service & Clean, empresa de mantenimiento, limpieza y construcción civil en Paraguay.
 
@@ -59,12 +59,16 @@ Responde SOLO con JSON válido, sin texto adicional, con esta estructura exacta:
 }`;
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 503 });
+    return NextResponse.json({ error: 'GEMINI_API_KEY no configurada' }, { status: 503 });
   }
 
-  const client = new Anthropic({ apiKey });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    systemInstruction: SYSTEM_PROMPT,
+  });
 
   const body = await req.json();
   const { texto, imagen, mimeType } = body as {
@@ -77,35 +81,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Se requiere texto o imagen' }, { status: 400 });
   }
 
-  const userContent: Anthropic.MessageParam['content'] = [];
+  const parts: any[] = [];
 
   if (imagen) {
-    userContent.push({
-      type: 'image',
-      source: {
-        type: 'base64',
-        media_type: (mimeType || 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+    parts.push({
+      inlineData: {
+        mimeType: mimeType || 'image/jpeg',
         data: imagen,
       },
     });
   }
 
-  userContent.push({
-    type: 'text',
+  parts.push({
     text: texto
       ? `Solicitud del cliente:\n${texto}\n\nGenerá el presupuesto en JSON.`
       : 'Analizá esta imagen y generá el presupuesto en JSON.',
   });
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userContent }],
-    });
-
-    const text = response.content.find(b => b.type === 'text')?.text ?? '';
+    const result = await model.generateContent(parts);
+    const text = result.response.text();
 
     // Extraer JSON de la respuesta (por si viene con markdown)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
