@@ -13,6 +13,7 @@ import {
 import { fetchJson } from '@/lib/utils';
 import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
 import { imprimirPresupuesto, type PdfDetallOpts } from '@/lib/presupuesto-pdf';
+import { PresupuestoAsistente, type AsistenteResult } from '@/components/admin/presupuesto-asistente';
 
 interface SeguimientoData {
   mes?: string;
@@ -93,6 +94,7 @@ export default function AdminPresupuestosPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const [showAsistente, setShowAsistente] = useState(false);
   const [leadPrefill, setLeadPrefill] = useState<Record<string, string> | null>(null);
 
   const fetchData = useCallback(() => {
@@ -240,6 +242,31 @@ export default function AdminPresupuestosPage() {
             if (id) router.push(`/admin/presupuestos/${id}`);
           }}
         />
+      )}
+
+      {/* Asistente IA modal */}
+      {showAsistente && (
+        <PresupuestoAsistente
+          onCerrar={() => setShowAsistente(false)}
+          onUsar={(r) => {
+            setShowAsistente(false);
+            setShowCreate(true);
+          }}
+        />
+      )}
+
+      {/* FAB — Asistente IA */}
+      {!showAsistente && (
+        <button
+          onClick={() => setShowAsistente(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-blue-bright px-4 py-3 font-body text-body-sm font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-xl"
+          title="Asistente IA de presupuestos"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+          </svg>
+          Asistente IA
+        </button>
       )}
     </div>
   );

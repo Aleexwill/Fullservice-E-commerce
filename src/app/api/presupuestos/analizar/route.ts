@@ -1,0 +1,130 @@
+import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
+
+const SYSTEM_PROMPT = `Eres un asistente experto en elaborar presupuestos para Full Service & Clean, empresa de mantenimiento, limpieza y construcción civil en Paraguay.
+
+Tu tarea: analizar la descripción o imagen que envía el admin y generar un borrador de presupuesto estructurado en JSON.
+
+Tipos de servicio disponibles: mantenimiento | civil | metalurgica | otro
+
+Tipos de fila en la planilla de costos:
+- "titulo": encabezado de sección (sin precio, agrupa las filas siguientes)
+- "material": insumos, productos, materiales
+- "mano_obra": trabajo de personas (horas, jornadas, visitas)
+- "otro": servicios tercerizados, transporte, alquiler de equipos
+
+Moneda: Guaraníes paraguayos (Gs.). Precios realistas del mercado paraguayo 2024.
+Ejemplos de precios orientativos:
+- Mano de obra: Gs. 80.000–150.000 por jornada de 8hs
+- Limpiador multiusos 1L: Gs. 15.000–25.000
+- Desengrasante industrial 1L: Gs. 30.000–50.000
+- Andamio alquiler por día: Gs. 80.000–150.000
+
+Responde SOLO con JSON válido, sin texto adicional, con esta estructura exacta:
+
+{
+  "serviceTitle": "título conciso del servicio",
+  "serviceType": "mantenimiento|civil|metalurgica|otro",
+  "description": "descripción clara del trabajo a realizar (2-3 oraciones)",
+  "details": "detalles técnicos, condiciones, consideraciones adicionales",
+  "estimatedDuration": "ej: 2 días, 4 horas, 1 semana",
+  "priority": "baja|media|alta|urgente",
+  "estimatedValue": 350000,
+  "calculationData": {
+    "filas": [
+      {
+        "tipo": "titulo",
+        "descripcion": "MANO DE OBRA",
+        "unidad": "",
+        "cantidad": 0,
+        "precioUnitario": 0,
+        "precioVenta": 0,
+        "alcance": "descripción del alcance de esta sección"
+      },
+      {
+        "tipo": "mano_obra",
+        "descripcion": "Operario especializado",
+        "unidad": "jornada",
+        "cantidad": 2,
+        "precioUnitario": 120000,
+        "precioVenta": 120000
+      }
+    ],
+    "iva": 10,
+    "descuento": 0,
+    "validez": "10 días",
+    "ubicacion": "",
+    "observaciones": "Precios sujetos a relevamiento final y disponibilidad de materiales. No incluye trabajos no detallados."
+  }
+}`;
+
+export async function POST(req: NextRequest) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 503 });
+  }
+
+  const client = new Anthropic({ apiKey });
+
+  const body = await req.json();
+  const { texto, imagen, mimeType } = body as {
+    texto?: string;
+    imagen?: string; // base64
+    mimeType?: string;
+  };
+
+  if (!texto && !imagen) {
+    return NextResponse.json({ error: 'Se requiere texto o imagen' }, { status: 400 });
+  }
+
+  const userContent: Anthropic.MessageParam['content'] = [];
+
+  if (imagen) {
+    userContent.push({
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: (mimeType || 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+        data: imagen,
+      },
+    });
+  }
+
+  userContent.push({
+    type: 'text',
+    text: texto
+      ? `Solicitud del cliente:\n${texto}\n\nGenerá el presupuesto en JSON.`
+      : 'Analizá esta imagen y generá el presupuesto en JSON.',
+  });
+
+  try {
+    const response = await client.messages.create({
+      model: 'claude-opus-5',
+      max_tokens: 4096,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: userContent }],
+    });
+
+    const text = response.content.find(b => b.type === 'text')?.text ?? '';
+
+    // Extraer JSON de la respuesta (por si viene con markdown)
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return NextResponse.json({ error: 'Respuesta inesperada del modelo' }, { status: 500 });
+    }
+
+    const resultado = JSON.parse(jsonMatch[0]);
+
+    // Agregar IDs a las filas
+    resultado.calculationData.filas = resultado.calculationData.filas.map((f: any) => ({
+      ...f,
+      id: crypto.randomUUID(),
+      precioVenta: f.precioVenta ?? f.precioUnitario * f.cantidad,
+    }));
+
+    return NextResponse.json(resultado);
+  } catch (err: any) {
+    console.error('[analizar-presupuesto]', err);
+    return NextResponse.json({ error: err.message ?? 'Error al procesar' }, { status: 500 });
+  }
+}
