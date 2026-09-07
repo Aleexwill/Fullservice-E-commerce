@@ -50,7 +50,7 @@ export default function AdminAnalyticsPage() {
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         {[
           { label: 'Total visitas', value: data.totalViews.toLocaleString(), icon: Eye, color: 'text-blue-bright', bg: 'bg-blue-muted' },
-          { label: 'Hoy', value: data.todayViews.toLocaleString(), icon: TrendingUp, color: 'text-[#48BB78]', bg: 'bg-success-light' },
+          { label: 'Hoy', value: data.todayViews.toLocaleString(), icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light' },
           { label: 'Ultimos 7 dias', value: data.weekViews.toLocaleString(), icon: BarChart3, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
         ].map((kpi) => { const Icon = kpi.icon; return (
           <div key={kpi.label} className="card p-5">
@@ -120,7 +120,7 @@ export default function AdminAnalyticsPage() {
 
         {/* Referrers */}
         <div className="card p-6">
-          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><Globe className="h-5 w-5 text-[#48BB78]" /> Fuentes de trafico</h2>
+          <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><Globe className="h-5 w-5 text-success-bright" /> Fuentes de trafico</h2>
           {data.topReferrers.length === 0 ? (
             <p className="py-6 text-center font-body text-body-sm text-steel-500">Sin datos aun</p>
           ) : (

@@ -78,7 +78,7 @@ export default function AdminInventarioPage() {
               <span className="font-body text-body-sm text-arctic">{m.description}</span>
               <span className="font-mono text-caption text-steel-400">{m.unit}</span>
               <span className="font-body text-caption text-steel-500">{CATEGORIES[m.category] || m.category}</span>
-              <span className="text-right font-mono text-body-sm text-[#48BB78]">{gs(m.unitPrice)}</span>
+              <span className="text-right font-mono text-body-sm text-success-bright">{gs(m.unitPrice)}</span>
               <span className="font-body text-caption text-steel-500 truncate">{m.provider}</span>
               <div className="flex items-center gap-1">
                 <button onClick={() => setEditing(m)} className="rounded p-1 text-steel-500 hover:text-arctic"><Save className="h-3.5 w-3.5" /></button>
@@ -166,7 +166,7 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
         {/* Header */}
         <div className="flex items-center justify-between border-b border-steel-900/40 px-6 py-4 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <FileSpreadsheet className="h-5 w-5 text-[#48BB78]" />
+            <FileSpreadsheet className="h-5 w-5 text-success-bright" />
             <h2 className="font-display text-h3 text-arctic">Importar desde Excel</h2>
           </div>
           <button onClick={onClose} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
@@ -207,9 +207,9 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
               <div className="mb-4 grid grid-cols-4 gap-3">
                 {[
                   { label: 'Total filas', value: rows.length, color: 'text-arctic' },
-                  { label: 'Sin problemas', value: okCount, color: 'text-[#48BB78]' },
+                  { label: 'Sin problemas', value: okCount, color: 'text-success-bright' },
                   { label: 'Con advertencias', value: warnCount, color: 'text-[#F6C90E]' },
-                  { label: 'Con errores', value: errCount, color: 'text-[#FC8181]' },
+                  { label: 'Con errores', value: errCount, color: 'text-danger-bright' },
                 ].map(t => (
                   <div key={t.label} className="rounded-lg border border-steel-900/40 bg-steel-900/30 px-4 py-3">
                     <div className={`font-mono text-2xl font-semibold ${t.color}`}>{t.value}</div>
@@ -224,9 +224,9 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
                   <button key={f} onClick={() => setFilter(f)}
                     className={`rounded-full border px-3 py-1 font-body text-caption transition-colors ${filter === f
                       ? f === 'all' ? 'border-[#2D8FCC] bg-[#2D8FCC] text-white'
-                      : f === 'ok' ? 'border-[#48BB78] bg-[#48BB78] text-white'
+                      : f === 'ok' ? 'border-success-bright bg-success-bright text-white'
                       : f === 'warning' ? 'border-[#F6C90E] bg-[#F6C90E] text-carbon'
-                      : 'border-[#FC8181] bg-[#FC8181] text-white'
+                      : 'border-danger-bright bg-danger-bright text-white'
                       : 'border-steel-900 bg-steel-900/30 text-steel-400 hover:border-steel-700'}`}>
                     {f === 'all' ? 'Todas' : f === 'ok' ? '✓ OK' : f === 'warning' ? '⚠ Advertencias' : '✕ Errores'}
                   </button>
@@ -250,21 +250,21 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
                     </thead>
                     <tbody>
                       {visible.map((r, i) => (
-                        <tr key={i} className={`border-t border-steel-900/30 hover:bg-steel-900/20 ${r.status === 'error' ? 'border-l-2 border-l-[#FC8181]' : r.status === 'warning' ? 'border-l-2 border-l-[#F6C90E]' : 'border-l-2 border-l-[#48BB78]'}`}>
+                        <tr key={i} className={`border-t border-steel-900/30 hover:bg-steel-900/20 ${r.status === 'error' ? 'border-l-2 border-l-danger-bright' : r.status === 'warning' ? 'border-l-2 border-l-[#F6C90E]' : 'border-l-2 border-l-success-bright'}`}>
                           <td className="px-3 py-2 font-mono text-steel-600">{r.rowNum}</td>
                           <td className="px-3 py-2">
-                            <div className="font-body text-arctic">{r.description || <span className="italic text-[#FC8181]">vacío</span>}</div>
-                            {r.errors.map((e, j) => <div key={j} className="text-[#FC8181] mt-0.5">✕ {e}</div>)}
+                            <div className="font-body text-arctic">{r.description || <span className="italic text-danger-bright">vacío</span>}</div>
+                            {r.errors.map((e, j) => <div key={j} className="text-danger-bright mt-0.5">✕ {e}</div>)}
                             {r.warnings.map((w, j) => <div key={j} className="text-[#F6C90E] mt-0.5">⚠ {w}</div>)}
                           </td>
                           <td className="px-3 py-2 font-mono text-steel-400">{r.unit || '—'}</td>
-                          <td className="px-3 py-2 text-right font-mono text-[#48BB78]">{r.unitPrice != null ? 'Gs. ' + Math.round(r.unitPrice).toLocaleString('es-PY') : <span className="text-[#FC8181]">—</span>}</td>
+                          <td className="px-3 py-2 text-right font-mono text-success-bright">{r.unitPrice != null ? 'Gs. ' + Math.round(r.unitPrice).toLocaleString('es-PY') : <span className="text-danger-bright">—</span>}</td>
                           <td className="px-3 py-2 font-body text-steel-400 truncate max-w-[100px]">{r.provider || '—'}</td>
                           <td className="px-3 py-2 font-mono text-steel-500">{r.category}</td>
                           <td className="px-3 py-2">
-                            {r.status === 'ok' && <CheckCircle2 className="h-3.5 w-3.5 text-[#48BB78]" />}
+                            {r.status === 'ok' && <CheckCircle2 className="h-3.5 w-3.5 text-success-bright" />}
                             {r.status === 'warning' && <AlertTriangle className="h-3.5 w-3.5 text-[#F6C90E]" />}
-                            {r.status === 'error' && <AlertCircle className="h-3.5 w-3.5 text-[#FC8181]" />}
+                            {r.status === 'error' && <AlertCircle className="h-3.5 w-3.5 text-danger-bright" />}
                           </td>
                         </tr>
                       ))}
@@ -283,7 +283,7 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
           {/* ── Step: done ── */}
           {step === 'done' && (
             <div className="flex flex-col items-center py-8 text-center">
-              <CheckCircle2 className="mb-4 h-12 w-12 text-[#48BB78]" />
+              <CheckCircle2 className="mb-4 h-12 w-12 text-success-bright" />
               <h3 className="font-display text-h2 text-arctic mb-2">{imported} materiales importados</h3>
               <p className="font-body text-body-sm text-steel-400">Ya están disponibles en el inventario.</p>
             </div>
