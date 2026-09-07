@@ -97,11 +97,28 @@ const LIGHT_CSS = `
 .admin-shell[data-theme="light"] .badge-blue{background-color:#dbeeff!important;color:#1a5d9a!important}
 .admin-shell[data-theme="light"] .alert-info{background-color:#ebf5fb!important;color:#1e5577!important}
 
+/* card-interactive (presupuesto rows, archivo rows, etc) */
+.admin-shell[data-theme="light"] .card-interactive{background-color:#ffffff!important;border-color:#e2e5ea!important;box-shadow:0 1px 4px rgba(0,0,0,.06)!important}
+.admin-shell[data-theme="light"] .card-interactive:hover{background-color:#f4f7fb!important;border-color:#c8d0de!important}
+
+/* bg-steel-900 with opacity modifiers (bg-steel-900/40, /20, /50, /60, /80) */
+.admin-shell[data-theme="light"] [class*="bg-steel-900\/"]{background-color:rgba(200,208,222,.35)!important}
+.admin-shell[data-theme="light"] [class*="bg-carbon\/"]{background-color:rgba(240,242,245,.85)!important}
+
 /* Tab pills with opacity */
 .admin-shell[data-theme="light"] [class*="bg-blue-bright"]{background-color:#dbeeff!important}
 
 /* Inline transparent table row stripes */
 .admin-shell[data-theme="light"] .theme-row-alt{background-color:rgba(0,0,0,.025)!important}
+
+/* Hardcoded bg-steel-800, bg-steel-950 (used in dropdowns, inputs) */
+.admin-shell[data-theme="light"] .bg-steel-800,.admin-shell[data-theme="light"] .bg-steel-950{background-color:#e8ecf2!important}
+
+/* Icon container bg-steel-900 inside card-interactive */
+.admin-shell[data-theme="light"] .card-interactive .bg-steel-900{background-color:#e2e8f2!important}
+
+/* Modal overlays */
+.admin-shell[data-theme="light"] .bg-carbon\/80{background-color:rgba(240,242,245,.85)!important}
 `;
 
 /** Aplica la clase admin-shell y el data-theme reactivo. Envuelve el contenido del layout. */
