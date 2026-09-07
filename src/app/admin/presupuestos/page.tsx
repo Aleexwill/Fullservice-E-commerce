@@ -96,6 +96,7 @@ export default function AdminPresupuestosPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [showAsistente, setShowAsistente] = useState(false);
   const [leadPrefill, setLeadPrefill] = useState<Record<string, string> | null>(null);
+  const [aiPrefill, setAiPrefill] = useState<AsistenteResult | null>(null);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -234,10 +235,12 @@ export default function AdminPresupuestosPage() {
       {showCreate && (
         <CreatePresupuestoModal
           initialData={leadPrefill ?? undefined}
-          onClose={() => { setShowCreate(false); setLeadPrefill(null); }}
+          aiResult={aiPrefill ?? undefined}
+          onClose={() => { setShowCreate(false); setLeadPrefill(null); setAiPrefill(null); }}
           onCreated={async (id) => {
             setShowCreate(false);
             setLeadPrefill(null);
+            setAiPrefill(null);
             fetchData();
             if (id) router.push(`/admin/presupuestos/${id}`);
           }}
@@ -249,6 +252,7 @@ export default function AdminPresupuestosPage() {
         <PresupuestoAsistente
           onCerrar={() => setShowAsistente(false)}
           onUsar={(r) => {
+            setAiPrefill(r);
             setShowAsistente(false);
             setShowCreate(true);
           }}
@@ -935,13 +939,23 @@ function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
 const DRAFT_KEY = 'presupuesto_draft';
 const EMPTY_FORM = { customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '', serviceTitle: '', serviceType: 'mantenimiento', description: '', details: '', estimatedValue: '', finalValue: '', estimatedDuration: '', scheduledDate: '', assignedTo: '', priority: 'media' };
 
-function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: () => void; onCreated: (id?: string) => void; initialData?: Record<string, string> }) {
+function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: { onClose: () => void; onCreated: (id?: string) => void; initialData?: Record<string, string>; aiResult?: AsistenteResult }) {
   const [saving, setSaving] = useState<null | 'borrador' | 'nuevo'>(null);
   const [autoSaved, setAutoSaved] = useState(false);
   const [restored, setRestored] = useState(false);
   const [saveError, setSaveError] = useState('');
 
   const [f, setF] = useState(() => {
+    if (aiResult) return {
+      ...EMPTY_FORM,
+      serviceTitle: aiResult.serviceTitle || '',
+      serviceType: aiResult.serviceType || 'mantenimiento',
+      description: aiResult.description || '',
+      details: aiResult.details || '',
+      estimatedDuration: aiResult.estimatedDuration || '',
+      priority: aiResult.priority || 'media',
+      estimatedValue: aiResult.estimatedValue ? String(aiResult.estimatedValue) : '',
+    };
     if (initialData) return { ...EMPTY_FORM, ...initialData };
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
@@ -978,6 +992,7 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData }: { onClose: 
           finalValue: f.finalValue ? Number(f.finalValue) : null,
           estimatedDuration: f.estimatedDuration, scheduledDate: f.scheduledDate, assignedTo: f.assignedTo,
           priority: f.priority, source: 'admin', status,
+          ...(aiResult?.calculationData ? { calculationData: aiResult.calculationData } : {}),
         }),
       });
       if (res.ok) { clearDraft(); const d = await res.json(); onCreated(d?.id); }

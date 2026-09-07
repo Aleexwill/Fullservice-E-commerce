@@ -238,8 +238,48 @@ async function loadFromAPI() {
     if (cd && typeof cd === "object" && Array.isArray(cd.rubros) && cd.rubros.length > 0 && !isDemoData(cd)) {
       S = Object.assign({}, S, cd);
     } else {
-      // First time opening (or stale demo data): reset to a blank slate
-      S.rubros = [rubroBase("Rubro 1")];
+      // First time opening (or stale demo data): try to build rubros from AI calculationData.filas
+      const filas = data.calculationData?.filas;
+      if (Array.isArray(filas) && filas.length > 0) {
+        // Group filas by titulo sections; filas before any titulo go into "Rubro 1"
+        const groups = [];
+        let current = null;
+        for (const f of filas) {
+          if (f.tipo === "titulo") {
+            current = { nombre: f.descripcion || "Rubro", mats: [], mos: [], otros: [] };
+            groups.push(current);
+          } else {
+            if (!current) { current = { nombre: "Rubro 1", mats: [], mos: [], otros: [] }; groups.push(current); }
+            if (f.tipo === "material") current.mats.push(f);
+            else if (f.tipo === "mano_obra") current.mos.push(f);
+            else current.otros.push(f);
+          }
+        }
+        if (groups.length === 0) groups.push({ nombre: "Rubro 1", mats: [], mos: [], otros: [] });
+        S.rubros = groups.map((g, gi) => {
+          const base = rubroBase(g.nombre);
+          if (g.mats.length > 0) {
+            base.mats = g.mats.map((f, i) => ({
+              id: i + 1, desc: f.descripcion || "", unidad: f.unidad || "un",
+              cant: String(f.cantidad ?? 1), costo: String(f.precioUnitario ?? 0), desp: "0", marg: "25"
+            }));
+          }
+          if (g.mos.length > 0) {
+            base.mos = g.mos.map((f, i) => ({
+              id: i + 1, desc: f.descripcion || "", pers: "1",
+              horas: String(f.cantidad ?? 1), vh: String(f.precioUnitario ?? 0), marg: "30"
+            }));
+            S.mostrarMO = true;
+          }
+          if (g.otros.length > 0) {
+            base.subcontratos = String(g.otros.reduce((a, f) => a + (f.precioVenta ?? f.precioUnitario * (f.cantidad ?? 1) ?? 0), 0));
+            S.mostrarOtros = true;
+          }
+          return base;
+        });
+      } else {
+        S.rubros = [rubroBase("Rubro 1")];
+      }
     }
 
     // Pre-fill client info from presupuesto record fields (always overwrite from API source)
