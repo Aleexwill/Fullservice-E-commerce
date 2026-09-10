@@ -626,7 +626,7 @@ function render() {
   const idxIncluidos = S.rubros.map((_,i) => i).filter(i => incluido(S.rubros[i], porRubro[i]));
   const G = calcGlobal(idxIncluidos.map(i => porRubro[i]));
 
-  const detalleMats = (r) => r.mats.filter(x => x.desc).map(x => x.desc).join(" · ") || "Según detalle de planilla";
+  const detalleMats = (r) => r.mats.filter(x => x.desc && x.enPropuesta !== false).map(x => x.desc).join(" · ") || "Según detalle de planilla";
   const detalleMos = (r) => r.mos.filter(x => x.desc).map(x => x.desc).join(" · ") || "Según detalle de planilla";
 
   const app = document.getElementById("app");
@@ -773,7 +773,7 @@ function renderMatsTable(R, v) {
         onclick: () => openCatalogoModal(S.activo)
       }, "+ Agregar ítem")
     ),
-    el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;padding:0 20px;background:var(--inp-bg);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" },
+    el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 36px 28px;padding:0 20px;background:var(--inp-bg);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" },
       el("div",{style:"padding:9px 8px 9px 0;"}, "Descripción"),
       el("div",{style:"padding:9px 6px;text-align:center;"}, "Unidad"),
       el("div",{style:"padding:9px 8px;text-align:right;"}, "Cantidad"),
@@ -782,19 +782,34 @@ function renderMatsTable(R, v) {
       el("div",{style:"padding:9px 8px;text-align:right;"}, "Costo"),
       el("div",{style:"padding:9px 8px;text-align:right;color:oklch(0.50 0.09 220);"}, "Marg. %"),
       el("div",{style:"padding:9px 0 9px 8px;text-align:right;"}, "Precio"),
+      el("div",{style:"padding:9px 4px;text-align:center;color:var(--active-bdr);",title:"Mostrar en hoja de propuesta"}, "Prop."),
       el("div")
     ),
-    ...R.mats.map((r,i) => el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);" },
-      inp(r.desc, {placeholder:"Descripción",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"desc",e.target.value)),
-      inp(r.unidad, {style:"width:100%;padding:10px 4px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"unidad",e.target.value)),
-      inp(r.cant, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"cant",e.target.value)),
-      inp(r.costo, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"costo",e.target.value)),
-      inp(r.desp, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"desp",e.target.value)),
-      el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(costoMat(r))),
-      inp(r.marg, {inputmode:"decimal",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"}, e=>editRow("mats",i,"marg",e.target.value)),
-      el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, money(costoMat(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
-      el("button",{title:"Eliminar",style:"justify-self:end;width:24px;height:24px;font-size:16px;line-height:1;color:var(--text3);background:transparent;border:0;border-radius:5px;cursor:pointer;",onclick:()=>delRow("mats",i)}, "×")
-    )),
+    ...R.mats.map((r,i) => {
+      const enProp = r.enPropuesta !== false;
+      return el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 36px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);opacity:" + (enProp ? "1" : "0.55") + ";" },
+        inp(r.desc, {placeholder:"Descripción",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"desc",e.target.value)),
+        inp(r.unidad, {style:"width:100%;padding:10px 4px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"unidad",e.target.value)),
+        inp(r.cant, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"cant",e.target.value)),
+        inp(r.costo, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"costo",e.target.value)),
+        inp(r.desp, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"desp",e.target.value)),
+        el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(costoMat(r))),
+        inp(r.marg, {inputmode:"decimal",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"}, e=>editRow("mats",i,"marg",e.target.value)),
+        el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, money(costoMat(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
+        el("div",{style:"display:flex;align-items:center;justify-content:center;"},
+          (() => {
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.checked = enProp;
+            cb.title = enProp ? "Aparece en propuesta" : "Oculto en propuesta";
+            cb.style.cssText = "width:15px;height:15px;cursor:pointer;accent-color:var(--active-bg);";
+            cb.addEventListener("change", () => editRow("mats", i, "enPropuesta", cb.checked));
+            return cb;
+          })()
+        ),
+        el("button",{title:"Eliminar",style:"justify-self:end;width:24px;height:24px;font-size:16px;line-height:1;color:var(--text3);background:transparent;border:0;border-radius:5px;cursor:pointer;",onclick:()=>delRow("mats",i)}, "×")
+      );
+    }),
     el("div", { style: "display:flex;align-items:flex-end;gap:12px;padding:15px 20px;border-bottom:1px solid var(--border2);" },
       el("label", { style: "flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;" },
         el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" }, "Descripción del trabajo"),
@@ -1101,8 +1116,9 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
         ...idxIncluidos.map((i,k) => {
           const r = S.rubros[i];
           const calc = porRubro[i];
+          const matsEnProp = r.mats.filter(m => m.desc && m.enPropuesta !== false);
           const lineas = [
-            { titulo: (r.descMat||"").trim() || "Materiales e insumos", detalle: "", importe: money(calc.precioMateriales) }
+            { titulo: (r.descMat||"").trim() || "Materiales e insumos", detalle: detalleMats(r), importe: money(calc.precioMateriales) }
           ];
           if (S.mostrarMO) lineas.push({ titulo:(r.descMo||"").trim()||"Mano de obra y servicios", detalle: detalleMos(r), importe: money(calc.precioManoObra) });
           if (S.mostrarOtros) lineas.push({ titulo:"Logística, equipos y gastos de obra", detalle:"Flete y traslados, equipos y alquileres, subcontratos, permisos y varios", importe: money(calc.precioOtros) });
