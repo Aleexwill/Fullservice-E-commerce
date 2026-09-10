@@ -46,7 +46,7 @@ export default function AdminInventarioPage() {
     <div className="p-6 lg:p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-h1 uppercase text-arctic">Inventario de Materiales</h1>
+          <h1 className="font-display text-h1 uppercase text-arctic">Lista de Precio</h1>
           <p className="mt-1 font-body text-body-sm text-steel-300">Lista interna de materiales y tarifas para presupuestos de servicios</p>
         </div>
         <div className="flex gap-2">

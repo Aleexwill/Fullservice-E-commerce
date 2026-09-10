@@ -29,7 +29,7 @@ const navGroups: NavGroup[] = [
   { label: 'Servicios', items: [
     { href: '/admin/servicios', label: 'Servicios', icon: Wrench },
     { href: '/admin/presupuestos', label: 'Presupuestos', icon: Calculator },
-    { href: '/admin/inventario', label: 'Catálogo', icon: ClipboardList },
+    { href: '/admin/inventario', label: 'Lista de Precio', icon: ClipboardList },
     { href: '/admin/reportes/servicios', label: 'Reporte Serv.', icon: ClipboardList },
   ]},
   { label: 'Sitio Web', items: [
