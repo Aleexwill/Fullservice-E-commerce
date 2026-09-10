@@ -69,8 +69,8 @@ const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   urgente: { label: 'Urgente', color: 'text-danger-bright' },
 };
 
-const ACTIVE_STATUSES = ['nuevo', 'en_revision', 'borrador'];
-const ARCHIVE_STATUSES = ['cotizado', 'aprobado', 'en_ejecucion', 'completado', 'rechazado'];
+const ACTIVE_STATUSES = ['nuevo', 'en_revision'];
+const ARCHIVE_STATUSES = ['borrador', 'cotizado', 'aprobado', 'en_ejecucion', 'completado', 'rechazado'];
 
 const formatGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
 const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -129,6 +129,15 @@ export default function AdminPresupuestosPage() {
     if (!confirm('¿Eliminar este presupuesto?')) return;
     await fetch(`/api/presupuestos/${id}`, { method: 'DELETE' });
     fetchData();
+  };
+
+  const changeStatus = async (id: string, status: string) => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, status: status as any } : i));
+    await fetch(`/api/presupuestos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
   };
 
   const allActive = items.filter(i => ACTIVE_STATUSES.includes(i.status));
@@ -223,6 +232,7 @@ export default function AdminPresupuestosPage() {
           search={search} setSearch={setSearch}
           onOpen={(id) => router.push(`/admin/presupuestos/${id}`)}
           onDelete={del}
+          onStatusChange={changeStatus}
         />
       )}
 
@@ -696,7 +706,10 @@ function Plan2Form({ form, setForm, onSave, onCancel }: {
 }
 
 // ─── Shared list row ───────────────────────────────────────────
-function PresupuestoRow({ item, onOpen, onDelete }: { item: Presupuesto; onOpen: () => void; onDelete: () => void }) {
+function PresupuestoRow({ item, onOpen, onDelete, onStatusChange }: {
+  item: Presupuesto; onOpen: () => void; onDelete: () => void;
+  onStatusChange?: (status: string) => void;
+}) {
   const st = STATUS_MAP[item.status] || STATUS_MAP.nuevo;
   const tp = TYPE_MAP[item.serviceType] || TYPE_MAP.otro;
   const pr = PRIORITY_MAP[item.priority] || PRIORITY_MAP.media;
@@ -708,7 +721,6 @@ function PresupuestoRow({ item, onOpen, onDelete }: { item: Presupuesto; onOpen:
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-mono text-caption text-blue-bright">{item.code}</span>
-          <span className={st.badge}>{st.label}</span>
           {(item.priority === 'alta' || item.priority === 'urgente') && <AlertTriangle className={`h-3.5 w-3.5 ${pr.color}`} />}
           {isWeb ? (
             <span className="flex items-center gap-1 rounded-full border border-blue/30 bg-blue/10 px-2 py-0.5 font-mono text-[0.55rem] text-blue-bright"><Globe className="h-2.5 w-2.5" />Web</span>
@@ -729,8 +741,22 @@ function PresupuestoRow({ item, onOpen, onDelete }: { item: Presupuesto; onOpen:
           <p className="font-body text-caption text-steel-700">{formatDate(item.createdAt)}</p>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-2">
         {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-700"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
+        {onStatusChange ? (
+          <select
+            value={item.status}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => { e.stopPropagation(); onStatusChange(e.target.value); }}
+            className="rounded border border-steel-800 bg-steel-900/60 px-2 py-1 font-mono text-[10px] text-arctic focus:outline-none focus:ring-1 focus:ring-blue-bright/40 cursor-pointer"
+          >
+            {Object.entries(STATUS_MAP).map(([k, v]) => (
+              <option key={k} value={k}>{v.label}</option>
+            ))}
+          </select>
+        ) : (
+          <span className={st.badge}>{st.label}</span>
+        )}
         <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-blue-bright hover:bg-blue-muted transition-colors">
           <Calculator className="h-3 w-3" /> Planilla
         </button>
@@ -784,29 +810,46 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
 }
 
 // ─── Archivo tab ──────────────────────────────────────────────
-function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete }: {
+function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onStatusChange }: {
   items: Presupuesto[]; loading: boolean; search: string; setSearch: (v: string) => void;
   onOpen: (id: string) => void; onDelete: (id: string) => void;
+  onStatusChange: (id: string, status: string) => void;
 }) {
+  const [filterStatus, setFilterStatus] = useState('');
+  const archiveStatuses = Object.entries(STATUS_MAP).filter(([k]) => ARCHIVE_STATUSES.includes(k));
+  const filtered = filterStatus ? items.filter(i => i.status === filterStatus) : items;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-[240px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
           <input type="text" placeholder="Buscar en archivo..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" />
         </div>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input max-w-[160px]">
+          <option value="">Todo estado</option>
+          {archiveStatuses.map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
       </div>
       {loading ? (
         <div className="space-y-3">{Array.from({length:3}).map((_,i) => <div key={i} className="card animate-pulse p-4"><div className="h-14 rounded bg-steel-900" /></div>)}</div>
-      ) : items.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="card p-12 text-center">
           <Archive className="mx-auto h-12 w-12 text-steel-700" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Archivo vacío</h3>
-          <p className="mt-2 font-body text-body-sm text-steel-500">Los presupuestos completados y rechazados aparecerán aquí.</p>
+          <p className="mt-2 font-body text-body-sm text-steel-500">Los presupuestos creados aparecerán aquí. Podés cambiar el estado directamente desde la lista.</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} />)}
+          {filtered.map(item => (
+            <PresupuestoRow
+              key={item.id}
+              item={item}
+              onOpen={() => onOpen(item.id)}
+              onDelete={() => onDelete(item.id)}
+              onStatusChange={(status) => onStatusChange(item.id, status)}
+            />
+          ))}
         </div>
       )}
     </div>
