@@ -140,8 +140,9 @@ export default function AdminPresupuestosPage() {
     });
   };
 
-  const allActive = items.filter(i => ACTIVE_STATUSES.includes(i.status));
-  const allArchive = items.filter(i => ARCHIVE_STATUSES.includes(i.status));
+  const isFromPortal = (i: Presupuesto) => i.source === 'admin';
+  const allActive = items.filter(i => !isFromPortal(i) && ACTIVE_STATUSES.includes(i.status));
+  const allArchive = items.filter(i => isFromPortal(i) || ARCHIVE_STATUSES.includes(i.status));
 
   const filteredSolicitudes = allActive.filter(i => {
     const matchSearch = !search || [i.code, i.customer.name, i.serviceTitle, i.customer.company].join(' ').toLowerCase().includes(search.toLowerCase());
