@@ -773,7 +773,8 @@ function renderMatsTable(R, v) {
         onclick: () => openCatalogoModal(S.activo)
       }, "+ Agregar ítem")
     ),
-    el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 36px 28px;padding:0 20px;background:var(--inp-bg);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" },
+    el("div", { style: "display:grid;grid-template-columns:28px minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;padding:0 20px;background:var(--inp-bg);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);" },
+      el("div",{style:"padding:9px 4px;text-align:center;color:var(--active-bdr);",title:"Mostrar en hoja de propuesta"}, "Prop."),
       el("div",{style:"padding:9px 8px 9px 0;"}, "Descripción"),
       el("div",{style:"padding:9px 6px;text-align:center;"}, "Unidad"),
       el("div",{style:"padding:9px 8px;text-align:right;"}, "Cantidad"),
@@ -782,20 +783,11 @@ function renderMatsTable(R, v) {
       el("div",{style:"padding:9px 8px;text-align:right;"}, "Costo"),
       el("div",{style:"padding:9px 8px;text-align:right;color:oklch(0.50 0.09 220);"}, "Marg. %"),
       el("div",{style:"padding:9px 0 9px 8px;text-align:right;"}, "Precio"),
-      el("div",{style:"padding:9px 4px;text-align:center;color:var(--active-bdr);",title:"Mostrar en hoja de propuesta"}, "Prop."),
       el("div")
     ),
     ...R.mats.map((r,i) => {
       const enProp = r.enPropuesta !== false;
-      return el("div", { style: "display:grid;grid-template-columns:minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 36px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);opacity:" + (enProp ? "1" : "0.55") + ";" },
-        inp(r.desc, {placeholder:"Descripción",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"desc",e.target.value)),
-        inp(r.unidad, {style:"width:100%;padding:10px 4px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"unidad",e.target.value)),
-        inp(r.cant, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"cant",e.target.value)),
-        inp(r.costo, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"costo",e.target.value)),
-        inp(r.desp, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"desp",e.target.value)),
-        el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(costoMat(r))),
-        inp(r.marg, {inputmode:"decimal",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"}, e=>editRow("mats",i,"marg",e.target.value)),
-        el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, money(costoMat(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
+      return el("div", { style: "display:grid;grid-template-columns:28px minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);opacity:" + (enProp ? "1" : "0.5") + ";" },
         el("div",{style:"display:flex;align-items:center;justify-content:center;"},
           (() => {
             const cb = document.createElement("input");
@@ -807,6 +799,14 @@ function renderMatsTable(R, v) {
             return cb;
           })()
         ),
+        inp(r.desc, {placeholder:"Descripción",style:"width:100%;padding:10px 8px 10px 0;font-size:13px;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"desc",e.target.value)),
+        inp(r.unidad, {style:"width:100%;padding:10px 4px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"unidad",e.target.value)),
+        inp(r.cant, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"cant",e.target.value)),
+        inp(r.costo, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;background:transparent;border:0;color:var(--text);"}, e=>editRow("mats",i,"costo",e.target.value)),
+        inp(r.desp, {inputmode:"decimal",style:"width:100%;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:var(--text4);background:transparent;border:0;"}, e=>editRow("mats",i,"desp",e.target.value)),
+        el("div",{style:"padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:var(--text4);white-space:nowrap;"}, money(costoMat(r))),
+        inp(r.marg, {inputmode:"decimal",style:"width:100%;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:oklch(0.45 0.09 220);background:oklch(0.97 0.012 220);border:0;"}, e=>editRow("mats",i,"marg",e.target.value)),
+        el("div",{style:"padding:10px 0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text);"}, money(costoMat(r)*(1+N(R.overhead)/100)*(1+N(r.marg)/100))),
         el("button",{title:"Eliminar",style:"justify-self:end;width:24px;height:24px;font-size:16px;line-height:1;color:var(--text3);background:transparent;border:0;border-radius:5px;cursor:pointer;",onclick:()=>delRow("mats",i)}, "×")
       );
     }),
@@ -1117,9 +1117,7 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
           const r = S.rubros[i];
           const calc = porRubro[i];
           const matsEnProp = r.mats.filter(m => m.desc && m.enPropuesta !== false);
-          const lineas = [
-            { titulo: (r.descMat||"").trim() || "Materiales e insumos", detalle: detalleMats(r), importe: money(calc.precioMateriales) }
-          ];
+          const lineas = [];
           if (S.mostrarMO) lineas.push({ titulo:(r.descMo||"").trim()||"Mano de obra y servicios", detalle: detalleMos(r), importe: money(calc.precioManoObra) });
           if (S.mostrarOtros) lineas.push({ titulo:"Logística, equipos y gastos de obra", detalle:"Flete y traslados, equipos y alquileres, subcontratos, permisos y varios", importe: money(calc.precioOtros) });
           return el("div",{style:"padding-bottom:22px;"},
@@ -1130,6 +1128,27 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
               ),
               el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;"}, "Importe")
             ),
+            // Materiales: cada ítem marcado en fila propia
+            matsEnProp.length > 0 ? el("div",{},
+              el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px 150px;padding:8px 0 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;border-bottom:1px solid #efedea;"},
+                el("div",{}, "Ítem / Descripción"),
+                el("div",{style:"text-align:right;"}, "Cant."),
+                el("div",{style:"text-align:center;"}, "Unid."),
+                el("div",{style:"text-align:right;"}, "Precio")
+              ),
+              ...matsEnProp.map(m =>
+                el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px 150px;align-items:baseline;padding:7px 0;border-bottom:1px solid #efedea;"},
+                  el("div",{style:"font-size:13px;padding-right:12px;"}, m.desc),
+                  el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#6f6b64;"}, N(m.cant).toLocaleString("es-PY")),
+                  el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:center;color:#86817b;"}, m.unidad||"un"),
+                  el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;white-space:nowrap;"}, money(costoMat(m)*(1+N(r.overhead)/100)*(1+N(m.marg)/100)))
+                )
+              ),
+              el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:8px 0;border-bottom:1px solid #d4d0cb;"},
+                el("div",{style:"font-size:12px;font-weight:600;color:#6f6b64;"}, (r.descMat||"").trim() || "Subtotal materiales"),
+                el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:600;text-align:right;white-space:nowrap;"}, money(calc.precioMateriales))
+              )
+            ) : null,
             ...lineas.map(l =>
               el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:11px 0;border-bottom:1px solid #efedea;"},
                 el("div",{style:"display:flex;flex-direction:column;gap:3px;padding-right:20px;"},
