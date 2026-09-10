@@ -69,8 +69,8 @@ const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   urgente: { label: 'Urgente', color: 'text-danger-bright' },
 };
 
-const ACTIVE_STATUSES = ['nuevo', 'en_revision', 'cotizado', 'aprobado', 'en_ejecucion', 'borrador'];
-const ARCHIVE_STATUSES = ['completado', 'rechazado'];
+const ACTIVE_STATUSES = ['nuevo', 'en_revision', 'borrador'];
+const ARCHIVE_STATUSES = ['cotizado', 'aprobado', 'en_ejecucion', 'completado', 'rechazado'];
 
 const formatGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
 const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -228,7 +228,7 @@ export default function AdminPresupuestosPage() {
 
       {/* Planificación tab */}
       {activeTab === 'planificacion' && (
-        <PlanificacionTab items={allActive} loading={loading} onOpen={(id) => router.push(`/admin/presupuestos/${id}`)} />
+        <PlanificacionTab items={items.filter(i => ['aprobado','en_ejecucion','nuevo','en_revision','cotizado'].includes(i.status))} loading={loading} onOpen={(id) => router.push(`/admin/presupuestos/${id}`)} />
       )}
 
       {/* Create modal */}
@@ -940,7 +940,7 @@ const DRAFT_KEY = 'presupuesto_draft';
 const EMPTY_FORM = { customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '', serviceTitle: '', serviceType: 'mantenimiento', description: '', details: '', estimatedValue: '', finalValue: '', estimatedDuration: '', scheduledDate: '', assignedTo: '', priority: 'media' };
 
 function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: { onClose: () => void; onCreated: (id?: string) => void; initialData?: Record<string, string>; aiResult?: AsistenteResult }) {
-  const [saving, setSaving] = useState<null | 'borrador' | 'nuevo'>(null);
+  const [saving, setSaving] = useState<null | 'borrador' | 'cotizado'>(null);
   const [autoSaved, setAutoSaved] = useState(false);
   const [restored, setRestored] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -979,7 +979,7 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: {
     customerAddress: c.address || prev.customerAddress,
   }));
 
-  const guardar = async (status: 'borrador' | 'nuevo') => {
+  const guardar = async (status: 'borrador' | 'cotizado') => {
     if (!f.serviceTitle.trim()) return;
     setSaving(status); setSaveError('');
     try {
@@ -1071,13 +1071,13 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: {
         </div>
         <div className="shrink-0 border-t border-steel-900/40 bg-carbon-light px-6 py-4">
           {saveError && <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-body text-caption text-red-400">{saveError}</div>}
-          <p className="mb-3 font-body text-caption text-steel-500"><span className="text-steel-700">Borrador:</span> guardá y continuá después. <span className="text-steel-700">Crear:</span> queda como solicitud activa.</p>
+          <p className="mb-3 font-body text-caption text-steel-500"><span className="text-steel-700">Borrador:</span> guardá y continuá después. <span className="text-steel-700">Crear:</span> va al Archivo como presupuesto cotizado.</p>
           <div className="flex gap-3">
             <button onClick={() => guardar('borrador')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-secondary flex-1 justify-center gap-2 disabled:opacity-50">
               {saving === 'borrador' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />} Guardar borrador
             </button>
-            <button onClick={() => guardar('nuevo')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-primary flex-1 justify-center gap-2 disabled:opacity-50">
-              {saving === 'nuevo' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Crear presupuesto
+            <button onClick={() => guardar('cotizado')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-primary flex-1 justify-center gap-2 disabled:opacity-50">
+              {saving === 'cotizado' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Crear presupuesto
             </button>
           </div>
         </div>
