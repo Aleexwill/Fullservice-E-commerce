@@ -76,7 +76,14 @@ export default function AdminServiciosPage() {
         <div className="space-y-2">
           {services.map((s) => (
             <div key={s.id} className="card flex items-center gap-4 p-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-muted font-mono text-caption text-blue-bright">{s.icon}</div>
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-blue-muted">
+                {s.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.image} alt={s.title} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center font-mono text-caption text-blue-bright">{s.icon}</div>
+                )}
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-display text-h4 text-arctic">{s.title}</h3>
@@ -108,18 +115,18 @@ export default function AdminServiciosPage() {
               <button onClick={() => setEditing(null)} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900"><X className="h-5 w-5" /></button>
             </div>
             <div className="space-y-4 p-6">
+              <ImageUploader
+                label="Imagen del servicio"
+                value={editing.image}
+                onChange={(url) => setEditing({ ...editing, image: url })}
+                previewHeight="h-44"
+              />
               <div><label className="label mb-1 block">Titulo *</label><input type="text" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="input" /></div>
               <div><label className="label mb-1 block">Descripcion</label><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="input min-h-[80px]" rows={3} /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="label mb-1 block">Categoria</label><select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="input">{CATEGORIES.map((c) => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}</select></div>
                 <div><label className="label mb-1 block">Icono</label><select value={editing.icon} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} className="input font-mono">{ICONS.map((i) => <option key={i} value={i}>{i}</option>)}</select></div>
               </div>
-              <ImageUploader
-                label="Imagen del servicio"
-                value={editing.image}
-                onChange={(url) => setEditing({ ...editing, image: url })}
-                previewHeight="h-32"
-              />
               <div>
                 <label className="label mb-1 block">Caracteristicas</label>
                 <div className="flex gap-2"><input type="text" value={newFeature} onChange={(e) => setNewFeature(e.target.value)} className="input flex-1" placeholder="Agregar caracteristica" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())} /><button type="button" onClick={addFeature} className="btn-secondary shrink-0"><Plus className="h-4 w-4" /></button></div>
