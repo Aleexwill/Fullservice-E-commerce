@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getCachedSettings } from '@/lib/settings-store';
 
 export const metadata: Metadata = {
   title: 'Tienda Online de Ferretería',
@@ -19,6 +21,10 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function TiendaLayout({ children }: { children: React.ReactNode }) {
+export default async function TiendaLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getCachedSettings();
+  if (settings.sections?.showStore === false) {
+    redirect('/');
+  }
   return <>{children}</>;
 }

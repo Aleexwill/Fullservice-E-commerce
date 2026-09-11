@@ -22,6 +22,7 @@ import {
   Database,
   RefreshCw,
   HardDrive,
+  Eye,
 } from 'lucide-react';
 
 interface DbStats {
@@ -141,6 +142,7 @@ interface SiteSettings {
   business: { openingHours: { weekdays: string; saturday: string; sunday: string }; currency: string; taxRate: number; shippingBase: number; freeShippingThreshold: number };
   notifications: { emailOnNewOrder: boolean; emailOnNewLead: boolean; whatsappOnNewOrder: boolean; adminEmail: string };
   seo: { metaTitle: string; metaDescription: string; ogImage: string; googleAnalyticsId: string; metaPixelId: string };
+  sections: { showStore: boolean; showPortfolio: boolean; showServicios: boolean; storeOfflineMessage: string };
   payment: {
     gatewayEnabled: boolean;
     bankTransferEnabled: boolean;
@@ -196,6 +198,7 @@ export default function AdminConfigPage() {
     { id: 'contact', label: 'Contacto', icon: Phone },
     { id: 'social', label: 'Redes sociales', icon: Share2 },
     { id: 'business', label: 'Negocio', icon: DollarSign },
+    { id: 'sections', label: 'Secciones', icon: Eye },
     { id: 'payment', label: 'Pagos', icon: CreditCard },
     { id: 'notifications', label: 'Notificaciones', icon: Bell },
     { id: 'seo', label: 'SEO', icon: SearchIcon },
@@ -316,6 +319,25 @@ export default function AdminConfigPage() {
                   <Field label="Moneda" value={settings.business.currency} onChange={(v) => update('business', 'currency', v)} />
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Sections visibility */}
+          {activeTab === 'sections' && (
+            <div className="card p-6">
+              <h2 className="mb-4 flex items-center gap-2 border-b border-steel-900/40 pb-4 font-display text-h3 text-arctic"><Eye className="h-5 w-5 text-blue-bright" /> Visibilidad de secciones</h2>
+              <p className="mb-4 font-body text-body-sm text-steel-400">Activá o desactivá secciones del sitio público. Las secciones desactivadas no aparecen en el menú ni son accesibles.</p>
+              <div className="space-y-2">
+                <Toggle label="Tienda online (productos, carrito, checkout)" checked={settings.sections?.showStore ?? true} onChange={(v) => update('sections', 'showStore', v)} />
+                <Toggle label="Portfolio" checked={settings.sections?.showPortfolio ?? true} onChange={(v) => update('sections', 'showPortfolio', v)} />
+                <Toggle label="Servicios" checked={settings.sections?.showServicios ?? true} onChange={(v) => update('sections', 'showServicios', v)} />
+              </div>
+              {!(settings.sections?.showStore ?? true) && (
+                <div className="mt-4">
+                  <label className="label mb-1.5 block">Mensaje cuando la tienda está desactivada</label>
+                  <input type="text" value={settings.sections?.storeOfflineMessage ?? ''} onChange={(e) => update('sections', 'storeOfflineMessage', e.target.value)} className="input" placeholder="La tienda estará disponible próximamente." />
+                </div>
+              )}
             </div>
           )}
 

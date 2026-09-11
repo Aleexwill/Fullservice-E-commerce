@@ -50,6 +50,16 @@ export interface SiteSettings {
     googleAnalyticsId: string;
     metaPixelId: string;
   };
+  sections: {
+    /** Habilita la tienda online (productos, carrito, checkout) */
+    showStore: boolean;
+    /** Habilita la sección Portfolio */
+    showPortfolio: boolean;
+    /** Habilita la sección Servicios */
+    showServicios: boolean;
+    /** Mensaje que se muestra cuando la tienda está desactivada */
+    storeOfflineMessage: string;
+  };
   payment: {
     /** Pasarela de pago online (Stripe/MercadoPago) — desactivada hasta integrarla */
     gatewayEnabled: boolean;
@@ -112,6 +122,12 @@ const DEFAULT_SETTINGS: SiteSettings = {
     ogImage: '',
     googleAnalyticsId: '',
     metaPixelId: '',
+  },
+  sections: {
+    showStore: true,
+    showPortfolio: true,
+    showServicios: true,
+    storeOfflineMessage: 'La tienda estará disponible próximamente.',
   },
   payment: {
     gatewayEnabled: false,
