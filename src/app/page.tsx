@@ -22,7 +22,8 @@ function AboutSection({ about }: { about: SiteContent['about'] }) {
 
 function PartnersSection() {
   const names = ['Tigre','Grupo MAO','Paraguay Textil','Agpar','Inyeplast','Innova Technology Paraguay','Ball','Granusa','Rodan','Gala','Sena Ingeniería','Agriplus'];
-  return <section className="fs-partners"><div className="container-main"><div className="fs-partners-heading"><p className="fs-eyebrow">RELACIONES QUE CONSTRUIMOS</p><h2>Empresas con las que trabajamos</h2></div><div className="fs-partner-grid">{names.map((name,i)=><div key={name} className="fs-partner"><div role="img" aria-label={name} className="fs-partner-crop"><img src="/partners/empresas.jpeg" alt="" style={{left:`-${(i%3)*100}%`,top:`-${Math.floor(i/3)*100}%`}}/></div></div>)}</div></div></section>;
+  const crops = [[24,32,190,75],[279,32,204,88],[575,42,168,77],[42,168,153,100],[303,187,156,63],[586,146,159,157],[20,317,156,153],[267,375,210,72],[541,344,211,112],[38,518,160,72],[262,524,254,81],[560,522,181,72]];
+  return <section className="fs-partners"><div className="container-main"><div className="fs-partners-heading"><p className="fs-eyebrow">RELACIONES QUE CONSTRUIMOS</p><h2>Empresas con las que trabajamos</h2></div><div className="fs-partner-grid">{names.map((name,i)=><div key={name} className="fs-partner"><div role="img" aria-label={name} className="fs-partner-crop" style={{aspectRatio:`${crops[i][2]}/${crops[i][3]}`,maxWidth:140,maxHeight:90}}><img src="/partners/empresas.jpeg" alt="" style={{width:`${788/crops[i][2]*100}%`,height:`${663/crops[i][3]*100}%`,left:`-${crops[i][0]/crops[i][2]*100}%`,top:`-${crops[i][1]/crops[i][3]*100}%`}}/></div></div>)}</div></div></section>;
 }
 
 function ProcessSection() {
