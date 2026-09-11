@@ -42,12 +42,13 @@ function timeLeft(isoDate: string) {
 export default function UsuariosPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<{ name: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
-  const [inviteRole, setInviteRole] = useState<Role>('vendedor');
+  const [inviteRole, setInviteRole] = useState('vendedor');
   const [inviting, setInviting] = useState(false);
   const [inviteMsg, setInviteMsg] = useState('');
   const [inviteError, setInviteError] = useState('');
@@ -55,14 +56,17 @@ export default function UsuariosPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, invitesRes] = await Promise.all([
+      const [usersRes, invitesRes, rolesRes] = await Promise.all([
         fetch('/api/usuarios'),
         fetch('/api/invitaciones'),
+        fetch('/api/roles'),
       ]);
       const usersData = await usersRes.json();
       const invitesData = invitesRes.ok ? await invitesRes.json() : { invitations: [] };
+      const rolesData = rolesRes.ok ? await rolesRes.json() : { roles: [] };
       setUsers(usersData.users ?? []);
       setInvitations(invitesData.invitations ?? []);
+      setAvailableRoles((rolesData.roles ?? []).map((r: any) => ({ name: r.name, label: r.label })));
     } finally {
       setLoading(false);
     }
@@ -164,10 +168,11 @@ export default function UsuariosPage() {
               </div>
               <div>
                 <label className="mb-1 block font-body text-caption text-steel-400">Rol</label>
-                <select value={inviteRole} onChange={e => setInviteRole(e.target.value as Role)} className="input w-full">
-                  <option value="vendedor">Vendedor</option>
-                  <option value="tecnico">Técnico</option>
-                  <option value="admin">Administrador</option>
+                <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="input w-full">
+                  {availableRoles.length > 0
+                    ? availableRoles.map(r => <option key={r.name} value={r.name}>{r.label}</option>)
+                    : (<><option value="vendedor">Vendedor</option><option value="tecnico">Técnico</option><option value="admin">Administrador</option></>)
+                  }
                 </select>
               </div>
               {inviteError && (
