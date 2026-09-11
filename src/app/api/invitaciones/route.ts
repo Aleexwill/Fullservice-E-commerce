@@ -48,13 +48,18 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  await sendInvitationEmail({
-    to: email,
-    name: name || email,
-    role,
-    token: inviteToken,
-    invitedBy: session.username,
-  });
+  try {
+    await sendInvitationEmail({
+      to: email,
+      name: name || email,
+      role,
+      token: inviteToken,
+      invitedBy: session.username,
+    });
+  } catch (emailError) {
+    console.error('Error enviando email de invitación:', emailError);
+    // Continuar: la invitación se creó, solo el email falló
+  }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, inviteToken });
 }

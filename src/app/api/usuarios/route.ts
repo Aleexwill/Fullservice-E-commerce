@@ -21,12 +21,17 @@ export async function GET(request: NextRequest) {
   const session = await requireAdmin(request);
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: 'desc' },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
-  });
-
-  return NextResponse.json({ users });
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+    });
+    return NextResponse.json({ users });
+  } catch (error) {
+    console.error('Error GET /api/usuarios:', error);
+    const msg = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
