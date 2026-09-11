@@ -168,7 +168,66 @@ export default function AdminDashboard() {
           {/* Quick actions servicios */}
           <div className="flex gap-2">
             <Link href="/admin/presupuestos" className="card-interactive flex flex-1 items-center gap-3 p-3"><Calculator className="h-4 w-4 text-yellow-bright" /><span className="font-body text-body-sm text-arctic">Nuevo presupuesto</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
-            <Link href="/admin/presupuestos/dashboard" className="card-interactive flex flex-1 items-center gap-3 p-3"><TrendingUp className="h-4 w-4 text-yellow-bright" /><span className="font-body text-body-sm text-arctic">Dashboard</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
+            <Link href="/admin/reportes/servicios" className="card-interactive flex flex-1 items-center gap-3 p-3"><Wrench className="h-4 w-4 text-yellow-bright" /><span className="font-body text-body-sm text-arctic">Reporte Serv.</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Presupuestos dashboard section */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between border-b border-steel-900/40 pb-2">
+          <div className="flex items-center gap-2">
+            <Calculator className="h-5 w-5 text-yellow-bright" />
+            <h2 className="font-display text-h2 uppercase text-arctic">Presupuestos</h2>
+          </div>
+          <Link href="/admin/presupuestos/dashboard" className="font-body text-caption text-blue-bright hover:underline">Dashboard completo</Link>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Pipeline por estado */}
+          <div className="card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-display text-h4 text-arctic">Pipeline por estado</h3>
+              <Link href="/admin/presupuestos" className="font-body text-caption text-blue-bright hover:underline">Ver todos</Link>
+            </div>
+            {presupuestos && presupuestos.total > 0 ? (() => {
+              const ORDER = ['falta_presupuestar','pendiente_relevo','nuevo','en_revision','enviado','pendiente_aprobacion','aprobado','en_ejecucion','finalizado','de_baja'];
+              const LABELS: Record<string, string> = { falta_presupuestar: 'Falta presupuestar', pendiente_relevo: 'Pendiente relevo', nuevo: 'Nuevo', en_revision: 'En revision', enviado: 'Enviado', pendiente_aprobacion: 'Pend. aprobacion', aprobado: 'Aprobado', en_ejecucion: 'En ejecucion', finalizado: 'Finalizado', de_baja: 'De baja' };
+              const COLORS: Record<string, string> = { falta_presupuestar: 'bg-purple-900', pendiente_relevo: 'bg-orange-900', nuevo: 'bg-blue-muted', en_revision: 'bg-yellow-muted', enviado: 'bg-yellow-muted', pendiente_aprobacion: 'bg-yellow-muted', aprobado: 'bg-success-bright', en_ejecucion: 'bg-blue', finalizado: 'bg-success-light', de_baja: 'bg-danger-light' };
+              const entries = ORDER.map((s) => [s, (presupuestos.byStatus as Record<string,number>)?.[s] || 0] as [string, number]).filter(([, c]) => c > 0);
+              const maxVal = Math.max(...entries.map(([, c]) => c), 1);
+              return (
+                <div className="space-y-2">
+                  {entries.map(([s, c]) => {
+                    const pct = Math.round((c / maxVal) * 100);
+                    const pctTotal = Math.round((c / presupuestos.total) * 100);
+                    return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{LABELS[s] || s}</span><span className="font-mono text-steel-500">{c} ({pctTotal}%)</span></div><div className="h-2.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${COLORS[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
+                  })}
+                </div>
+              );
+            })() : <p className="py-4 text-center font-body text-caption text-steel-500">Sin presupuestos aun</p>}
+          </div>
+
+          {/* KPIs y valores */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Total presupuestos', value: (presupuestos?.total || 0).toString(), icon: FileText, color: 'text-steel-300', bg: 'bg-steel-900/60' },
+                { label: 'En ejecucion', value: (presupuestos?.enEjecucion || 0).toString(), icon: Wrench, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
+                { label: 'Finalizados', value: (presupuestos?.completedCount || 0).toString(), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
+                { label: 'Tasa cierre', value: `${presupuestos?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light' },
+              ].map((k) => { const Icon = k.icon; return (
+                <div key={k.label} className="card p-3">
+                  <div className="flex items-center gap-1.5"><div className={`flex h-6 w-6 items-center justify-center rounded ${k.bg}`}><Icon className={`h-3 w-3 ${k.color}`} /></div><span className="font-body text-caption text-steel-500">{k.label}</span></div>
+                  <p className="mt-1 font-display text-h3 text-arctic">{k.value}</p>
+                </div>
+              ); })}
+            </div>
+            <div className="card p-3">
+              <div className="flex items-center justify-between">
+                <div><p className="font-body text-caption text-steel-500">Estimado total</p><p className="font-display text-h3 text-arctic">{formatGs(presupuestos?.totalEstimated || 0)}</p></div>
+                <div className="text-right"><p className="font-body text-caption text-steel-500">Facturado</p><p className="font-display text-h3 text-success-bright">{formatGs(presupuestos?.totalFinal || 0)}</p></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
