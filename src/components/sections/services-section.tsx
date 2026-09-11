@@ -1,7 +1,10 @@
 import Link from 'next/link';
-import { Wrench, HardHat, Factory, Droplets, Clock, Users, FileText, ArrowRight, Phone, MessageCircle } from 'lucide-react';
+import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, Clock, Users, FileText, ArrowRight, Phone, MessageCircle } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
+import { getAllServices } from '@/lib/services-store';
+
+const ICON_MAP: Record<string, any> = { Zap, Droplets, Paintbrush, Wrench, HardHat, Factory, ShieldCheck, Thermometer };
 
 const trustItems = [
   { icon: Clock, title: 'Respuesta en 24 h', description: 'Respondemos tu consulta en menos de 24 horas' },
@@ -14,20 +17,62 @@ export function TrustBar() {
   return <section className="section-sm border-y border-gray-200 bg-[#F4F7FB]"><div className="container-main"><div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">{trustItems.map((item) => { const Icon = item.icon; return <div key={item.title} className="flex flex-col items-center text-center"><div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Icon className="h-6 w-6" /></div><h3 className="font-body text-body-sm font-semibold text-[#0B1120]">{item.title}</h3><p className="mt-1 hidden font-body text-caption text-[#4A5E80] sm:block">{item.description}</p></div>; })}</div></div></section>;
 }
 
-const services = [
-  { icon: Wrench, title: 'Mantenimiento general', description: 'Reparaciones, instalaciones y mantenimiento preventivo para tu empresa o hogar. Electricidad, plomería, pintura y más.', href: '/servicios?categoria=mantenimiento', iconBg: 'bg-blue-muted', iconColor: 'text-blue-bright', count: '12 servicios' },
-  { icon: HardHat, title: 'Construcción civil', description: 'Obras nuevas, ampliaciones, refacciones y terminaciones con calidad profesional. Presupuesto detallado sin compromiso.', href: '/servicios?categoria=civil', iconBg: 'bg-yellow-muted', iconColor: 'text-yellow-bright', count: '8 servicios' },
-  { icon: Factory, title: 'Metalúrgica', description: 'Estructuras metálicas, herrería, soldadura y trabajos a medida. Portones, rejas, escaleras y más.', href: '/servicios?categoria=metalurgica', iconBg: 'bg-success-light', iconColor: 'text-[#48BB78]', count: '6 servicios' },
+const fallbackServices = [
+  { id: 'f1', icon: 'Wrench', title: 'Mantenimiento general', description: 'Reparaciones, instalaciones y mantenimiento preventivo para tu empresa o hogar.', category: 'mantenimiento', image: '', isFeatured: true, isActive: true },
+  { id: 'f2', icon: 'HardHat', title: 'Construcción civil', description: 'Obras nuevas, ampliaciones, refacciones y terminaciones con calidad profesional.', category: 'civil', image: '', isFeatured: true, isActive: true },
+  { id: 'f3', icon: 'Factory', title: 'Metalúrgica', description: 'Estructuras metálicas, herrería, soldadura y trabajos a medida.', category: 'metalurgica', image: '', isFeatured: true, isActive: true },
 ];
 
-export function ServicesSection() {
-  const items = [
-    { icon: Wrench, title: 'Mantenimiento', text: 'Instalaciones, reparaciones y cuidado de tus espacios.', query: 'mantenimiento' },
-    { icon: Droplets, title: 'Limpieza profesional', text: 'Consultá por limpieza para oficinas, industrias y espacios comerciales.', query: 'limpieza' },
-    { icon: HardHat, title: 'Construcción civil', text: 'Obras, ampliaciones y remodelaciones para tu próximo proyecto.', query: 'civil' },
-    { icon: Factory, title: 'Metalúrgica', text: 'Estructuras, herrería y soluciones fabricadas a medida.', query: 'metalurgica' },
-  ];
-  return <section className="fs-services"><div className="container-main"><div className="fs-section-heading"><div><p className="fs-eyebrow">QUÉ PODEMOS HACER POR VOS</p><h2>Soluciones que<br/>hacen la diferencia.</h2></div><p className="fs-section-description">Del mantenimiento cotidiano a una nueva obra. Encontrá el servicio que necesita tu espacio.</p></div><div className="fs-services-grid">{items.map(({icon:Icon,title,text,query},i)=><Link key={title} href={query==='limpieza'?'/contacto?tipo=presupuesto&servicio=Limpieza%20profesional':`/servicios?categoria=${query}`} className="fs-service"><div className="fs-service-top"><Icon size={30}/><span>0{i+1}</span></div><h3>{title}</h3><p>{text}</p><span className="fs-service-link">{query==='limpieza'?'Consultar':'Explorar servicio'} <ArrowRight size={18}/></span></Link>)}</div></div></section>;
+export async function ServicesSection() {
+  let featured: typeof fallbackServices;
+  try {
+    const all = await getAllServices();
+    const cms = all.filter((s) => s.isActive && s.isFeatured);
+    featured = cms.length > 0 ? cms : fallbackServices;
+  } catch {
+    featured = fallbackServices;
+  }
+
+  return (
+    <section className="section bg-white">
+      <div className="container-main">
+        <div className="mb-12">
+          <span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Nuestros servicios</span>
+          <h2 className="font-display text-h1 uppercase text-[#0B1120]">Servicios profesionales</h2>
+          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
+          <p className="mt-4 max-w-lg font-body text-body text-[#4A5E80]">Cubrimos todas las necesidades de mantenimiento, construcción y metalúrgica para empresas y hogares.</p>
+        </div>
+        <div className={`grid grid-cols-1 gap-6 ${featured.length <= 3 ? 'md:grid-cols-3' : featured.length === 4 ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+          {featured.map((service) => {
+            const Icon = ICON_MAP[service.icon] || Wrench;
+            const href = `/servicios?categoria=${encodeURIComponent(service.category)}`;
+            const hasImg = !!service.image;
+            return (
+              <Link key={service.id} href={href} className="card-interactive group relative overflow-hidden p-6">
+                {hasImg && (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={service.image} alt={service.title} className="absolute inset-0 h-full w-full object-cover opacity-15 transition-opacity duration-300 group-hover:opacity-25" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-white/90 pointer-events-none" />
+                  </>
+                )}
+                <div className="relative">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-display text-h4 text-[#0B1120] transition-colors group-hover:text-[#2D8FCC]">{service.title}</h3>
+                  <p className="mt-2 font-body text-body-sm leading-relaxed text-[#4A5E80]">{service.description}</p>
+                  <div className="mt-4 inline-flex items-center gap-1 font-body text-label font-semibold uppercase tracking-[0.06em] text-[#2D8FCC]">
+                    Ver más <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export function CtaSection({ whatsapp }: { whatsapp?: string } = {}) {
