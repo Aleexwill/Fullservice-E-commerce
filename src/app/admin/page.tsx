@@ -157,7 +157,7 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 {Object.entries(presupuestos.byStatus || {}).map(([s, c]) => {
                   const labels: Record<string, string> = { nuevo: 'Nuevo', en_revision: 'En revision', cotizado: 'Cotizado', aprobado: 'Aprobado', en_ejecucion: 'En ejecucion', completado: 'Completado', rechazado: 'Rechazado' };
-                  const colors: Record<string, string> = { nuevo: 'bg-blue-muted', en_revision: 'bg-yellow-muted', cotizado: 'bg-yellow', aprobado: 'bg-success-bright', en_ejecucion: 'bg-blue', completado: 'bg-success-light', rechazado: 'bg-danger-light' };
+                  const colors: Record<string, string> = { falta_presupuestar: 'bg-purple-900', pendiente_relevo: 'bg-orange-900', nuevo: 'bg-blue-muted', en_revision: 'bg-yellow-muted', enviado: 'bg-yellow', pendiente_aprobacion: 'bg-yellow-muted', aprobado: 'bg-success-bright', en_ejecucion: 'bg-blue', finalizado: 'bg-success-light', de_baja: 'bg-danger-light' };
                   const pct = presupuestos.total > 0 ? Math.round((c / presupuestos.total) * 100) : 0;
                   return (<div key={s}><div className="mb-0.5 flex items-center justify-between font-body text-caption"><span className="text-steel-300">{labels[s] || s}</span><span className="font-mono text-steel-500">{c} ({pct}%)</span></div><div className="h-2.5 rounded-full bg-steel-900"><div className={`h-full rounded-full ${colors[s] || 'bg-steel-700'} transition-all`} style={{ width: `${pct}%` }} /></div></div>);
                 })}

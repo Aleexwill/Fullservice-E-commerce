@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!p) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
 
     // When approved: create/update Cliente and mark Lead as won
-    if (body.status === 'aprobado') {
+    if (body.status === 'aprobado' || body.status === 'en_ejecucion') {
       try {
         const cuid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
         const c = p.customer as { name: string; email: string; phone: string; company: string; address: string };

@@ -45,14 +45,16 @@ interface Presupuesto {
 }
 
 const STATUS_MAP: Record<string, { label: string; badge: string; color: string }> = {
-  borrador:     { label: 'Borrador',    badge: 'badge-neutral', color: '#6B7280' },
-  nuevo:        { label: 'Nuevo',       badge: 'badge-blue',    color: '#3B82F6' },
-  en_revision:  { label: 'En revisión', badge: 'badge-yellow',  color: '#F59E0B' },
-  cotizado:     { label: 'Cotizado',    badge: 'badge-yellow',  color: '#F59E0B' },
-  aprobado:     { label: 'Aprobado',    badge: 'badge-green',   color: '#48BB78' },
-  en_ejecucion: { label: 'En ejecución',badge: 'badge-green',   color: '#48BB78' },
-  completado:   { label: 'Completado',  badge: 'badge-green',   color: '#48BB78' },
-  rechazado:    { label: 'Rechazado',   badge: 'badge-red',     color: '#FC8181' },
+  falta_presupuestar:  { label: 'Falta presupuestar', badge: 'badge-neutral',color: '#A78BFA' },
+  pendiente_relevo:    { label: 'Pendiente relevo',   badge: 'badge-neutral',color: '#F97316' },
+  nuevo:               { label: 'Nuevo',              badge: 'badge-blue',   color: '#3B82F6' },
+  en_revision:         { label: 'En revisión',        badge: 'badge-yellow', color: '#F59E0B' },
+  enviado:             { label: 'Enviado',             badge: 'badge-yellow', color: '#EAB308' },
+  pendiente_aprobacion:{ label: 'Pendiente aprobación',badge: 'badge-yellow',color: '#F59E0B' },
+  aprobado:            { label: 'Aprobado',            badge: 'badge-green',  color: '#48BB78' },
+  en_ejecucion:        { label: 'En ejecución',        badge: 'badge-green',  color: '#22C55E' },
+  finalizado:          { label: 'Finalizado',          badge: 'badge-green',  color: '#16A34A' },
+  de_baja:             { label: 'De baja',             badge: 'badge-red',    color: '#FC8181' },
 };
 
 const TYPE_MAP: Record<string, { label: string; icon: any; color: string }> = {
@@ -69,8 +71,8 @@ const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   urgente: { label: 'Urgente', color: 'text-danger-bright' },
 };
 
-const ACTIVE_STATUSES = ['nuevo', 'en_revision'];
-const ARCHIVE_STATUSES = ['borrador', 'cotizado', 'aprobado', 'en_ejecucion', 'completado', 'rechazado'];
+const ACTIVE_STATUSES = ['nuevo', 'en_revision', 'pendiente_relevo', 'falta_presupuestar'];
+const ARCHIVE_STATUSES = ['enviado', 'pendiente_aprobacion', 'aprobado', 'en_ejecucion', 'finalizado', 'de_baja'];
 
 const formatGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
 const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -157,10 +159,10 @@ export default function AdminPresupuestosPage() {
   });
 
   // KPI calcs
-  const totalCotizado = items.filter(i => ['cotizado','aprobado','en_ejecucion','completado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || Number(i.estimatedValue) || 0), 0);
-  const totalAprobado = items.filter(i => ['aprobado','en_ejecucion','completado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
-  const totalCompletado = items.filter(i => i.status === 'completado').reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
-  const tasaCierre = allArchive.length > 0 ? Math.round((items.filter(i => i.status === 'completado').length / (items.filter(i => i.status === 'completado').length + items.filter(i => i.status === 'rechazado').length || 1)) * 100) : 0;
+  const totalCotizado = items.filter(i => ['enviado','pendiente_aprobacion','aprobado','en_ejecucion','finalizado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || Number(i.estimatedValue) || 0), 0);
+  const totalAprobado = items.filter(i => ['aprobado','en_ejecucion','finalizado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
+  const totalCompletado = items.filter(i => i.status === 'finalizado').reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
+  const tasaCierre = allArchive.length > 0 ? Math.round((items.filter(i => i.status === 'finalizado').length / (items.filter(i => i.status === 'finalizado').length + items.filter(i => i.status === 'de_baja').length || 1)) * 100) : 0;
 
   const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
     { key: 'dashboard',    label: 'Tablero de control', icon: BarChart2 },
@@ -239,7 +241,7 @@ export default function AdminPresupuestosPage() {
 
       {/* Planificación tab */}
       {activeTab === 'planificacion' && (
-        <PlanificacionTab items={items.filter(i => ['aprobado','en_ejecucion','nuevo','en_revision','cotizado'].includes(i.status))} loading={loading} onOpen={(id) => router.push(`/admin/presupuestos/${id}`)} />
+        <PlanificacionTab items={items.filter(i => ['aprobado','en_ejecucion','nuevo','en_revision','enviado','pendiente_aprobacion','pendiente_relevo','falta_presupuestar'].includes(i.status))} loading={loading} onOpen={(id) => router.push(`/admin/presupuestos/${id}`)} />
       )}
 
       {/* Create modal */}
@@ -984,7 +986,7 @@ const DRAFT_KEY = 'presupuesto_draft';
 const EMPTY_FORM = { customerName: '', customerEmail: '', customerPhone: '', customerCompany: '', customerAddress: '', serviceTitle: '', serviceType: 'mantenimiento', description: '', details: '', estimatedValue: '', finalValue: '', estimatedDuration: '', scheduledDate: '', assignedTo: '', priority: 'media' };
 
 function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: { onClose: () => void; onCreated: (id?: string) => void; initialData?: Record<string, string>; aiResult?: AsistenteResult }) {
-  const [saving, setSaving] = useState<null | 'borrador' | 'cotizado'>(null);
+  const [saving, setSaving] = useState<null | 'falta_presupuestar' | 'enviado'>(null);
   const [autoSaved, setAutoSaved] = useState(false);
   const [restored, setRestored] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -1023,7 +1025,7 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: {
     customerAddress: c.address || prev.customerAddress,
   }));
 
-  const guardar = async (status: 'borrador' | 'cotizado') => {
+  const guardar = async (status: 'falta_presupuestar' | 'enviado') => {
     if (!f.serviceTitle.trim()) return;
     setSaving(status); setSaveError('');
     try {
@@ -1115,13 +1117,13 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: {
         </div>
         <div className="shrink-0 border-t border-steel-900/40 bg-carbon-light px-6 py-4">
           {saveError && <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-body text-caption text-red-400">{saveError}</div>}
-          <p className="mb-3 font-body text-caption text-steel-500"><span className="text-steel-700">Borrador:</span> guardá y continuá después. <span className="text-steel-700">Crear:</span> va al Archivo como presupuesto cotizado.</p>
+          <p className="mb-3 font-body text-caption text-steel-500"><span className="text-steel-700">Falta presupuestar:</span> guardá y continuá después. <span className="text-steel-700">Enviado:</span> va al Archivo como presupuesto enviado al cliente.</p>
           <div className="flex gap-3">
-            <button onClick={() => guardar('borrador')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-secondary flex-1 justify-center gap-2 disabled:opacity-50">
-              {saving === 'borrador' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />} Guardar borrador
+            <button onClick={() => guardar('falta_presupuestar')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-secondary flex-1 justify-center gap-2 disabled:opacity-50">
+              {saving === 'falta_presupuestar' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />} Falta presupuestar
             </button>
-            <button onClick={() => guardar('cotizado')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-primary flex-1 justify-center gap-2 disabled:opacity-50">
-              {saving === 'cotizado' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Crear presupuesto
+            <button onClick={() => guardar('enviado')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-primary flex-1 justify-center gap-2 disabled:opacity-50">
+              {saving === 'enviado' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Crear presupuesto
             </button>
           </div>
         </div>
