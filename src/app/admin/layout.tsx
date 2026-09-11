@@ -27,13 +27,13 @@ const navGroups: NavGroup[] = [
     { href: '/admin/reportes/ecommerce', label: 'Reporte E-com', icon: TrendingUp },
   ]},
   { label: 'Servicios', items: [
-    { href: '/admin/servicios', label: 'Servicios', icon: Wrench },
     { href: '/admin/presupuestos', label: 'Presupuestos', icon: Calculator },
     { href: '/admin/inventario', label: 'Lista de Precio', icon: ClipboardList },
     { href: '/admin/reportes/servicios', label: 'Reporte Serv.', icon: ClipboardList },
   ]},
   { label: 'Sitio Web', items: [
     { href: '/admin/contenido', label: 'Contenido', icon: PenSquare },
+    { href: '/admin/servicios', label: 'Servicios', icon: Wrench },
     { href: '/admin/portfolio', label: 'Portfolio', icon: FolderOpen },
     { href: '/admin/carousel', label: 'Carrusel hero', icon: Layers },
     { href: '/admin/promos', label: 'Banners / Promos', icon: Megaphone },

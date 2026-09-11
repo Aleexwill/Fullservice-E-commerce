@@ -1,9 +1,18 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Wrench, X, Save, GripVertical, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Wrench, X, Save, RefreshCw, Sparkles } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 import { ImageUploader } from '@/components/admin/image-uploader';
+
+const SERVICIOS_PREDEFINIDOS = [
+  { title: 'Instalaciones eléctricas', description: 'Instalación, mantenimiento y reparación de sistemas eléctricos residenciales e industriales.', category: 'mantenimiento', icon: 'Zap', features: ['Tableros eléctricos', 'Iluminación LED', 'Puesta a tierra', 'Mantenimiento preventivo'], isFeatured: true, order: 0 },
+  { title: 'Plomería e hidráulica', description: 'Reparación de cañerías, instalación de sanitarios y sistemas de bombas de agua.', category: 'mantenimiento', icon: 'Droplets', features: ['Reparación de pérdidas', 'Instalación sanitaria', 'Bombas de agua', 'Sistemas de riego'], isFeatured: true, order: 1 },
+  { title: 'Pintura y acabados', description: 'Pintura interior y exterior, impermeabilización y revestimientos decorativos.', category: 'mantenimiento', icon: 'Paintbrush', features: ['Pintura interior/exterior', 'Impermeabilización', 'Texturizados', 'Barnizado'], isFeatured: false, order: 2 },
+  { title: 'Obras nuevas', description: 'Construcción de viviendas, locales comerciales y naves industriales desde cero.', category: 'civil', icon: 'HardHat', features: ['Viviendas', 'Locales comerciales', 'Galpones', 'Fundaciones'], isFeatured: true, order: 3 },
+  { title: 'Estructuras metálicas', description: 'Diseño, fabricación y montaje de estructuras metálicas para todo tipo de proyectos.', category: 'metalurgica', icon: 'Factory', features: ['Naves industriales', 'Galpones', 'Entrepisos', 'Cobertizos'], isFeatured: false, order: 4 },
+  { title: 'Herrería y soldadura', description: 'Portones, rejas, escaleras, barandas y trabajos de herrería a medida.', category: 'metalurgica', icon: 'Factory', features: ['Portones automáticos', 'Rejas de seguridad', 'Escaleras', 'Barandas'], isFeatured: false, order: 5 },
+];
 
 interface Service {
   id: string; title: string; description: string; category: string; icon: string;
@@ -42,6 +51,16 @@ export default function AdminServiciosPage() {
   };
 
   const del = async (id: string) => { if (!confirm('¿Eliminar?')) return; await fetch(`/api/servicios-cms/${id}`, { method: 'DELETE' }); fetch_(); };
+
+  const seedPredefinidos = async () => {
+    if (!confirm('¿Cargar los 6 servicios predefinidos? Solo se crean los que no existen aún.')) return;
+    for (const svc of SERVICIOS_PREDEFINIDOS) {
+      const exists = services.some((s) => s.title === svc.title);
+      if (exists) continue;
+      await fetch('/api/servicios-cms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...svc, isActive: true, image: '' }) });
+    }
+    fetch_();
+  };
   const toggle = async (id: string, field: string, val: boolean) => { await fetch(`/api/servicios-cms/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [field]: !val }) }); fetch_(); };
 
   const addFeature = () => {
@@ -59,6 +78,11 @@ export default function AdminServiciosPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={fetch_} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
+          {services.length === 0 && (
+            <button onClick={seedPredefinidos} className="btn-secondary flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-yellow-bright" /> Cargar predefinidos
+            </button>
+          )}
           <button onClick={openNew} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo servicio</button>
         </div>
       </div>
@@ -69,8 +93,13 @@ export default function AdminServiciosPage() {
         <div className="card p-12 text-center">
           <Wrench className="mx-auto h-12 w-12 text-steel-700" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin servicios</h3>
-          <p className="mt-2 font-body text-body-sm text-steel-500">Agrega los servicios que ofreces para mostrarlos en el sitio.</p>
-          <button onClick={openNew} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Crear servicio</button>
+          <p className="mt-2 font-body text-body-sm text-steel-500">Cargá los 6 servicios predefinidos y luego agregá la imagen de cada uno.</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button onClick={seedPredefinidos} className="btn-primary inline-flex gap-2">
+              <Sparkles className="h-4 w-4" /> Cargar servicios predefinidos
+            </button>
+            <button onClick={openNew} className="btn-secondary inline-flex gap-2"><Plus className="h-4 w-4" /> Crear manualmente</button>
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
