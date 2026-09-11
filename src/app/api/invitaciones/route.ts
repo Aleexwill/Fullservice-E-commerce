@@ -6,6 +6,48 @@ import { can } from '@/lib/roles';
 import { sendInvitationEmail } from '@/lib/email';
 import type { Role } from '@/lib/roles';
 
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get(SESSION_COOKIE)?.value;
+    const session = await verifySessionToken(token).catch(() => null);
+    if (!session || !can(session.role, 'canManageUsers')) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const invitations = await prisma.invitation.findMany({
+      where: { usedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, email: true, name: true, role: true, expiresAt: true, createdAt: true },
+    });
+
+    return NextResponse.json({ invitations });
+  } catch (error) {
+    console.error('Error GET /api/invitaciones:', error);
+    const msg = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = request.cookies.get(SESSION_COOKIE)?.value;
+    const session = await verifySessionToken(token).catch(() => null);
+    if (!session || !can(session.role, 'canManageUsers')) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const { id } = await request.json();
+    if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
+
+    await prisma.invitation.update({ where: { id }, data: { expiresAt: new Date(0) } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error('Error DELETE /api/invitaciones:', error);
+    const msg = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get(SESSION_COOKIE)?.value;

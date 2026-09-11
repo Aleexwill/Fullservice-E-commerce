@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { UserPlus, MoreVertical, Trash2, ToggleLeft, ToggleRight, Mail } from 'lucide-react';
+import { UserPlus, Trash2, ToggleLeft, ToggleRight, Mail, Clock, X } from 'lucide-react';
 import { ROLE_LABELS } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 
@@ -14,18 +14,36 @@ interface User {
   createdAt: string;
 }
 
+interface Invitation {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 const ROLE_BADGE: Record<string, string> = {
   admin: 'bg-blue-muted text-blue-bright',
   vendedor: 'bg-green-900/40 text-green-400',
   tecnico: 'bg-amber-900/40 text-amber-400',
 };
 
+function timeLeft(isoDate: string) {
+  const ms = new Date(isoDate).getTime() - Date.now();
+  if (ms <= 0) return 'Expirada';
+  const h = Math.floor(ms / 3600000);
+  if (h < 1) return 'Menos de 1 h';
+  if (h < 24) return `${h} h`;
+  return `${Math.floor(h / 24)} d`;
+}
+
 export default function UsuariosPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
 
-  // Invite form
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<Role>('vendedor');
@@ -36,9 +54,14 @@ export default function UsuariosPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/usuarios');
-      const data = await res.json();
-      setUsers(data.users ?? []);
+      const [usersRes, invitesRes] = await Promise.all([
+        fetch('/api/usuarios'),
+        fetch('/api/invitaciones'),
+      ]);
+      const usersData = await usersRes.json();
+      const invitesData = invitesRes.ok ? await invitesRes.json() : { invitations: [] };
+      setUsers(usersData.users ?? []);
+      setInvitations(invitesData.invitations ?? []);
     } finally {
       setLoading(false);
     }
@@ -75,6 +98,16 @@ export default function UsuariosPage() {
     }
   }
 
+  async function revokeInvitation(inv: Invitation) {
+    if (!confirm(`¿Revocar la invitación para ${inv.email}?`)) return;
+    await fetch('/api/invitaciones', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: inv.id }),
+    });
+    load();
+  }
+
   async function toggleActive(user: User) {
     await fetch(`/api/usuarios/${user.id}`, {
       method: 'PUT',
@@ -104,7 +137,7 @@ export default function UsuariosPage() {
       </div>
 
       {inviteMsg && (
-        <div className="mb-4 rounded-md bg-green-900/30 px-4 py-3 font-body text-body-sm text-green-400 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2 rounded-md bg-green-900/30 px-4 py-3 font-body text-body-sm text-green-400">
           <Mail className="h-4 w-4 shrink-0" />
           {inviteMsg}
         </div>
@@ -112,71 +145,99 @@ export default function UsuariosPage() {
 
       {/* Invite modal */}
       {showInvite && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-carbon/70 backdrop-blur-sm px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-carbon/70 px-4 backdrop-blur-sm">
           <div className="card w-full max-w-md p-6">
             <h2 className="mb-4 font-display text-h4 text-arctic">Invitar usuario</h2>
             <form onSubmit={handleInvite} className="space-y-4">
               <div>
                 <label className="mb-1 block font-body text-caption text-steel-400">Email</label>
-                <input
-                  type="email"
-                  value={inviteEmail}
-                  onChange={e => setInviteEmail(e.target.value)}
-                  placeholder="correo@ejemplo.com"
-                  className="input w-full"
-                  required
-                />
+                <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="correo@ejemplo.com" className="input w-full" required />
               </div>
               <div>
                 <label className="mb-1 block font-body text-caption text-steel-400">Nombre (opcional)</label>
-                <input
-                  type="text"
-                  value={inviteName}
-                  onChange={e => setInviteName(e.target.value)}
-                  placeholder="Nombre del usuario"
-                  className="input w-full"
-                />
+                <input type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Nombre del usuario" className="input w-full" />
               </div>
               <div>
                 <label className="mb-1 block font-body text-caption text-steel-400">Rol</label>
-                <select
-                  value={inviteRole}
-                  onChange={e => setInviteRole(e.target.value as Role)}
-                  className="input w-full"
-                >
+                <select value={inviteRole} onChange={e => setInviteRole(e.target.value as Role)} className="input w-full">
                   <option value="vendedor">Vendedor</option>
                   <option value="tecnico">Técnico</option>
                   <option value="admin">Administrador</option>
                 </select>
               </div>
               {inviteError && (
-                <p className="rounded-md bg-danger-light/10 px-3 py-2 font-body text-caption text-danger-light">
-                  {inviteError}
-                </p>
+                <p className="rounded-md bg-danger-light/10 px-3 py-2 font-body text-caption text-danger-light">{inviteError}</p>
               )}
               <div className="flex gap-2 pt-2">
                 <button type="submit" disabled={inviting} className="btn-primary flex-1 justify-center disabled:opacity-50">
                   {inviting ? 'Enviando...' : 'Enviar invitación'}
                 </button>
-                <button type="button" onClick={() => setShowInvite(false)} className="btn-ghost flex-1 justify-center">
-                  Cancelar
-                </button>
+                <button type="button" onClick={() => setShowInvite(false)} className="btn-ghost flex-1 justify-center">Cancelar</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* Pending invitations */}
+      {invitations.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-3 flex items-center gap-2 font-display text-h4 uppercase text-steel-400">
+            <Clock className="h-4 w-4" /> Invitaciones pendientes
+          </h2>
+          <div className="card overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-steel-900/40">
+                  <th className="px-4 py-3 text-left font-body text-caption font-semibold uppercase tracking-wider text-steel-500">Email</th>
+                  <th className="px-4 py-3 text-left font-body text-caption font-semibold uppercase tracking-wider text-steel-500">Rol</th>
+                  <th className="px-4 py-3 text-left font-body text-caption font-semibold uppercase tracking-wider text-steel-500">Expira en</th>
+                  <th className="px-4 py-3 text-right font-body text-caption font-semibold uppercase tracking-wider text-steel-500">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-steel-900/30">
+                {invitations.map(inv => (
+                  <tr key={inv.id} className="hover:bg-steel-900/20">
+                    <td className="px-4 py-3">
+                      <p className="font-body text-body-sm font-medium text-arctic">{inv.name || '—'}</p>
+                      <p className="font-body text-caption text-steel-500">{inv.email}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex rounded-full px-2 py-0.5 font-body text-[0.65rem] font-semibold ${ROLE_BADGE[inv.role] ?? 'bg-steel-900 text-steel-300'}`}>
+                        {ROLE_LABELS[inv.role as Role] ?? inv.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="font-body text-caption text-yellow-bright">{timeLeft(inv.expiresAt)}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end">
+                        <button
+                          onClick={() => revokeInvitation(inv)}
+                          title="Revocar invitación"
+                          className="rounded p-1.5 text-steel-500 hover:bg-danger-light/10 hover:text-danger-light"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* User list */}
+      <h2 className="mb-3 font-display text-h4 uppercase text-steel-400">Usuarios registrados</h2>
       <div className="card overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-steel-700 border-t-arctic" />
           </div>
         ) : users.length === 0 ? (
-          <p className="py-16 text-center font-body text-body-sm text-steel-500">
-            No hay usuarios aún. Invitá al primero.
-          </p>
+          <p className="py-16 text-center font-body text-body-sm text-steel-500">No hay usuarios aún. Invitá al primero.</p>
         ) : (
           <table className="w-full">
             <thead>
@@ -206,18 +267,10 @@ export default function UsuariosPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => toggleActive(user)}
-                        aria-label={user.isActive ? 'Desactivar usuario' : 'Activar usuario'}
-                        className="rounded p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"
-                      >
+                      <button onClick={() => toggleActive(user)} aria-label={user.isActive ? 'Desactivar' : 'Activar'} className="rounded p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic">
                         {user.isActive ? <ToggleRight className="h-4 w-4 text-green-400" /> : <ToggleLeft className="h-4 w-4" />}
                       </button>
-                      <button
-                        onClick={() => deleteUser(user)}
-                        aria-label="Eliminar usuario"
-                        className="rounded p-1.5 text-steel-500 hover:bg-danger-light/10 hover:text-danger-light"
-                      >
+                      <button onClick={() => deleteUser(user)} aria-label="Eliminar usuario" className="rounded p-1.5 text-steel-500 hover:bg-danger-light/10 hover:text-danger-light">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
