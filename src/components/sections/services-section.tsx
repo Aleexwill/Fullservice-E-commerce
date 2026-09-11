@@ -33,38 +33,41 @@ export async function ServicesSection() {
     featured = fallbackServices;
   }
 
+  const cols = featured.length === 4 ? 4 : featured.length <= 3 ? featured.length : 4;
+
   return (
-    <section className="section bg-white">
+    <section className="fs-services">
       <div className="container-main">
-        <div className="mb-12">
-          <span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Nuestros servicios</span>
-          <h2 className="font-display text-h1 uppercase text-[#0B1120]">Servicios profesionales</h2>
-          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-4 max-w-lg font-body text-body text-[#4A5E80]">Cubrimos todas las necesidades de mantenimiento, construcción y metalúrgica para empresas y hogares.</p>
+        <div className="fs-section-heading">
+          <div>
+            <p className="fs-eyebrow">QUÉ PODEMOS HACER POR VOS</p>
+            <h2>Soluciones que<br />hacen la diferencia.</h2>
+          </div>
+          <p className="fs-section-description">Del mantenimiento cotidiano a una nueva obra. Encontrá el servicio que necesita tu espacio.</p>
         </div>
-        <div className={`grid grid-cols-1 gap-6 ${featured.length <= 3 ? 'md:grid-cols-3' : featured.length === 4 ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
-          {featured.map((service) => {
+        <div className="fs-services-grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+          {featured.map((service, i) => {
             const Icon = ICON_MAP[service.icon] || Wrench;
-            const href = `/servicios?categoria=${encodeURIComponent(service.category)}`;
-            const hasImg = !!service.image;
+            const href = service.category === 'limpieza'
+              ? '/contacto?tipo=presupuesto&servicio=Limpieza%20profesional'
+              : `/servicios?categoria=${encodeURIComponent(service.category)}`;
             return (
-              <Link key={service.id} href={href} className="card-interactive group relative overflow-hidden p-6">
-                {hasImg && (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={service.image} alt={service.title} className="absolute inset-0 h-full w-full object-cover opacity-15 transition-opacity duration-300 group-hover:opacity-25" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-white/90 pointer-events-none" />
-                  </>
+              <Link key={service.id} href={href} className="fs-service" style={{ position: 'relative', overflow: 'hidden' }}>
+                {service.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={service.image} alt="" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.08, pointerEvents: 'none' }} />
                 )}
-                <div className="relative">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]">
-                    <Icon className="h-5 w-5" />
+                <div style={{ position: 'relative' }}>
+                  <div className="fs-service-top">
+                    <Icon size={30} />
+                    <span>0{i + 1}</span>
                   </div>
-                  <h3 className="font-display text-h4 text-[#0B1120] transition-colors group-hover:text-[#2D8FCC]">{service.title}</h3>
-                  <p className="mt-2 font-body text-body-sm leading-relaxed text-[#4A5E80]">{service.description}</p>
-                  <div className="mt-4 inline-flex items-center gap-1 font-body text-label font-semibold uppercase tracking-[0.06em] text-[#2D8FCC]">
-                    Ver más <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                  </div>
+                  <h3>{service.title}</h3>
+                  <p>{service.description}</p>
+                  <span className="fs-service-link">
+                    {service.category === 'limpieza' ? 'Consultar' : 'Explorar servicio'}
+                    <ArrowRight size={18} />
+                  </span>
                 </div>
               </Link>
             );
