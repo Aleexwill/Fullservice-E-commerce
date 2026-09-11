@@ -23,7 +23,6 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
             select: {
               id: true, code: true, status: true, serviceTitle: true, serviceType: true,
               estimatedValue: true, finalValue: true, createdAt: true, scheduledDate: true,
-              seguimientoData: true,
             },
           })
         : [],

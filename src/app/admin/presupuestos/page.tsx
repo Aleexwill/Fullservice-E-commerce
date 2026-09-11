@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone,
@@ -180,6 +181,7 @@ export default function AdminPresupuestosPage() {
           <p className="mt-1 font-body text-body-sm text-steel-300">Tablero de control — Full Service & Clean</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/admin/presupuestos/dashboard" className="btn-secondary"><BarChart2 className="h-4 w-4" /> Dashboard</Link>
           <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo presupuesto</button>
         </div>
       </div>

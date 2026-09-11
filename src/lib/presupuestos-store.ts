@@ -153,11 +153,11 @@ export async function getPresupuestoStats() {
     byPriority[p.priority] = (byPriority[p.priority] || 0) + 1;
     if (p.estimatedValue) totalEstimated += Number(p.estimatedValue);
     if (p.finalValue) totalFinal += Number(p.finalValue);
-    if (p.status === 'completado') completedCount++;
-    if (p.status === 'aprobado' || p.status === 'en_ejecucion' || p.status === 'completado') approvedCount++;
+    if (p.status === 'finalizado') completedCount++;
+    if (['aprobado', 'en_ejecucion', 'finalizado'].includes(p.status)) approvedCount++;
   });
 
-  const nuevos = all.filter((p) => p.status === 'nuevo').length;
+  const nuevos = all.filter((p) => ['nuevo', 'falta_presupuestar', 'pendiente_relevo'].includes(p.status)).length;
   const enEjecucion = all.filter((p) => p.status === 'en_ejecucion').length;
   const conversionRate = all.length > 0 ? Math.round((approvedCount / all.length) * 100) : 0;
 
