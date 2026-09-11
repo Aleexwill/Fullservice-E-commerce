@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { UserPlus, Trash2, ToggleLeft, ToggleRight, Mail, Clock, X } from 'lucide-react';
+import Link from 'next/link';
+import { UserPlus, Trash2, ToggleLeft, ToggleRight, Mail, Clock, X, Shield } from 'lucide-react';
 import { ROLE_LABELS } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 
@@ -130,10 +131,14 @@ export default function UsuariosPage() {
           <h1 className="font-display text-h2 uppercase text-arctic">Usuarios</h1>
           <p className="font-body text-body-sm text-steel-500">Gestioná los usuarios del panel de administración</p>
         </div>
-        <button onClick={() => setShowInvite(true)} className="btn-primary flex items-center gap-2">
-          <UserPlus className="h-4 w-4" />
-          Invitar usuario
-        </button>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/usuarios/roles" className="btn-secondary flex items-center gap-2">
+            <Shield className="h-4 w-4" /> Roles
+          </Link>
+          <button onClick={() => setShowInvite(true)} className="btn-primary flex items-center gap-2">
+            <UserPlus className="h-4 w-4" /> Invitar usuario
+          </button>
+        </div>
       </div>
 
       {inviteMsg && (

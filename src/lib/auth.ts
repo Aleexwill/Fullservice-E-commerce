@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { can } from './roles';
+import { can, ROLE_PERMISSIONS } from './roles';
 import type { Role } from './roles';
+import { prisma } from './prisma';
 
 const encoder = new TextEncoder();
 
@@ -50,9 +51,25 @@ export async function requireRole(
 ): Promise<SessionPayload | NextResponse> {
   const result = await requireAuth();
   if (result instanceof NextResponse) return result;
-  if (!can(result.role, permission)) {
-    return NextResponse.json({ error: 'Sin permiso' }, { status: 403 });
+
+  // Check built-in roles first
+  if (result.role in ROLE_PERMISSIONS) {
+    if (!can(result.role as Role, permission)) {
+      return NextResponse.json({ error: 'Sin permiso' }, { status: 403 });
+    }
+    return result;
   }
+
+  // Custom role: look up permissions in DB
+  try {
+    const customRole = await prisma.customRole.findUnique({ where: { name: result.role } });
+    if (!customRole) return NextResponse.json({ error: 'Rol no encontrado' }, { status: 403 });
+    const perms = customRole.permissions as Record<string, boolean>;
+    if (!perms[permission]) return NextResponse.json({ error: 'Sin permiso' }, { status: 403 });
+  } catch {
+    return NextResponse.json({ error: 'Error verificando permisos' }, { status: 500 });
+  }
+
   return result;
 }
 
