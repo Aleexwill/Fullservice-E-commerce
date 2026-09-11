@@ -27,13 +27,13 @@ export async function ServicesSection() {
   let featured: typeof fallbackServices;
   try {
     const all = await getAllServices();
-    const cms = all.filter((s) => s.isActive && s.isFeatured);
+    const cms = all.filter((s) => s.isActive && s.isFeatured).slice(0, 4);
     featured = cms.length > 0 ? cms : fallbackServices;
   } catch {
     featured = fallbackServices;
   }
 
-  const cols = featured.length === 4 ? 4 : featured.length <= 3 ? featured.length : 4;
+  const cols = featured.length === 4 ? 4 : featured.length === 3 ? 3 : featured.length === 2 ? 2 : 1;
 
   return (
     <section className="fs-services">
