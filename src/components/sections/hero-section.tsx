@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { HeroDiagonalCarousel } from '@/components/sections/hero-carousel';
 import { ArrowRight, Wrench, Droplets, HardHat, Factory } from 'lucide-react';
 
 export function HeroSection({ image, title }: { image?: string; title?: string }) {
@@ -14,5 +15,5 @@ export function HeroSection({ image, title }: { image?: string; title?: string }
       {image ? <Image src={image} alt={title || 'Trabajo de Full Service & Clean'} fill priority sizes="(max-width: 900px) 100vw, 50vw" className="object-cover"/> : <><span className="fs-visual-label">EXPERIENCIA QUE CONECTA</span><div className="fs-service-list">{[[Wrench,'Mantenimiento'],[Droplets,'Limpieza profesional'],[HardHat,'Obras civiles'],[Factory,'Metalúrgica']].map(([Icon,label],i)=>{const Symbol=Icon as typeof Wrench; return <div key={String(label)}><span>0{i+1}</span><Symbol size={24}/><strong>{String(label)}</strong></div>;})}</div></>}
       <div className="fs-visual-caption"><span>Un equipo. Soluciones integrales.</span><ArrowRight size={24}/></div>
     </div>
-  </div></section>;
+  </div><div className="container-main fs-hero-carousel"><HeroDiagonalCarousel /></div></section>;
 }
