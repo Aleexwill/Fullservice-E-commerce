@@ -1,5 +1,5 @@
 # Mejoras Pendientes — Panel Admin
-> Auditoría realizada: Septiembre 2026
+> Auditoría original: Septiembre 2026. Estados corregidos por inspección de código el 11/09/2026; pendientes restantes conservados para validación.
 
 ---
 
@@ -8,7 +8,7 @@
 | # | Problema | Módulo | Notas |
 |---|----------|--------|-------|
 | 1 | Sin paginación en listado de productos | Productos | **Resuelto** — paginación de 20 items + filtros de estado/categoría |
-| 2 | `scheduledDate` en presupuestos es texto libre | Presupuestos | Reemplazar por date picker; almacenar como `DateTime` en BD |
+| 2 | `scheduledDate` en presupuestos es texto libre | Presupuestos | Selector de fecha implementado; pendiente migrar el String de BD a `DateTime` |
 | 3 | Toggles de notificaciones (email/WhatsApp) no tienen implementación real | Config | Necesita integración con servicio SMTP o Twilio/WhatsApp API |
 | 4 | `_forceCode` hack en API de presupuestos PUT | Presupuestos | Mover regeneración de código a lógica explícita en la API |
 
@@ -18,8 +18,8 @@
 
 | # | Problema | Módulo |
 |---|----------|--------|
-| 5 | Panel de cliente es solo lectura — no se puede editar desde el detalle | Clientes |
-| 6 | Sin generación de PDF para presupuestos | Presupuestos |
+| 5 | **Resuelto** — edición de campos desde la ficha del cliente | Clientes |
+| 6 | **Resuelto** — HTML imprimible y guardado como PDF desde el navegador | Presupuestos |
 | 7 | Sin botón "Convertir lead → presupuesto" | Leads / CRM |
 | 8 | Íconos de servicios se guardan como string (`"Wrench"`) sin preview real | Servicios CMS |
 | 9 | Dos sistemas de banners duplicados sin integración (`/contenido` + `/promos`) | Contenido |
@@ -54,7 +54,7 @@
 
 | # | Funcionalidad |
 |---|---------------|
-| F1 | Múltiples usuarios con roles (admin / vendedor / técnico) |
+| F1 | **Resuelto** — usuarios con roles (admin / vendedor / técnico) e invitaciones |
 | F2 | Flujo de aprobación interna antes de enviar presupuesto al cliente |
 | F3 | Firma digital o confirmación formal del cliente en presupuesto |
 | F4 | Diff entre versiones de presupuesto |
