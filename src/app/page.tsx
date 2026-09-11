@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { Star, ArrowRight } from 'lucide-react';
+import { Star, ArrowRight, Target, Eye } from 'lucide-react';
 import { HeroSection } from '@/components/sections/hero-section';
 import { ServicesSection, CtaSection } from '@/components/sections/services-section';
 import { getAllProjects, type Project } from '@/lib/portfolio-store';
@@ -17,7 +17,34 @@ import { formatPrice, getEffectivePrice } from '@/lib/utils';
    ============================================================ */
 
 function AboutSection({ about }: { about: SiteContent['about'] }) {
-  return <section className="fs-about"><div className="container-main fs-about-grid"><div><p className="fs-eyebrow">CONOCENOS</p><h2>Un equipo que se involucra en tu proyecto.</h2></div><div><p>{about.description}</p><Link href="/contacto" className="fs-text-link">Conversemos <ArrowRight size={18}/></Link></div></div></section>;
+  return (
+    <section className="fs-about" aria-labelledby="about-heading">
+      <div className="container-main">
+        <div className="fs-about-grid">
+          <div>
+            <p className="fs-eyebrow">CONOCENOS</p>
+            <h2 id="about-heading">Un equipo que se involucra en tu proyecto.</h2>
+          </div>
+          <div>
+            <p>{about.description}</p>
+            <Link href="/contacto" className="fs-text-link">Conversemos <ArrowRight size={18} /></Link>
+          </div>
+        </div>
+        <div className="mt-10 grid gap-6 md:mt-14 md:grid-cols-2">
+          <article className="rounded-xl border border-[#dce5eb] bg-[#f2f6f8] p-6 sm:p-8">
+            <Target className="mb-5 h-8 w-8 text-[#257da8]" aria-hidden="true" />
+            <h3 className="mb-3 text-2xl">Nuestra misión</h3>
+            <p>{about.mission}</p>
+          </article>
+          <article className="rounded-xl border border-[#e8dfd4] bg-[#fcf7f0] p-6 sm:p-8">
+            <Eye className="mb-5 h-8 w-8 text-[#a95c19]" aria-hidden="true" />
+            <h3 className="mb-3 text-2xl">Nuestra visión</h3>
+            <p>{about.vision}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function PartnersSection() {
