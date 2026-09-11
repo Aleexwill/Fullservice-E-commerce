@@ -1,0 +1,53 @@
+/* Public redesign: every selector is isolated from the administration shell. */
+.fs-home{--fs-ink:#102331;--fs-muted:#546571;color:var(--fs-ink)}
+.fs-home h2{font-family:var(--font-body),sans-serif;font-size:clamp(2rem,3.5vw,3rem);font-weight:600;letter-spacing:-.045em;line-height:1.15;text-transform:none}
+.fs-home h3{font-family:var(--font-body),sans-serif;font-weight:600;letter-spacing:-.025em}
+.fs-home .fs-eyebrow{font-size:.75rem;letter-spacing:.15em;font-weight:600;color:#306a8a;margin-bottom:20px}
+.fs-hero{background:#edf2f4;padding:70px 0 80px}
+.fs-hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:64px;align-items:center}
+.fs-home h1{font-family:var(--font-body),sans-serif;font-size:clamp(3rem,5.3vw,5rem);letter-spacing:-.065em;line-height:1.07;font-weight:600;margin:26px 0}
+.fs-home h1 span{color:#257da8}
+.fs-intro{font-size:1.125rem;line-height:1.8;max-width:440px;color:var(--fs-muted)}
+.fs-actions{display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:32px}
+.fs-home .btn-primary,.fs-home .btn-secondary,.fs-home .btn-whatsapp{text-transform:none;letter-spacing:0;font-size:.9375rem;border-radius:8px}
+.fs-text-link{display:inline-flex;align-items:center;gap:12px;font-size:.9375rem;font-weight:600;padding:12px 0}
+.fs-text-link:hover{color:#257da8}
+.fs-hero-note{margin-top:30px;color:var(--fs-muted);font-size:.8125rem}
+.fs-hero-visual{min-height:450px;border-radius:4px 64px 4px 4px;position:relative;overflow:hidden;background:#102c3c;color:white;padding:36px;display:flex;flex-direction:column;justify-content:center}
+.fs-visual-label{font-size:.75rem;letter-spacing:.16em;color:#9ebccb;margin-bottom:28px}
+.fs-service-list>div{display:flex;align-items:center;gap:18px;padding:18px 0;border-top:1px solid #ffffff24}
+.fs-service-list>div>span{font-size:.75rem;color:#adc2ce}
+.fs-service-list strong{font-size:1.125rem;font-weight:500}
+.fs-service-list svg{color:#f1aa63;flex-shrink:0}
+.fs-visual-caption{position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:.875rem;margin-top:26px;padding-top:22px;border-top:1px solid #ffffff24}
+.fs-hero-visual.has-photo{justify-content:flex-end;min-height:490px}
+.has-photo .fs-visual-caption{background:#102331ed;padding:20px;border:0;margin:0 -16px -16px;border-radius:4px}
+.fs-partners{padding:48px 0 56px;border-bottom:1px solid #e2e9ed}
+.fs-partners-heading{text-align:center;margin-bottom:30px}
+.fs-home .fs-partners-heading h2{font-size:1.25rem;letter-spacing:-.02em}
+.fs-home .fs-partners-heading .fs-eyebrow{margin-bottom:10px;font-size:.75rem}
+.fs-partner-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px 28px}
+.fs-partner{display:flex;align-items:center;justify-content:center;min-width:0}
+.fs-partner-crop{position:relative;width:100%;aspect-ratio:1.59;overflow:hidden;background:white}
+.fs-partner-crop img{position:absolute;width:300%;height:400%;max-width:none;object-fit:fill}
+.fs-services,.fs-projects,.fs-process,.fs-about{padding:88px 0}
+.fs-section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:40px}
+.fs-section-description{max-width:350px;font-size:1rem;line-height:1.8;color:var(--fs-muted)}
+.fs-services-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid #dce5eb;border-radius:12px;overflow:hidden}
+.fs-service{padding:30px 24px;display:flex;flex-direction:column;border-right:1px solid #dce5eb;transition:background .2s}
+.fs-service:last-child{border-right:0}.fs-service:hover{background:#f0f6f9}
+.fs-service-top{display:flex;align-items:center;justify-content:space-between;color:#257da8;margin-bottom:46px}
+.fs-service-top span{font-size:.75rem;color:#657785}
+.fs-service h3{font-size:1.25rem;margin-bottom:14px}
+.fs-service p{font-size:1rem;line-height:1.7;color:var(--fs-muted)}
+.fs-service-link{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:30px;font-size:.875rem;font-weight:600}
+.fs-projects{background:#102331;color:white}.fs-projects .fs-eyebrow{color:#8dc2df}.fs-project-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:24px}
+.fs-project{position:relative;overflow:hidden;border-radius:8px;min-height:240px;background:#183747}.fs-project-0{grid-row:span 2;min-height:490px}
+.fs-project-image{position:absolute;inset:0}.fs-project-copy{position:absolute;bottom:0;inset-inline:0;padding:60px 28px 28px;background:linear-gradient(transparent,#071522e8)}
+.fs-project-copy span{font-size:.8125rem}.fs-project-copy h3{font-size:1.5rem;margin-top:8px}.fs-process{background:#f2f5f6}
+.fs-process-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px;margin-top:42px}.fs-step{display:block;font-size:2.75rem;font-weight:300;color:#257da8;margin-bottom:24px}.fs-process h3{font-size:1.25rem;margin-bottom:12px}.fs-process p,.fs-about p:not(.fs-eyebrow){font-size:1rem;line-height:1.8;color:var(--fs-muted)}
+.fs-about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}.fs-about .fs-text-link{margin-top:20px}
+.fs-home .section .card-interactive{box-shadow:none}.fs-home .section .card-interactive:hover{box-shadow:0 8px 24px #1023310c}
+@media(max-width:1000px){.fs-hero-grid{gap:32px}.fs-hero-visual{padding:24px}.fs-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fs-service{border-bottom:1px solid #dce5eb}.fs-service:nth-child(2){border-right:0}.fs-service:nth-last-child(-n+2){border-bottom:0}.fs-partner-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.fs-hero{padding:44px 0}.fs-hero-grid{grid-template-columns:1fr;gap:36px}.fs-home h1{font-size:clamp(2.5rem,10vw,3.6rem)}.fs-hero-visual,.fs-hero-visual.has-photo{min-height:340px;border-radius:4px 42px 4px 4px}.fs-partner-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.fs-services,.fs-projects,.fs-process,.fs-about{padding:56px 0}.fs-section-heading{display:block}.fs-section-description{margin-top:22px}.fs-service{padding:24px 18px}.fs-service h3{font-size:1.125rem}.fs-service-top{margin-bottom:28px}.fs-process-grid,.fs-about-grid,.fs-project-grid{grid-template-columns:1fr;gap:30px}.fs-project-0{min-height:340px;grid-row:auto}.fs-partners{padding:36px 0}.fs-step{margin-bottom:12px}.fs-home .fs-eyebrow{line-height:1.6}}
+@media(prefers-reduced-motion:reduce){.fs-home *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

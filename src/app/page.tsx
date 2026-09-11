@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { Star, Target, Eye, Heart } from 'lucide-react';
+import { Star, ArrowRight } from 'lucide-react';
 import { HeroSection } from '@/components/sections/hero-section';
-import { TrustBar, ServicesSection, CtaSection } from '@/components/sections/services-section';
-import { PromoBannerCarousel } from '@/components/sections/promo-banner-carousel';
+import { ServicesSection, CtaSection } from '@/components/sections/services-section';
+import { getAllProjects, type Project } from '@/lib/portfolio-store';
+import '@/styles/public-refresh.css';
 import { Isotipo } from '@/components/ui/isotipo';
 import { AddToCartButton } from '@/components/sections/add-to-cart-button';
 import { getCachedSettings } from '@/lib/settings-store';
@@ -16,45 +17,16 @@ import { formatPrice, getEffectivePrice } from '@/lib/utils';
    ============================================================ */
 
 function AboutSection({ about }: { about: SiteContent['about'] }) {
-  return (
-    <section className="section border-t border-gray-200">
-      <div className="container-main">
-        <div className="mb-12 text-center">
-          <span className="overline mb-2 block">Quiénes somos</span>
-          <h2 className="font-display text-h1 uppercase text-[#0B1120]">{about.title}</h2>
-          <div className="mx-auto mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mx-auto mt-4 max-w-2xl font-body text-body text-[#4A5E80]">
-            {about.description}
-          </p>
-        </div>
+  return <section className="fs-about"><div className="container-main fs-about-grid"><div><p className="fs-eyebrow">CONOCENOS</p><h2>Un equipo que se involucra en tu proyecto.</h2></div><div><p>{about.description}</p><Link href="/contacto" className="fs-text-link">Conversemos <ArrowRight size={18}/></Link></div></div></section>;
+}
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="card p-6">
-            <Target className="h-6 w-6 text-blue-bright" />
-            <h3 className="mt-3 font-display text-h3 text-[#0B1120]">Misión</h3>
-            <p className="mt-2 font-body text-body-sm text-[#4A5E80] leading-relaxed">{about.mission}</p>
-          </div>
-          <div className="card p-6">
-            <Eye className="h-6 w-6 text-blue-bright" />
-            <h3 className="mt-3 font-display text-h3 text-[#0B1120]">Visión</h3>
-            <p className="mt-2 font-body text-body-sm text-[#4A5E80] leading-relaxed">{about.vision}</p>
-          </div>
-        </div>
+function PartnersSection() {
+  const names = ['Tigre','Grupo MAO','Paraguay Textil','Agpar','Inyeplast','Innova Technology Paraguay','Ball','Granusa','Rodan','Gala','Sena Ingeniería','Agriplus'];
+  return <section className="fs-partners"><div className="container-main"><div className="fs-partners-heading"><p className="fs-eyebrow">RELACIONES QUE CONSTRUIMOS</p><h2>Empresas con las que trabajamos</h2></div><div className="fs-partner-grid">{names.map((name,i)=><div key={name} className="fs-partner"><div role="img" aria-label={name} className="fs-partner-crop"><img src="/partners/empresas.jpeg" alt="" style={{left:`-${(i%3)*100}%`,top:`-${Math.floor(i/3)*100}%`}}/></div></div>)}</div></div></section>;
+}
 
-        {about.values.length > 0 && (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {about.values.map((value, i) => (
-              <div key={i} className="card p-5">
-                <Heart className="h-5 w-5 text-orange" />
-                <h4 className="mt-2 font-display text-h4 text-[#0B1120]">{value.title}</h4>
-                <p className="mt-1 font-body text-body-sm text-[#4A5E80]">{value.description}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
+function ProcessSection() {
+  return <section className="fs-process"><div className="container-main"><p className="fs-eyebrow">DE LA IDEA A LA EJECUCIÓN</p><h2>Hagámoslo simple.</h2><div className="fs-process-grid">{[['Contanos qué necesitás','Compartí el tipo de trabajo, la ubicación y los detalles de tu proyecto.'],['Definimos el alcance','Coordinamos los detalles para preparar una propuesta acorde a tu necesidad.'],['Coordinamos el trabajo','Acordamos las tareas y los próximos pasos con vos.']].map(([title,copy],i)=><div key={title}><span className="fs-step">0{i+1}</span><h3>{title}</h3><p>{copy}</p></div>)}</div></div></section>;
 }
 
 /* ============================================================
@@ -142,95 +114,25 @@ async function FeaturedProducts() {
   );
 }
 
-function PortfolioPreview() {
-  const projects = [
-    { id: 1, title: 'Remodelación de oficinas corporativas', category: 'Construcción civil', location: 'Asunción', badge: 'blue' as const },
-    { id: 2, title: 'Estructura metálica para nave industrial', category: 'Metalúrgica', location: 'Luque', badge: 'green' as const },
-    { id: 3, title: 'Mantenimiento integral de edificio', category: 'Mantenimiento', location: 'San Lorenzo', badge: 'yellow' as const },
-  ];
-
-  const badgeClass = { blue: 'badge-blue', green: 'badge-green', yellow: 'badge-yellow' };
-
-  return (
-    <section className="section border-t border-gray-200">
-      <div className="container-main">
-        <div className="mb-12">
-          <span className="overline mb-2 block">Proyectos</span>
-          <h2 className="font-display text-h1 uppercase text-[#0B1120]">Proyectos que hablan por nosotros</h2>
-          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-          <p className="mt-4 font-body text-body text-[#4A5E80]">Mirá algunos de los trabajos que realizamos.</p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <div key={project.id} className="card-interactive group overflow-hidden">
-              <div className="relative flex h-48 items-center justify-center bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
-                <Isotipo size={80} color="#2D8FCC15" />
-                <div className="absolute inset-0 bg-blue/0 transition-colors group-hover:bg-blue/10" />
-              </div>
-              <div className="p-5">
-                <span className={badgeClass[project.badge]}>{project.category}</span>
-                <h3 className="mt-3 font-display text-h3 text-[#0B1120]">{project.title}</h3>
-                <p className="mt-1 font-body text-body-sm text-[#8094B4]">{project.location}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link href="/portfolio" className="btn-secondary">Ver portfolio completo <span className="ml-1">&rarr;</span></Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TestimonialsSection() {
-  const testimonials = [
-    { id: 1, text: 'Excelente trabajo. Respondieron rápido, cumplieron los plazos y el resultado fue impecable. Totalmente recomendables.', author: 'Juan Pérez', company: 'Empresa ABC', rating: 5 },
-    { id: 2, text: 'Profesionales de primera. El equipo fue puntual, limpio y dejaron todo perfecto. Ya los contraté 3 veces.', author: 'María González', company: 'Consultora XYZ', rating: 5 },
-    { id: 3, text: 'Los mejores precios y la mejor calidad. La estructura metálica que hicieron superó nuestras expectativas.', author: 'Carlos Ruiz', company: 'Industrial DEF', rating: 5 },
-  ];
-
-  return (
-    <section className="section border-t border-gray-200">
-      <div className="container-main">
-        <div className="mb-12 text-center">
-          <span className="overline mb-2 block">Testimonios</span>
-          <h2 className="font-display text-h1 uppercase text-[#0B1120]">Lo que dicen nuestros clientes</h2>
-          <div className="mx-auto mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
-        </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="card p-6 text-center">
-              <div className="mb-4 flex justify-center gap-1">{Array.from({ length: testimonial.rating }).map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow text-yellow" />)}</div>
-              <blockquote className="font-body text-body italic text-[#4A5E80] leading-relaxed">&ldquo;{testimonial.text}&rdquo;</blockquote>
-              <div className="mt-4 border-t border-gray-200 pt-4">
-                <cite className="font-body text-body-sm font-semibold not-italic text-[#0B1120]">{testimonial.author}</cite>
-                <p className="mt-0.5 font-body text-caption text-[#8094B4]">{testimonial.company}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+function PortfolioPreview({ projects }: { projects: Project[] }) {
+  if (!projects.length) return null;
+  return <section className="fs-projects"><div className="container-main"><div className="fs-section-heading"><div><p className="fs-eyebrow">DEL PLAN A LA REALIDAD</p><h2>El trabajo habla.</h2></div><Link href="/portfolio" className="fs-text-link">Ver proyectos <ArrowRight size={18}/></Link></div><div className="fs-project-grid">{projects.slice(0,3).map((project,i)=><Link href="/portfolio" key={project.id} className={`fs-project fs-project-${i}`}><div className="fs-project-image"><NextImage src={project.image} alt={project.title} fill sizes="(max-width: 768px) 100vw, 60vw" className="object-cover"/></div><div className="fs-project-copy"><span>{project.location || project.category}</span><h3>{project.title}</h3></div></Link>)}</div></div></section>;
 }
 
 export default async function HomePage() {
   const settings = await getCachedSettings();
   const content = await getCachedContent();
+  const projects = (await getAllProjects().catch(() => [])).filter(p => p.isActive && p.image);
   return (
-    <>
-      <HeroSection />
-      <TrustBar />
+    <div className="fs-home">
+      <HeroSection image={projects[0]?.image} title={projects[0]?.title} />
+      <PartnersSection />
       <ServicesSection />
-      <AboutSection about={content.about} />
-      <PromoBannerCarousel />
+      <PortfolioPreview projects={projects} />
+      <ProcessSection />
       <FeaturedProducts />
-      <PortfolioPreview />
-      <TestimonialsSection />
+      <AboutSection about={content.about} />
       <CtaSection whatsapp={settings.contact.whatsapp} />
-    </>
+    </div>
   );
 }

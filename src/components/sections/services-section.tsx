@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Wrench, HardHat, Factory, Clock, Users, FileText, ArrowRight, Phone, MessageCircle } from 'lucide-react';
+import { Wrench, HardHat, Factory, Droplets, Clock, Users, FileText, ArrowRight, Phone, MessageCircle } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 
@@ -21,7 +21,13 @@ const services = [
 ];
 
 export function ServicesSection() {
-  return <section className="section bg-white"><div className="container-main"><div className="mb-12"><span className="mb-2 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Nuestros servicios</span><h2 className="font-display text-h1 uppercase text-[#0B1120]">Servicios profesionales</h2><div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" /><p className="mt-4 max-w-lg font-body text-body text-[#4A5E80]">Cubrimos todas las necesidades de mantenimiento, construcción y metalúrgica para empresas y hogares.</p></div><div className="grid grid-cols-1 gap-6 md:grid-cols-3">{services.map((service) => { const Icon = service.icon; return <Link key={service.title} href={service.href} className="card-interactive group p-6"><div className="mb-4 flex items-center gap-3"><div className={`flex h-10 w-10 items-center justify-center rounded-lg ${service.iconBg} ${service.iconColor}`}><Icon className="h-5 w-5" /></div><div><h3 className="font-display text-h4 text-[#0B1120] transition-colors group-hover:text-[#2D8FCC]">{service.title}</h3><span className="font-body text-caption text-[#8094B4]">{service.count}</span></div></div><p className="font-body text-body-sm leading-relaxed text-[#4A5E80]">{service.description}</p><div className="mt-4 inline-flex items-center gap-1 font-body text-label font-semibold uppercase tracking-[0.06em] text-[#2D8FCC]">Ver más <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></div></Link>; })}</div></div></section>;
+  const items = [
+    { icon: Wrench, title: 'Mantenimiento', text: 'Instalaciones, reparaciones y cuidado de tus espacios.', query: 'mantenimiento' },
+    { icon: Droplets, title: 'Limpieza profesional', text: 'Consultá por limpieza para oficinas, industrias y espacios comerciales.', query: 'limpieza' },
+    { icon: HardHat, title: 'Construcción civil', text: 'Obras, ampliaciones y remodelaciones para tu próximo proyecto.', query: 'civil' },
+    { icon: Factory, title: 'Metalúrgica', text: 'Estructuras, herrería y soluciones fabricadas a medida.', query: 'metalurgica' },
+  ];
+  return <section className="fs-services"><div className="container-main"><div className="fs-section-heading"><div><p className="fs-eyebrow">QUÉ PODEMOS HACER POR VOS</p><h2>Soluciones que<br/>hacen la diferencia.</h2></div><p className="fs-section-description">Del mantenimiento cotidiano a una nueva obra. Encontrá el servicio que necesita tu espacio.</p></div><div className="fs-services-grid">{items.map(({icon:Icon,title,text,query},i)=><Link key={title} href={query==='limpieza'?'/contacto?tipo=presupuesto&servicio=Limpieza%20profesional':`/servicios?categoria=${query}`} className="fs-service"><div className="fs-service-top"><Icon size={30}/><span>0{i+1}</span></div><h3>{title}</h3><p>{text}</p><span className="fs-service-link">{query==='limpieza'?'Consultar':'Explorar servicio'} <ArrowRight size={18}/></span></Link>)}</div></div></section>;
 }
 
 export function CtaSection({ whatsapp }: { whatsapp?: string } = {}) {
