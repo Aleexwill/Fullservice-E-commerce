@@ -16,6 +16,7 @@ interface NotificationItem {
 
 const LAST_SEEN_KEY = 'fsc-admin-notifications-last-seen';
 const DISMISSED_KEY = 'fsc-admin-notifications-dismissed';
+const CLEARED_BEFORE_KEY = 'fsc-admin-notifications-cleared-before';
 const POLL_MS = 30000;
 
 const ICONS: Record<NotificationItem['type'], typeof ShoppingCart> = {
@@ -39,6 +40,21 @@ function saveDismissed(ids: Set<string>) {
   } catch {}
 }
 
+function getClearedBefore(): Date | null {
+  try {
+    const raw = localStorage.getItem(CLEARED_BEFORE_KEY);
+    return raw ? new Date(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveClearedBefore(date: Date) {
+  try {
+    localStorage.setItem(CLEARED_BEFORE_KEY, date.toISOString());
+  } catch {}
+}
+
 function timeAgo(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diffMs / 60000);
@@ -56,7 +72,15 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const items = allItems.filter((i) => !dismissed.has(`${i.type}-${i.id}`));
+  const clearedBefore = useRef<Date | null>(null);
+
+  const isVisible = useCallback((i: NotificationItem) => {
+    if (dismissed.has(`${i.type}-${i.id}`)) return false;
+    if (clearedBefore.current && new Date(i.createdAt) <= clearedBefore.current) return false;
+    return true;
+  }, [dismissed]);
+
+  const items = allItems.filter(isVisible);
 
   const load = useCallback(async () => {
     const lastSeen = localStorage.getItem(LAST_SEEN_KEY) || '';
@@ -65,7 +89,12 @@ export function NotificationBell() {
     );
     if (data) {
       const currentDismissed = getDismissed();
-      const visible = data.items.filter((i) => !currentDismissed.has(`${i.type}-${i.id}`));
+      clearedBefore.current = getClearedBefore();
+      const visible = data.items.filter((i) => {
+        if (currentDismissed.has(`${i.type}-${i.id}`)) return false;
+        if (clearedBefore.current && new Date(i.createdAt) <= clearedBefore.current) return false;
+        return true;
+      });
       setAllItems(data.items);
       setDismissed(currentDismissed);
       // recount unread against visible items only
@@ -79,6 +108,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     setDismissed(getDismissed());
+    clearedBefore.current = getClearedBefore();
     load();
     const interval = setInterval(load, POLL_MS);
     // refresh when tab regains focus (catches deletes made in other tabs)
@@ -126,9 +156,14 @@ export function NotificationBell() {
 
   function dismissAll(e: React.MouseEvent) {
     e.preventDefault();
-    const next = new Set(allItems.map((i) => `${i.type}-${i.id}`));
-    saveDismissed(next);
-    setDismissed(next);
+    // Save cleared-before timestamp so ALL items up to now are hidden across sessions
+    const now = new Date();
+    saveClearedBefore(now);
+    clearedBefore.current = now;
+    // Also clear individual dismissed keys to avoid unbounded growth
+    saveDismissed(new Set());
+    setDismissed(new Set());
+    setAllItems([]);
     setUnreadCount(0);
   }
 
