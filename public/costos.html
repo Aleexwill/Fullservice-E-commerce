@@ -184,6 +184,13 @@ let S = {
   mostrarMO: false,
   mostrarOtros: false,
   ocultarPrecios: false,
+  modoMarca: "",
+  herr: "circulo",
+  colorMarca: "#c0392b",
+  colorHl: "#fef08a",
+  marcas: [],
+  trazo: null,
+  resaltados: {},
   rubros: [],
   descuento: "0", iva: "10",
   cliente: "", obra: "", domicilio: "", contacto: "",
@@ -295,6 +302,208 @@ async function loadFromAPI() {
 
     if (data.code) PROPS.nroPresupuesto = data.code;
   } catch(e) {}
+}
+
+// ─── Drawing / Marcado ───────────────────────────────────────────────────────
+let _dibujando = false;
+let _lienzoEl = null;
+
+function puntoLienzo(e) {
+  if (!_lienzoEl) return { x: 0, y: 0 };
+  const r = _lienzoEl.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function trazoPath(t) {
+  const { x1, y1, x2, y2 } = t;
+  if (t.tipo === "libre") {
+    const p = t.pts || [];
+    if (!p.length) return "";
+    return "M " + p.map(q => q.x.toFixed(1) + " " + q.y.toFixed(1)).join(" L ");
+  }
+  if (t.tipo === "linea") return "M " + x1 + " " + y1 + " L " + x2 + " " + y2;
+  if (t.tipo === "recuadro") return "M " + x1 + " " + y1 + " L " + x2 + " " + y1 + " L " + x2 + " " + y2 + " L " + x1 + " " + y2 + " Z";
+  if (t.tipo === "flecha") {
+    const ang = Math.atan2(y2 - y1, x2 - x1), L = 14;
+    const ax1 = x2 - L * Math.cos(ang - 0.42), ay1 = y2 - L * Math.sin(ang - 0.42);
+    const ax2 = x2 - L * Math.cos(ang + 0.42), ay2 = y2 - L * Math.sin(ang + 0.42);
+    return "M " + x1 + " " + y1 + " L " + x2 + " " + y2 + " M " + ax1 + " " + ay1 + " L " + x2 + " " + y2 + " L " + ax2 + " " + ay2;
+  }
+  // circulo por defecto
+  const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+  const rx = Math.abs(x2 - x1) / 2 + 0.001, ry = Math.abs(y2 - y1) / 2 + 0.001;
+  return "M " + (cx - rx) + " " + cy + " A " + rx + " " + ry + " 0 1 0 " + (cx + rx) + " " + cy + " A " + rx + " " + ry + " 0 1 0 " + (cx - rx) + " " + cy;
+}
+
+function marcaDown(e) {
+  if (S.modoMarca !== "mk") return;
+  e.preventDefault();
+  const p = puntoLienzo(e);
+  const t = { tipo: S.herr, v: S.tab, x1: p.x, y1: p.y, x2: p.x, y2: p.y, c: S.colorMarca, pts: [p] };
+  _dibujando = true;
+  if (e.target && e.target.setPointerCapture) { try { e.target.setPointerCapture(e.pointerId); } catch(_) {} }
+  setState({ trazo: t });
+}
+
+function marcaMove(e) {
+  if (!_dibujando || !S.trazo) return;
+  const p = puntoLienzo(e);
+  const t = Object.assign({}, S.trazo, { x2: p.x, y2: p.y });
+  if (t.tipo === "libre") t.pts = (S.trazo.pts || []).concat([p]);
+  setState({ trazo: t });
+}
+
+function marcaUp() {
+  if (!_dibujando) return;
+  _dibujando = false;
+  const t = S.trazo;
+  const largo = t ? Math.abs(t.x2 - t.x1) + Math.abs(t.y2 - t.y1) : 0;
+  if (!t || (largo < 6 && t.tipo !== "libre")) { setState({ trazo: null }); return; }
+  setState(p => ({ marcas: (p.marcas || []).concat([t]), trazo: null }));
+}
+
+function limpiarMarcas() {
+  setState(p => ({ marcas: (p.marcas || []).filter(t => (t.v || "costos") !== p.tab), trazo: null }));
+}
+
+const COLORES_MARCA = ["#dc2626","#16a34a","#000000"];
+const COLORES_HL = ["#fef08a","#000000","#86efac","#93c5fd","#fca5a5","#fdba74","#e5e7eb"];
+const HERRAMIENTAS = [
+  { id: "circulo",  label: "Círculo"  },
+  { id: "recuadro", label: "Recuadro" },
+  { id: "linea",    label: "Línea"    },
+  { id: "flecha",   label: "Flecha"   },
+  { id: "libre",    label: "Libre"    },
+];
+
+function renderLienzoPaint() {
+  const marcasTab = (S.marcas || []).concat(S.trazo ? [S.trazo] : []).filter(t => (t.v || "costos") === S.tab);
+  const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svgEl.setAttribute("style", "position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;z-index:6;touch-action:none;cursor:crosshair;pointer-events:" + (S.modoMarca === "mk" ? "auto" : "none"));
+  svgEl.addEventListener("pointerdown", marcaDown);
+  svgEl.addEventListener("pointermove", marcaMove);
+  svgEl.addEventListener("pointerup", marcaUp);
+  svgEl.addEventListener("pointercancel", marcaUp);
+  _lienzoEl = svgEl;
+  marcasTab.forEach(t => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", trazoPath(t));
+    path.setAttribute("stroke", t.c || "#dc2626");
+    path.setAttribute("stroke-width", t.tipo === "libre" ? "2.4" : "2.6");
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    svgEl.appendChild(path);
+  });
+  return svgEl;
+}
+
+function deshacerMarca() {
+  setState(p => {
+    const marcasTab = (p.marcas || []).filter(t => (t.v || "costos") === p.tab);
+    if (!marcasTab.length) return {};
+    const last = marcasTab[marcasTab.length - 1];
+    return { marcas: (p.marcas || []).filter(t => t !== last) };
+  });
+}
+
+function toggleResaltarFila(rubroIdx, tipo, itemIdx) {
+  if (S.modoMarca !== "hl") return;
+  const key = rubroIdx + "-" + tipo + "-" + itemIdx;
+  setState(p => {
+    const r = Object.assign({}, p.resaltados || {});
+    if (r[key] === p.colorHl) delete r[key]; else r[key] = p.colorHl;
+    return { resaltados: r };
+  });
+}
+
+function renderMarcadoBar() {
+  const modoHl = S.modoMarca === "hl";
+  const modoDib = S.modoMarca === "mk";
+  const btnBase = "display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 9px;gap:5px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;border:1px solid ";
+  const btnOff = btnBase + "var(--border);background:var(--btn-bg);color:var(--text3);";
+  const btnOn  = btnBase + "#f87171;background:#fef2f2;color:#b91c1c;";
+  const btnOnDib = btnBase + "#1e293b;background:#0f172a;color:#f8fafc;";
+  const iconBtn = "display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border-radius:7px;cursor:pointer;border:1px solid ";
+
+  // SVG icons inline
+  const icoLapiz = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l-4 4v4h4l4-4"/><path d="M13 15L9 11l7.5-7.5a2.1 2.1 0 013 3L12 14"/></svg>';
+  const icoLupa  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="5.2"/><path d="M14.5 14.5L21 21"/><path d="M21 21l-1.4-4 4 1.4z"/></svg>';
+
+  const nodes = [
+    el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-right:2px;" }, "Marcado"),
+  ];
+
+  if (!modoDib) {
+    // Lápiz = resaltar
+    const lapizBtn = el("button", {
+      title: modoHl ? "Desactivar resaltado" : "Resaltar ítems en color",
+      style: modoHl ? btnOn : btnOff + "width:30px;",
+      onclick: () => setState({ modoMarca: modoHl ? "" : "hl" })
+    });
+    lapizBtn.innerHTML = icoLapiz;
+    nodes.push(lapizBtn);
+  }
+
+  if (modoHl) {
+    // Paleta de colores para resaltar
+    COLORES_HL.forEach(c => {
+      const isSelected = S.colorHl === c;
+      const chip = el("button", {
+        title: c === "#e5e7eb" ? "Quitar resaltado" : c,
+        style: "width:20px;height:20px;border-radius:50%;border:2px solid " + (isSelected ? "#64748b" : "transparent") + ";background:" + c + ";cursor:pointer;padding:0;box-shadow:" + (isSelected ? "0 0 0 1px #64748b" : "none") + ";",
+        onclick: () => setState({ colorHl: c })
+      });
+      nodes.push(chip);
+    });
+    nodes.push(el("span", { style: "font-size:11.5px;color:var(--text3);" }, "Tocá un ítem para pintarlo"));
+  }
+
+  if (!modoHl) {
+    // Lupa = dibujar
+    const lupaBtn = el("button", {
+      title: modoDib ? "Salir del dibujo" : "Dibujar sobre la planilla",
+      style: modoDib ? btnOnDib + "width:30px;" : btnOff + "width:30px;",
+      onclick: () => setState({ modoMarca: modoDib ? "" : "mk" })
+    });
+    lupaBtn.innerHTML = icoLupa;
+    nodes.push(lupaBtn);
+  }
+
+  if (modoDib) {
+    // Herramientas de dibujo
+    HERRAMIENTAS.forEach(h => {
+      nodes.push(el("button", {
+        style: S.herr === h.id ? btnOnDib : btnOff,
+        title: h.label,
+        onclick: () => setState({ herr: h.id })
+      }, h.label));
+    });
+    // Colores
+    COLORES_MARCA.forEach(c => {
+      const sel = S.colorMarca === c;
+      const chip = el("button", {
+        style: "width:20px;height:20px;border-radius:50%;border:2px solid " + (sel ? "#fff" : "transparent") + ";box-shadow:" + (sel ? "0 0 0 2px " + c : "none") + ";background:" + c + ";cursor:pointer;padding:0;",
+        title: c,
+        onclick: () => setState({ colorMarca: c })
+      });
+      nodes.push(chip);
+    });
+    // Deshacer
+    nodes.push(el("button", { style: btnOff, onclick: deshacerMarca }, "Deshacer"));
+    // Salir
+    nodes.push(el("button", { style: btnOnDib, onclick: () => setState({ modoMarca: "" }) }, "Salir del dibujo"));
+  }
+
+  // Limpiar todo (siempre visible)
+  nodes.push(el("button", {
+    style: btnBase + "#fca5a5;background:#fff1f2;color:#b91c1c;",
+    onclick: limpiarMarcas
+  }, "Limpiar todo"));
+
+  return el("div", { class: "noprint", style: "display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:0 0 14px;margin-bottom:14px;border-bottom:1px solid var(--border2);" },
+    ...nodes
+  );
 }
 
 // ─── Calculations ────────────────────────────────────────────────────────────
@@ -704,6 +913,9 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
             );
           })
         ),
+        // Marcado toolbar
+        renderMarcadoBar(),
+
         // Rubro name + actions
         el("div", { style: "display:flex;align-items:flex-end;gap:12px;" },
           el("label", { style: "flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;" },
@@ -733,8 +945,11 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
         )
       ),
 
-      // Materiales table
-      renderMatsTable(R, v),
+      // Materiales table (with SVG overlay wrapper)
+      el("div", { style: "position:relative;" },
+        renderMatsTable(R, v),
+        renderLienzoPaint()
+      ),
 
       // MO section toggle
       el("div", { style: "display:flex;align-items:center;gap:10px;flex-wrap:wrap;" },
@@ -792,7 +1007,10 @@ function renderMatsTable(R, v) {
     ),
     ...R.mats.map((r,i) => {
       const enProp = r.enPropuesta !== false;
-      return el("div", { style: "display:grid;grid-template-columns:28px minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);opacity:" + (enProp ? "1" : "0.5") + ";" },
+      const hlKey = S.activo + "-mats-" + i;
+      const hlColor = (S.resaltados || {})[hlKey];
+      const rowStyle = "display:grid;grid-template-columns:28px minmax(110px,1fr) 54px 64px 96px 54px 126px 56px 134px 28px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border2);opacity:" + (enProp ? "1" : "0.5") + ";" + (hlColor ? "background:" + hlColor + ";" : "") + (S.modoMarca === "hl" ? "cursor:pointer;" : "");
+      return el("div", { style: rowStyle, onclick: () => toggleResaltarFila(S.activo, "mats", i) },
         el("div",{style:"display:flex;align-items:center;justify-content:center;"},
           (() => {
             const cb = document.createElement("input");
