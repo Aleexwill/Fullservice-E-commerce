@@ -183,6 +183,7 @@ let S = {
   activo: 0,
   mostrarMO: false,
   mostrarOtros: false,
+  ocultarPrecios: false,
   rubros: [],
   descuento: "0", iva: "10",
   cliente: "", obra: "", domicilio: "", contacto: "",
@@ -641,7 +642,8 @@ function render() {
       el("button", { style: "padding:9px 14px;font-size:13px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => { (window.top || window).location.href = "/admin/presupuestos"; } }, "← Solicitudes"),
       el("div", { style: "display:flex;gap:4px;padding:3px;background:var(--tab-wrap);border-radius:8px;" },
         el("button", { style: tabStyle(S.tab === "costos"), onclick: () => setState({tab:"costos"}) }, "Planilla de costos"),
-        el("button", { style: tabStyle(S.tab === "propuesta"), onclick: () => setState({tab:"propuesta"}) }, "Hoja de propuesta")
+        el("button", { style: tabStyle(S.tab === "propuesta"), onclick: () => setState({tab:"propuesta"}) }, "Hoja de propuesta"),
+        el("button", { style: tabStyle(S.tab === "compras"), onclick: () => setState({tab:"compras"}) }, "Lista de compras")
       ),
       el("div", { style: "flex:1;" }),
       el("div", { style: "display:flex;align-items:baseline;gap:10px;padding:7px 14px;background:var(--btn-bg);border-radius:8px;border:1px solid var(--btn-bdr);" },
@@ -655,7 +657,10 @@ function render() {
     S.tab === "costos" ? renderCostos(R, v, porRubro, idxIncluidos, G) : null,
 
     // ── PROPUESTA VIEW ────────────────────────────────────────────────────
-    S.tab === "propuesta" ? renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) : null
+    S.tab === "propuesta" ? renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) : null,
+
+    // ── COMPRAS VIEW ──────────────────────────────────────────────────────
+    S.tab === "compras" ? renderCompras() : null
   );
   app.replaceWith(newApp);
   newApp.id = "app";
@@ -1255,6 +1260,138 @@ function copiarResumen(idxIncluidos, porRubro, G) {
   const txt = resumenTexto(idxIncluidos, porRubro, G);
   const done = () => { setState({copiado:true}); setTimeout(()=>setState({copiado:false}),2200); };
   if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done).catch(done); else done();
+}
+
+// ─── Lista de Compras ────────────────────────────────────────────────────────
+function renderCompras() {
+  const verPrecios = !S.ocultarPrecios;
+  const comprasGrid = verPrecios ? "1fr 50px 70px 50px 90px 90px" : "1fr 50px 80px 50px";
+
+  const grupos = S.rubros.map((R, i) => {
+    const filas = (R.mats || []).filter(x => String(x.desc || "").trim() || N(x.cant) > 0);
+    const subtotal = filas.reduce((a, x) => a + costoMat(x), 0);
+    return {
+      nombre: (i + 1).toString().padStart(2, "0") + " · " + (R.nombre || ("Rubro " + (i + 1))),
+      hay: filas.length > 0,
+      subtotal,
+      items: filas.map(x => {
+        const cantConDesp = N(x.cant) * (1 + N(x.desp) / 100);
+        return {
+          desc: x.desc || "—",
+          unidad: x.unidad || "un",
+          cant: cantConDesp.toLocaleString("es-PY", { maximumFractionDigits: 2 }),
+          desp: N(x.desp) > 0 ? "+" + pct(x.desp) : "",
+          costo: money(N(x.costo)),
+          total: money(costoMat(x))
+        };
+      })
+    };
+  });
+
+  const totalCompras = S.rubros.reduce((a, R) => a + (R.mats || []).reduce((b, x) => b + costoMat(x), 0), 0);
+  const totalItems = S.rubros.reduce((a, R) => a + (R.mats || []).filter(x => String(x.desc || "").trim() || N(x.cant) > 0).length, 0);
+  const hayAlgo = grupos.some(g => g.hay);
+
+  const thStyle = "padding:7px 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:#86817b;";
+  const tdStyle = (right) => "padding:9px 4px;font-family:'IBM Plex Mono',monospace;font-size:11px;" + (right ? "text-align:right;" : "");
+
+  return el("div", { class: "noprint-hide", style: "max-width:1000px;margin:0 auto;padding:26px;" },
+    el("div", { style: "background:var(--card-bg,#ffffff);border:1px solid var(--card-bdr,#dedbd5);border-radius:12px;overflow:hidden;" },
+
+      // Header
+      el("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:17px 22px;border-bottom:1px solid var(--card-bdr,#dedbd5);" },
+        el("div", { style: "display:flex;flex-direction:column;gap:3px;" },
+          el("div", { style: "font-size:15px;font-weight:700;" }, "Lista de materiales a comprar"),
+          el("div", { style: "font-size:12px;color:#86817b;" }, "Obra: " + (S.obra || "—") + " · Cliente: " + (S.cliente || "—")),
+          el("div", { style: "font-size:11.5px;color:#a09a92;" }, "Precios de costo, sin margen. La cantidad ya incluye el desperdicio cargado en la planilla.")
+        ),
+        el("div", { style: "display:flex;align-items:center;gap:12px;flex-shrink:0;" },
+          el("button", { class: "noprint", style: "padding:7px 12px;font-size:12px;font-weight:600;color:#ffffff;background:oklch(0.48 0.12 155);border:0;border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => exportarCompras() }, "Exportar a Excel"),
+          el("button", { class: "noprint", style: "padding:7px 12px;font-size:12px;font-weight:500;border:1px solid var(--btn-bdr,#d0ccc5);border-radius:7px;cursor:pointer;background:var(--btn-bg,#fff);color:var(--btn-text,#3a3631);white-space:nowrap;", onclick: () => setState({ ocultarPrecios: !S.ocultarPrecios }) },
+            (verPrecios ? "✓ " : "") + (verPrecios ? "Ocultar precios" : "Mostrar precios")
+          ),
+          el("div", { style: "display:flex;flex-direction:column;gap:2px;text-align:right;" },
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;" }, PROPS.nroPresupuesto),
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;color:#86817b;" }, totalItems + " materiales")
+          )
+        )
+      ),
+
+      // Body — grupos
+      !hayAlgo
+        ? el("div", { style: "padding:48px;text-align:center;color:#86817b;font-size:13px;" }, "No hay materiales cargados en la planilla.")
+        : el("div", {},
+            ...grupos.filter(g => g.hay).map(g =>
+              el("div", { style: "border-bottom:1px solid var(--card-bdr,#dedbd5);" },
+                // Rubro header
+                el("div", { style: "display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:12px 22px 8px;background:var(--tab-wrap,#faf9f7);border-bottom:1px solid var(--card-bdr,#dedbd5);" },
+                  el("div", { style: "font-size:13px;font-weight:600;" }, g.nombre),
+                  verPrecios ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;white-space:nowrap;" }, money(g.subtotal)) : null
+                ),
+                // Column headers
+                el("div", { style: "display:grid;grid-template-columns:" + comprasGrid + ";padding:0 22px;border-bottom:1px solid #efedea;" },
+                  el("div", { style: thStyle + "padding-left:0;" }, "Material"),
+                  el("div", { style: thStyle + "text-align:center;" }, "Un."),
+                  el("div", { style: thStyle + "text-align:right;" }, "Cantidad"),
+                  el("div", { style: thStyle + "text-align:right;" }, "Desp."),
+                  verPrecios ? el("div", { style: thStyle + "text-align:right;" }, "P. unitario") : null,
+                  verPrecios ? el("div", { style: thStyle + "text-align:right;" }, "Total") : null
+                ),
+                // Items
+                ...g.items.map(x =>
+                  el("div", { style: "display:grid;grid-template-columns:" + comprasGrid + ";align-items:baseline;padding:0 22px;border-bottom:1px solid #f4f2ee;" },
+                    el("div", { style: "padding:9px 8px 9px 0;font-size:12px;line-height:1.5;" }, x.desc),
+                    el("div", { style: tdStyle(false) + "text-align:center;color:#6f6b64;" }, x.unidad),
+                    el("div", { style: tdStyle(true) }, x.cant),
+                    el("div", { style: tdStyle(true) + "color:#86817b;font-size:10px;" }, x.desp),
+                    verPrecios ? el("div", { style: tdStyle(true) + "color:#6f6b64;" }, x.costo) : null,
+                    verPrecios ? el("div", { style: tdStyle(true) + "font-weight:600;" }, x.total) : null
+                  )
+                )
+              )
+            ),
+            // Total footer
+            el("div", { style: "display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:#1b1a18;" },
+              el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#86817b;" }, "Total de materiales"),
+              verPrecios ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;" }, money(totalCompras)) : el("div", {}, "")
+            )
+          )
+    ),
+    el("div", { style: "display:flex;justify-content:center;margin-top:20px;" },
+      el("a", { href: "#", onclick: e => { e.preventDefault(); setState({ tab: "costos" }); }, style: "font-size:12px;color:#86817b;" }, "← Volver a la planilla")
+    )
+  );
+}
+
+function exportarCompras() {
+  const esc = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const td = (v, est, num) => '<td style="' + (est || "") + (num ? 'mso-number-format:\\#\\,\\#\\#0;' : '') + '">' + (num ? Math.round(N(v) * 100) / 100 : esc(v)) + "</td>";
+  const H = "font-weight:bold;background:#EFEDEA;border:0.5pt solid #B0ABA3;";
+  const out = [];
+  out.push("<tr>" + td("LISTA DE MATERIALES A COMPRAR", "font-weight:bold;font-size:14pt;") + "</tr>");
+  out.push("<tr>" + td("Presupuesto " + PROPS.nroPresupuesto) + td("Obra: " + (S.obra || "—")) + td("Cliente: " + (S.cliente || "—")) + td(new Date().toLocaleDateString("es-PY")) + "</tr>");
+  out.push("<tr>" + td("") + "</tr>");
+  let total = 0;
+  S.rubros.forEach((R, i) => {
+    const filas = (R.mats || []).filter(x => String(x.desc || "").trim() || N(x.cant) > 0);
+    if (!filas.length) return;
+    out.push("<tr>" + td((i + 1).toString().padStart(2, "0") + " · " + (R.nombre || "Rubro " + (i + 1)), H + "font-size:11pt;") + "</tr>");
+    out.push("<tr>" + td("Material", H) + td("Un.", H) + td("Cantidad", H) + td("Desp.%", H) + td("P. Unitario", H) + td("Total", H) + "</tr>");
+    filas.forEach(x => {
+      const cantConDesp = N(x.cant) * (1 + N(x.desp) / 100);
+      const costoTotal = costoMat(x);
+      total += costoTotal;
+      out.push("<tr>" + td(x.desc) + td(x.unidad || "un") + td(cantConDesp, "text-align:right;", true) + td(N(x.desp), "text-align:right;", true) + td(N(x.costo), "text-align:right;", true) + td(costoTotal, "text-align:right;font-weight:bold;", true) + "</tr>");
+    });
+    out.push("<tr>" + td("") + "</tr>");
+  });
+  out.push("<tr>" + td("TOTAL DE MATERIALES", H + "font-size:12pt;") + td("") + td("") + td("") + td("") + td(total, H + "text-align:right;font-size:12pt;", true) + "</tr>");
+  const html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><style>td{font-family:Calibri,Arial,sans-serif;font-size:10pt;border:0.5pt solid #D0CCC5;padding:4px 8px;}th{font-weight:bold;}</style></head><body><table>' + out.join("") + "</table></body></html>";
+  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Lista_Compras_" + PROPS.nroPresupuesto + ".xls";
+  a.click();
 }
 
 // ─── Boot ────────────────────────────────────────────────────────────────────
