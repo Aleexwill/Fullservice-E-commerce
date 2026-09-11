@@ -1,98 +1,68 @@
-# ServiPro — Servicios + E-commerce + Portfolio
+# Full Service & Clean — Servicios y e-commerce
 
-Sitio web híbrido para empresa de servicios generales (mantenimiento, construcción civil, metalúrgica) con ferretería e-commerce integrada.
+Aplicación para servicios generales, tienda y gestión administrativa.
 
-## Stack
+## Implementación actual
 
-- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
-- **Backend**: Next.js API Routes + Server Actions
-- **Base de datos**: PostgreSQL + Prisma ORM
-- **CMS**: Sanity v3 (contenido editorial)
-- **Pagos**: Stripe
-- **Email**: Resend + React Email
-- **Auth**: NextAuth.js v5
-- **Estado**: Zustand (carrito)
-- **Deploy**: Vercel
+- Next.js 14 (App Router), React 18, TypeScript y Tailwind CSS.
+- PostgreSQL (Neon) con Prisma y migraciones versionadas.
+- CMS propio en el panel administrativo; no utiliza Sanity.
+- Sesiones firmadas con HMAC, cookie HTTP-only y contraseñas con bcrypt.
+- Roles: administrador, vendedor y técnico. No utiliza NextAuth.
+- Carrito con Zustand; pedidos gestionados por las APIs del proyecto.
+- La pasarela de pagos online está pendiente; Stripe no está integrado.
+- Imágenes con Vercel Blob e invitaciones por email con Resend.
 
-## Estructura del proyecto
+## Desarrollo local
 
-```
-proyecto/
-├── docs/                          # Documentación del proyecto
-│   ├── 01-ARQUITECTURA.md         # Arquitectura técnica
-│   ├── 02-SITEMAP-WIREFRAMES.md   # Sitemap + wireframes textuales
-│   ├── 03-SEO-PERFORMANCE.md      # Plan SEO + performance
-│   ├── 04-PLAN-IMPLEMENTACION.md  # Fases + checklist QA
-│   └── 05-BRAND-GUIDE-UIKIT.md   # Identidad visual + UI kit
-├── prisma/
-│   └── schema.prisma              # Modelo de datos completo
-├── src/
-│   ├── app/                       # App Router (páginas)
-│   │   ├── layout.tsx             # Layout raíz
-│   │   ├── page.tsx               # Home
-│   │   ├── (services)/            # Grupo: servicios
-│   │   ├── (shop)/                # Grupo: tienda
-│   │   ├── (portfolio)/           # Grupo: portfolio
-│   │   ├── contacto/              # Contacto
-│   │   ├── blog/                  # Blog
-│   │   └── api/                   # API routes
-│   ├── components/
-│   │   ├── ui/                    # Componentes base (Button, Input, etc.)
-│   │   ├── sections/              # Secciones del sitio (Hero, etc.)
-│   │   ├── layout/                # Navbar, Footer, WhatsApp
-│   │   ├── shop/                  # Componentes de tienda
-│   │   ├── portfolio/             # Componentes de portfolio
-│   │   └── forms/                 # Formularios (wizard, checkout)
-│   ├── hooks/                     # Custom hooks (useCart, etc.)
-│   ├── lib/                       # Utilidades y configuración
-│   ├── types/                     # TypeScript types
-│   ├── config/                    # Configuración del sitio
-│   └── styles/                    # CSS global
-├── tailwind.config.ts             # Tokens de diseño
-├── next.config.ts                 # Config de Next.js
-├── package.json                   # Dependencias
-├── tsconfig.json                  # TypeScript config
-└── .env.example                   # Variables de entorno
-```
-
-## Setup rápido
+Requisitos: Node.js 20 y una base PostgreSQL de desarrollo.
 
 ```bash
-# 1. Clonar e instalar
-git clone <repo-url>
-cd servipro
-npm install
-
-# 2. Configurar variables de entorno
-cp .env.example .env.local
-# Completar los valores en .env.local
-
-# 3. Configurar base de datos
-npx prisma db push
-npx prisma db seed    # (opcional: datos de prueba)
-
-# 4. Iniciar desarrollo
+git clone https://github.com/Aleexwill/Fullservice-E-commerce.git
+cd Fullservice-E-commerce
+npm ci
+cp .env.example .env
+# Completar las variables de .env antes de continuar.
+npm run db:deploy
+npm run db:seed # Opcional: crea un producto de ejemplo.
 npm run dev
 ```
 
-## Scripts disponibles
+Se usa `.env` para que tanto Prisma CLI como Next.js lean la configuración.
+`DATABASE_URL` es la conexión agrupada de Neon y `DIRECT_URL` la directa para
+migraciones. Configurar también `SESSION_SECRET` y las credenciales del administrador.
+Vercel Blob, Resend y las integraciones de IA requieren sus variables cuando se usan.
+Nunca subir credenciales al repositorio.
 
-| Comando | Descripción |
-|---------|-------------|
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Build de producción |
-| `npm run start` | Servidor de producción |
-| `npm run lint` | Linter |
-| `npm run db:push` | Sincronizar schema con BD |
-| `npm run db:migrate` | Crear migración |
-| `npm run db:seed` | Seed de datos de prueba |
-| `npm run db:studio` | Prisma Studio (GUI) |
+## Comprobaciones y despliegue
 
-## Documentación
+| Comando | Función |
+| --- | --- |
+| `npm run lint` | Ejecuta ESLint sin asistente interactivo |
+| `npm run build` | Genera Prisma Client y compila Next.js; no ejecuta migraciones |
+| `npm run db:deploy` | Aplica las migraciones versionadas a la base configurada |
+| `npm run vercel-build` | Aplica migraciones y compila; se detiene si falla cualquiera |
+| `npm run start` | Inicia la aplicación compilada |
+| `npm run db:migrate` | Crea/aplica migraciones en desarrollo |
+| `npm run db:push` | Sincroniza el esquema sin generar migraciones; solo para prototipos |
+| `npm run db:seed` | Crea el producto de prueba |
+| `npm run db:studio` | Abre Prisma Studio |
 
-Consultar la carpeta `/docs` para documentación detallada:
-- Arquitectura y modelo de datos
-- Wireframes de cada página
-- Plan de SEO y performance
-- Plan de implementación por fases
-- Brand guide y UI kit
+`vercel.json` fija el comando de despliegue en `npm run vercel-build`.
+Configurar las variables de cada entorno en Vercel. Una compilación local no valida
+la conexión ni los circuitos de negocio: las pruebas de login, CRUD y checkout
+requieren una base de prueba configurada. No usar datos de producción para esas pruebas.
+
+## Estructura
+
+- `src/app`: páginas públicas, panel `/admin` y endpoints `/api`.
+- `src/components`: componentes visuales, formularios y módulos administrativos.
+- `src/lib`: acceso a datos, autenticación, roles y utilidades.
+- `src/styles/globals.css`: estilos compartidos.
+- `prisma`: esquema, migraciones y datos de ejemplo.
+- `public`: recursos estáticos.
+- `docs`: documentos de diseño y planificación históricos; pueden describir funciones aún no implementadas.
+
+Consultar `MEJORAS-PENDIENTES.md` para el seguimiento general y `MEJORAS-ADMIN.md`
+para los detalles del panel. Los estados revisados se basan en código; no equivalen
+a una validación funcional contra la base de datos.

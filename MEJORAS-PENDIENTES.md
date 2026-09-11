@@ -1,14 +1,15 @@
 # Mejoras Pendientes — Full Service & Clean
 
 > Generado por análisis completo del proyecto · Septiembre 2026
+> Revisión de código: 11/09/2026. No implica pruebas funcionales con BD.
 > Estado: [ ] pendiente | [x] resuelto | [~] en progreso
 
 ---
 
 ## 🔴 SEGURIDAD — Resolver antes de producción
 
-- [ ] **S1** — API mutating routes sin auth en handler: `POST/PUT/DELETE` en clientes, leads, presupuestos, portfolio, servicios, carousel, config, contenido no llaman `verifySessionToken` internamente. Solo dependen del middleware.
-- [ ] **S2** — Sin control de rol en APIs: un `tecnico` bloqueado en `/admin/leads` puede llamar `PUT /api/leads/[id]` directamente. El `can()` no se aplica en handlers de API (solo en `/api/usuarios`).
+- [~] **S1** — La mayoría de handlers administrativos ya usa `requireRole`. Completar validación dentro de los handlers que aún dependen del middleware, por ejemplo upload y notifications. Los POST públicos de formularios deben conservar su acceso público con validación de entrada.
+- [~] **S2** — Ya hay control de roles en clientes, leads, presupuestos y CMS. Revisar cobertura restante, por ejemplo upload y notifications, que aún dependen de una sesión en middleware sin comprobar permisos de negocio en el handler.
 - [ ] **S3** — Sin rate limiting en `/api/auth/login` — vulnerable a fuerza bruta.
 - [ ] **S4** — Sin refresh de sesión — la sesión vence a las 12h sin renovación automática.
 
@@ -16,11 +17,11 @@
 
 ## 🟠 ROTO / INCOMPLETO — Fix urgente
 
-- [ ] **R1** — Campana de notificaciones siempre desactualizada: el parámetro `since` en `/api/notifications/route.ts` se calcula pero nunca se pasa al query de Prisma. El contador de no leídos siempre es incorrecto.
-- [ ] **R2** — Reporte e-commerce: `reportes/ecommerce/page.tsx` lee `byPayment.pending` que no existe en la respuesta de `/api/pedidos/stats`. Muestra `undefined`.
-- [ ] **R3** — Panel de clientes de solo lectura: `PUT /api/clientes/[id]` está implementado pero la UI nunca lo llama. No se puede editar ningún dato del cliente.
-- [ ] **R4** — "Crear pedido manual" no renderiza: `showCreateModal` existe como estado pero el bloque `{showCreateModal && <CreateOrderModal />}` nunca aparece en el JSX.
-- [ ] **R5** — Botón imprimir presupuesto es stub: ícono `Printer` importado pero `onClick` sin implementación. No genera PDF.
+- [~] **R1** — `since` se usa para contar no leídos, pero sobre una muestra de hasta 8 registros por tipo. Pendiente contar todos los registros posteriores a la fecha y validar el parámetro.
+- [x] **R2** — El reporte usa `byPayment?.pending || 0`; `orders-store.ts` construye `byPayment` por estado de pago.
+- [x] **R3** — La ficha del cliente permite editar campos mediante PUT y muestra historial de presupuestos y pedidos.
+- [x] **R4** — El JSX de pedidos renderiza `CreateOrderModal` cuando `showCreateModal` está activo.
+- [x] **R5** — El cálculo del presupuesto genera HTML imprimible con opciones para imprimir o guardar PDF desde el navegador.
 - [ ] **R6** — Toggles de notificación en Config inoperables: se guardan en BD pero ningún endpoint los lee al crear registros.
 
 ---
@@ -30,7 +31,7 @@
 - [ ] **F1** — Sin email de confirmación al cliente tras checkout.
 - [ ] **F2** — Sin recuperación de contraseña para usuarios de BD.
 - [ ] **F3** — Sin "Convertir lead en presupuesto" — requiere re-tipear datos manualmente.
-- [ ] **F4** — Sin PDF de presupuesto para enviar al cliente.
+- [x] **F4** — PDF disponible mediante impresión del navegador desde el cálculo del presupuesto; no es un servicio de generación o envío automático.
 - [ ] **F5** — Sin historial de cambios de estado en pedidos, presupuestos y leads.
 - [ ] **F6** — Sin reenvío de invitación desde la UI de usuarios.
 
@@ -41,7 +42,7 @@
 - [ ] **P1** — `/servicios/[slug]` — página de detalle por servicio.
 - [ ] **P2** — `/portfolio/[slug]` — página de detalle por proyecto.
 - [ ] **P3** — Tracking de orden para el cliente post-checkout.
-- [ ] **P4** — Filtros de categoría/marca en `/tienda` (la API los soporta, la UI no).
+- [~] **P4** — La tienda ya filtra categorías en cliente; verificar filtros de marca y filtrado paginado del lado servidor.
 - [ ] **P5** — Paginación en `/tienda` pública (carga todos los productos de una vez).
 
 ---
@@ -85,3 +86,11 @@
 - [x] Panel derecho del hero con stats + cards de servicios
 - [x] Bug de clientes no aparecen tras crear (closure stale en `fetchData`)
 - [x] Lazy-init de Resend para evitar crash en build de Vercel
+
+## Calidad técnica — revisión 11/09/2026
+
+- [x] Compilación separada de migraciones; despliegue detenido ante errores de Prisma.
+- [x] ESLint configurado con `next/core-web-vitals`, sin asistente interactivo.
+- [x] README actualizado a la implementación actual.
+- [ ] Resolver 14 advertencias existentes de ESLint: 11 sobre imágenes y 3 sobre hooks.
+- [ ] Completar pruebas de login, CRUD y checkout con base de desarrollo configurada.
