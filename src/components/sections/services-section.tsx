@@ -55,7 +55,7 @@ export async function ServicesSection() {
               <Link key={service.id} href={href} className="fs-service" style={{ position: 'relative', overflow: 'hidden' }}>
                 {service.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={service.image} alt="" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.40, pointerEvents: 'none' }} />
+                  <img src={service.image} alt="" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55, pointerEvents: 'none' }} />
                 )}
                 <div style={{ position: 'relative' }}>
                   <div className="fs-service-top">
