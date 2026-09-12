@@ -18,7 +18,7 @@ export function PublicShell({ settings, children }: { settings: SiteSettings; ch
     <div className="public-site">
       <Navbar settings={settings} />
       <main className="min-h-screen">{children}</main>
-      <Footer settings={settings} />
+      <Footer settings={settings} showStore={settings.sections?.showStore !== false} />
       <WhatsAppButton settings={settings} />
     </div>
   );

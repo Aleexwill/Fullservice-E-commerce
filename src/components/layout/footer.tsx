@@ -16,7 +16,7 @@ const footerLinks = {
   ],
 };
 
-export function Footer({ settings }: { settings?: SiteSettings }) {
+export function Footer({ settings, showStore = true }: { settings?: SiteSettings; showStore?: boolean }) {
   const description = settings?.general.siteDescription || siteConfig.description;
   const social = { facebook: settings?.social.facebook || siteConfig.social.facebook, instagram: settings?.social.instagram || siteConfig.social.instagram, linkedin: settings?.social.linkedin || siteConfig.social.linkedin };
   const address = settings?.contact.address ? `${settings.contact.address}, ${settings.contact.city}` : `${siteConfig.address.street}, ${siteConfig.address.city}`;
@@ -48,7 +48,7 @@ export function Footer({ settings }: { settings?: SiteSettings }) {
           </div>
 
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Servicios</h3><ul className="space-y-2.5">{footerLinks.servicios.map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
-          <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Tienda & empresa</h3><ul className="space-y-2.5">{[...footerLinks.tienda.slice(0, 2), ...footerLinks.empresa].map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
+          <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">{showStore ? 'Tienda & empresa' : 'Empresa'}</h3><ul className="space-y-2.5">{[...(showStore ? footerLinks.tienda.slice(0, 2) : []), ...footerLinks.empresa].map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Contacto</h3><ul className="space-y-3.5">
             <li className={`flex items-start gap-2.5 font-body text-body-sm ${secondary}`}><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#6FC3F5]" /><span>{address}</span></li>
             <li className={`flex items-center gap-2.5 font-body text-body-sm ${secondary}`}><Phone className="h-4 w-4 shrink-0 text-[#6FC3F5]" /><a href={`tel:${phone}`} className="break-all hover:text-white">{phone}</a></li>

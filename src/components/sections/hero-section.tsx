@@ -3,12 +3,12 @@ import Image from 'next/image';
 import { HeroDiagonalCarousel } from '@/components/sections/hero-carousel';
 import { ArrowRight, Wrench, Droplets, HardHat, Factory } from 'lucide-react';
 
-export function HeroSection({ image, title }: { image?: string; title?: string }) {
+export function HeroSection({ image, title, showStore = true }: { image?: string; title?: string; showStore?: boolean }) {
   return <section className="fs-hero"><div className="container-main fs-hero-grid">
     <div className="fs-hero-copy"><p className="fs-eyebrow">FULL SERVICE & CLEAN · PARAGUAY</p>
       <h1>Tu proyecto.<br />Nuestro <span>compromiso.</span></h1>
       <p className="fs-intro">Mantenimiento, limpieza y construcción para espacios que necesitan funcionar mejor.</p>
-      <div className="fs-actions"><Link href="/contacto?tipo=presupuesto" className="btn-primary">Pedir presupuesto <ArrowRight size={18}/></Link><Link href="/tienda" className="fs-text-link">Explorar tienda <ArrowRight size={18}/></Link></div>
+      <div className="fs-actions"><Link href="/contacto?tipo=presupuesto" className="btn-primary">Pedir presupuesto <ArrowRight size={18}/></Link>{showStore && <Link href="/tienda" className="fs-text-link">Explorar tienda <ArrowRight size={18}/></Link>}</div>
       <p className="fs-hero-note">Para empresas, industrias y hogares.</p>
     </div>
     <div className={`fs-hero-visual ${image ? 'has-photo' : ''}`}>

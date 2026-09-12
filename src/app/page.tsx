@@ -153,12 +153,12 @@ export default async function HomePage() {
   const projects = (await getAllProjects().catch(() => [])).filter(p => p.isActive && p.image);
   return (
     <div className="fs-home">
-      <HeroSection image={projects[0]?.image} title={projects[0]?.title} />
+      <HeroSection image={projects[0]?.image} title={projects[0]?.title} showStore={settings.sections?.showStore !== false} />
       <PartnersSection />
       <ServicesSection />
       <PortfolioPreview projects={projects} />
       <ProcessSection />
-      <FeaturedProducts />
+      {settings.sections?.showStore !== false && <FeaturedProducts />}
       <AboutSection about={content.about} />
       <CtaSection whatsapp={settings.contact.whatsapp} />
     </div>
