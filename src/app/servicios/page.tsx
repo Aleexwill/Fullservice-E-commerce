@@ -4,9 +4,39 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, ArrowRight, MessageCircle, Phone, ChevronRight } from 'lucide-react';
-import { Isotipo } from '@/components/ui/isotipo';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
+
+const FALLBACK_THUMBS = [
+  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=80',
+  'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&q=80',
+  'https://images.unsplash.com/photo-1590650046871-92c887180603?w=400&q=80',
+  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
+  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=80',
+  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=80',
+];
+
+function ProjectReel({ images }: { images: string[] }) {
+  const list = images.length >= 3 ? images : [...images, ...FALLBACK_THUMBS].slice(0, 6);
+  const doubled = [...list, ...list];
+  return (
+    <div className="relative hidden h-[340px] w-[160px] shrink-0 overflow-hidden rounded-2xl md:block" aria-hidden="true">
+      <div className="absolute inset-0 z-10 pointer-events-none" style={{background:'linear-gradient(to bottom,#0B1120 0%,transparent 18%,transparent 82%,#0B1120 100%)'}}/>
+      <div className="flex flex-col gap-3 animate-reel">
+        {doubled.map((src, i) => (
+          <div key={i} className="h-[100px] w-[160px] shrink-0 overflow-hidden rounded-xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt="" className="h-full w-full object-cover" loading="lazy"/>
+          </div>
+        ))}
+      </div>
+      <style>{`
+        @keyframes reel{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+        .animate-reel{animation:reel ${list.length * 3}s linear infinite}
+      `}</style>
+    </div>
+  );
+}
 
 type ServiceCategory = 'todos' | 'mantenimiento' | 'civil' | 'metalurgica';
 const categories = [{id:'todos',label:'Todos'},{id:'mantenimiento',label:'Mantenimiento'},{id:'civil',label:'Construcción civil'},{id:'metalurgica',label:'Metalúrgica'}] as const;
@@ -24,7 +54,9 @@ export default function ServiciosPage(){
  const searchParams = useSearchParams();
  const initialCategory = (searchParams.get('categoria') as ServiceCategory) || 'todos';
  const [activeCategory,setActiveCategory]=useState<ServiceCategory>(initialCategory); const [services,setServices]=useState(defaultServices);
+ const [reelImages,setReelImages]=useState<string[]>(FALLBACK_THUMBS);
  useEffect(()=>{fetch('/api/servicios-cms?active=true').then(r=>r.json()).then(d=>{if(d.services?.length)setServices(d.services.map((s:any)=>({...s,icon:ICON_MAP[s.icon]||Wrench})));}).catch(()=>{});},[]);
+ useEffect(()=>{fetch('/api/portfolio?active=true').then(r=>r.json()).then(d=>{const imgs=(d.projects||[]).map((p:any)=>p.image).filter(Boolean);if(imgs.length>=3)setReelImages(imgs);}).catch(()=>{});},[]);
  const filtered=activeCategory==='todos'?services:services.filter((s:any)=>s.category===activeCategory); const whatsappUrl=formatWhatsAppUrl(siteConfig.whatsapp,'Hola, quiero consultar sobre sus servicios.');
  return <>
   <div className="border-b border-gray-200 bg-white"><div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]"><Link href="/" className="hover:text-[#0B1120]">Inicio</Link><ChevronRight className="h-3 w-3"/><span className="font-medium text-[#0B1120]">Servicios</span></div></div>
@@ -43,15 +75,8 @@ export default function ServiciosPage(){
           <a href={formatWhatsAppUrl(siteConfig.whatsapp,'Hola, quiero consultar sobre sus servicios.')} target="_blank" rel="noopener noreferrer" className="btn-whatsapp"><MessageCircle className="h-4 w-4"/> WhatsApp</a>
         </div>
       </div>
-      {/* Stats */}
-      <div className="hidden shrink-0 grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 md:grid" style={{background:'#ffffff0d'}}>
-        {[{num:'8+',label:'Años de experiencia'},{num:'200+',label:'Proyectos entregados'},{num:'3',label:'Especialidades'},{num:'24h',label:'Tiempo de respuesta'}].map(({num,label})=>(
-          <div key={label} className="flex flex-col items-center justify-center px-10 py-8 text-center" style={{background:'#0B112080'}}>
-            <span className="font-display text-[2.25rem] font-bold leading-none text-white">{num}</span>
-            <span className="mt-2 font-body text-[.75rem] leading-snug text-[#8094B4]">{label}</span>
-          </div>
-        ))}
-      </div>
+      {/* Animated project reel */}
+      <ProjectReel images={reelImages}/>
     </div>
   </section>
   <section className="sticky top-[95px] z-40 border-b border-gray-200 bg-white/95 backdrop-blur-lg"><div className="container-main flex gap-1 overflow-x-auto py-3">{categories.map(cat=><button key={cat.id} onClick={()=>setActiveCategory(cat.id)} aria-pressed={activeCategory===cat.id} className={`min-h-[44px] whitespace-nowrap rounded-lg px-5 py-3 font-body text-[.75rem] font-semibold uppercase tracking-[.04em] transition-all ${activeCategory===cat.id?'bg-[#0B1120] text-white shadow-sm':'text-[#8094B4] hover:bg-[#F4F7FB] hover:text-[#0B1120]'}`}>{cat.label}</button>)}</div></section>
