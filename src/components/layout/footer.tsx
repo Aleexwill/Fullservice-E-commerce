@@ -67,7 +67,7 @@ export function Footer({ settings, showStore = true }: { settings?: SiteSettings
                 </div>
                 <div className={`flex items-center gap-2 px-3 py-2 font-body text-[.75rem] ${secondary} group-hover:text-white transition`}>
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-[#6FC3F5]" />
-                  <span>{address}</span>
+                  <span>{siteConfig.address.street}, {siteConfig.address.city}</span>
                 </div>
               </a>
             </li>
