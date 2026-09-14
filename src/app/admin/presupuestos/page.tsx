@@ -713,15 +713,16 @@ function Plan2Form({ form, setForm, onSave, onCancel }: {
 }
 
 // ─── Shared list row ───────────────────────────────────────────
-function PresupuestoRow({ item, onOpen, onDelete, onStatusChange }: {
+function PresupuestoRow({ item, onOpen, onDelete, onStatusChange, hideWebBadge }: {
   item: Presupuesto; onOpen: () => void; onDelete: () => void;
   onStatusChange?: (status: string) => void;
+  hideWebBadge?: boolean;
 }) {
   const st = STATUS_MAP[item.status] || STATUS_MAP.nuevo;
   const tp = TYPE_MAP[item.serviceType] || TYPE_MAP.otro;
   const pr = PRIORITY_MAP[item.priority] || PRIORITY_MAP.media;
   const TpIcon = tp.icon;
-  const isWeb = item.source === 'web' || item.createdBy === 'Web' || (!item.createdBy && item.source !== 'admin');
+  const isWeb = !hideWebBadge && (item.source === 'web' || item.source === 'website' || item.createdBy === 'Web');
   return (
     <div className="card-interactive flex items-center gap-4 p-4" onClick={onOpen}>
       <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-steel-900 ${tp.color}`}><TpIcon className="h-5 w-5" /></div>
@@ -731,8 +732,6 @@ function PresupuestoRow({ item, onOpen, onDelete, onStatusChange }: {
           {(item.priority === 'alta' || item.priority === 'urgente') && <AlertTriangle className={`h-3.5 w-3.5 ${pr.color}`} />}
           {isWeb ? (
             <span className="flex items-center gap-1 rounded-full border border-blue/30 bg-blue/10 px-2 py-0.5 font-mono text-[0.55rem] text-blue-bright"><Globe className="h-2.5 w-2.5" />Web</span>
-          ) : item.createdBy ? (
-            <span className="flex items-center gap-1 rounded-full border border-steel-700/40 bg-steel-900/40 px-2 py-0.5 font-mono text-[0.55rem] text-steel-400"><Shield className="h-2.5 w-2.5" />{item.createdBy}</span>
           ) : null}
         </div>
         <p className="mt-0.5 font-body text-body-sm font-medium text-arctic">{item.serviceTitle}</p>
@@ -855,6 +854,7 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
               onOpen={() => onOpen(item.id)}
               onDelete={() => onDelete(item.id)}
               onStatusChange={(status) => onStatusChange(item.id, status)}
+              hideWebBadge
             />
           ))}
         </div>
