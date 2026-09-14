@@ -36,31 +36,43 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = settings.seo.metaTitle || `${siteConfig.name} — Mantenimiento · Limpieza · Servicios`;
   const description = settings.seo.metaDescription || siteConfig.description;
 
+  const ogImage = settings.seo.ogImage || `${siteConfig.url}/og-image.png`;
+  const siteName = settings.general.siteName || siteConfig.name;
+
   return {
     metadataBase: new URL(siteConfig.url),
     title: {
       default: title,
-      template: `%s | ${settings.general.siteName || siteConfig.name}`,
+      template: `%s | ${siteName}`,
     },
     description,
+    alternates: { canonical: siteConfig.url },
     openGraph: {
       type: 'website',
       locale: 'es_PY',
       url: siteConfig.url,
-      siteName: settings.general.siteName || siteConfig.name,
+      siteName,
       title,
       description,
-      images: settings.seo.ogImage ? [settings.seo.ogImage] : undefined,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: siteName }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: settings.general.siteName || siteConfig.name,
+      title: siteName,
       description,
+      images: [ogImage],
     },
     robots: {
       index: true,
       follow: true,
-      googleBot: { index: true, follow: true },
+      googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+    },
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/icon.svg', type: 'image/svg+xml' },
+      ],
+      apple: '/apple-touch-icon.png',
     },
   };
 }
@@ -74,16 +86,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name: settings.general.siteName || siteConfig.name,
     description: settings.general.siteDescription || siteConfig.description,
     url: siteConfig.url,
-    telephone: settings.contact.phone || siteConfig.phone,
-    email: settings.contact.email || siteConfig.email,
+    telephone: siteConfig.phone,
+    email: siteConfig.email,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: settings.contact.address || siteConfig.address.street,
-      addressLocality: settings.contact.city || siteConfig.address.city,
+      streetAddress: siteConfig.address.street,
+      addressLocality: siteConfig.address.city,
+      addressRegion: siteConfig.address.state,
       addressCountry: siteConfig.address.country,
     },
-    openingHours: 'Mo-Fr 08:00-18:00, Sa 08:00-13:00',
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: '-25.3477',
+      longitude: '-57.6009',
+    },
+    openingHoursSpecification: [
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '07:00', closes: '18:00' },
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Saturday'], opens: '08:00', closes: '13:00' },
+    ],
     priceRange: '$$',
+    image: `${siteConfig.url}/og-image.png`,
     sameAs: Object.values(settings.social).filter(Boolean),
   };
 

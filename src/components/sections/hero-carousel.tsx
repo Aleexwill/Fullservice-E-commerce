@@ -105,6 +105,7 @@ export function HeroDiagonalCarousel() {
             src={current.photoUrl}
             alt={current.label}
             className="fs-carousel-bg absolute inset-0 h-full w-full object-cover will-change-transform"
+            title={current.label}
             style={{ animation: 'fsKenBurns 5s ease-out forwards' }}
           />
         ) : null}

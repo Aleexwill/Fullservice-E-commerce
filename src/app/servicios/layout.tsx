@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/servicios' },
   title: 'Servicios de Mantenimiento y Limpieza',
   description:
     'Servicios profesionales de mantenimiento edilicio, limpieza profunda, construcción civil y metalúrgica en Paraguay. Presupuesto sin cargo, respuesta rápida.',

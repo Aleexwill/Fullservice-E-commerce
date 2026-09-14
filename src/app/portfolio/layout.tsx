@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/portfolio' },
   title: 'Portfolio de Obras y Trabajos',
   description:
     'Conocé los proyectos realizados por Full Service & Clean: obras de construcción civil, trabajos metalúrgicos, mantenimiento edilicio y más en Paraguay.',

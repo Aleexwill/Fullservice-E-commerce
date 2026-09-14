@@ -3,17 +3,18 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Contacto',
   description:
-    'Contactate con Full Service & Clean. Consultá por servicios, pedí un presupuesto o escribinos por WhatsApp. Atención en Asunción y todo Paraguay.',
+    'Contactate con Full Service & Clean en Lambaré, Paraguay. Consultá por servicios, pedí un presupuesto o escribinos por WhatsApp. Respondemos en 24 h.',
+  alternates: { canonical: '/contacto' },
   openGraph: {
     title: 'Contacto — Full Service & Clean',
     description:
-      'Escribinos por WhatsApp, email o completá el formulario. Te respondemos a la brevedad.',
+      'Escribinos por WhatsApp, email o completá el formulario. Estamos en Ysapy casi Yasy, Lambaré.',
   },
   keywords: [
     'contacto Full Service Paraguay',
     'presupuesto mantenimiento Paraguay',
-    'ferretería contacto Asunción',
-    'WhatsApp ferretería Paraguay',
+    'empresa servicios Lambaré',
+    'WhatsApp mantenimiento Paraguay',
   ],
 };
 
