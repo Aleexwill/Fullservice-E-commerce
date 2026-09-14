@@ -50,7 +50,7 @@ function ContactoPageContent() {
       <div className="h-[380px] w-full md:h-[460px]">
         <iframe
           title="Ubicación Full Service & Clean"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.5!2d-57.5759!3d-25.2867!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDE3JzEyLjEiUyA1N8KwMzQnMzMuMiJX!5e0!3m2!1ses!2spy!4v1700000000000"
+          src="https://maps.google.com/maps?q=Ysapy+casi+Yasy,+Lambar%C3%A9,+Paraguay&t=&z=16&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0, display: 'block' }}

@@ -9,10 +9,10 @@ export const siteConfig = {
   email: 'info@fullserviceandclean.com.py',
   whatsapp: process.env.WHATSAPP_PHONE || '+595971528800',
   address: {
-    street: 'Avda. Principal 1234',
-    city: 'Asunción',
+    street: 'Ysapy casi Yasy',
+    city: 'Lambaré',
     state: 'Central',
-    zip: '1234',
+    zip: '',
     country: 'PY',
   },
   social: {
