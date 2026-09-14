@@ -6,7 +6,7 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
   ogImage: '/og-image.jpg',
   phone: '+595 971 528800',
-  email: 'info@fullserviceandclean.com.py',
+  email: 'info@fullservice.com.py',
   whatsapp: process.env.WHATSAPP_PHONE || '+595971528800',
   address: {
     street: 'Ysapy casi Yasy',
@@ -16,9 +16,9 @@ export const siteConfig = {
     country: 'PY',
   },
   social: {
-    facebook: 'https://facebook.com/fullserviceandclean',
-    instagram: 'https://instagram.com/fullserviceandclean',
-    linkedin: 'https://linkedin.com/company/fullserviceandclean',
+    facebook: 'https://facebook.com/fullserviceclean',
+    instagram: 'https://instagram.com/fullserviceclean',
+    linkedin: 'https://linkedin.com/company/fullserviceclean',
   },
   openingHours: 'Lun-Vie 08:00-18:00, Sáb 08:00-13:00',
 };

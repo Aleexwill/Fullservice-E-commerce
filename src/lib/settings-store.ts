@@ -86,7 +86,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   },
   contact: {
     phone: '+595 971 528 800',
-    email: 'info@fullserviceandclean.com.py',
+    email: 'info@fullservice.com.py',
     address: 'Ysapy casi Yasy',
     city: 'Lambaré, Paraguay',
     whatsapp: '+595971528800',
@@ -114,7 +114,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     emailOnNewOrder: true,
     emailOnNewLead: true,
     whatsappOnNewOrder: false,
-    adminEmail: 'admin@fullserviceandclean.com.py',
+    adminEmail: 'admin@fullservice.com.py',
   },
   seo: {
     metaTitle: 'Full Service & Clean — Mantenimiento, Limpieza y Servicios',
