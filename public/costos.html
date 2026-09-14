@@ -579,13 +579,18 @@ async function loadFromAPI() {
     if (cd && typeof cd === "object" && Array.isArray(cd.rubros) && cd.rubros.length > 0 && !isDemoData(cd)) {
       S = Object.assign({}, S, cd);
     } else {
-      // First time opening (or stale demo data): try to build rubros from AI calculationData.filas
-      const filas = data.calculationData?.filas;
-      if (Array.isArray(filas) && filas.length > 0) {
-        // Group filas by titulo sections; filas before any titulo go into "Rubro 1"
+      // First time opening (or stale demo data) — three fallback strategies:
+      const calcData = data.calculationData;
+
+      if (calcData && typeof calcData === "object" && Array.isArray(calcData.rubros) && calcData.rubros.length > 0) {
+        // Strategy A: calculationData IS the full S state (imported presupuestos)
+        S = Object.assign({}, S, calcData);
+
+      } else if (calcData && Array.isArray(calcData.filas) && calcData.filas.length > 0) {
+        // Strategy B: build rubros from AI-generated calculationData.filas
         const groups = [];
         let current = null;
-        for (const f of filas) {
+        for (const f of calcData.filas) {
           if (f.tipo === "titulo") {
             current = { nombre: f.descripcion || "Rubro", mats: [], mos: [], otros: [] };
             groups.push(current);
@@ -597,7 +602,7 @@ async function loadFromAPI() {
           }
         }
         if (groups.length === 0) groups.push({ nombre: "Rubro 1", mats: [], mos: [], otros: [] });
-        S.rubros = groups.map((g, gi) => {
+        S.rubros = groups.map((g) => {
           const base = rubroBase(g.nombre);
           if (g.mats.length > 0) {
             base.mats = g.mats.map((f, i) => ({
@@ -618,7 +623,9 @@ async function loadFromAPI() {
           }
           return base;
         });
+
       } else {
+        // Strategy C: blank slate
         S.rubros = [rubroBase("Rubro 1")];
       }
     }
