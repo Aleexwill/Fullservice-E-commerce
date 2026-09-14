@@ -50,7 +50,27 @@ export function Footer({ settings, showStore = true }: { settings?: SiteSettings
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Servicios</h3><ul className="space-y-2.5">{footerLinks.servicios.map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">{showStore ? 'Tienda & empresa' : 'Empresa'}</h3><ul className="space-y-2.5">{[...(showStore ? footerLinks.tienda.slice(0, 2) : []), ...footerLinks.empresa].map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Contacto</h3><ul className="space-y-3.5">
-            <li className={`flex items-start gap-2.5 font-body text-body-sm ${secondary}`}><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#6FC3F5]" /><span>{address}</span></li>
+            <li>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Ysapy+casi+Yasy,+Lambar%C3%A9,+Paraguay"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block overflow-hidden rounded-xl border border-white/10 transition hover:border-[#6FC3F5]/50"
+                aria-label="Ver ubicación en Google Maps"
+              >
+                <div className="relative h-[110px] w-full overflow-hidden">
+                  <iframe
+                    src="https://maps.google.com/maps?q=Ysapy+casi+Yasy,+Lambar%C3%A9,+Paraguay&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                    width="100%" height="140" style={{border:0,marginTop:'-15px',pointerEvents:'none'}}
+                    loading="lazy" referrerPolicy="no-referrer-when-downgrade" tabIndex={-1} aria-hidden="true"
+                  />
+                </div>
+                <div className={`flex items-center gap-2 px-3 py-2 font-body text-[.75rem] ${secondary} group-hover:text-white transition`}>
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-[#6FC3F5]" />
+                  <span>{address}</span>
+                </div>
+              </a>
+            </li>
             <li className={`flex items-center gap-2.5 font-body text-body-sm ${secondary}`}><Phone className="h-4 w-4 shrink-0 text-[#6FC3F5]" /><a href={`tel:${phone}`} className="break-all hover:text-white">{phone}</a></li>
             <li className={`flex items-center gap-2.5 font-body text-body-sm ${secondary}`}><Mail className="h-4 w-4 shrink-0 text-[#6FC3F5]" /><a href={`mailto:${email}`} className="break-all hover:text-white">{email}</a></li>
             <li className={`flex items-start gap-2.5 font-body text-body-sm ${secondary}`}><Clock className="mt-0.5 h-4 w-4 shrink-0 text-[#6FC3F5]" /><span>{openingHours}</span></li>
