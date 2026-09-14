@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useParallax } from '@/hooks/use-parallax';
 
 interface Slide {
   id: string;
@@ -25,6 +26,7 @@ const FALLBACK_SLIDES: Slide[] = [
 const INTERVAL = 4000;
 
 export function HeroDiagonalCarousel() {
+  useParallax('.fs-carousel-bg', 15);
   const [slides, setSlides] = useState<Slide[]>(FALLBACK_SLIDES);
   const [active, setActive] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -102,7 +104,7 @@ export function HeroDiagonalCarousel() {
             key={`img-${animKey}`}
             src={current.photoUrl}
             alt={current.label}
-            className="absolute inset-0 h-full w-full object-cover"
+            className="fs-carousel-bg absolute inset-0 h-full w-full object-cover will-change-transform"
             style={{ animation: 'fsKenBurns 5s ease-out forwards' }}
           />
         ) : null}

@@ -3,6 +3,7 @@ import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Therm
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 import { getAllServices } from '@/lib/services-store';
+import { ServicesParallax } from './services-parallax';
 
 const ICON_MAP: Record<string, any> = { Zap, Droplets, Paintbrush, Wrench, HardHat, Factory, ShieldCheck, Thermometer };
 
@@ -45,6 +46,7 @@ export async function ServicesSection() {
           </div>
           <p className="fs-section-description">Del mantenimiento cotidiano a una nueva obra. Encontrá el servicio que necesita tu espacio.</p>
         </div>
+        <ServicesParallax />
         <div className="fs-services-grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
           {featured.map((service, i) => {
             const Icon = ICON_MAP[service.icon] || Wrench;
