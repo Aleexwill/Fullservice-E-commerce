@@ -116,8 +116,8 @@ model Presupuesto {
   customer          Json
   description       String   @default("") @db.Text
   details           String   @default("") @db.Text
-  estimatedValue    Decimal? @db.Decimal(10, 2)
-  finalValue        Decimal? @db.Decimal(10, 2)
+  estimatedValue    Decimal? @db.Decimal(15, 2)
+  finalValue        Decimal? @db.Decimal(15, 2)
   estimatedDuration String   @default("")
   priority          String   @default("media")
   source            String   @default("")
