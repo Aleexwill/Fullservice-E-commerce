@@ -125,14 +125,75 @@
 <style>
   #ai-fab {
     position: fixed; bottom: 24px; right: 24px; z-index: 1000;
-    width: 48px; height: 48px; border-radius: 50%;
-    background: #2D8FCC; border: none; cursor: pointer;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(135deg, #2D8FCC, #1a6fa8); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 16px rgba(45,143,204,.45);
-    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 4px 20px rgba(45,143,204,.5);
+    transition: transform .2s, box-shadow .2s;
+    animation: ai-fab-entrance .6s cubic-bezier(.34,1.56,.64,1) both;
   }
-  #ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 22px rgba(45,143,204,.55); }
-  #ai-fab svg { width: 22px; height: 22px; color: #fff; }
+  #ai-fab:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(45,143,204,.65); }
+  #ai-fab:active { transform: scale(.95); }
+  #ai-fab svg { width: 24px; height: 24px; color: #fff; }
+
+  /* Anillo de pulso */
+  #ai-fab::before {
+    content: '';
+    position: absolute; inset: -6px; border-radius: 50%;
+    border: 2px solid rgba(45,143,204,.45);
+    animation: ai-pulse 2.2s ease-out infinite;
+  }
+  #ai-fab::after {
+    content: '';
+    position: absolute; inset: -12px; border-radius: 50%;
+    border: 1.5px solid rgba(45,143,204,.2);
+    animation: ai-pulse 2.2s ease-out .55s infinite;
+  }
+  #ai-fab.open::before, #ai-fab.open::after { animation: none; opacity: 0; }
+
+  @keyframes ai-pulse {
+    0%   { transform: scale(.88); opacity: .9; }
+    70%  { transform: scale(1.18); opacity: 0; }
+    100% { transform: scale(1.18); opacity: 0; }
+  }
+  @keyframes ai-fab-entrance {
+    0%   { opacity: 0; transform: scale(0) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Burbuja de saludo */
+  #ai-bubble {
+    position: fixed; bottom: 90px; right: 84px; z-index: 1001;
+    background: #fff; color: #1a2332;
+    border-radius: 14px 14px 4px 14px;
+    padding: 10px 14px; font-size: 12.5px; line-height: 1.45;
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2);
+    max-width: 200px; text-align: left;
+    animation: ai-bubble-in .5s cubic-bezier(.34,1.56,.64,1) .9s both;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #ai-bubble::after {
+    content: '';
+    position: absolute; bottom: -7px; right: 14px;
+    width: 14px; height: 14px;
+    background: #fff; clip-path: polygon(0 0, 100% 0, 100% 100%);
+    border-radius: 0 0 3px 0;
+  }
+  #ai-bubble.hidden { display: none; }
+  @keyframes ai-bubble-in {
+    0%   { opacity: 0; transform: translateX(12px) scale(.88); }
+    100% { opacity: 1; transform: translateX(0) scale(1); }
+  }
+  /* Punto parpadeante al final del texto */
+  #ai-bubble em {
+    display: inline-block; width: 5px; height: 5px;
+    background: #2D8FCC; border-radius: 50%; margin-left: 3px;
+    animation: ai-dot-blink 1.2s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  @keyframes ai-dot-blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
   #ai-panel {
     position: fixed; bottom: 82px; right: 24px; z-index: 1000;
@@ -206,6 +267,11 @@
   #ai-reset:hover { color: var(--text); }
 </style>
 
+<!-- Burbuja de saludo -->
+<div id="ai-bubble" onclick="aiToggle()" title="Abrir asistente">
+  ¿Necesitás ayuda con este presupuesto?<em></em>
+</div>
+
 <!-- Botón flotante -->
 <button id="ai-fab" title="Asistente IA" onclick="aiToggle()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -252,12 +318,29 @@ let _aiHistorial = []; // { rol: 'user'|'model', texto: string }
 function aiToggle() {
   _aiOpen = !_aiOpen;
   const panel = document.getElementById('ai-panel');
+  const fab   = document.getElementById('ai-fab');
+  const bubble = document.getElementById('ai-bubble');
   panel.classList.toggle('hidden', !_aiOpen);
+  fab.classList.toggle('open', _aiOpen);
+  // Ocultar burbuja de saludo al interactuar por primera vez
+  if (bubble && !bubble.classList.contains('hidden')) {
+    bubble.classList.add('hidden');
+  }
   if (_aiOpen) {
     aiActualizarContador();
     setTimeout(() => document.getElementById('ai-input').focus(), 80);
   }
 }
+
+// Ocultar burbuja automáticamente después de 8 segundos si no se interactuó
+setTimeout(() => {
+  const b = document.getElementById('ai-bubble');
+  if (b && !b.classList.contains('hidden')) {
+    b.style.transition = 'opacity .5s';
+    b.style.opacity = '0';
+    setTimeout(() => b.classList.add('hidden'), 500);
+  }
+}, 8000);
 
 function aiActualizarContador() {
   const el = document.getElementById('ai-rubros-count');
