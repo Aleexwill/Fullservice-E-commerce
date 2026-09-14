@@ -87,8 +87,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   contact: {
     phone: '+595 971 528 800',
     email: 'info@fullserviceandclean.com.py',
-    address: 'Av. Principal 1234',
-    city: 'Asuncion, Paraguay',
+    address: 'Ysapy casi Yasy',
+    city: 'Lambaré, Paraguay',
     whatsapp: '+595971528800',
     mapUrl: '',
   },
