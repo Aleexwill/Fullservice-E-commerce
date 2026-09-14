@@ -39,5 +39,26 @@ function ContactoPageContent() {
       </form>}</div>
       <aside className="space-y-4 lg:col-span-2"><div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"><h2 className="font-display text-h3 text-[#0B1120]">Contacto directo</h2><div className="mt-5 space-y-2">{[[Phone,'Teléfono',siteConfig.phone,`tel:${siteConfig.phone}`],[Mail,'Email',siteConfig.email,`mailto:${siteConfig.email}`]].map(([Icon,label,value,href]) => <a key={label as string} href={href as string} className="flex items-center gap-3 rounded-xl p-3 hover:bg-[#F4F7FB]"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EBF5FB] text-[#2D8FCC]"><Icon className="h-5 w-5"/></div><div><div className="font-body text-[.65rem] font-semibold uppercase tracking-wider text-[#8094B4]">{label as string}</div><div className="font-body text-sm font-medium text-[#0B1120]">{value as string}</div></div></a>)}</div></div><div className="rounded-2xl bg-[#0B1120] p-6 text-white"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2D8FCC]/20 text-[#6FC3F5]"><MessageCircle className="h-5 w-5"/></div><h3 className="mt-4 font-display text-h3">¿Preferís WhatsApp?</h3><p className="mt-2 font-body text-body-sm leading-6 text-[#B7C5D9]">Escribinos directamente y coordinamos tu consulta.</p><a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#2D8FCC] px-4 py-3 font-body text-sm font-semibold text-white">Abrir WhatsApp <ChevronRight className="h-4 w-4"/></a></div><div className="rounded-2xl border border-gray-200 bg-white p-6"><div className="flex gap-3"><MapPin className="mt-0.5 h-5 w-5 text-[#2D8FCC]"/><div><h3 className="font-display text-h3 text-[#0B1120]">Dónde estamos</h3><p className="mt-1 font-body text-body-sm text-[#4A5E80]">{siteConfig.address.street}<br/>{siteConfig.address.city}, {siteConfig.address.state}</p></div></div><div className="mt-4 flex gap-3"><Clock className="mt-0.5 h-5 w-5 text-[#2D8FCC]"/><div><h3 className="font-display text-h3 text-[#0B1120]">Atención</h3><p className="mt-1 font-body text-body-sm text-[#4A5E80]">Respondemos consultas dentro de 24 horas.</p></div></div></div></aside>
     </div></div></section>
+    {/* Mapa */}
+    <section className="border-t border-gray-200">
+      <div className="container-main py-10">
+        <div className="mb-5 flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-[#2D8FCC]"/>
+          <h2 className="font-display text-h3 text-[#0B1120]">¿Dónde estamos?</h2>
+        </div>
+      </div>
+      <div className="h-[380px] w-full md:h-[460px]">
+        <iframe
+          title="Ubicación Full Service & Clean"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.5!2d-57.5759!3d-25.2867!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDE3JzEyLjEiUyA1N8KwMzQnMzMuMiJX!5e0!3m2!1ses!2spy!4v1700000000000"
+          width="100%"
+          height="100%"
+          style={{ border: 0, display: 'block' }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
+    </section>
   </main>;
 }
