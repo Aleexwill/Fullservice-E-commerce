@@ -40,7 +40,7 @@ export function Footer({ settings, showStore = true }: { settings?: SiteSettings
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:gap-10">
           <div>
-            <Link href="/" className="inline-flex rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6FC3F5]" aria-label="Full Service & Clean — inicio"><Image src="/logo.png" alt="Full Service & Clean" width={190} height={76} className="h-auto w-[150px] object-contain" /></Link>
+            <Link href="/" className="inline-flex rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6FC3F5]" aria-label="Full Service & Clean — inicio"><Image src="/logo.png" alt="Full Service & Clean" width={260} height={104} className="h-auto w-[220px] object-contain" /></Link>
             <p className="mt-5 max-w-sm font-body text-body-sm leading-relaxed text-[#9AAAC0]">{description}</p>
             <div className="mt-5 flex gap-2">{[
               { href: social.facebook, label: 'Facebook', icon: Facebook }, { href: social.instagram, label: 'Instagram', icon: Instagram }, { href: social.linkedin, label: 'LinkedIn', icon: Linkedin },
