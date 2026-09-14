@@ -13,6 +13,7 @@ const BASE_NAV_LINKS = [
   { href: '/servicios', label: 'Servicios', sectionKey: 'showServicios' },
   { href: '/tienda', label: 'Tienda', sectionKey: 'showStore' },
   { href: '/portfolio', label: 'Portfolio', sectionKey: 'showPortfolio' },
+  { href: '/nosotros', label: 'Nosotros', sectionKey: null },
   { href: '/contacto', label: 'Contacto', sectionKey: null },
 ];
 
