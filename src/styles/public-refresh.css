@@ -36,14 +36,28 @@
 .fs-services,.fs-projects,.fs-process,.fs-about{padding:88px 0}
 .fs-section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:40px}
 .fs-section-description{max-width:350px;font-size:1rem;line-height:1.8;color:var(--fs-muted)}
-.fs-services-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid #dce5eb;border-radius:12px;overflow:hidden}
-.fs-service{padding:30px 24px;display:flex;flex-direction:column;border-right:1px solid #dce5eb;transition:background .2s}
-.fs-service:last-child{border-right:0}.fs-service:hover{background:#f0f6f9}
-.fs-service-top{display:flex;align-items:center;justify-content:space-between;color:#257da8;margin-bottom:46px}
-.fs-service-top span{font-size:.75rem;color:#657785}
-.fs-service h3{font-size:1.25rem;margin-bottom:14px}
-.fs-service p{font-size:1rem;line-height:1.7;color:var(--fs-muted)}
-.fs-service-link{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:30px;font-size:.875rem;font-weight:600}
+.fs-services-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+/* Tarjeta sin foto */
+.fs-service{position:relative;overflow:hidden;border-radius:12px;border:1px solid #dce5eb;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:box-shadow .25s,transform .25s,background .2s;background:#fff}
+.fs-service:hover{background:#f0f6f9;box-shadow:0 8px 28px #0b113214;transform:translateY(-2px)}
+/* Tarjeta con foto */
+.fs-service--photo{border:0;min-height:380px}
+.fs-service-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s ease;pointer-events:none}
+.fs-service--photo:hover .fs-service-bg{transform:scale(1.05)}
+.fs-service--photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,#081824f0 30%,#08182480 65%,#08182430 100%);transition:opacity .3s}
+.fs-service--photo:hover::after{opacity:1.15}
+/* Inner content */
+.fs-service-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:28px 24px}
+.fs-service--photo .fs-service-inner{justify-content:flex-end;color:#fff;padding:28px 24px}
+.fs-service-icon{color:#257da8;margin-bottom:40px}
+.fs-service--photo .fs-service-icon{color:#f1aa63;background:#ffffff18;width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:auto;backdrop-filter:blur(4px)}
+.fs-service h3{font-size:1.25rem;margin-bottom:10px}
+.fs-service--photo h3{font-size:1.1875rem;font-weight:600;text-shadow:0 1px 4px #0008}
+.fs-service p{font-size:.9375rem;line-height:1.65;color:var(--fs-muted)}
+.fs-service--photo p{color:#c8dce8;font-size:.875rem;margin-bottom:18px;text-shadow:0 1px 3px #0006}
+.fs-service-link{display:inline-flex;align-items:center;gap:8px;margin-top:auto;padding-top:24px;font-size:.8125rem;font-weight:600}
+.fs-service--photo .fs-service-link{background:#ffffff1a;border:1px solid #ffffff30;border-radius:20px;padding:8px 14px;font-size:.8rem;backdrop-filter:blur(4px);width:fit-content;transition:background .2s}
+.fs-service--photo:hover .fs-service-link{background:#ffffff30}
 .fs-projects{background:#102331;color:white}.fs-projects .fs-eyebrow{color:#8dc2df}.fs-project-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:24px}
 .fs-project{position:relative;overflow:hidden;border-radius:8px;min-height:240px;background:#183747}.fs-project-0{grid-row:span 2;min-height:490px}
 .fs-project-image{position:absolute;inset:0}.fs-project-copy{position:absolute;bottom:0;inset-inline:0;padding:60px 28px 28px;background:linear-gradient(transparent,#071522e8)}
@@ -51,8 +65,8 @@
 .fs-process-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px;margin-top:42px}.fs-step{display:block;font-size:2.75rem;font-weight:300;color:#257da8;margin-bottom:24px}.fs-process h3{font-size:1.25rem;margin-bottom:12px}.fs-process p,.fs-about p:not(.fs-eyebrow){font-size:1rem;line-height:1.8;color:var(--fs-muted)}
 .fs-about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}.fs-about .fs-text-link{margin-top:20px}
 .fs-home .section .card-interactive{box-shadow:none}.fs-home .section .card-interactive:hover{box-shadow:0 8px 24px #1023310c}
-@media(max-width:1000px){.fs-hero-grid{gap:32px}.fs-hero-visual{padding:24px}.fs-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fs-service{border-bottom:1px solid #dce5eb}.fs-service:nth-child(2){border-right:0}.fs-service:nth-last-child(-n+2){border-bottom:0}.fs-partner-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:700px){.fs-hero{padding:44px 0}.fs-hero-grid{grid-template-columns:1fr;gap:36px}.fs-home h1{font-size:clamp(2.5rem,10vw,3.6rem)}.fs-hero-visual,.fs-hero-visual.has-photo{min-height:340px;border-radius:4px 42px 4px 4px}.fs-partner-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.fs-services,.fs-projects,.fs-process,.fs-about{padding:56px 0}.fs-section-heading{display:block}.fs-section-description{margin-top:22px}.fs-service{padding:24px 18px}.fs-service h3{font-size:1.125rem}.fs-service-top{margin-bottom:28px}.fs-process-grid,.fs-about-grid,.fs-project-grid{grid-template-columns:1fr;gap:30px}.fs-project-0{min-height:340px;grid-row:auto}.fs-partners{padding:36px 0}.fs-step{margin-bottom:12px}.fs-home .fs-eyebrow{line-height:1.6}}
+@media(max-width:1000px){.fs-hero-grid{gap:32px}.fs-hero-visual{padding:24px}.fs-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fs-partner-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.fs-hero{padding:44px 0}.fs-hero-grid{grid-template-columns:1fr;gap:36px}.fs-home h1{font-size:clamp(2.5rem,10vw,3.6rem)}.fs-hero-visual,.fs-hero-visual.has-photo{min-height:340px;border-radius:4px 42px 4px 4px}.fs-partner-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.fs-services,.fs-projects,.fs-process,.fs-about{padding:56px 0}.fs-section-heading{display:block}.fs-section-description{margin-top:22px}.fs-service-inner{padding:22px 18px}.fs-service h3{font-size:1.125rem}.fs-service--photo{min-height:320px}.fs-process-grid,.fs-about-grid,.fs-project-grid{grid-template-columns:1fr;gap:30px}.fs-project-0{min-height:340px;grid-row:auto}.fs-partners{padding:36px 0}.fs-step{margin-bottom:12px}.fs-home .fs-eyebrow{line-height:1.6}}
 @media(prefers-reduced-motion:reduce){.fs-home *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 /* Layered atmosphere behind the public hero; decoration never intercepts input. */

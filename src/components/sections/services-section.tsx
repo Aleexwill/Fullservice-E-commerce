@@ -52,21 +52,18 @@ export async function ServicesSection() {
               ? '/contacto?tipo=presupuesto&servicio=Limpieza%20profesional'
               : `/servicios?categoria=${encodeURIComponent(service.category)}`;
             return (
-              <Link key={service.id} href={href} className="fs-service" style={{ position: 'relative', overflow: 'hidden' }}>
+              <Link key={service.id} href={href} className={`fs-service${service.image ? ' fs-service--photo' : ''}`}>
                 {service.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={service.image} alt="" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55, pointerEvents: 'none' }} />
+                  <img src={service.image} alt="" aria-hidden="true" className="fs-service-bg" />
                 )}
-                <div style={{ position: 'relative' }}>
-                  <div className="fs-service-top">
-                    <Icon size={30} />
-                    <span>0{i + 1}</span>
-                  </div>
+                <div className="fs-service-inner">
+                  <div className="fs-service-icon"><Icon size={26} /></div>
                   <h3>{service.title}</h3>
                   <p>{service.description}</p>
                   <span className="fs-service-link">
                     {service.category === 'limpieza' ? 'Consultar' : 'Explorar servicio'}
-                    <ArrowRight size={18} />
+                    <ArrowRight size={16} />
                   </span>
                 </div>
               </Link>
