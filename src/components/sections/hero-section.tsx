@@ -12,8 +12,8 @@ export function HeroSection({ image, title, showStore = true }: { image?: string
       <p className="fs-hero-note">Para empresas, industrias y hogares.</p>
     </div>
     <div className={`fs-hero-visual ${image ? 'has-photo' : ''}`}>
-      {image ? <Image src={image} alt={title || 'Trabajo de Full Service & Clean'} fill priority sizes="(max-width: 900px) 100vw, 50vw" className="object-cover"/> : <><span className="fs-visual-label">EXPERIENCIA QUE CONECTA</span><div className="fs-service-list">{[[Wrench,'Mantenimiento'],[Droplets,'Limpieza profesional'],[HardHat,'Obras civiles'],[Factory,'Metalúrgica']].map(([Icon,label],i)=>{const Symbol=Icon as typeof Wrench; return <div key={String(label)}><span>0{i+1}</span><Symbol size={24}/><strong>{String(label)}</strong></div>;})}</div></>}
-      <div className="fs-visual-caption"><span>Un equipo. Soluciones integrales.</span><ArrowRight size={24}/></div>
+      {image ? <Image src={image} alt={title || 'Trabajo de Full Service & Clean'} fill priority sizes="(max-width: 900px) 100vw, 50vw" className="object-cover"/> : <><span className="fs-visual-label">EXPERIENCIA QUE CONECTA</span><div className="fs-service-list">{([[Wrench,'Mantenimiento','mantenimiento'],[Droplets,'Limpieza profesional','limpieza'],[HardHat,'Obras civiles','civil'],[Factory,'Metalúrgica','metalurgica']] as const).map(([Icon,label,slug])=>{const Symbol=Icon as typeof Wrench; return <Link key={slug} href={`/servicios?categoria=${slug}`} className="fs-service-list-row"><Symbol size={22}/><strong>{label}</strong><ArrowRight size={14} className="fs-service-arrow"/></Link>;})}</div></>}
+      <Link href="/servicios" className="fs-visual-caption"><span>Un equipo. Soluciones integrales.</span><ArrowRight size={24}/></Link>
     </div>
   </div><div className="container-main fs-hero-carousel"><HeroDiagonalCarousel /></div></section>;
 }
