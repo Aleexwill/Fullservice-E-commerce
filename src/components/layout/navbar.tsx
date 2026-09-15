@@ -3,10 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ShoppingCart, Phone, Search, ArrowRight } from 'lucide-react';
+import { Menu, X, Phone, ArrowRight } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
-import { useCartStore } from '@/lib/cart-store';
 import type { SiteSettings } from '@/lib/settings-store';
 
 const BASE_NAV_LINKS = [
@@ -20,8 +19,6 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
   const [isOpen, setIsOpen] = useState(false);
   const phone = settings?.contact.phone || siteConfig.phone;
   const openingHours = settings?.business.openingHours.weekdays || siteConfig.openingHours;
-  const cartCount = useCartStore((s) => s.totalItems());
-  const showStore = settings?.sections?.showStore !== false;
   const navLinks = BASE_NAV_LINKS.filter(
     (l) => l.sectionKey === null || settings?.sections?.[l.sectionKey as keyof typeof settings.sections] !== false
   );
@@ -54,17 +51,6 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
           </div>
 
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
-            {showStore && (
-              <Link href="/tienda" className="hidden rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white sm:block" aria-label="Buscar productos">
-                <Search className="h-[18px] w-[18px]" />
-              </Link>
-            )}
-            {showStore && (
-              <Link href="/carrito" aria-label={cartCount > 0 ? `Carrito — ${cartCount} item${cartCount !== 1 ? 's' : ''}` : 'Carrito'} className="relative rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white">
-                <ShoppingCart className="h-[18px] w-[18px]" />
-                {cartCount > 0 && <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#D07420] px-1 text-[0.62rem] font-bold text-white">{cartCount > 9 ? '9+' : cartCount}</span>}
-              </Link>
-            )}
             <Link href="/contacto?tipo=presupuesto" className="btn-primary ml-1 hidden gap-2 xl:inline-flex">Presupuesto <ArrowRight className="h-3.5 w-3.5" /></Link>
             <button onClick={() => setIsOpen(!isOpen)} className="rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white lg:hidden" aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={isOpen} aria-controls="mobile-navigation">
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
