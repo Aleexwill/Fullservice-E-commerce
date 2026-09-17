@@ -17,7 +17,7 @@ interface PromoBanner {
 }
 
 const FALLBACK: PromoBanner[] = [
-  { id: '1', title: 'Hasta 30% OFF en herramientas', subtitle: 'Ofertas válidas hasta fin de mes. Stock limitado.', ctaLabel: 'Ver ofertas', ctaUrl: '/tienda', imageUrl: '', bgColor: '#0a1628', accentColor: '#E8862B', badge: 'OFERTA' },
+  { id: '1', title: 'Hasta un 30 % de descuento en herramientas', subtitle: 'Ofertas válidas hasta fin de mes. Stock limitado.', ctaLabel: 'Ver ofertas', ctaUrl: '/tienda', imageUrl: '', bgColor: '#0a1628', accentColor: '#E8862B', badge: 'OFERTA' },
 ];
 
 export function PromoBannerCarousel() {
@@ -174,7 +174,7 @@ export function PromoBannerCarousel() {
                 height: '6px',
                 background: i === active ? b.accentColor : 'rgba(255,255,255,0.3)',
               }}
-              aria-label={`Slide ${i + 1}`}
+              aria-label={`Diapositiva ${i + 1}`}
             />
           ))}
         </div>
