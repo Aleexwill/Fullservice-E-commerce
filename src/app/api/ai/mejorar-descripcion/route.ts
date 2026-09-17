@@ -98,7 +98,7 @@ function generateFallbackDescription(data: {
   if (data.brand && !shortParts[0].includes(data.brand)) {
     shortParts[0] += ` de ${data.brand}`;
   }
-  const shortDescription = (shortParts[0] + '. Calidad profesional con garantia. Envio a todo el pais.').slice(0, 155);
+  const shortDescription = (shortParts[0] + '. Calidad profesional con garantía. Envío a todo el país.').slice(0, 155);
 
   // Specs text
   const specsEntries = Object.entries(data.specifications || {});
