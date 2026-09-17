@@ -33,7 +33,7 @@ export function Footer({ settings, showStore = true }: { settings?: SiteSettings
           <div>
             <span className="font-body text-[0.68rem] font-bold uppercase tracking-[.14em] text-[#6FC3F5]">¿Hablamos?</span>
             <h2 className="mt-2 max-w-xl font-display text-h2 uppercase text-white">Llevemos tu proyecto al siguiente nivel.</h2>
-            <p className="mt-3 max-w-xl font-body text-body text-[#B7C5D9]">Cuéntanos qué necesitas y te ayudamos a encontrar la solución adecuada.</p>
+            <p className="mt-3 max-w-xl font-body text-body text-[#B7C5D9]">Contanos qué necesitás y te ayudamos a encontrar la solución adecuada.</p>
           </div>
           <div className="flex items-center md:justify-end"><Link href="/contacto" className="btn-primary w-full justify-center sm:w-auto">Contactar <ArrowUpRight className="h-4 w-4" /></Link></div>
         </div>
@@ -48,7 +48,7 @@ export function Footer({ settings, showStore = true }: { settings?: SiteSettings
           </div>
 
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Servicios</h3><ul className="space-y-2.5">{footerLinks.servicios.map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
-          <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">{showStore ? 'Tienda & empresa' : 'Empresa'}</h3><ul className="space-y-2.5">{[...(showStore ? footerLinks.tienda.slice(0, 2) : []), ...footerLinks.empresa].map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
+          <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">{showStore ? 'Tienda y empresa' : 'Empresa'}</h3><ul className="space-y-2.5">{[...(showStore ? footerLinks.tienda.slice(0, 2) : []), ...footerLinks.empresa].map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Contacto</h3><ul className="space-y-3.5">
             <li>
               <a
