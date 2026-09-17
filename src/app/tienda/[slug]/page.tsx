@@ -115,7 +115,7 @@ export default async function ProductPage({ params }: Props) {
                       />
                     ))}
                   </div>
-                  <span className="font-body text-caption text-steel-500">({product.reviewCount} reseñas)</span>
+                  <span className="font-body text-caption text-steel-500">({product.reviewCount} {product.reviewCount === 1 ? 'reseña' : 'reseñas'})</span>
                 </div>
               )}
 
