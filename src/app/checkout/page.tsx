@@ -135,7 +135,7 @@ export default function CheckoutPage() {
           <ChevronRight className="h-3 w-3" />
           <Link href="/carrito" className="hover:text-[#0B1120]">Carrito</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-[#0B1120]">Checkout</span>
+          <span className="text-[#0B1120]">Finalizar compra</span>
         </div>
       </div>
 
