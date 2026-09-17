@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     if (!body.customer?.name) {
-      return NextResponse.json({ error: 'Nombre del cliente es obligatorio' }, { status: 400 });
+      return NextResponse.json({ error: 'El nombre del cliente es obligatorio.' }, { status: 400 });
     }
 
     const rawItems: { productId: string; quantity: number }[] = (body.items || []).map((item: any) => ({
