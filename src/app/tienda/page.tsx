@@ -164,8 +164,8 @@ export default function TiendaPage() {
       {/* Hero + Search */}
       <section className="border-b border-gray-200 bg-white py-12">
         <div className="container-main">
-          <span className="overline mb-2 block">Ferreteria online</span>
-          <h1 className="font-display text-h1 uppercase text-[#0B1120]">Nuestra Tienda</h1>
+          <span className="overline mb-2 block">Ferretería online</span>
+          <h1 className="font-display text-h1 uppercase text-[#0B1120]">Nuestra tienda</h1>
           <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
           <p className="mt-4 max-w-lg font-body text-body text-[#4A5E80]">
             Todo lo que necesitas para tu obra o reparacion, con envio a domicilio.
@@ -228,8 +228,8 @@ export default function TiendaPage() {
       <section className="border-b border-gray-200 bg-[#F4F7FB] py-4">
         <div className="container-main flex flex-wrap items-center justify-center gap-8 text-center">
           {[
-            { icon: Truck, text: 'Envio a todo el pais' },
-            { icon: ShieldCheck, text: 'Garantia oficial' },
+            { icon: Truck, text: 'Envío a todo el país' },
+            { icon: ShieldCheck, text: 'Garantía oficial' },
             { icon: CreditCard, text: 'Pago seguro' },
           ].map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export default function TiendaPage() {
                 className="input max-w-[200px] py-2 text-body-sm"
               >
                 <option value="featured">Destacados</option>
-                <option value="bestsellers">Mas vendidos</option>
+                <option value="bestsellers">Más vendidos</option>
                 <option value="price-asc">Precio: menor a mayor</option>
                 <option value="price-desc">Precio: mayor a menor</option>
                 <option value="rating">Mejor valorados</option>
@@ -288,18 +288,18 @@ export default function TiendaPage() {
             <div className="card p-12 text-center">
               <Package className="mx-auto h-12 w-12 text-[#C0CEDF]" />
               <h3 className="mt-4 font-display text-h3 text-[#0B1120]">
-                {searchTerm || activeCategory ? 'Sin resultados' : 'Catalogo vacio'}
+                {searchTerm || activeCategory ? 'Sin resultados' : 'Catálogo vacío'}
               </h3>
               <p className="mt-2 font-body text-body-sm text-[#8094B4]">
                 {searchTerm
                   ? `No se encontraron productos para "${searchTerm}".`
                   : activeCategory
-                    ? `Todavia no hay productos cargados en "${activeCategory.name}".`
-                    : 'Aun no hay productos en el catalogo. El administrador debe cargar productos desde el panel de admin.'}
+                    ? `Todavía no hay productos cargados en "${activeCategory.name}".`
+                    : 'Todavía no hay productos disponibles. Contactanos para consultar.'}
               </p>
               {!searchTerm && !activeCategory && (
-                <Link href="/admin/productos/nuevo" className="btn-primary mt-6 inline-flex">
-                  Ir al panel de admin
+                <Link href="/contacto" className="btn-primary mt-6 inline-flex">
+                  Contactar
                 </Link>
               )}
             </div>
