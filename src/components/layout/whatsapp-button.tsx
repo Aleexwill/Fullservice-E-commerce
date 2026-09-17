@@ -8,7 +8,7 @@ import type { SiteSettings } from '@/lib/settings-store';
 export function WhatsAppButton({ settings }: { settings?: SiteSettings }) {
   const whatsappUrl = formatWhatsAppUrl(
     settings?.contact.whatsapp || siteConfig.whatsapp,
-    'Hola, me gustaria consultar sobre sus servicios.'
+    'Hola, me gustaría consultar sobre sus servicios.'
   );
 
   return (
