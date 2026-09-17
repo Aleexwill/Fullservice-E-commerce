@@ -91,7 +91,7 @@ export default function NosotrosPage() {
             {/* Pontualmente card — último valor del documento */}
             <div className="rounded-2xl border border-[#2D8FCC]/20 bg-[#EBF5FB] p-7">
               <p className="font-body text-[.85rem] font-semibold italic text-[#2D8FCC]">
-                &ldquo;Puntualmente: Compromiso, Confianza, Excelencia y Trabajo en equipo.&rdquo;
+                &ldquo;Nuestros valores: compromiso, confianza, excelencia, trabajo en equipo e innovación.&rdquo;
               </p>
               <p className="mt-3 font-body text-[.8rem] text-[#4A5E80]">— Full Service &amp; Clean</p>
             </div>
