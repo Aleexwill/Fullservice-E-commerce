@@ -65,5 +65,14 @@
 @layer utilities {
   .text-balance { text-wrap:balance; }
   .surface-muted { background:linear-gradient(180deg,#F8FAFC 0%,#F4F7FB 100%); }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
 }
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(40px, -30px) scale(1.08); }
+  66%       { transform: translate(-25px, 20px) scale(0.95); }
+}
+.animate-blob { animation: blob 10s ease-in-out infinite; }
 

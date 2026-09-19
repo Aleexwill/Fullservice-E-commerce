@@ -138,8 +138,14 @@ export default function ClientesPage() {
       </section>
 
       {/* Clientes */}
-      <section className="section bg-[#F4F7FB]">
-        <div className="container-main">
+      <section className="section relative overflow-hidden bg-[#F4F7FB]">
+        {/* Blobs animados de fondo */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#2D8FCC] opacity-[0.07] blur-3xl animate-blob" />
+          <div className="absolute -right-40 top-1/3 h-[420px] w-[420px] rounded-full bg-[#E8862B] opacity-[0.06] blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute bottom-0 left-1/3 h-[380px] w-[380px] rounded-full bg-[#2D8FCC] opacity-[0.05] blur-3xl animate-blob animation-delay-4000" />
+        </div>
+        <div className="container-main relative">
           {activeClientes.length === 0 ? (
             <div className="py-24 text-center">
               <Isotipo size={72} color="#2D8FCC18" />
