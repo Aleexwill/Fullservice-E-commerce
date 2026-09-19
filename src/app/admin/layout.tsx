@@ -34,7 +34,8 @@ const navGroups: NavGroup[] = [
   { label: 'Sitio Web', items: [
     { href: '/admin/contenido', label: 'Contenido', icon: PenSquare },
     { href: '/admin/servicios', label: 'Servicios', icon: Wrench },
-    { href: '/admin/portfolio', label: 'Portfolio', icon: FolderOpen },
+    { href: '/admin/portfolio', label: 'Trabajos destacados', icon: FolderOpen },
+    { href: '/admin/clientes-logo', label: 'Clientes', icon: Users },
     { href: '/admin/carousel', label: 'Carrusel hero', icon: Layers },
     { href: '/admin/promos', label: 'Banners / Promos', icon: Megaphone },
   ]},

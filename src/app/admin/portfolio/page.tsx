@@ -5,9 +5,11 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, Star, FolderOpen, X, Save, Loader2, 
 import { fetchJson } from '@/lib/utils';
 import { ImageUploader, MultiImageUploader } from '@/components/admin/image-uploader';
 
+interface TechnicalDetails { [key: string]: string }
 interface Project {
   id: string; title: string; description: string; category: string; location: string;
   duration: string; year: string; client: string; image: string; gallery: string[];
+  technicalDetails: TechnicalDetails;
   badge: string; size: string; isActive: boolean; isFeatured: boolean; order: number;
 }
 
@@ -29,7 +31,7 @@ export default function AdminPortfolioPage() {
 
   const openNew = () => {
     setIsNew(true);
-    setEditing({ id: '', title: '', description: '', category: 'civil', location: '', duration: '', year: new Date().getFullYear().toString(), client: '', image: '', gallery: [], badge: 'blue', size: 'small', isActive: true, isFeatured: false, order: projects.length });
+    setEditing({ id: '', title: '', description: '', category: 'civil', location: '', duration: '', year: new Date().getFullYear().toString(), client: '', image: '', gallery: [], technicalDetails: {}, badge: 'blue', size: 'small', isActive: true, isFeatured: false, order: projects.length });
   };
 
   const saveProject = async () => {
@@ -135,6 +137,36 @@ export default function AdminPortfolioPage() {
                 <div><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} className="h-4 w-4 accent-blue" /><span className="font-body text-body-sm text-arctic">Activo</span></label></div>
                 <div><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={editing.isFeatured} onChange={(e) => setEditing({ ...editing, isFeatured: e.target.checked })} className="h-4 w-4 accent-yellow-bright" /><span className="font-body text-body-sm text-arctic">Destacado</span></label></div>
               </div>
+
+              {/* Detalles técnicos */}
+              <div className="rounded-lg border border-steel-900/40 bg-steel-950/50 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <label className="label">Detalles técnicos</label>
+                  <button type="button" onClick={() => {
+                    const key = prompt('Nombre del campo (ej: Superficie, Materiales)');
+                    if (key?.trim()) setEditing({ ...editing, technicalDetails: { ...editing.technicalDetails, [key.trim()]: '' } });
+                  }} className="rounded-lg border border-steel-700 px-3 py-1.5 font-body text-caption text-steel-300 hover:bg-steel-900">+ Agregar campo</button>
+                </div>
+                {Object.keys(editing.technicalDetails || {}).length === 0 ? (
+                  <p className="font-body text-caption text-steel-600">Sin detalles técnicos. Agregá campos como Superficie, Materiales, Equipo, etc.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.entries(editing.technicalDetails).map(([k, v]) => (
+                      <div key={k} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-body text-caption font-semibold text-steel-400">{k}</span>
+                          <button type="button" onClick={() => {
+                            const { [k]: _, ...rest } = editing.technicalDetails;
+                            setEditing({ ...editing, technicalDetails: rest });
+                          }} className="text-steel-700 hover:text-red-400"><X className="h-3.5 w-3.5" /></button>
+                        </div>
+                        <input type="text" value={v} onChange={(e) => setEditing({ ...editing, technicalDetails: { ...editing.technicalDetails, [k]: e.target.value } })} className="input py-1.5 text-sm" placeholder={`Valor de ${k}`} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <button onClick={saveProject} disabled={!editing.title} className="btn-primary w-full justify-center gap-2 py-3"><Save className="h-4 w-4" />{isNew ? 'Crear proyecto' : 'Guardar cambios'}</button>
             </div>
           </div>

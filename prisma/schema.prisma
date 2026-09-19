@@ -141,23 +141,24 @@ model Presupuesto {
 // ============================================================
 
 model Portfolio {
-  id          String   @id @default(cuid())
-  title       String
-  description String   @default("") @db.Text
-  category    String
-  location    String   @default("")
-  duration    String   @default("")
-  year        String   @default("")
-  client      String   @default("")
-  image       String   @default("")
-  gallery     String[]
-  badge       String   @default("neutral")
-  size        String   @default("small")
-  isActive    Boolean  @default(true)
-  isFeatured  Boolean  @default(false)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  title            String
+  description      String   @default("") @db.Text
+  category         String
+  location         String   @default("")
+  duration         String   @default("")
+  year             String   @default("")
+  client           String   @default("")
+  image            String   @default("")
+  gallery          String[]
+  technicalDetails Json     @default("{}")
+  badge            String   @default("neutral")
+  size             String   @default("small")
+  isActive         Boolean  @default(true)
+  isFeatured       Boolean  @default(false)
+  order            Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([isActive])
   @@index([category])
@@ -278,6 +279,27 @@ model CarouselSlide {
   updatedAt      DateTime @updatedAt
 
   @@index([isActive, order])
+}
+
+// ============================================================
+// CLIENTES LOGO (página pública de clientes destacados)
+// ============================================================
+
+model ClienteLogo {
+  id          String        @id @default(cuid())
+  name        String
+  logoUrl     String        @default("")
+  website     String        @default("")
+  parentId    String?
+  parent      ClienteLogo?  @relation("ClienteLogoChildren", fields: [parentId], references: [id])
+  children    ClienteLogo[] @relation("ClienteLogoChildren")
+  isActive    Boolean       @default(true)
+  order       Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([isActive, order])
+  @@index([parentId])
 }
 
 // ============================================================

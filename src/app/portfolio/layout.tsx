@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   alternates: { canonical: '/portfolio' },
-  title: 'Portfolio de Obras y Trabajos',
+  title: 'Trabajos Destacados',
   description:
-    'Conocé los proyectos realizados por Full Service & Clean: obras de construcción civil, trabajos metalúrgicos, mantenimiento edilicio y más en Paraguay.',
+    'Conocé los trabajos realizados por Full Service & Clean: construcción civil, metalúrgica, mantenimiento edilicio y más en Paraguay. Galería de fotos y detalles técnicos.',
   openGraph: {
-    title: 'Portfolio — Full Service & Clean',
+    title: 'Trabajos Destacados — Full Service & Clean',
     description:
-      'Proyectos de construcción civil, metalúrgica y mantenimiento realizados en Paraguay.',
+      'Galería de trabajos de construcción, metalúrgica y mantenimiento en Paraguay.',
   },
   keywords: [
     'obras construcción civil Paraguay',

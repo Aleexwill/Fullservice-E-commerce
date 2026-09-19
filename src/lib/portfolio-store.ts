@@ -1,6 +1,14 @@
 import { prisma } from './prisma';
 import type { Portfolio as PrismaPortfolio } from '@prisma/client';
 
+export interface TechnicalDetails {
+  superficie?: string;
+  materiales?: string;
+  equipo?: string;
+  normas?: string;
+  [key: string]: string | undefined;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -12,6 +20,7 @@ export interface Project {
   client: string;
   image: string;
   gallery: string[];
+  technicalDetails: TechnicalDetails;
   badge: 'blue' | 'green' | 'yellow' | 'neutral';
   size: 'small' | 'large';
   isActive: boolean;
@@ -33,6 +42,7 @@ function toProject(p: PrismaPortfolio): Project {
     client: p.client,
     image: p.image,
     gallery: p.gallery,
+    technicalDetails: (p.technicalDetails as TechnicalDetails) ?? {},
     badge: p.badge as Project['badge'],
     size: p.size as Project['size'],
     isActive: p.isActive,
