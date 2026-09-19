@@ -39,17 +39,51 @@ const FALLBACK: ClienteLogo[] = [
   { id: 'agriplus', name: 'Agriplus', logoUrl: '', website: '', parentId: null, isActive: true, order: 11, children: [] },
 ];
 
+// Datos de crop de la imagen sprite /partners/empresas.jpeg (788×663)
+const CROPS: Record<string, [number, number, number, number]> = {
+  tigre:      [24,  32,  190, 75],
+  mao:        [279, 32,  204, 88],
+  'py-textil':[575, 42,  168, 77],
+  agpar:      [42,  168, 153, 100],
+  inyeplast:  [303, 187, 156, 63],
+  innova:     [586, 146, 159, 157],
+  ball:       [20,  317, 156, 153],
+  granusa:    [267, 375, 210, 72],
+  rodan:      [541, 344, 211, 112],
+  gala:       [38,  518, 160, 72],
+  sena:       [262, 524, 254, 81],
+  agriplus:   [560, 522, 181, 72],
+};
+
 function LogoCard({ client }: { client: ClienteLogo }) {
+  const crop = CROPS[client.id];
   const inner = (
-    <div className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm transition-all hover:border-[#2D8FCC]/40 hover:shadow-md">
+    <div className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm transition-all hover:border-[#2D8FCC]/40 hover:shadow-md min-h-[110px]">
       {client.logoUrl ? (
-        <img src={client.logoUrl} alt={client.name} className="h-14 w-auto max-w-[120px] object-contain transition-transform duration-300 group-hover:scale-105" />
+        <img src={client.logoUrl} alt={client.name} className="h-14 w-auto max-w-[130px] object-contain transition-transform duration-300 group-hover:scale-105" />
+      ) : crop ? (
+        <div
+          role="img" aria-label={client.name}
+          className="overflow-hidden transition-transform duration-300 group-hover:scale-105"
+          style={{ position: 'relative', width: Math.min(crop[2], 130), height: Math.min(crop[3], 85), maxWidth: '100%' }}
+        >
+          <img
+            src="/partners/empresas.jpeg" alt=""
+            style={{
+              position: 'absolute',
+              width: `${788 / crop[2] * Math.min(crop[2], 130)}px`,
+              height: `${663 / crop[3] * Math.min(crop[3], 85)}px`,
+              left: `-${crop[0] / crop[2] * Math.min(crop[2], 130)}px`,
+              top: `-${crop[1] / crop[3] * Math.min(crop[3], 85)}px`,
+            }}
+          />
+        </div>
       ) : (
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EBF5FB]">
           <Building2 className="h-7 w-7 text-[#2D8FCC]" />
         </div>
       )}
-      <span className="font-body text-sm font-semibold text-[#0B1120]">{client.name}</span>
+      <span className="font-body text-xs font-semibold text-[#4A5E80]">{client.name}</span>
     </div>
   );
   return client.website
