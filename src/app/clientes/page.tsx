@@ -16,16 +16,27 @@ interface ClienteLogo {
   order: number;
 }
 
-// Fallback data — Mao primero con sus subdivisiones
+// Fallback data — Mao primero con sus subdivisiones, luego el resto
 const FALLBACK: ClienteLogo[] = [
   {
-    id: 'mao', name: 'Grupo MAO', logoUrl: '', website: '', parentId: null, isActive: true, order: 0,
+    id: 'mao', name: 'Grupo MAO', logoUrl: '', website: 'https://grupomao.com.py', parentId: null, isActive: true, order: 0,
     children: [
       { id: 'mao-1', name: 'MAO Construcciones', logoUrl: '', website: '', parentId: 'mao', isActive: true, order: 0, children: [] },
       { id: 'mao-2', name: 'MAO Industrias', logoUrl: '', website: '', parentId: 'mao', isActive: true, order: 1, children: [] },
       { id: 'mao-3', name: 'MAO Servicios', logoUrl: '', website: '', parentId: 'mao', isActive: true, order: 2, children: [] },
     ],
   },
+  { id: 'tigre', name: 'Tigre', logoUrl: '', website: 'https://www.tigre.com', parentId: null, isActive: true, order: 1, children: [] },
+  { id: 'py-textil', name: 'Paraguay Textil', logoUrl: '', website: '', parentId: null, isActive: true, order: 2, children: [] },
+  { id: 'agpar', name: 'Agpar Gruppo Farrini', logoUrl: '', website: '', parentId: null, isActive: true, order: 3, children: [] },
+  { id: 'inyeplast', name: 'Inyeplast', logoUrl: '', website: '', parentId: null, isActive: true, order: 4, children: [] },
+  { id: 'innova', name: 'Innova Technology Paraguay', logoUrl: '', website: '', parentId: null, isActive: true, order: 5, children: [] },
+  { id: 'ball', name: 'Ball', logoUrl: '', website: 'https://www.ball.com', parentId: null, isActive: true, order: 6, children: [] },
+  { id: 'granusa', name: 'Granusa — Excelencia en nutrición', logoUrl: '', website: '', parentId: null, isActive: true, order: 7, children: [] },
+  { id: 'rodan', name: 'Rodan Inmobiliaria', logoUrl: '', website: '', parentId: null, isActive: true, order: 8, children: [] },
+  { id: 'gala', name: 'Gala — Alquiler de Muebles de Lujo', logoUrl: '', website: '', parentId: null, isActive: true, order: 9, children: [] },
+  { id: 'sena', name: 'Sena Ingeniería', logoUrl: '', website: '', parentId: null, isActive: true, order: 10, children: [] },
+  { id: 'agriplus', name: 'Agriplus', logoUrl: '', website: '', parentId: null, isActive: true, order: 11, children: [] },
 ];
 
 function LogoCard({ client }: { client: ClienteLogo }) {
@@ -96,42 +107,52 @@ export default function ClientesPage() {
               <Isotipo size={72} color="#2D8FCC18" />
               <p className="mt-4 font-body text-body text-[#8094B4]">Próximamente publicaremos nuestros clientes destacados.</p>
             </div>
-          ) : (
-            <div className="space-y-16">
-              {activeClientes.map((cliente) => (
-                <div key={cliente.id}>
-                  {/* Cliente principal */}
-                  <div className="mb-6 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-gray-200" />
-                    <div className="flex items-center gap-2 rounded-full border border-[#2D8FCC]/30 bg-white px-4 py-2">
-                      {cliente.logoUrl
-                        ? <img src={cliente.logoUrl} alt={cliente.name} className="h-6 w-auto max-w-[80px] object-contain" />
-                        : <Building2 className="h-4 w-4 text-[#2D8FCC]" />
-                      }
-                      <span className="font-display text-sm font-bold uppercase tracking-wide text-[#0B1120]">{cliente.name}</span>
+          ) : (() => {
+            const grouped = activeClientes.filter((c) => c.children && c.children.length > 0);
+            const singles = activeClientes.filter((c) => !c.children || c.children.length === 0);
+            return (
+              <div className="space-y-16">
+                {/* Grupos con subdivisiones */}
+                {grouped.map((cliente) => (
+                  <div key={cliente.id}>
+                    <div className="mb-6 flex items-center gap-3">
+                      <div className="h-px flex-1 bg-gray-200" />
+                      <div className="flex items-center gap-2 rounded-full border border-[#2D8FCC]/30 bg-white px-4 py-2">
+                        {cliente.logoUrl
+                          ? <img src={cliente.logoUrl} alt={cliente.name} className="h-6 w-auto max-w-[80px] object-contain" />
+                          : <Building2 className="h-4 w-4 text-[#2D8FCC]" />
+                        }
+                        <span className="font-display text-sm font-bold uppercase tracking-wide text-[#0B1120]">{cliente.name}</span>
+                      </div>
+                      <div className="h-px flex-1 bg-gray-200" />
                     </div>
-                    <div className="h-px flex-1 bg-gray-200" />
-                  </div>
-
-                  {/* Subdivisiones o tarjeta directa */}
-                  {cliente.children && cliente.children.length > 0 ? (
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                      {/* Tarjeta del grupo */}
                       <LogoCard client={cliente} />
-                      {/* Tarjetas de subdivisiones */}
                       {cliente.children.filter((c) => c.isActive).map((sub) => (
                         <LogoCard key={sub.id} client={sub} />
                       ))}
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                      <LogoCard client={cliente} />
+                  </div>
+                ))}
+
+                {/* Grilla plana de clientes individuales */}
+                {singles.length > 0 && (
+                  <div>
+                    {grouped.length > 0 && (
+                      <div className="mb-8 flex items-center gap-3">
+                        <div className="h-px flex-1 bg-gray-200" />
+                        <span className="font-body text-xs font-semibold uppercase tracking-widest text-[#8094B4]">Otras empresas</span>
+                        <div className="h-px flex-1 bg-gray-200" />
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                      {singles.map((c) => <LogoCard key={c.id} client={c} />)}
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </section>
 
