@@ -11,14 +11,15 @@ interface ClienteLogo {
   isActive: boolean; order: number;
 }
 
-const EMPTY: Omit<ClienteLogo, 'id' | 'children'> = {
-  name: '', logoUrl: '', website: '', parentId: null, isActive: true, order: 0,
+const EMPTY = {
+  id: undefined as string | undefined,
+  name: '', logoUrl: '', website: '', parentId: null as string | null, isActive: true, order: 0,
 };
 
 export default function AdminClientesLogoPage() {
   const [clientes, setClientes] = useState<ClienteLogo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<(Omit<ClienteLogo, 'children'> & { id?: string }) | null>(null);
+  const [editing, setEditing] = useState<{ id?: string; name: string; logoUrl: string; website: string; parentId: string | null; isActive: boolean; order: number } | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
