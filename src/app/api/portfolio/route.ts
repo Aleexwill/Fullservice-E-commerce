@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       client: body.client || '', image: body.image || '', gallery: body.gallery || [],
       badge: body.badge || 'blue', size: body.size || 'small', isActive: body.isActive !== false,
       isFeatured: Boolean(body.isFeatured), order: body.order || 0,
+      technicalDetails: body.technicalDetails || {},
     });
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
