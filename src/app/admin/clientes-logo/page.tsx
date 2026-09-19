@@ -46,8 +46,8 @@ export default function AdminClientesLogoPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openNew = () => setEditing(emptyForm(clientes.length)) || setIsNew(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  const openNew = () => { setIsNew(true); setEditing(emptyForm(clientes.length)); };
+
   const openEdit = (c: ClienteLogo) => {
     setIsNew(false);
     setEditing({
@@ -141,7 +141,7 @@ export default function AdminClientesLogoPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={load} className="btn-secondary"><RefreshCw className="h-4 w-4" /></button>
-          <button onClick={() => { setIsNew(true); openNew(); }} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo cliente</button>
+          <button onClick={openNew} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo cliente</button>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ export default function AdminClientesLogoPage() {
           <Building2 className="mx-auto h-12 w-12 text-steel-700" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin clientes</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">Agregá los logos de tus clientes.</p>
-          <button onClick={() => { setIsNew(true); openNew(); }} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Agregar cliente</button>
+          <button onClick={openNew} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Agregar cliente</button>
         </div>
       ) : (
         <div className="space-y-4">
