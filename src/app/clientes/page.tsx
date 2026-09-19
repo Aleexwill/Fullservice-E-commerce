@@ -57,14 +57,18 @@ const CROPS: Record<string, [number, number, number, number]> = {
 
 function LogoCard({ client }: { client: ClienteLogo }) {
   const crop = CROPS[client.id];
+  const hasImage = Boolean(client.logoUrl || crop);
   const inner = (
-    <div className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm transition-all hover:border-[#2D8FCC]/40 hover:shadow-md min-h-[110px]">
+    <div className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm transition-all duration-300 hover:border-[#2D8FCC]/40 hover:shadow-lg hover:-translate-y-1 min-h-[110px]">
       {client.logoUrl ? (
-        <img src={client.logoUrl} alt={client.name} className="h-14 w-auto max-w-[130px] object-contain transition-transform duration-300 group-hover:scale-105" />
+        <img
+          src={client.logoUrl} alt={client.name}
+          className="h-14 w-auto max-w-[130px] object-contain grayscale transition-all duration-300 group-hover:grayscale-0 group-hover:scale-105"
+        />
       ) : crop ? (
         <div
           role="img" aria-label={client.name}
-          className="overflow-hidden transition-transform duration-300 group-hover:scale-105"
+          className="overflow-hidden grayscale transition-all duration-300 group-hover:grayscale-0 group-hover:scale-105"
           style={{ position: 'relative', width: Math.min(crop[2], 130), height: Math.min(crop[3], 85), maxWidth: '100%' }}
         >
           <img
@@ -83,7 +87,7 @@ function LogoCard({ client }: { client: ClienteLogo }) {
           <Building2 className="h-7 w-7 text-[#2D8FCC]" />
         </div>
       )}
-      <span className="font-body text-xs font-semibold text-[#4A5E80]">{client.name}</span>
+      {!hasImage && <span className="font-body text-xs font-semibold text-[#4A5E80]">{client.name}</span>}
     </div>
   );
   return client.website
