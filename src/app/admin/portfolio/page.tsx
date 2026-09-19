@@ -49,7 +49,7 @@ export default function AdminPortfolioPage() {
     <div className="p-6 lg:p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="font-display text-h1 uppercase text-arctic">Portfolio</h1>
+          <h1 className="font-display text-h1 uppercase text-arctic">Trabajos Destacados</h1>
           <p className="mt-1 font-body text-body-sm text-steel-300">{projects.length} proyectos</p>
         </div>
         <div className="flex gap-2">
