@@ -63,12 +63,12 @@ function LogoCard({ client }: { client: ClienteLogo }) {
       {client.logoUrl ? (
         <img
           src={client.logoUrl} alt={client.name}
-          className="h-14 w-auto max-w-[130px] object-contain grayscale transition-all duration-300 group-hover:grayscale-0 group-hover:scale-105"
+          className="h-14 w-auto max-w-[130px] object-contain transition-all duration-300 group-hover:grayscale group-hover:scale-105"
         />
       ) : crop ? (
         <div
           role="img" aria-label={client.name}
-          className="overflow-hidden grayscale transition-all duration-300 group-hover:grayscale-0 group-hover:scale-105"
+          className="overflow-hidden transition-all duration-300 group-hover:grayscale group-hover:scale-105"
           style={{ position: 'relative', width: Math.min(crop[2], 130), height: Math.min(crop[3], 85), maxWidth: '100%' }}
         >
           <img
