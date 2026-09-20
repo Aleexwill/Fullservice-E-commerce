@@ -105,14 +105,19 @@ export async function createPresupuesto(
 
 export async function updatePresupuesto(id: string, data: Partial<Presupuesto>): Promise<Presupuesto | null> {
   const { id: _id, code: _code, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = data;
+  // Build the update payload carefully:
+  // - Decimal fields (estimatedValue, finalValue) must be explicitly set or omitted;
+  //   passing undefined skips the field, passing null clears it.
+  // - finalValue is written by costos.html on every save so the dashboard/reports
+  //   always reflect the latest computed total.
+  const decimalFields: Record<string, unknown> = {};
+  if ('estimatedValue' in data) decimalFields.estimatedValue = rest.estimatedValue ?? null;
+  if ('finalValue' in data) decimalFields.finalValue = rest.finalValue ?? null;
+  const { estimatedValue: _ev, finalValue: _fv, ...scalarRest } = rest;
   try {
     const p = await prisma.presupuesto.update({
       where: { id },
-      data: {
-        ...rest,
-        estimatedValue: rest.estimatedValue ?? undefined,
-        finalValue: rest.finalValue ?? undefined,
-      } as unknown as Prisma.PresupuestoUncheckedUpdateInput,
+      data: { ...scalarRest, ...decimalFields } as unknown as Prisma.PresupuestoUncheckedUpdateInput,
     });
     return toPresupuesto(p);
   } catch (e) {
@@ -151,8 +156,8 @@ export async function getPresupuestoStats() {
     byStatus[p.status] = (byStatus[p.status] || 0) + 1;
     byType[p.serviceType] = (byType[p.serviceType] || 0) + 1;
     byPriority[p.priority] = (byPriority[p.priority] || 0) + 1;
-    if (p.estimatedValue) totalEstimated += Number(p.estimatedValue);
-    if (p.finalValue) totalFinal += Number(p.finalValue);
+    if (p.estimatedValue !== null) totalEstimated += Number(p.estimatedValue);
+    if (p.finalValue !== null) totalFinal += Number(p.finalValue);
     if (p.status === 'finalizado') completedCount++;
     if (['aprobado', 'en_ejecucion', 'finalizado'].includes(p.status)) approvedCount++;
   });
