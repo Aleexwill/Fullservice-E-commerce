@@ -40,23 +40,41 @@ const FALLBACK: ClienteLogo[] = [
 ];
 
 // Datos de crop de la imagen sprite /partners/empresas.jpeg (788×663)
-const CROPS: Record<string, [number, number, number, number]> = {
-  tigre:      [24,  32,  190, 75],
-  mao:        [279, 32,  204, 88],
-  'py-textil':[575, 42,  168, 77],
-  agpar:      [42,  168, 153, 100],
-  inyeplast:  [303, 187, 156, 63],
-  innova:     [586, 146, 159, 157],
-  ball:       [20,  317, 156, 153],
-  granusa:    [267, 375, 210, 72],
-  rodan:      [541, 344, 211, 112],
-  gala:       [38,  518, 160, 72],
-  sena:       [262, 524, 254, 81],
-  agriplus:   [560, 522, 181, 72],
+// Keyed por nombre normalizado (minúsculas, sin tildes/espacios) para funcionar
+// tanto con los IDs del fallback como con los cuids de la DB.
+const CROPS_BY_NAME: Record<string, [number, number, number, number]> = {
+  tigre:           [24,  32,  190, 75],
+  grupomao:        [279, 32,  204, 88],
+  mao:             [279, 32,  204, 88],
+  paraguaytextil:  [575, 42,  168, 77],
+  agpar:           [42,  168, 153, 100],
+  inyeplast:       [303, 187, 156, 63],
+  innova:          [586, 146, 159, 157],
+  innovatechnology:[586, 146, 159, 157],
+  ball:            [20,  317, 156, 153],
+  granusa:         [267, 375, 210, 72],
+  rodan:           [541, 344, 211, 112],
+  rodaninmobiliaria:[541, 344, 211, 112],
+  gala:            [38,  518, 160, 72],
+  senaingenieria:  [262, 524, 254, 81],
+  sena:            [262, 524, 254, 81],
+  agriplus:        [560, 522, 181, 72],
 };
 
+function normalizeName(name: string): string {
+  return name.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function getCrop(client: { id: string; name: string }): [number, number, number, number] | undefined {
+  // Primero intenta por id (fallback data), luego por nombre normalizado (DB data)
+  return (CROPS_BY_NAME as Record<string, [number,number,number,number]>)[client.id]
+    ?? CROPS_BY_NAME[normalizeName(client.name)];
+}
+
 function LogoCard({ client }: { client: ClienteLogo }) {
-  const crop = CROPS[client.id];
+  const crop = getCrop(client);
   const hasImage = Boolean(client.logoUrl || crop);
   const inner = (
     <div className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm transition-all duration-300 hover:border-[#2D8FCC]/40 hover:shadow-lg hover:-translate-y-1 min-h-[110px]">
@@ -105,7 +123,7 @@ export default function ClientesPage() {
       .catch(() => {});
   }, []);
 
-  const activeClientes = clientes.filter((c) => c.isActive);
+  const activeClientes = clientes.filter((c) => c.isActive).sort((a, b) => a.order - b.order);
 
   return (
     <>
@@ -162,8 +180,17 @@ export default function ClientesPage() {
                     <div className="mb-6 flex items-center gap-3">
                       <div className="h-px flex-1 bg-gray-200" />
                       <div className="flex items-center gap-2 rounded-full border border-[#2D8FCC]/30 bg-white px-4 py-2">
-                        {cliente.logoUrl
-                          ? <img src={cliente.logoUrl} alt={cliente.name} className="h-6 w-auto max-w-[80px] object-contain" />
+                        {getCrop(cliente) || cliente.logoUrl
+                          ? <span className="inline-block h-6 w-16 overflow-hidden relative">
+                              {cliente.logoUrl
+                                ? <img src={cliente.logoUrl} alt={cliente.name} className="h-6 w-auto max-w-[64px] object-contain" />
+                                : (() => { const c = getCrop(cliente)!; const s = Math.min(c[2], 64); const sh = Math.round(c[3] * s / c[2]); return (
+                                    <div style={{position:'relative',width:s,height:sh}}>
+                                      <img src="/partners/empresas.jpeg" alt="" style={{position:'absolute',width:`${788/c[2]*s}px`,height:`${663/c[3]*sh}px`,left:`-${c[0]/c[2]*s}px`,top:`-${c[1]/c[3]*sh}px`}} />
+                                    </div>
+                                  ); })()
+                              }
+                            </span>
                           : <Building2 className="h-4 w-4 text-[#2D8FCC]" />
                         }
                         <span className="font-display text-sm font-bold uppercase tracking-wide text-[#0B1120]">{cliente.name}</span>
