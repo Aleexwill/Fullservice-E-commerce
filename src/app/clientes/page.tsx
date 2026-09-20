@@ -135,7 +135,16 @@ export default function ClientesPage() {
   useEffect(() => {
     fetch('/api/clientes-logo')
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d.clientes) && d.clientes.length > 0) setClientes(d.clientes); })
+      .then((d) => {
+        if (Array.isArray(d.clientes) && d.clientes.length > 0) {
+          // Debug: log what the DB returns to diagnose crop mismatches
+          console.log('[clientes] DB records:', d.clientes.map((c: ClienteLogo) => ({
+            id: c.id, name: c.name, norm: normalizeName(c.name),
+            logoUrl: c.logoUrl, hasCrop: Boolean(getCrop(c)),
+          })));
+          setClientes(d.clientes);
+        }
+      })
       .catch(() => {});
   }, []);
 
