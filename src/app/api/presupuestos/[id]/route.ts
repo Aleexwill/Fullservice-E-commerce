@@ -56,11 +56,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             },
           });
         }
-        // Mark related lead as won
+        // Mark related lead as converted (matches LeadStatus enum used by stats)
         if (c.email) {
           await prisma.lead.updateMany({
-            where: { status: { not: 'won' }, customer: { path: ['email'], equals: c.email } },
-            data: { status: 'won' },
+            where: { status: { notIn: ['converted', 'lost'] }, customer: { path: ['email'], equals: c.email } },
+            data: { status: 'converted' },
           });
         }
       } catch (_) { /* non-blocking */ }

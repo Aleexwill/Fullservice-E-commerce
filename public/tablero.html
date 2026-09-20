@@ -101,17 +101,19 @@ window.onerror=function(msg,src,line,col,err){
   document.getElementById('root').innerHTML='<div style="padding:40px;font-family:monospace;color:red;background:#fff;"><strong>Error en tablero.html:</strong><br>'+msg+'<br>'+src+':'+line+'</div>';
   return false;
 };
-const N=(v)=>{const n=parseFloat(String(v??'').replace(/\./g,'').replace(/\s/g,'').replace(',','.'));return isFinite(n)?n:0;};
+const N=(v)=>{if(typeof v==='number')return isFinite(v)?v:0;const s=String(v??'').trim().replace(/\s/g,'');const commaDecimal=/^\d{1,3}(\.?\d{3})*,\d+$/.test(s)||/^\d+,\d+$/.test(s);const normalized=commaDecimal?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');const n=parseFloat(normalized);return isFinite(n)?n:0;};
 const CICLO=['NO','SI','NA'];
 const KEY='twg-tablero-v1';
-const MESES_LIST=[['08','Agosto'],['09','Septiembre'],['10','Octubre'],['11','Noviembre'],['12','Diciembre']];
+// Generate a rolling 12-month list so the tablero works in any month/year
+const _now=new Date();
+const MESES_LIST=(()=>{const list=[];for(let i=-2;i<=9;i++){const d=new Date(_now.getFullYear(),_now.getMonth()+i,1);const mm=String(d.getMonth()+1).padStart(2,'0');const yyyy=d.getFullYear();list.push([`${yyyy}-${mm}`,`${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][d.getMonth()]} ${yyyy}`]);}return list;})();
 const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const ESTADO_OPTS=['SIN CARGAR','PENDIENTE RELEVO','EN PRESUPUESTO','FALTA VISTO BUENO','PENDIENTE APROBACION','EN EJECUCION','FINALIZADO','DE BAJA'];
 const AVANCE_OPTS=['Pendiente','En Proceso','En Espera / Bloqueado','Finalizado'];
 
 // ─── estado global ──────────────────────────────────
 let S={
-  tab:'dash', filtro:'', soloPend:false, mes:'08',
+  tab:'dash', filtro:'', soloPend:false, mes:(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})(),
   tareas:[], planPer:'mes', planCli:'', planAnc:'', planCarp:'1',
   planNombres:{'1':'Planificación 1','2':'Planificación 2'},
   rows:[]
@@ -185,7 +187,8 @@ async function cargarDesdeAPI(){
     const filaDeItem=item=>{
       const sd=(item.seguimientoData&&typeof item.seguimientoData==='object')?item.seguimientoData:{};
       const fecha=item.createdAt?item.createdAt.slice(0,10):'';
-      const mes=sd.mes||item.createdAt.slice(0,7).replace('-','').slice(0,2);
+      // Prefer the explicitly assigned month from seguimientoData, fall back to creation month
+      const _mes=sd.mes||(item.createdAt?item.createdAt.slice(0,7):'');
       return {
         id:item.id, nro:item.code||'', fecha:fecha,
         cliente:item.customer?.name||'', local:sd.local||item.customer?.address||'',
@@ -197,13 +200,13 @@ async function cargarDesdeAPI(){
         nroFactura:sd.nroFactura||'', tecnico:sd.tecnico||item.assignedTo||'',
         prioridad:sd.prioridad||'Normal', obs:sd.obs||'',
         pct:sd.pct||'', dias:sd.dias||'',
-        _mes:item.createdAt?item.createdAt.slice(0,7):'', _id:item.id
+        _mes, _id:item.id
       };
     };
     S.rows=items.map(filaDeItem);
-    // cargar mes actual
+    // Set current month in YYYY-MM format
     const ahora=new Date();
-    S.mes=String(ahora.getMonth()+1).padStart(2,'0');
+    S.mes=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0');
   }catch(e){console.warn('API no disponible, usando datos de localStorage',e);}
 }
 
@@ -242,15 +245,15 @@ function pasarPendientes(){
   const orden=MESES_LIST.map(x=>x[0]);
   const i=orden.indexOf(S.mes);
   if(i<0||i>=orden.length-1)return;
-  const dest=orden[i+1];
+  const dest=orden[i+1]; // dest is already YYYY-MM
   const mover=S.rows.filter(r=>rowMes(r)===S.mes&&r.alerta!=='APROBADO'&&r.alerta!=='DE BAJA');
   if(!mover.length)return;
   const ya=new Set(S.rows.filter(r=>rowMes(r)===dest).map(clave));
   const idsMovidos=new Set(mover.map(r=>r.id));
   const nuevos=mover.filter(r=>!ya.has(clave(r))).map(r=>{
-    const sd=Object.assign({},r,{id:'m'+dest+'-'+r.id,_mes:'2026-'+dest});
+    const sd=Object.assign({},r,{id:'m'+dest+'-'+r.id,_mes:dest});
     const item=S.rows.find(x=>x.id===r.id);
-    if(item&&item._id){patchAPI(item._id,{alerta:item.alerta,avance:item.avance,mes:'2026-'+dest,mesHistorial:[...(item.mesHistorial||[]),S._mes||'']});}
+    if(item&&item._id){patchAPI(item._id,{alerta:item.alerta,avance:item.avance,mes:dest,mesHistorial:[...(item.mesHistorial||[]),S.mes]});}
     return sd;
   });
   S.rows=S.rows.filter(r=>!idsMovidos.has(r.id)).concat(nuevos);
@@ -259,16 +262,14 @@ function pasarPendientes(){
   render();
 }
 
-const rowMes=r=>{
-  if(r._mes){const m=r._mes.split('-')[1];return m?m.replace(/^0/,'').padStart(2,'0'):S.mes;}
-  return S.mes;
-};
+const rowMes=r=>r._mes||S.mes;
 
 // ─── siguienteNro ────────────────────────────────────
 function siguienteNro(){
+  const año=new Date().getFullYear();
   let max=0;
-  S.rows.forEach(r=>{const m=/^P-2026-(\d+)$/.exec(String(r.nro||'').trim());if(m)max=Math.max(max,parseInt(m[1],10));});
-  return 'P-2026-'+String(max+1).padStart(3,'0');
+  S.rows.forEach(r=>{const m=new RegExp('^P-'+año+'-(\\d+)$').exec(String(r.nro||'').trim());if(m)max=Math.max(max,parseInt(m[1],10));});
+  return 'P-'+año+'-'+String(max+1).padStart(3,'0');
 }
 
 // ─── agregar nuevo presupuesto ───────────────────────

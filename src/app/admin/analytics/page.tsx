@@ -69,9 +69,11 @@ export default function AdminAnalyticsPage() {
               const h = data.maxDailyViews > 0 ? (d.count / data.maxDailyViews) * 100 : 0;
               const dayName = DAY_NAMES[new Date(d.date + 'T12:00:00').getDay()];
               return (
-                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+                <div key={d.date} className="flex flex-1 flex-col items-center gap-1" style={{ height: '100%' }}>
                   <span className="font-mono text-[0.55rem] text-arctic">{d.count}</span>
-                  <div className="w-full rounded-t bg-blue transition-all hover:bg-blue-bright" style={{ height: `${Math.max(h, 4)}%` }} />
+                  <div className="flex flex-1 w-full flex-col justify-end">
+                    <div className="w-full rounded-t bg-blue transition-all hover:bg-blue-bright" style={{ height: `${Math.max(h, 4)}%` }} />
+                  </div>
                   <span className="font-body text-[0.55rem] text-steel-700">{dayName}</span>
                 </div>
               );
@@ -86,9 +88,11 @@ export default function AdminAnalyticsPage() {
             {data.hourly.map((count, h) => {
               const pct = maxHourly > 0 ? (count / maxHourly) * 100 : 0;
               return (
-                <div key={h} className="flex flex-1 flex-col items-center gap-1">
+                <div key={h} className="flex flex-1 flex-col items-center gap-1" style={{ height: '100%' }}>
                   {count > 0 && <span className="font-mono text-[0.55rem] text-steel-500">{count}</span>}
-                  <div className="w-full rounded-t bg-yellow-muted transition-all hover:bg-yellow" style={{ height: `${Math.max(pct, 2)}%` }} />
+                  <div className="flex flex-1 w-full flex-col justify-end">
+                    <div className="w-full rounded-t bg-yellow-muted transition-all hover:bg-yellow" style={{ height: `${Math.max(pct, 2)}%` }} />
+                  </div>
                   {h % 4 === 0 && <span className="font-mono text-[0.55rem] text-steel-700">{h}h</span>}
                 </div>
               );

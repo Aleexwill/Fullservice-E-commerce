@@ -6,7 +6,7 @@ import {
   Package, DollarSign, AlertTriangle, Star, TrendingUp, Plus, ArrowRight, Layers, Tag,
   ShoppingCart, Calculator, Users, Wrench, CheckCircle2, Clock, FileText, Eye,
 } from 'lucide-react';
-import { fetchJson } from '@/lib/utils';
+import { fetchJsonWithStatus } from '@/lib/utils';
 
 interface ProductStats { total: number; active: number; totalStock: number; totalValue: number; outOfStock: number; featured: number; categoriesCount: number; brandsCount: number; }
 interface OrderStats { total: number; byStatus: Record<string, number>; totalRevenue: number; paidRevenue: number; }
@@ -23,17 +23,20 @@ export default function AdminDashboard() {
   const [leads, setLeads] = useState<LeadStats | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     Promise.all([
-      fetchJson('/api/productos/stats'),
-      fetchJson('/api/pedidos/stats'),
-      fetchJson('/api/presupuestos/stats'),
-      fetchJson('/api/leads/stats'),
-      fetchJson('/api/analytics'),
+      fetchJsonWithStatus<ProductStats>('/api/productos/stats'),
+      fetchJsonWithStatus<OrderStats>('/api/pedidos/stats'),
+      fetchJsonWithStatus<PresupuestoStats>('/api/presupuestos/stats'),
+      fetchJsonWithStatus<LeadStats>('/api/leads/stats'),
+      fetchJsonWithStatus<AnalyticsData>('/api/analytics'),
     ]).then(([p, o, pr, l, a]) => {
-      setProducts(p as ProductStats); setOrders(o as OrderStats); setPresupuestos(pr as PresupuestoStats); setLeads(l as LeadStats); setAnalytics(a as AnalyticsData); setLoading(false);
-    }).catch(() => setLoading(false));
+      if (!p.ok || !o.ok || !pr.ok || !l.ok || !a.ok) setFetchError(true);
+      setProducts(p.data); setOrders(o.data); setPresupuestos(pr.data);
+      setLeads(l.data); setAnalytics(a.data); setLoading(false);
+    }).catch(() => { setFetchError(true); setLoading(false); });
   }, []);
 
   if (loading) {
@@ -47,6 +50,14 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-6 lg:p-8">
+      {/* Error banner — shown when one or more API calls failed */}
+      {fetchError && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-danger-bright/30 bg-danger-light px-4 py-3 font-body text-body-sm text-danger-bright">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>Error al cargar algunos datos. Las métricas afectadas muestran <strong>—</strong> en lugar de cero.</span>
+          <button className="ml-auto text-steel-400 hover:text-steel-200" onClick={() => window.location.reload()}>Reintentar</button>
+        </div>
+      )}
       {/* Header */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -62,11 +73,11 @@ export default function AdminDashboard() {
       {/* Overview KPIs */}
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
         {[
-          { label: 'Visitas hoy', value: (analytics?.todayViews || 0).toString(), icon: Eye, color: 'text-steel-400', bg: 'bg-steel-900' },
-          { label: 'Leads', value: (leads?.total || 0).toString(), icon: Users, color: 'text-blue-bright', bg: 'bg-blue-muted' },
-          { label: 'Pedidos tienda', value: (orders?.total || 0).toString(), icon: ShoppingCart, color: 'text-success-bright', bg: 'bg-success-light' },
-          { label: 'Presupuestos', value: (presupuestos?.total || 0).toString(), icon: Calculator, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
-          { label: 'Productos', value: (products?.total || 0).toString(), icon: Package, color: 'text-blue-bright', bg: 'bg-blue-muted' },
+          { label: 'Visitas hoy', value: analytics ? (analytics.todayViews).toString() : '—', icon: Eye, color: 'text-steel-400', bg: 'bg-steel-900' },
+          { label: 'Leads', value: leads ? (leads.total).toString() : '—', icon: Users, color: 'text-blue-bright', bg: 'bg-blue-muted' },
+          { label: 'Pedidos tienda', value: orders ? (orders.total).toString() : '—', icon: ShoppingCart, color: 'text-success-bright', bg: 'bg-success-light' },
+          { label: 'Presupuestos', value: presupuestos ? (presupuestos.total).toString() : '—', icon: Calculator, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
+          { label: 'Productos', value: products ? (products.total).toString() : '—', icon: Package, color: 'text-blue-bright', bg: 'bg-blue-muted' },
         ].map((kpi) => { const Icon = kpi.icon; return (
           <div key={kpi.label} className="card p-5">
             <div className="flex items-center gap-2"><div className={`flex h-8 w-8 items-center justify-center rounded-md ${kpi.bg}`}><Icon className={`h-4 w-4 ${kpi.color}`} /></div><span className="font-body text-caption uppercase tracking-[0.06em] text-steel-500">{kpi.label}</span></div>
@@ -88,10 +99,10 @@ export default function AdminDashboard() {
           {/* E-commerce KPIs */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Ingresos', value: formatGs(orders?.totalRevenue || 0), icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light' },
-              { label: 'Cobrado', value: formatGs(orders?.paidRevenue || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
-              { label: 'Valor inventario', value: formatGs(products?.totalValue || 0), icon: Package, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
-              { label: 'Sin stock', value: (products?.outOfStock || 0).toString(), icon: AlertTriangle, color: products?.outOfStock ? 'text-danger-bright' : 'text-steel-500', bg: 'bg-danger-light' },
+              { label: 'Ingresos (pedidos pagados)', value: orders ? formatGs(orders.paidRevenue) : '—', icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light' },
+              { label: 'Cobrado', value: orders ? formatGs(orders.paidRevenue) : '—', icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
+              { label: 'Valor inventario', value: products ? formatGs(products.totalValue) : '—', icon: Package, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
+              { label: 'Sin stock', value: products ? (products.outOfStock).toString() : '—', icon: AlertTriangle, color: products?.outOfStock ? 'text-danger-bright' : 'text-steel-500', bg: 'bg-danger-light' },
             ].map((k) => { const Icon = k.icon; return (
               <div key={k.label} className="card p-3">
                 <div className="flex items-center gap-1.5"><Icon className={`h-3.5 w-3.5 ${k.color}`} /><span className="font-body text-caption text-steel-500">{k.label}</span></div>

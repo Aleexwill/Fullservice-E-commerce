@@ -21,9 +21,8 @@ export function formatWhatsAppUrl(phone: string, message?: string): string {
 }
 
 /**
- * fetch + parse JSON, devolviendo null ante cualquier respuesta no-ok
- * (401, 404, 500, etc.) en vez de propagar el body de error como si
- * fuera el dato esperado.
+ * fetch + parse JSON, devolviendo null ante cualquier respuesta no-ok.
+ * Callers that need to distinguish "error" from "empty" should check fetchJsonWithStatus.
  */
 export async function fetchJson<T = unknown>(input: RequestInfo | URL, init?: RequestInit): Promise<T | null> {
   try {
@@ -32,6 +31,24 @@ export async function fetchJson<T = unknown>(input: RequestInfo | URL, init?: Re
     return (await res.json()) as T;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Same as fetchJson but returns { data, ok } so callers can distinguish
+ * a failed request (ok=false) from a valid empty response.
+ */
+export async function fetchJsonWithStatus<T = unknown>(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<{ data: T | null; ok: boolean }> {
+  try {
+    const res = await fetch(input, init);
+    if (!res.ok) return { data: null, ok: false };
+    const data = (await res.json()) as T;
+    return { data, ok: true };
+  } catch {
+    return { data: null, ok: false };
   }
 }
 

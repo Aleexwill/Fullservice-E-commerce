@@ -92,15 +92,17 @@ export default function SeguimientoPage() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  // Persist seguimientoData to the DB on the first presupuesto (as shared store)
+  // Persist seguimientoData to the DB on the first presupuesto (as shared store).
+  // We merge with existing seguimientoData to avoid overwriting fields set by other views (tablero.html).
   const persistir = useCallback(async (newSeg: SegEntry[]) => {
     if (presupuestos.length === 0) return;
     setSaving(true);
     const target = presupuestos[0];
+    const existing = (target as any).seguimientoData ?? {};
     await fetch(`/api/presupuestos/${target.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ seguimientoData: { seg: newSeg } }),
+      body: JSON.stringify({ seguimientoData: { ...existing, seg: newSeg } }),
     });
     setSaving(false);
   }, [presupuestos]);

@@ -504,7 +504,15 @@ const PROPS = {
 const presupuestoId = new URLSearchParams(location.search).get("id") || "";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-const N = (v) => { const n = parseFloat(String(v ?? "").replace(/\s/g,"").replace(/\./g,"").replace(",",".")); return isFinite(n) ? n : 0; };
+const N = (v) => {
+  if (typeof v === "number") return isFinite(v) ? v : 0;
+  const s = String(v ?? "").trim().replace(/\s/g, "");
+  // If string uses comma as decimal (e.g. "1,5") with no dot thousand-sep, parse as decimal
+  const commaDecimal = /^\d{1,3}(\.?\d{3})*,\d+$/.test(s) || /^\d+,\d+$/.test(s);
+  const normalized = commaDecimal ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  const n = parseFloat(normalized);
+  return isFinite(n) ? n : 0;
+};
 const money = (n) => (n < 0 ? "-" : "") + PROPS.simboloMoneda + " " + Math.abs(n).toLocaleString("es-PY",{minimumFractionDigits:PROPS.decimales,maximumFractionDigits:PROPS.decimales});
 const pct = (v) => N(v).toLocaleString("es-PY",{maximumFractionDigits:2}) + "%";
 
@@ -575,10 +583,14 @@ async function saveToAPI() {
     const stateToSave = JSON.parse(JSON.stringify(S));
     delete stateToSave._saving;
     delete stateToSave.IT; // IT se guarda en localStorage (tiene imágenes base64)
+    // Compute current total so the dashboard/reports always reflect the latest value
+    const porRubro = S.rubros.map(r => calcRubro(r));
+    const idxIncluidos = porRubro.map((_,i)=>i).filter(i => S.rubros[i].incluir !== false && porRubro[i].precioRubro > 0);
+    const G = calcGlobal(idxIncluidos.map(i => porRubro[i]));
     const res = await fetch("/api/presupuestos/" + presupuestoId, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ costosData: stateToSave })
+      body: JSON.stringify({ costosData: stateToSave, finalValue: G.totalFinal })
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
     showToast("Guardado");
