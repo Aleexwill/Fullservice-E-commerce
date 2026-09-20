@@ -95,6 +95,7 @@
       --text:#1b1a18; --text2:#4a4741; --text3:#86817b; --text4:#6f6b64;
     }
     .noprint { display: none !important; }
+    .onlyprint { display: block !important; }
     html, body { background: #fff !important; }
     .print-sheet { box-shadow: none !important; border: 0 !important; margin: 0 !important; width: 100% !important; padding: 0 !important; }
     .wrap-grid { padding: 0 !important; }
@@ -515,6 +516,7 @@ const rubroBase = (nombre) => ({
 let S = {
   tab: "costos",
   activo: 0,
+  memoria: "",
   mostrarMO: false,
   mostrarOtros: false,
   mostrarAlcance: true,
@@ -1196,7 +1198,8 @@ function render() {
       el("div", { style: "display:flex;gap:4px;padding:3px;background:var(--tab-wrap);border-radius:8px;" },
         el("button", { style: tabStyle(S.tab === "costos"), onclick: () => setState({tab:"costos"}) }, "Planilla de costos"),
         el("button", { style: tabStyle(S.tab === "propuesta"), onclick: () => setState({tab:"propuesta"}) }, "Hoja de propuesta"),
-        el("button", { style: tabStyle(S.tab === "compras"), onclick: () => setState({tab:"compras"}) }, "Lista de compras")
+        el("button", { style: tabStyle(S.tab === "compras"), onclick: () => setState({tab:"compras"}) }, "Lista de compras"),
+        el("button", { style: tabStyle(S.tab === "informe"), onclick: () => setState({tab:"informe"}) }, "Informe de costos")
       ),
       el("div", { style: "flex:1;" }),
       el("div", { style: "display:flex;align-items:baseline;gap:10px;padding:7px 14px;background:var(--btn-bg);border-radius:8px;border:1px solid var(--btn-bdr);" },
@@ -1213,7 +1216,8 @@ function render() {
     S.tab === "propuesta" ? renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) : null,
 
     // ── COMPRAS VIEW ──────────────────────────────────────────────────────
-    S.tab === "compras" ? renderCompras() : null
+    S.tab === "compras" ? renderCompras() : null,
+    S.tab === "informe" ? renderInforme(porRubro, idxIncluidos, G) : null
   );
   app.replaceWith(newApp);
   newApp.id = "app";
@@ -1834,6 +1838,119 @@ function copiarResumen(idxIncluidos, porRubro, G) {
   const txt = resumenTexto(idxIncluidos, porRubro, G);
   const done = () => { setState({copiado:true}); setTimeout(()=>setState({copiado:false}),2200); };
   if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done).catch(done); else done();
+}
+
+// ─── Informe de Costos ───────────────────────────────────────────────────────
+function renderInforme(porRubro, idxIncluidos, G) {
+  const incluidos = idxIncluidos.map(i => ({ r: S.rubros[i], calc: porRubro[i] }));
+  const mm = (n) => money(n);
+
+  function imprimirInforme() {
+    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+  }
+
+  const kpiBlock = (label, valor, color) =>
+    el("div", { style: "display:flex;flex-direction:column;gap:4px;" },
+      el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;" }, label),
+      el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;" + (color ? "color:" + color + ";" : "") }, valor)
+    );
+
+  const margenCosto = G.costoTotal > 0 ? (G.ganancia / G.costoTotal * 100).toFixed(1) + "%" : "—";
+  const margenVenta = G.neto > 0 ? (G.ganancia / G.neto * 100).toFixed(1) + "%" : "—";
+
+  const colRubros = "minmax(0,1fr) 110px 110px 90px 118px 60px 120px";
+
+  return el("div", { style: "max-width:1040px;margin:0 auto;padding:26px;" },
+
+    // Toolbar noprint
+    el("div", { class: "noprint", style: "display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;" },
+      el("div", { style: "font-size:14px;font-weight:700;flex:1;" }, "Informe de costos"),
+      el("div", { style: "font-size:12px;color:#86817b;" }, "Uso interno · no forma parte de la propuesta al cliente"),
+      el("button", { style: "padding:9px 16px;font-size:12.5px;font-weight:600;color:#fff;background:#1b1a18;border:0;border-radius:7px;cursor:pointer;", onclick: () => imprimirInforme() }, "Imprimir análisis")
+    ),
+
+    // Hoja imprimible
+    el("div", { style: "background:#fff;border:1px solid #dedbd5;border-radius:12px;overflow:hidden;color:#1b1a18;" },
+
+      // Cabecera
+      el("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:28px 32px 20px;border-bottom:2px solid #1b1a18;" },
+        el("div", { style: "display:flex;flex-direction:column;gap:5px;" },
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#6f6b64;" }, (PROPS.empresa || "Full Service & Clean") + " · Análisis de costo"),
+          el("div", { style: "font-size:20px;font-weight:700;letter-spacing:-0.01em;" }, "Memoria de cálculo y estrategia de precio"),
+          S.cliente ? el("div", { style: "font-size:13px;color:#4a4741;" }, S.cliente) : null,
+          S.obra    ? el("div", { style: "font-size:12px;color:#6f6b64;max-width:460px;" }, S.obra)    : null
+        ),
+        el("div", { style: "text-align:right;display:flex;flex-direction:column;gap:3px;flex-shrink:0;" },
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;" }, PROPS.nroPresupuesto || "—"),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f6b64;" }, S.fecha || ""),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#a09a92;margin-top:4px;" }, "Uso interno")
+        )
+      ),
+
+      // KPIs
+      el("div", { style: "display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding:18px 32px;border-bottom:1px solid #dedbd5;" },
+        kpiBlock("Costo calculado", mm(G.costoTotal), null),
+        kpiBlock("Venta sin IVA",   mm(G.neto),       null),
+        kpiBlock("Utilidad",        mm(G.ganancia),   "oklch(0.40 0.11 155)"),
+        kpiBlock("Margen s/ costo", margenCosto,      "oklch(0.44 0.09 220)")
+      ),
+
+      // Tabla de rubros
+      el("div", { style: "padding:20px 32px 24px;" },
+        el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:10px;" }, "Resumen por rubro"),
+        // Header
+        el("div", { style: "display:grid;grid-template-columns:" + colRubros + ";gap:8px;padding:8px 0;border-bottom:1px solid #1b1a18;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.07em;text-transform:uppercase;color:#6f6b64;" },
+          el("div", {}, "Rubro"),
+          el("div", { style: "text-align:right;" }, "Materiales"),
+          el("div", { style: "text-align:right;" }, "Mano de obra"),
+          el("div", { style: "text-align:right;" }, "Otros"),
+          el("div", { style: "text-align:right;" }, "Costo total"),
+          el("div", { style: "text-align:right;" }, "Margen"),
+          el("div", { style: "text-align:right;" }, "Precio venta")
+        ),
+        // Filas
+        ...incluidos.map(({ r, calc }) => {
+          const pct = calc.costoTotal > 0 ? (calc.montoMargen / calc.costoTotal * 100).toFixed(1) + "%" : "—";
+          return el("div", { style: "display:grid;grid-template-columns:" + colRubros + ";gap:8px;padding:9px 0;border-bottom:1px solid #efedea;align-items:baseline;" },
+            el("div", { style: "font-size:12px;color:#33312e;" }, r.nombre),
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;" }, mm(calc.materiales)),
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;" }, mm(calc.manoObra)),
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;" }, mm(calc.otros + calc.montoOverhead)),
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#33312e;" }, mm(calc.costoTotal)),
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:oklch(0.45 0.09 220);" }, pct),
+            el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-align:right;" }, mm(calc.precioRubro))
+          );
+        }),
+        // Total
+        el("div", { style: "display:grid;grid-template-columns:" + colRubros + ";gap:8px;padding:10px 0;border-top:2px solid #1b1a18;align-items:baseline;" },
+          el("div", { style: "font-size:12px;font-weight:700;" }, "Total con IVA"),
+          el("div", {}), el("div", {}), el("div", {}),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-align:right;color:#6f6b64;" }, mm(G.costoTotal)),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;" }, margenVenta),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;text-align:right;" }, mm(G.totalFinal))
+        )
+      ),
+
+      // Memoria de cálculo
+      el("div", { style: "padding:0 32px 28px;" },
+        el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:10px;" }, "Memoria de cálculo y estrategia de precio"),
+        el("textarea", {
+          class: "noprint",
+          rows: 12,
+          placeholder: "Cómo se calculó el costo, qué porcentajes se aplicaron, en qué se basaron los precios, consideraciones de mercado y cuál es la utilidad final.",
+          style: "width:100%;box-sizing:border-box;padding:14px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;line-height:1.65;color:#33312e;background:#fdfcfa;border:1px solid #dedbd5;border-radius:8px;resize:vertical;",
+          oninput: e => setState({ memoria: e.target.value }),
+          value: S.memoria || ""
+        }),
+        (S.memoria || "").trim()
+          ? el("div", { style: "display:none;font-size:11.5px;line-height:1.68;color:#1b1a18;white-space:pre-wrap;", class: "onlyprint" }, S.memoria)
+          : null
+      ),
+
+      // Pie
+      el("div", { style: "padding:12px 32px;border-top:1px solid #dedbd5;font-size:10px;color:#86817b;" }, "Documento de uso interno. No forma parte de la propuesta entregada al cliente.")
+    )
+  );
 }
 
 // ─── Lista de Compras ────────────────────────────────────────────────────────
