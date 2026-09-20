@@ -212,8 +212,9 @@ async function patchAPI(itemId,seguimientoData){
   try{
     const r=S.rows.find(x=>x._id===itemId||x.id===itemId);
     if(!r)return;
-    await fetch(`/api/presupuestos/${itemId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({seguimientoData})});
-  }catch(e){}
+    const r2=await fetch(`/api/presupuestos/${itemId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({seguimientoData})});
+    if(!r2.ok)console.warn('patchAPI error',r2.status,itemId);
+  }catch(e){console.warn('patchAPI failed',e);}
 }
 
 function patchRow(id,fields){

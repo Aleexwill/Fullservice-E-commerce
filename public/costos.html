@@ -575,11 +575,12 @@ async function saveToAPI() {
     const stateToSave = JSON.parse(JSON.stringify(S));
     delete stateToSave._saving;
     delete stateToSave.IT; // IT se guarda en localStorage (tiene imágenes base64)
-    await fetch("/api/presupuestos/" + presupuestoId, {
+    const res = await fetch("/api/presupuestos/" + presupuestoId, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ costosData: stateToSave })
     });
+    if (!res.ok) throw new Error("HTTP " + res.status);
     showToast("Guardado");
   } catch(e) {
     showToast("Error al guardar");

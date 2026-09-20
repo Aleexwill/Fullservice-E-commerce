@@ -115,8 +115,8 @@ export async function updatePresupuesto(id: string, data: Partial<Presupuesto>):
       } as unknown as Prisma.PresupuestoUncheckedUpdateInput,
     });
     return toPresupuesto(p);
-  } catch {
-    return null;
+  } catch (e) {
+    throw e;
   }
 }
 
