@@ -228,6 +228,12 @@ function setEstado(id,estado){
   const mapa={'FINALIZADO':{alerta:'APROBADO',avance:'Finalizado'},'EN EJECUCION':{alerta:'APROBADO',avance:'En Proceso'},'FALTA VISTO BUENO':{alerta:'FALTA VISTO BUENO',avance:'Pendiente'},'PENDIENTE APROBACION':{alerta:'ENVIADO',avance:'Pendiente'},'EN PRESUPUESTO':{alerta:'FALTA PRESUPUESTAR',avance:'Pendiente'},'PENDIENTE RELEVO':{alerta:'FALTA RELEVAR',avance:'Pendiente'},'DE BAJA':{alerta:'DE BAJA',avance:'Pendiente'},'SIN CARGAR':{alerta:'',avance:'Pendiente'}}[estado];
   if(!mapa)return;
   patchRow(id,mapa);
+  if(estado==='FALTA VISTO BUENO'){
+    const r=S.rows.find(x=>x.id===id);
+    if(r&&r._id){
+      setTimeout(()=>window.open('/admin/presupuestos/'+r._id,'_blank'),400);
+    }
+  }
 }
 
 // ─── pasarPendientes ─────────────────────────────────
