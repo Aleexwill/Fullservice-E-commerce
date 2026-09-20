@@ -139,7 +139,7 @@ async function FeaturedProducts() {
 
 function PortfolioPreview({ projects }: { projects: Project[] }) {
   if (!projects.length) return null;
-  return <section className="fs-projects"><div className="container-main"><div className="fs-section-heading"><div><p className="fs-eyebrow">DEL PLAN A LA REALIDAD</p><h2>El trabajo habla.</h2></div><Link href="/portfolio" className="fs-text-link">Ver proyectos <ArrowRight size={18}/></Link></div><div className="fs-project-grid">{projects.slice(0,3).map((project,i)=><Link href="/portfolio" key={project.id} className={`fs-project fs-project-${i}`}><div className="fs-project-image"><NextImage src={project.image} alt={project.title} fill sizes="(max-width: 768px) 100vw, 60vw" className="object-cover"/></div><div className="fs-project-copy"><span>{project.location || project.category}</span><h3>{project.title}</h3></div></Link>)}</div></div></section>;
+  return <section className="fs-projects"><div className="container-main"><div className="fs-section-heading"><div><p className="fs-eyebrow">DEL PLAN A LA REALIDAD</p><h2>El trabajo habla.</h2></div><Link href="/trabajos" className="fs-text-link">Ver proyectos <ArrowRight size={18}/></Link></div><div className="fs-project-grid">{projects.slice(0,3).map((project,i)=><Link href="/trabajos" key={project.id} className={`fs-project fs-project-${i}`}><div className="fs-project-image"><NextImage src={project.image} alt={project.title} fill sizes="(max-width: 768px) 100vw, 60vw" className="object-cover"/></div><div className="fs-project-copy"><span>{project.location || project.category}</span><h3>{project.title}</h3></div></Link>)}</div></div></section>;
 }
 
 export default async function HomePage() {

@@ -12,7 +12,7 @@ const footerLinks = {
     { label: 'Herramientas', href: '/tienda' }, { label: 'Electricidad', href: '/tienda' }, { label: 'Plomería', href: '/tienda' }, { label: 'Productos de limpieza', href: '/tienda' },
   ],
   empresa: [
-    { label: 'Trabajos', href: '/portfolio' }, { label: 'Clientes', href: '/clientes' }, { label: 'Contacto', href: '/contacto' }, { label: 'Privacidad', href: '/privacidad' }, { label: 'Términos', href: '/terminos' },
+    { label: 'Trabajos', href: '/trabajos' }, { label: 'Clientes', href: '/clientes' }, { label: 'Contacto', href: '/contacto' }, { label: 'Privacidad', href: '/privacidad' }, { label: 'Términos', href: '/terminos' },
   ],
 };
 

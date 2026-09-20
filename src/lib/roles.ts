@@ -51,7 +51,7 @@ export const RESTRICTED_ROUTES: { path: string; requiredPermission: keyof typeof
   { path: '/admin/contenido', requiredPermission: 'canManageContent' },
   { path: '/admin/carousel', requiredPermission: 'canManageContent' },
   { path: '/admin/promos', requiredPermission: 'canManageContent' },
-  { path: '/admin/portfolio', requiredPermission: 'canManageContent' },
+  { path: '/admin/trabajos', requiredPermission: 'canManageContent' },
   { path: '/admin/servicios', requiredPermission: 'canManageContent' },
   { path: '/admin/productos', requiredPermission: 'canManageProducts' },
   { path: '/admin/reportes', requiredPermission: 'canViewReports' },

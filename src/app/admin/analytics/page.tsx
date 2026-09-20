@@ -14,7 +14,7 @@ interface Analytics {
 
 const PAGE_NAMES: Record<string, string> = {
   '/': 'Inicio', '/servicios': 'Servicios', '/tienda': 'Tienda',
-  '/portfolio': 'Portfolio', '/contacto': 'Contacto', '/admin': 'Admin',
+  '/trabajos': 'Trabajos', '/contacto': 'Contacto', '/admin': 'Admin',
 };
 
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];

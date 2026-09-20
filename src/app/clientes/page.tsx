@@ -129,14 +129,7 @@ export default function ClientesPage() {
     fetch('/api/clientes-logo')
       .then((r) => r.json())
       .then((d) => {
-        if (Array.isArray(d.clientes) && d.clientes.length > 0) {
-          // Debug: log what the DB returns to diagnose crop mismatches
-          console.log('[clientes] DB records:', d.clientes.map((c: ClienteLogo) => ({
-            id: c.id, name: c.name, norm: normalizeName(c.name),
-            logoUrl: c.logoUrl, hasCrop: Boolean(getCrop(c)),
-          })));
-          setClientes(d.clientes);
-        }
+        if (Array.isArray(d.clientes) && d.clientes.length > 0) setClientes(d.clientes);
       })
       .catch(() => {});
   }, []);
@@ -166,7 +159,7 @@ export default function ClientesPage() {
             Empresas y organizaciones de Paraguay que eligen Full Service &amp; Clean para sus proyectos de mantenimiento, construcción y metalúrgica.
           </p>
           <div className="mt-8">
-            <Link href="/portfolio" className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 font-body text-sm font-semibold text-white hover:bg-white/15 transition-colors">
+            <Link href="/trabajos" className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 font-body text-sm font-semibold text-white hover:bg-white/15 transition-colors">
               Ver trabajos realizados <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
