@@ -42,31 +42,29 @@ const FALLBACK: ClienteLogo[] = [
 // Datos de crop de la imagen sprite /partners/empresas.jpeg (788×663)
 // Keyed por nombre normalizado (minúsculas, sin tildes/espacios) para funcionar
 // tanto con los IDs del fallback como con los cuids de la DB.
+// Sprite /partners/empresas.jpeg (788×663), grid 3×4
+// [x, y, width, height] in original pixels
 const CROPS_BY_NAME: Record<string, [number, number, number, number]> = {
-  // row 1
-  tigre:                         [10,  20,  195, 100],
-  grupomao:                      [265, 20,  260, 100],
-  mao:                           [265, 20,  260, 100],
-  paraguaytextil:                [570, 25,  210,  95],
-  // row 2
-  agpar:                         [15,  155, 225, 120],
-  agpargruppofarrini:            [15,  155, 225, 120],
-  inyeplast:                     [275, 175, 255,  90],
-  innova:                        [575, 155, 205, 135],
-  innovatechnology:              [575, 155, 205, 135],
-  innovatechnologyparaguay:      [575, 155, 205, 135],
-  // row 3
-  ball:                          [10,  310, 195, 160],
-  granusa:                       [258, 355, 260,  95],
-  granusaexcelenciaennutricion:  [258, 355, 260,  95],
-  rodan:                         [538, 330, 240, 130],
-  rodaninmobiliaria:             [538, 330, 240, 130],
-  // row 4
-  gala:                          [15,  495, 225,  90],
-  galaalquilerdemueblesdelujo:   [15,  495, 225,  90],
-  sena:                          [258, 505, 260,  95],
-  senaingenieria:                [258, 505, 260,  95],
-  agriplus:                      [565, 510, 215,  90],
+  tigre:                        [5,   15, 250, 115],
+  grupomao:                     [258, 15, 275, 115],
+  mao:                          [258, 15, 275, 115],
+  paraguaytextil:               [535, 15, 247, 115],
+  agpar:                        [5,  145, 250, 145],
+  agpargruppofarrini:           [5,  145, 250, 145],
+  inyeplast:                    [258,145, 275, 145],
+  innova:                       [535,145, 247, 145],
+  innovatechnology:             [535,145, 247, 145],
+  innovatechnologyparaguay:     [535,145, 247, 145],
+  ball:                         [5,  305, 250, 165],
+  granusa:                      [258,305, 275, 165],
+  granusaexcelenciaennutricion: [258,305, 275, 165],
+  rodan:                        [535,305, 247, 165],
+  rodaninmobiliaria:            [535,305, 247, 165],
+  gala:                         [5,  487, 250, 113],
+  galaalquilerdemueblesdelujo:  [5,  487, 250, 113],
+  sena:                         [258,487, 275, 113],
+  senaingenieria:               [258,487, 275, 113],
+  agriplus:                     [535,487, 247, 113],
 };
 
 function normalizeName(name: string): string {
@@ -100,20 +98,15 @@ function LogoCard({ client }: { client: ClienteLogo }) {
           return (
             <div
               role="img" aria-label={client.name}
-              className="overflow-hidden transition-all duration-300 group-hover:grayscale group-hover:scale-105"
-              style={{ position: 'relative', width: dw, height: dh }}
-            >
-              <img
-                src="/partners/empresas.jpeg" alt=""
-                style={{
-                  position: 'absolute',
-                  width: `${Math.round(788 * scale)}px`,
-                  height: `${Math.round(663 * scale)}px`,
-                  left: `-${Math.round(cx * scale)}px`,
-                  top: `-${Math.round(cy * scale)}px`,
-                }}
-              />
-            </div>
+              className="transition-all duration-300 group-hover:grayscale group-hover:scale-105"
+              style={{
+                width: dw, height: dh,
+                backgroundImage: 'url(/partners/empresas.jpeg)',
+                backgroundSize: `${Math.round(788 * scale)}px ${Math.round(663 * scale)}px`,
+                backgroundPosition: `-${Math.round(cx * scale)}px -${Math.round(cy * scale)}px`,
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
           );
         })()
       ) : (
@@ -209,10 +202,8 @@ export default function ClientesPage() {
                           ? <span className="inline-block h-6 w-16 overflow-hidden relative">
                               {cliente.logoUrl
                                 ? <img src={cliente.logoUrl} alt={cliente.name} className="h-6 w-auto max-w-[64px] object-contain" />
-                                : (() => { const [cx,cy,cw,ch] = getCrop(cliente)!; const sc = Math.min(64/cw,24/ch); const dw=Math.round(cw*sc),dh=Math.round(ch*sc); return (
-                                    <div style={{position:'relative',width:dw,height:dh,overflow:'hidden'}}>
-                                      <img src="/partners/empresas.jpeg" alt="" style={{position:'absolute',width:`${Math.round(788*sc)}px`,height:`${Math.round(663*sc)}px`,left:`-${Math.round(cx*sc)}px`,top:`-${Math.round(cy*sc)}px`}} />
-                                    </div>
+                                : (() => { const [cx,cy,cw,ch]=getCrop(cliente)!; const sc=Math.min(64/cw,24/ch); const dw=Math.round(cw*sc),dh=Math.round(ch*sc); return (
+                                    <div style={{width:dw,height:dh,backgroundImage:'url(/partners/empresas.jpeg)',backgroundSize:`${Math.round(788*sc)}px ${Math.round(663*sc)}px`,backgroundPosition:`-${Math.round(cx*sc)}px -${Math.round(cy*sc)}px`,backgroundRepeat:'no-repeat'}} />
                                   ); })()
                               }
                             </span>
