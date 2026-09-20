@@ -517,6 +517,7 @@ let S = {
   tab: "costos",
   activo: 0,
   memoria: "",
+  obsRubroTecnico: {},
   mostrarMO: false,
   mostrarOtros: false,
   mostrarAlcance: true,
@@ -1199,7 +1200,8 @@ function render() {
         el("button", { style: tabStyle(S.tab === "costos"), onclick: () => setState({tab:"costos"}) }, "Planilla de costos"),
         el("button", { style: tabStyle(S.tab === "propuesta"), onclick: () => setState({tab:"propuesta"}) }, "Hoja de propuesta"),
         el("button", { style: tabStyle(S.tab === "compras"), onclick: () => setState({tab:"compras"}) }, "Lista de compras"),
-        el("button", { style: tabStyle(S.tab === "informe"), onclick: () => setState({tab:"informe"}) }, "Informe de costos")
+        el("button", { style: tabStyle(S.tab === "informe"), onclick: () => setState({tab:"informe"}) }, "Informe de costos"),
+        el("button", { style: tabStyle(S.tab === "tecnico"), onclick: () => setState({tab:"tecnico"}) }, "Informe técnico")
       ),
       el("div", { style: "flex:1;" }),
       el("div", { style: "display:flex;align-items:baseline;gap:10px;padding:7px 14px;background:var(--btn-bg);border-radius:8px;border:1px solid var(--btn-bdr);" },
@@ -1217,7 +1219,8 @@ function render() {
 
     // ── COMPRAS VIEW ──────────────────────────────────────────────────────
     S.tab === "compras" ? renderCompras() : null,
-    S.tab === "informe" ? renderInforme(porRubro, idxIncluidos, G) : null
+    S.tab === "informe" ? renderInforme(porRubro, idxIncluidos, G) : null,
+    S.tab === "tecnico" ? renderTecnico(porRubro, idxIncluidos) : null
   );
   app.replaceWith(newApp);
   newApp.id = "app";
@@ -1949,6 +1952,129 @@ function renderInforme(porRubro, idxIncluidos, G) {
 
       // Pie
       el("div", { style: "padding:12px 32px;border-top:1px solid #dedbd5;font-size:10px;color:#86817b;" }, "Documento de uso interno. No forma parte de la propuesta entregada al cliente.")
+    )
+  );
+}
+
+// ─── Informe Técnico ─────────────────────────────────────────────────────────
+function renderTecnico(porRubro, idxIncluidos) {
+  const incluidos = idxIncluidos.map(i => ({ r: S.rubros[i], calc: porRubro[i], idx: i }));
+  const hoy = S.fecha || new Date().toLocaleDateString("es-PY", { day:"2-digit", month:"2-digit", year:"numeric" });
+
+  function imprimirTecnico() {
+    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+  }
+
+  return el("div", { style: "max-width:1040px;margin:0 auto;padding:26px;" },
+
+    // Toolbar
+    el("div", { class: "noprint", style: "display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;" },
+      el("div", { style: "font-size:14px;font-weight:700;flex:1;" }, "Informe técnico"),
+      el("div", { style: "font-size:12px;color:#86817b;" }, "Documento de ejecución · descripción de trabajos por rubro"),
+      el("button", {
+        style: "padding:9px 16px;font-size:12.5px;font-weight:600;color:#fff;background:#1b1a18;border:0;border-radius:7px;cursor:pointer;",
+        onclick: () => imprimirTecnico()
+      }, "Imprimir informe")
+    ),
+
+    // Hoja imprimible
+    el("div", { style: "background:#fff;border:1px solid #dedbd5;border-radius:12px;overflow:hidden;color:#1b1a18;" },
+
+      // Cabecera
+      el("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:28px 32px 22px;border-bottom:2px solid #1b1a18;" },
+        el("div", { style: "display:flex;flex-direction:column;gap:5px;" },
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#6f6b64;" }, (PROPS.empresa || "Full Service & Clean") + " · Informe Técnico de Ejecución"),
+          el("div", { style: "font-size:20px;font-weight:700;letter-spacing:-0.01em;" }, "Descripción técnica de trabajos"),
+          S.cliente ? el("div", { style: "font-size:13px;color:#4a4741;margin-top:2px;" }, S.cliente) : null,
+          S.obra    ? el("div", { style: "font-size:12px;color:#6f6b64;max-width:460px;" }, S.obra)    : null,
+          S.domicilio ? el("div", { style: "font-size:11.5px;color:#86817b;" }, S.domicilio) : null
+        ),
+        el("div", { style: "text-align:right;display:flex;flex-direction:column;gap:3px;flex-shrink:0;" },
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;" }, PROPS.nroPresupuesto || "—"),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f6b64;" }, hoy),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#a09a92;margin-top:4px;" }, S.contacto || "")
+        )
+      ),
+
+      // Bloques por rubro
+      el("div", { style: "padding:24px 32px;display:flex;flex-direction:column;gap:0;" },
+        ...incluidos.map(({ r, idx }, rubroIdx) => {
+          const matItems = (r.mats || []).filter(m => m.desc && m.desc.trim());
+          const moItems  = (r.mos  || []).filter(m => m.desc && m.desc.trim());
+          const obsKey = String(r.id || idx);
+          const obs = (S.obsRubroTecnico || {})[obsKey] || "";
+
+          return el("div", {
+            style: "padding:20px 0;" + (rubroIdx > 0 ? "border-top:1px solid #efedea;" : "")
+          },
+            // Rubro header
+            el("div", { style: "display:flex;align-items:baseline;gap:12px;margin-bottom:14px;" },
+              el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#a09a92;flex-shrink:0;" }, String(rubroIdx + 1).padStart(2, "0")),
+              el("div", { style: "font-size:14px;font-weight:700;letter-spacing:-0.01em;" }, r.nombre || "Rubro"),
+              r.medida ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;color:#86817b;border:1px solid #dedbd5;border-radius:4px;padding:2px 7px;white-space:nowrap;" }, r.medida + " " + (r.unidad || "")) : null
+            ),
+
+            // Items grid
+            (matItems.length > 0 || moItems.length > 0) ? el("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-bottom:14px;" },
+              // Materiales
+              matItems.length > 0 ? el("div", {},
+                el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;" }, "Materiales y suministros"),
+                el("div", { style: "display:flex;flex-direction:column;gap:6px;" },
+                  ...matItems.map(m =>
+                    el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 60px 50px;gap:6px;align-items:baseline;padding:6px 0;border-bottom:1px solid #f5f4f1;font-size:11.5px;color:#33312e;" },
+                      el("div", {}, m.desc),
+                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-align:right;color:#6f6b64;" }, m.cant || "—"),
+                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:right;color:#86817b;" }, m.unidad || "un")
+                    )
+                  )
+                )
+              ) : null,
+
+              // Mano de obra
+              moItems.length > 0 ? el("div", {},
+                el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;" }, "Tareas de mano de obra"),
+                el("div", { style: "display:flex;flex-direction:column;gap:6px;" },
+                  ...moItems.map(m =>
+                    el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 60px 50px;gap:6px;align-items:baseline;padding:6px 0;border-bottom:1px solid #f5f4f1;font-size:11.5px;color:#33312e;" },
+                      el("div", {}, m.desc),
+                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-align:right;color:#6f6b64;" }, (m.pers && m.pers !== "1" ? m.pers + " pers." : "") || "—"),
+                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:right;color:#86817b;" }, m.horas ? m.horas + " h" : "")
+                    )
+                  )
+                )
+              ) : null
+            ) : null,
+
+            // Observaciones técnicas por rubro
+            el("div", { class: "noprint", style: "margin-top:8px;" },
+              el("textarea", {
+                rows: 3,
+                placeholder: "Observaciones técnicas, condiciones de acceso, requerimientos especiales, notas para el equipo...",
+                style: "width:100%;box-sizing:border-box;padding:10px 12px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;line-height:1.55;color:#33312e;background:#fdfcfa;border:1px solid #dedbd5;border-radius:7px;resize:vertical;",
+                oninput: e => {
+                  const upd = Object.assign({}, S.obsRubroTecnico || {});
+                  upd[obsKey] = e.target.value;
+                  setState({ obsRubroTecnico: upd });
+                },
+                value: obs
+              })
+            ),
+            obs.trim() ? el("div", { class: "onlyprint", style: "display:none;font-size:11px;line-height:1.6;color:#33312e;margin-top:6px;white-space:pre-wrap;border-top:1px dashed #dedbd5;padding-top:8px;" }, obs) : null
+          );
+        }),
+
+        // Alcance global
+        S.alcance ? el("div", { style: "margin-top:10px;padding:18px 20px;background:#fafaf8;border-radius:8px;border:1px solid #efedea;" },
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;" }, "Alcance general del servicio"),
+          el("div", { style: "font-size:12px;line-height:1.65;color:#33312e;white-space:pre-wrap;" }, S.alcance)
+        ) : null
+      ),
+
+      // Pie
+      el("div", { style: "padding:12px 32px;border-top:1px solid #dedbd5;font-size:10px;color:#86817b;display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap;" },
+        el("span", {}, "Informe técnico de ejecución — " + (PROPS.nroPresupuesto || "")),
+        el("span", {}, hoy)
+      )
     )
   );
 }
