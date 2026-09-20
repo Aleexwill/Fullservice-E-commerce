@@ -519,6 +519,7 @@ let S = {
   mostrarOtros: false,
   mostrarAlcance: true,
   ocultarPrecios: false,
+  listaUnificada: false,
   modoMarca: "",
   herr: "circulo",
   colorMarca: "#c0392b",
@@ -1829,8 +1830,13 @@ function copiarResumen(idxIncluidos, porRubro, G) {
 // ─── Lista de Compras ────────────────────────────────────────────────────────
 function renderCompras() {
   const verPrecios = !S.ocultarPrecios;
-  const comprasGrid = verPrecios ? "1fr 50px 70px 50px 90px 90px" : "1fr 50px 80px 50px";
+  const unificada  = !!S.listaUnificada;
+  const gridCols   = verPrecios ? "1fr 50px 70px 90px 90px" : "1fr 50px 80px";
 
+  const thStyle = "padding:7px 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:#86817b;";
+  const tdStyle = (right) => "padding:9px 4px;font-family:'IBM Plex Mono',monospace;font-size:11px;" + (right ? "text-align:right;" : "");
+
+  // ── Modo POR RUBRO ──
   const grupos = S.rubros.map((R, i) => {
     const filas = (R.mats || []).filter(x => String(x.desc || "").trim() || N(x.cant) > 0);
     const subtotal = filas.reduce((a, x) => a + costoMat(x), 0);
@@ -1840,24 +1846,58 @@ function renderCompras() {
       subtotal,
       items: filas.map(x => {
         const cantConDesp = N(x.cant) * (1 + N(x.desp) / 100);
-        return {
-          desc: x.desc || "—",
-          unidad: x.unidad || "un",
-          cant: cantConDesp.toLocaleString("es-PY", { maximumFractionDigits: 2 }),
-          desp: N(x.desp) > 0 ? "+" + pct(x.desp) : "",
-          costo: money(N(x.costo)),
-          total: money(costoMat(x))
-        };
+        return { desc: x.desc || "—", unidad: x.unidad || "un", cant: cantConDesp, costoUnitario: N(x.costo), total: costoMat(x) };
       })
     };
   });
 
-  const totalCompras = S.rubros.reduce((a, R) => a + (R.mats || []).reduce((b, x) => b + costoMat(x), 0), 0);
-  const totalItems = S.rubros.reduce((a, R) => a + (R.mats || []).filter(x => String(x.desc || "").trim() || N(x.cant) > 0).length, 0);
-  const hayAlgo = grupos.some(g => g.hay);
+  // ── Modo LISTA ÚNICA (consolida por descripción + unidad) ──
+  const mapaUnif = new Map();
+  S.rubros.forEach(R => {
+    (R.mats || []).filter(x => String(x.desc || "").trim()).forEach(x => {
+      const clave = (x.desc || "").trim().toLowerCase() + "||" + (x.unidad || "un").toLowerCase();
+      const cantConDesp = N(x.cant) * (1 + N(x.desp) / 100);
+      if (mapaUnif.has(clave)) {
+        const e = mapaUnif.get(clave);
+        e.cant += cantConDesp;
+        e.totalCosto += costoMat(x);
+      } else {
+        mapaUnif.set(clave, { desc: (x.desc || "").trim(), unidad: x.unidad || "un", cant: cantConDesp, totalCosto: costoMat(x), costoUnitario: N(x.costo) });
+      }
+    });
+  });
+  const itemsUnif = Array.from(mapaUnif.values()).sort((a, b) => a.desc.localeCompare(b.desc, "es"));
 
-  const thStyle = "padding:7px 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:#86817b;";
-  const tdStyle = (right) => "padding:9px 4px;font-family:'IBM Plex Mono',monospace;font-size:11px;" + (right ? "text-align:right;" : "");
+  const totalCompras = S.rubros.reduce((a, R) => a + (R.mats || []).reduce((b, x) => b + costoMat(x), 0), 0);
+  const totalItems   = unificada ? itemsUnif.length : grupos.reduce((a, g) => a + g.items.length, 0);
+  const hayAlgo      = unificada ? itemsUnif.length > 0 : grupos.some(g => g.hay);
+
+  const fmtCant = n => n.toLocaleString("es-PY", { maximumFractionDigits: 2 });
+
+  const tabBtn = (activo, label, onclick) => el("button", {
+    class: "noprint",
+    style: "padding:6px 13px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;white-space:nowrap;" +
+      (activo ? "background:#1b1a18;color:#fff;border:1px solid #1b1a18;" : "background:var(--btn-bg,#fff);color:var(--btn-text,#3a3631);border:1px solid var(--btn-bdr,#d0ccc5);"),
+    onclick
+  }, label);
+
+  // ── tabla compartida de filas ──
+  const colHeaders = el("div", { style: "display:grid;grid-template-columns:" + gridCols + ";padding:0 22px;border-bottom:1px solid #efedea;" },
+    el("div", { style: thStyle + "padding-left:0;" }, "Material"),
+    el("div", { style: thStyle + "text-align:center;" }, "Un."),
+    el("div", { style: thStyle + "text-align:right;" }, "Cantidad"),
+    verPrecios ? el("div", { style: thStyle + "text-align:right;" }, "P. unitario") : null,
+    verPrecios ? el("div", { style: thStyle + "text-align:right;" }, "Total") : null
+  );
+
+  const fila = (desc, unidad, cant, costoUnitario, total) =>
+    el("div", { style: "display:grid;grid-template-columns:" + gridCols + ";align-items:baseline;padding:0 22px;border-bottom:1px solid #f4f2ee;" },
+      el("div", { style: "padding:9px 8px 9px 0;font-size:12px;line-height:1.5;" }, desc),
+      el("div", { style: tdStyle(false) + "text-align:center;color:#6f6b64;" }, unidad),
+      el("div", { style: tdStyle(true) }, fmtCant(cant)),
+      verPrecios ? el("div", { style: tdStyle(true) + "color:#6f6b64;" }, money(costoUnitario)) : null,
+      verPrecios ? el("div", { style: tdStyle(true) + "font-weight:600;" }, money(total)) : null
+    );
 
   return el("div", { class: "noprint-hide", style: "max-width:1000px;margin:0 auto;padding:26px;" },
     el("div", { style: "background:var(--card-bg,#ffffff);border:1px solid var(--card-bdr,#dedbd5);border-radius:12px;overflow:hidden;" },
@@ -1865,14 +1905,21 @@ function renderCompras() {
       // Header
       el("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:17px 22px;border-bottom:1px solid var(--card-bdr,#dedbd5);" },
         el("div", { style: "display:flex;flex-direction:column;gap:3px;" },
-          el("div", { style: "font-size:15px;font-weight:700;" }, "Lista de materiales a comprar"),
+          el("div", { style: "font-size:15px;font-weight:700;" }, unificada ? "Lista única de compras" : "Lista de materiales por rubro"),
           el("div", { style: "font-size:12px;color:#86817b;" }, "Obra: " + (S.obra || "—") + " · Cliente: " + (S.cliente || "—")),
-          el("div", { style: "font-size:11.5px;color:#a09a92;" }, "Precios de costo, sin margen. La cantidad ya incluye el desperdicio cargado en la planilla.")
+          el("div", { style: "font-size:11.5px;color:#a09a92;" }, unificada
+            ? "Materiales unificados de todos los rubros. La cantidad ya incluye desperdicio."
+            : "Precios de costo, sin margen. La cantidad ya incluye el desperdicio cargado en la planilla.")
         ),
-        el("div", { style: "display:flex;align-items:center;gap:12px;flex-shrink:0;" },
-          el("button", { class: "noprint", style: "padding:7px 12px;font-size:12px;font-weight:600;color:#ffffff;background:oklch(0.48 0.12 155);border:0;border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => exportarCompras() }, "Exportar a Excel"),
-          el("button", { class: "noprint", style: "padding:7px 12px;font-size:12px;font-weight:500;border:1px solid var(--btn-bdr,#d0ccc5);border-radius:7px;cursor:pointer;background:var(--btn-bg,#fff);color:var(--btn-text,#3a3631);white-space:nowrap;", onclick: () => setState({ ocultarPrecios: !S.ocultarPrecios }) },
-            (verPrecios ? "✓ " : "") + (verPrecios ? "Ocultar precios" : "Mostrar precios")
+        el("div", { style: "display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;" },
+          // Selector de modo
+          el("div", { style: "display:flex;gap:2px;padding:3px;background:#f0eee9;border-radius:8px;" },
+            tabBtn(!unificada, "Por rubro",  () => setState({ listaUnificada: false })),
+            tabBtn( unificada, "Lista única", () => setState({ listaUnificada: true  }))
+          ),
+          el("button", { class: "noprint", style: "padding:7px 12px;font-size:12px;font-weight:600;color:#ffffff;background:oklch(0.48 0.12 155);border:0;border-radius:7px;cursor:pointer;white-space:nowrap;", onclick: () => exportarCompras() }, "Excel"),
+          el("button", { class: "noprint", style: "padding:7px 12px;font-size:12px;font-weight:500;border:1px solid var(--btn-bdr,#d0ccc5);border-radius:7px;cursor:pointer;background:var(--btn-bg,#fff);color:var(--btn-text,#3a3631);white-space:nowrap;", onclick: () => { setState({ ocultarPrecios: !S.ocultarPrecios }); window.print(); } },
+            S.ocultarPrecios ? "Imprimir sin precios ✓" : "Imprimir sin precios"
           ),
           el("div", { style: "display:flex;flex-direction:column;gap:2px;text-align:right;" },
             el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;" }, PROPS.nroPresupuesto),
@@ -1881,45 +1928,36 @@ function renderCompras() {
         )
       ),
 
-      // Body — grupos
+      // Body
       !hayAlgo
         ? el("div", { style: "padding:48px;text-align:center;color:#86817b;font-size:13px;" }, "No hay materiales cargados en la planilla.")
-        : el("div", {},
-            ...grupos.filter(g => g.hay).map(g =>
-              el("div", { style: "border-bottom:1px solid var(--card-bdr,#dedbd5);" },
-                // Rubro header
-                el("div", { style: "display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:12px 22px 8px;background:var(--tab-wrap,#faf9f7);border-bottom:1px solid var(--card-bdr,#dedbd5);" },
-                  el("div", { style: "font-size:13px;font-weight:600;" }, g.nombre),
-                  verPrecios ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;white-space:nowrap;" }, money(g.subtotal)) : null
-                ),
-                // Column headers
-                el("div", { style: "display:grid;grid-template-columns:" + comprasGrid + ";padding:0 22px;border-bottom:1px solid #efedea;" },
-                  el("div", { style: thStyle + "padding-left:0;" }, "Material"),
-                  el("div", { style: thStyle + "text-align:center;" }, "Un."),
-                  el("div", { style: thStyle + "text-align:right;" }, "Cantidad"),
-                  el("div", { style: thStyle + "text-align:right;" }, "Desp."),
-                  verPrecios ? el("div", { style: thStyle + "text-align:right;" }, "P. unitario") : null,
-                  verPrecios ? el("div", { style: thStyle + "text-align:right;" }, "Total") : null
-                ),
-                // Items
-                ...g.items.map(x =>
-                  el("div", { style: "display:grid;grid-template-columns:" + comprasGrid + ";align-items:baseline;padding:0 22px;border-bottom:1px solid #f4f2ee;" },
-                    el("div", { style: "padding:9px 8px 9px 0;font-size:12px;line-height:1.5;" }, x.desc),
-                    el("div", { style: tdStyle(false) + "text-align:center;color:#6f6b64;" }, x.unidad),
-                    el("div", { style: tdStyle(true) }, x.cant),
-                    el("div", { style: tdStyle(true) + "color:#86817b;font-size:10px;" }, x.desp),
-                    verPrecios ? el("div", { style: tdStyle(true) + "color:#6f6b64;" }, x.costo) : null,
-                    verPrecios ? el("div", { style: tdStyle(true) + "font-weight:600;" }, x.total) : null
-                  )
-                )
+        : unificada
+          // ── Lista única ──
+          ? el("div", {},
+              colHeaders,
+              ...itemsUnif.map(x => fila(x.desc, x.unidad, x.cant, x.totalCosto / Math.max(x.cant, 0.001), x.totalCosto)),
+              el("div", { style: "display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:#1b1a18;" },
+                el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#86817b;" }, itemsUnif.length + " ítems distintos"),
+                verPrecios ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;" }, money(totalCompras)) : el("div", {})
               )
-            ),
-            // Total footer
-            el("div", { style: "display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:#1b1a18;" },
-              el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#86817b;" }, "Total de materiales"),
-              verPrecios ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;" }, money(totalCompras)) : el("div", {}, "")
             )
-          )
+          // ── Por rubro ──
+          : el("div", {},
+              ...grupos.filter(g => g.hay).map(g =>
+                el("div", { style: "border-bottom:1px solid var(--card-bdr,#dedbd5);" },
+                  el("div", { style: "display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:12px 22px 8px;background:var(--tab-wrap,#faf9f7);border-bottom:1px solid var(--card-bdr,#dedbd5);" },
+                    el("div", { style: "font-size:13px;font-weight:600;" }, g.nombre),
+                    verPrecios ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;white-space:nowrap;" }, money(g.subtotal)) : null
+                  ),
+                  colHeaders,
+                  ...g.items.map(x => fila(x.desc, x.unidad, x.cant, x.costoUnitario, x.total))
+                )
+              ),
+              el("div", { style: "display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:#1b1a18;" },
+                el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#86817b;" }, "Total de materiales"),
+                verPrecios ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;" }, money(totalCompras)) : el("div", {})
+              )
+            )
     ),
     el("div", { style: "display:flex;justify-content:center;margin-top:20px;" },
       el("a", { href: "#", onclick: e => { e.preventDefault(); setState({ tab: "costos" }); }, style: "font-size:12px;color:#86817b;" }, "← Volver a la planilla")
