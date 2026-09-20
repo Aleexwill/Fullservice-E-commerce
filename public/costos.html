@@ -105,7 +105,12 @@
     #ai-fab, #ai-panel, #ai-bubble { display: none !important; }
     /* Pie fijo de página en propuesta */
     [data-pie-print="1"]  { display: block !important; }
-    @page { size: A4 portrait; margin: 9mm 10mm 13mm; }
+    /* Informe técnico: páginas A4 */
+    [data-it-pg] { box-shadow: none !important; border: 0 !important; border-radius: 0 !important; margin: 0 !important; padding: 36px 44px 24px !important; width: 100% !important; min-height: 0 !important; height: 249mm !important; overflow: hidden; break-inside: avoid; page-break-inside: avoid; break-after: page; page-break-after: always; }
+    [data-it-pg]:last-of-type { break-after: auto; page-break-after: auto; }
+    [data-it-cover] { height: auto !important; min-height: 249mm !important; overflow: visible !important; break-inside: auto; page-break-inside: auto; }
+    [data-it-foto] { height: 118mm !important; }
+    @page { size: letter portrait; margin: 14mm; }
   }
   html, body { margin: 0; padding: 0; background: var(--bg); font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: var(--text); transition: background .2s, color .2s; }
   * { box-sizing: border-box; }
@@ -553,7 +558,8 @@ let S = {
   plazo: "45 días corridos desde el anticipo",
   validez: "15 días",
   pago: "40% de anticipo, 40% contra avance de obra, 20% a la entrega",
-  alcance: "Provisión de materiales, mano de obra y dirección de los trabajos descriptos, incluyendo limpieza final de obra y retiro de escombros."
+  alcance: "Provisión de materiales, mano de obra y dirección de los trabajos descriptos, incluyendo limpieza final de obra y retiro de escombros.",
+  IT: null,      // { informes:[], sel:"", verArchivo:false, iaClave:"", iaAviso:"" }
 };
 
 // ─── Save/Load ──────────────────────────────────────────────────────────────
@@ -568,6 +574,7 @@ async function saveToAPI() {
   try {
     const stateToSave = JSON.parse(JSON.stringify(S));
     delete stateToSave._saving;
+    delete stateToSave.IT; // IT se guarda en localStorage (tiene imágenes base64)
     await fetch("/api/presupuestos/" + presupuestoId, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -2341,8 +2348,450 @@ function renderInforme(porRubro, idxIncluidos, G) {
   );
 }
 
-// ─── Informe Técnico (Planilla interna) ──────────────────────────────────────
+// ─── Informe Técnico ─────────────────────────────────────────────────────────
+// Sistema de informes con fotos (portada + páginas con 2 fotos c/u)
+
+const IT_KEY = "fullservice-informes-v1";
+
+const IT_DIAS   = ["dom","lun","mar","mié","jue","vie","sáb"];
+const IT_MESES  = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function itHoy() {
+  const d = new Date();
+  return IT_DIAS[d.getDay()] + " " + d.getDate() + " " + IT_MESES[d.getMonth()]
+    + " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0")
+    + " " + d.getFullYear();
+}
+function itFecha() {
+  const d = new Date();
+  return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear();
+}
+function itNuevoEl() {
+  return { id:"e"+Date.now()+Math.floor(Math.random()*1000), titulo:"", creado:itHoy(), texto:"",
+           imgA:null, imgB:null, fitA:"contain", fitB:"contain", rotA:0, rotB:0,
+           rotuloA:"situación encontrada", rotuloB:"después del trabajo" };
+}
+function itVacio(nro) {
+  return { id:"i"+Date.now(), nro:nro||"", archivado:itFecha(),
+    titulo:"", contacto:"Ing. Edgar Mendez", empresa:"fullcleandyservice",
+    telefono:"0971 235799", correo:"fullcleanyservice@gmail.com",
+    creado:itHoy(), codigo:"", resumen:"", elementos:[itNuevoEl()] };
+}
+function itSiguienteNro(informes) {
+  let max = 0;
+  (informes||[]).forEach(i => { const m = /^IT-(\d{4})-(\d+)$/.exec(String(i.nro||"").trim()); if(m) max = Math.max(max, parseInt(m[2],10)); });
+  return "IT-" + new Date().getFullYear() + "-" + String(max+1).padStart(3,"0");
+}
+function itCargar() {
+  try {
+    const raw = localStorage.getItem(IT_KEY);
+    const data = raw ? JSON.parse(raw) : null;
+    if (data && data.informes && data.informes.length) {
+      let libre = 0;
+      data.informes.forEach(i => { const m = /^IT-(\d{4})-(\d+)$/.exec(String(i.nro||"").trim()); if(m) libre = Math.max(libre, parseInt(m[2],10)); });
+      const informes = data.informes.map(i => Object.assign({}, { archivado:itFecha(), creado:itHoy(), elementos:[itNuevoEl()] }, i, {
+        nro: i.nro || "IT-" + new Date().getFullYear() + "-" + String(++libre).padStart(3,"0"),
+        elementos: (i.elementos||[]).map(e => Object.assign({}, itNuevoEl(), e))
+      }));
+      return { informes, sel: data.sel || informes[0].id, verArchivo:false, iaClave:"", iaAviso:"" };
+    }
+  } catch(e) {}
+  const i = itVacio("IT-" + new Date().getFullYear() + "-001");
+  return { informes:[i], sel:i.id, verArchivo:false, iaClave:"", iaAviso:"" };
+}
+let itSaveTimer = null;
+function itGuardar(it) {
+  clearTimeout(itSaveTimer);
+  itSaveTimer = setTimeout(() => {
+    try { localStorage.setItem(IT_KEY, JSON.stringify({ informes:it.informes, sel:it.sel })); } catch(e) {}
+  }, 400);
+}
+function itActual(it) {
+  return it.informes.find(i => i.id === it.sel) || it.informes[0] || itVacio();
+}
+function itPatch(campo, valor) {
+  const it = S.IT; const id = itActual(it).id;
+  const informes = it.informes.map(i => i.id===id ? Object.assign({},i,{[campo]:valor}) : i);
+  setState({ IT: Object.assign({},it,{informes}) }, () => itGuardar(S.IT));
+}
+function itPatchEl(elId, campo, valor) {
+  const it = S.IT; const id = itActual(it).id;
+  const informes = it.informes.map(i => i.id!==id ? i : Object.assign({},i,{
+    elementos: i.elementos.map(e => e.id===elId ? Object.assign({},e,{[campo]:valor}) : e)
+  }));
+  setState({ IT: Object.assign({},it,{informes}) }, () => itGuardar(S.IT));
+}
+function itMoverEl(elId, paso) {
+  const it = S.IT; const id = itActual(it).id;
+  const informes = it.informes.map(i => {
+    if(i.id!==id) return i;
+    const arr = i.elementos.slice();
+    const k = arr.findIndex(e => e.id===elId);
+    const dest = k+paso;
+    if(k<0||dest<0||dest>=arr.length) return i;
+    const tmp=arr[k]; arr[k]=arr[dest]; arr[dest]=tmp;
+    return Object.assign({},i,{elementos:arr});
+  });
+  setState({ IT: Object.assign({},it,{informes}) }, () => itGuardar(S.IT));
+}
+function itSetSel(sel) {
+  setState({ IT: Object.assign({},S.IT,{sel}) }, () => itGuardar(S.IT));
+}
+function itSetIT(patch) {
+  setState({ IT: Object.assign({},S.IT,patch) }, () => itGuardar(S.IT));
+}
+
+async function itCorregirIA(clave, texto, aplicar) {
+  if (!texto || !texto.trim() || S.IT.iaClave) return;
+  itSetIT({ iaClave:clave, iaAviso:"" });
+  try {
+    const res = await fetch("/api/ai", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ action:"corregir", texto: texto.trim(),
+        sistema:"Corregís la redacción de informes técnicos de una empresa paraguaya de servicios de mantenimiento e instalaciones. Devolvés únicamente el texto corregido, sin comentarios, sin comillas y sin títulos. Corregís ortografía, tildes, puntuación y concordancia; ordenás las ideas y usás un tono técnico, claro y directo en español de Paraguay. No inventás datos, medidas, marcas ni cantidades: mantenés todos los valores tal como están. Conservás aproximadamente la misma extensión." })
+    });
+    const json = await res.json();
+    const limpio = String(json.resultado||"").trim();
+    if (limpio) { aplicar(limpio); itSetIT({ iaClave:"", iaAviso:"Redacción corregida" }); }
+    else itSetIT({ iaClave:"", iaAviso:"No se pudo corregir" });
+  } catch(e) { itSetIT({ iaClave:"", iaAviso:"No se pudo corregir" }); }
+  setTimeout(() => itSetIT({ iaAviso:"" }), 3500);
+}
+
+function itCargarFoto(elId, lado, file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+      const cv = document.createElement("canvas"); cv.width=w; cv.height=h;
+      cv.getContext("2d").drawImage(img,0,0,w,h);
+      itPatchEl(elId, lado, cv.toDataURL("image/jpeg", 0.75));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function itMarcoFoto(rot) {
+  const base = "position:absolute;left:50%;top:50%;";
+  if (rot===90||rot===270) return base+"width:100cqh;height:100cqw;transform:translate(-50%,-50%) rotate("+rot+"deg);";
+  return base+"width:100%;height:100%;transform:translate(-50%,-50%) rotate("+rot+"deg);";
+}
+function itEstiloAjuste(activo) {
+  return "padding:3px 9px;font-family:inherit;font-size:10.5px;font-weight:600;border-radius:6px;cursor:pointer;white-space:nowrap;border:1px solid "
+    +(activo?"#1b1a18":"#dedbd5")+";background:"+(activo?"#1b1a18":"#f0eee9")+";color:"+(activo?"#fff":"#6f6b64")+";";
+}
+
 function renderTecnico(porRubro, idxIncluidos, G) {
+  // Inicializar state de informes técnicos si no existe
+  if (!S.IT) {
+    // Asignamos directo para no ciclar el render (el próximo setState lo persistirá)
+    S.IT = itCargar();
+  }
+  const it = S.IT;
+  const inf = itActual(it);
+  const els = inf.elementos || [];
+  const paginas = els.length + 1;
+
+  const lbStyle = "font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;margin-bottom:4px;display:block;";
+  const inpStyle = "font-size:13px;border:0;border-bottom:1px solid #dedbd5;padding-bottom:3px;padding-top:0;background:transparent;outline:0;width:100%;font-family:'IBM Plex Sans',sans-serif;color:#1b1a18;";
+  const btnBase  = "padding:8px 13px;font-size:12.5px;border-radius:7px;cursor:pointer;white-space:nowrap;";
+
+  const pieHTML = () => el("div",{style:"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 26px;padding-top:14px;border-top:1px solid #dedbd5;font-size:10.5px;line-height:1.62;color:#4f4b45;"},
+    el("div",{}, "Contacto: "+(inf.contacto||"")),
+    el("div",{}, "Título: "+(inf.titulo||"")),
+    el("div",{}, "Empresa: "+(inf.empresa||"")),
+    el("div",{}, "N.º de elementos: "+els.length),
+    el("div",{}, "Teléfono: "+(inf.telefono||"")),
+    el("div",{style:"font-family:'IBM Plex Mono',monospace;"}, inf.codigo||""),
+    el("div",{}, "Correo: "+(inf.correo||"")),
+    el("div",{style:"text-align:right;"}, "página {N} de "+paginas),
+    el("div",{}, "Creado: "+(inf.creado||""))
+  );
+
+  return el("div",{style:"font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;background:#f4f3f0;min-height:100vh;padding:22px 26px 60px;color:#1b1a18;"},
+
+    // ── Toolbar ──
+    el("div",{class:"noprint",style:"width:900px;max-width:100%;margin:0 auto 20px;background:#fff;border:1px solid #dedbd5;border-radius:12px;overflow:hidden;"},
+      // fila de controles
+      el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:13px 18px;border-bottom:1px solid #efedea;"},
+        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;"}, "Informes"),
+        (() => {
+          const sel = document.createElement("select");
+          sel.style.cssText = "padding:7px 9px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;color:#1b1a18;background:#fff;border:1px solid #dedbd5;border-radius:7px;min-width:230px;";
+          it.informes.forEach((i,k) => {
+            const o = document.createElement("option");
+            o.value = i.id;
+            o.textContent = (i.nro ? i.nro+" · " : "") + ((i.titulo||"").trim() || "Sin título "+(k+1));
+            if(i.id===inf.id) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.onchange = e => itSetSel(e.target.value);
+          return sel;
+        })(),
+        el("button",{style:btnBase+"font-weight:600;color:#fff;background:oklch(0.50 0.13 150);border:0;",
+          onclick:()=>{ const i=itVacio(itSiguienteNro(it.informes)); setState({IT:Object.assign({},it,{informes:it.informes.concat([i]),sel:i.id})},()=>itGuardar(S.IT)); }
+        }, "+ Nuevo informe"),
+        el("button",{style:btnBase+"color:#1b1a18;background:#f0eee9;border:1px solid #dedbd5;",
+          onclick:()=>{
+            const copia = JSON.parse(JSON.stringify(inf));
+            copia.id="i"+Date.now(); copia.nro=itSiguienteNro(it.informes); copia.archivado=itFecha(); copia.creado=itHoy();
+            copia.titulo=(inf.titulo||"Informe")+" (copia)";
+            copia.elementos=(copia.elementos||[]).map((e,k)=>Object.assign({},e,{id:"e"+Date.now()+k}));
+            setState({IT:Object.assign({},it,{informes:it.informes.concat([copia]),sel:copia.id})},()=>itGuardar(S.IT));
+          }
+        }, "Duplicar"),
+        el("button",{style:btnBase+"color:#8a3a2f;background:#faf0ee;border:1px solid #e8d3ce;",
+          onclick:()=>{
+            if(it.informes.length<2) return;
+            const resto=it.informes.filter(i=>i.id!==inf.id);
+            setState({IT:Object.assign({},it,{informes:resto,sel:resto[0].id})},()=>itGuardar(S.IT));
+          }
+        }, "Eliminar"),
+        el("div",{style:"flex:1;"}),
+        el("button",{style:btnBase+"color:#1b1a18;background:#f0eee9;border:1px solid #dedbd5;",
+          onclick:()=>itSetIT({verArchivo:!it.verArchivo})
+        }, (it.verArchivo?"Ocultar archivo":"Archivo")+" ("+it.informes.length+")"),
+        el("button",{style:btnBase+"font-weight:600;color:#fff;background:#1b1a18;border:0;",
+          onclick:()=>{ setTimeout(()=>window.print(),150); }
+        }, "Imprimir / PDF")
+      ),
+
+      // Archivo (lista de informes)
+      it.verArchivo ? el("div",{style:"background:#faf9f7;border-bottom:1px solid #dedbd5;"},
+        el("div",{style:"display:grid;grid-template-columns:118px minmax(0,1fr) 108px 104px;gap:10px;padding:9px 18px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;"},
+          el("div",{},"N.º informe"), el("div",{},"Título"), el("div",{},"Archivado"), el("div",{},"Contenido")
+        ),
+        ...it.informes.map((i,k) =>
+          el("button",{
+            style:"display:grid;grid-template-columns:118px minmax(0,1fr) 108px 104px;align-items:center;gap:10px;width:100%;padding:10px 18px;text-align:left;font-family:inherit;font-size:12.5px;cursor:pointer;border:0;border-top:1px solid #efedea;background:"+(i.id===inf.id?"#f4f6f9":"transparent")+";color:#1b1a18;",
+            onclick:()=>itSetSel(i.id)
+          },
+            el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;"}, i.nro||"—"),
+            el("span",{style:"overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"}, (i.titulo||"").trim()||"Sin título "+(k+1)),
+            el("span",{style:"font-size:11.5px;color:#6f6b64;"}, i.archivado||"—"),
+            el("span",{style:"font-size:11.5px;color:#6f6b64;"}, (i.elementos||[]).length+" elementos")
+          )
+        )
+      ) : null,
+
+      // Metadatos del informe
+      el("div",{style:"display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 18px;padding:15px 18px;"},
+        ...[
+          ["Título del informe","titulo","font-size:13.5px;font-weight:600;"],
+          ["Contacto","contacto",""],
+          ["Empresa","empresa",""],
+          ["Teléfono","telefono",""],
+          ["Correo electrónico","correo",""],
+          ["Creado","creado",""],
+          ["Código","codigo","font-family:'IBM Plex Mono',monospace;font-size:12.5px;"]
+        ].map(([label,campo,extra]) =>
+          el("label",{style:"display:block;"},
+            el("span",{style:lbStyle}, label),
+            el("input",{
+              value:inf[campo]||"",
+              oninput:e=>itPatch(campo,e.target.value),
+              style:inpStyle+extra
+            })
+          )
+        )
+      )
+    ),
+
+    // ── Portada ──
+    el("div",{"data-it-pg":"1","data-it-cover":"1",style:"width:900px;max-width:100%;min-height:1130px;margin:0 auto 22px;padding:46px 52px 30px;background:#fff;border:1px solid #dedbd5;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;"},
+      el("div",{style:"flex:1;"},
+        // Cabecera
+        el("div",{style:"display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:20px;margin-bottom:22px;border-bottom:2px solid #1b1a18;"},
+          el("div",{style:"font-size:20px;font-weight:700;color:#1b1a18;"}, PROPS.empresa||"Full Service & Clean"),
+          el("div",{style:"text-align:right;padding-top:4px;"},
+            el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#86817b;"}, "Informe técnico"),
+            el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:#1b1a18;margin-top:4px;"}, inf.nro||"—")
+          )
+        ),
+        el("div",{style:"font-size:27px;font-weight:700;letter-spacing:-0.01em;margin:8px 0 26px;"}, inf.titulo||"Sin título"),
+        // Resumen
+        el("div",{class:"noprint",style:"display:flex;align-items:center;gap:10px;margin-bottom:10px;"},
+          el("span",{style:lbStyle+"margin:0;"}, "Trabajo a realizar"),
+          el("button",{
+            style:"padding:5px 11px;font-size:11.5px;font-weight:600;color:#fff;background:oklch(0.50 0.11 240);border:0;border-radius:6px;cursor:pointer;",
+            onclick:()=>itCorregirIA("resumen",inf.resumen,t=>itPatch("resumen",t))
+          }, it.iaClave==="resumen"?"Corrigiendo…":"Corregir con IA"),
+          it.iaAviso ? el("span",{style:"font-size:11.5px;color:#86817b;"}, it.iaAviso) : null
+        ),
+        el("textarea",{
+          rows:18, placeholder:"Descripción general de la situación relevada y de la solución propuesta.",
+          style:"font-size:13.6px;line-height:1.72;text-align:justify;width:100%;border:0;outline:0;background:transparent;font-family:'IBM Plex Sans',sans-serif;color:#1b1a18;resize:vertical;",
+          oninput:e=>itPatch("resumen",e.target.value)
+        }, inf.resumen||"")
+      ),
+      // Pie portada
+      el("div",{style:"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 26px;padding-top:16px;border-top:1px solid #dedbd5;font-size:10.5px;line-height:1.62;color:#4f4b45;"},
+        el("div",{}, "Contacto: "+(inf.contacto||"")),
+        el("div",{}, "Título: "+(inf.titulo||"")),
+        el("div",{}, "Empresa: "+(inf.empresa||"")),
+        el("div",{}, "N.º de elementos: "+els.length),
+        el("div",{}, "Teléfono: "+(inf.telefono||"")),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;"}, inf.codigo||""),
+        el("div",{}, "Correo: "+(inf.correo||"")),
+        el("div",{style:"text-align:right;"}, "página 1 de "+paginas),
+        el("div",{}, "Creado: "+(inf.creado||""))
+      )
+    ),
+
+    // ── Elementos (páginas con fotos) ──
+    ...els.map((e,k) => {
+      const makeSlot = (lado) => {
+        const img = e[lado];
+        const rot = e[lado==="imgA"?"rotA":"rotB"]||0;
+        const fit = e[lado==="imgA"?"fitA":"fitB"]||"contain";
+        const rotKey = lado==="imgA"?"rotA":"rotB";
+        const fitKey = lado==="imgA"?"fitA":"fitB";
+        const rotuloKey = lado==="imgA"?"rotuloA":"rotuloB";
+        const rotulo = e[rotuloKey]||"";
+        const labelSlot = lado==="imgA" ? "Relevamiento" : "Resultado";
+        const fotoId = "it-foto-"+inf.id+"-"+e.id+"-"+lado;
+
+        return el("div",{},
+          // Rótulo editable
+          el("div",{style:"display:flex;align-items:baseline;gap:6px;margin-bottom:6px;"},
+            el("span",{style:lbStyle+"margin:0;"}, labelSlot),
+            el("input",{
+              value:rotulo, placeholder:lado==="imgA"?"situación encontrada":"después del trabajo",
+              style:"font-size:10.5px;color:#4f4b45;border:0;border-bottom:1px solid #dedbd5;outline:0;background:transparent;flex:1;font-family:'IBM Plex Sans',sans-serif;",
+              oninput:ev=>itPatchEl(e.id, rotuloKey, ev.target.value)
+            })
+          ),
+          // Controles de foto (no imprime)
+          el("div",{class:"noprint",style:"display:flex;align-items:center;gap:5px;margin-bottom:5px;flex-wrap:wrap;"},
+            el("button",{style:"width:26px;height:24px;font-size:12px;color:#6f6b64;background:#f0eee9;border:1px solid #dedbd5;border-radius:6px;cursor:pointer;",title:"Girar izquierda",
+              onclick:()=>itPatchEl(e.id,rotKey,(((rot-90)+360)%360))}, "⟲"),
+            el("button",{style:"width:26px;height:24px;font-size:12px;color:#6f6b64;background:#f0eee9;border:1px solid #dedbd5;border-radius:6px;cursor:pointer;",title:"Girar derecha",
+              onclick:()=>itPatchEl(e.id,rotKey,((rot+90)%360))}, "⟳"),
+            el("button",{style:itEstiloAjuste(fit==="cover"),
+              onclick:()=>itPatchEl(e.id,fitKey,fit==="contain"?"cover":"contain")
+            }, fit==="contain"?"Completa":"Llenar"),
+            rot ? el("span",{style:"font-size:10.5px;color:#a09a92;"}, rot+"°") : null,
+            el("label",{style:"padding:3px 9px;font-size:10.5px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid #dedbd5;background:#f0eee9;color:#6f6b64;white-space:nowrap;"},
+              img ? "Cambiar foto" : "Adjuntar foto",
+              el("input",{type:"file",accept:"image/*",style:"display:none;",
+                onchange:ev=>{ if(ev.target.files[0]) itCargarFoto(e.id,lado,ev.target.files[0]); }
+              })
+            ),
+            img ? el("button",{style:"padding:3px 9px;font-size:10.5px;border-radius:6px;cursor:pointer;border:1px solid #e8d3ce;background:#faf0ee;color:#8a3a2f;",
+              onclick:()=>itPatchEl(e.id,lado,null)}, "Quitar") : null
+          ),
+          // Recuadro de foto
+          el("div",{"data-it-foto":"1",style:"position:relative;overflow:hidden;container-type:size;height:400px;background:#fff;border:1px solid "+(img?"#dedbd5":"#efedea")+";border-radius:4px;cursor:"+(img?"default":"pointer")+";",
+            ondragover:ev=>{ev.preventDefault();},
+            ondrop:ev=>{ ev.preventDefault(); const f=(ev.dataTransfer.files||[])[0]; if(f&&f.type.startsWith("image/")) itCargarFoto(e.id,lado,f); }
+          },
+            img ? el("div",{style:itMarcoFoto(rot)},
+              el("img",{src:img,alt:"Foto",style:"position:absolute;inset:0;width:100%;height:100%;object-fit:"+fit+";"})
+            ) : el("div",{style:"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#b4aea5;"},
+              el("div",{style:"font-size:28px;"}, "⊕"),
+              el("label",{style:"font-size:12px;cursor:pointer;text-align:center;padding:0 20px;"},
+                "Arrastrá una foto o hacé click para adjuntar",
+                el("input",{type:"file",accept:"image/*",style:"display:none;",
+                  onchange:ev=>{ if(ev.target.files[0]) itCargarFoto(e.id,lado,ev.target.files[0]); }
+                })
+              )
+            )
+          )
+        );
+      };
+
+      return el("div",{"data-it-pg":"1",style:"width:900px;max-width:100%;min-height:1130px;margin:0 auto 22px;padding:46px 52px 30px;background:#fff;border:1px solid #dedbd5;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;"},
+        el("div",{style:"flex:1;min-height:0;"},
+          // Sub-cabecera
+          el("div",{style:"display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid #dedbd5;"},
+            el("div",{style:"font-size:16px;font-weight:700;"}, PROPS.empresa||"Full Service & Clean"),
+            el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:10px;color:#86817b;padding-top:4px;"}, inf.nro||"")
+          ),
+          // Título del elemento
+          el("div",{style:"display:flex;align-items:flex-start;gap:14px;"},
+            el("div",{style:"flex:1;"},
+              el("div",{style:"display:flex;align-items:baseline;gap:6px;"},
+                el("span",{style:"font-size:11px;color:#4f4b45;white-space:nowrap;"}, "Título:"),
+                el("input",{value:e.titulo||"",placeholder:"Título del elemento relevado",
+                  style:"font-size:16.5px;font-weight:600;border:0;border-bottom:1px solid #dedbd5;outline:0;background:transparent;width:100%;font-family:'IBM Plex Sans',sans-serif;color:#1b1a18;",
+                  oninput:ev=>itPatchEl(e.id,"titulo",ev.target.value)})
+              ),
+              el("div",{style:"display:flex;align-items:baseline;gap:6px;margin-top:5px;"},
+                el("span",{style:"font-size:11px;color:#4f4b45;white-space:nowrap;"}, "Creado:"),
+                el("input",{value:e.creado||"",style:"font-size:11px;color:#4f4b45;border:0;border-bottom:1px solid #dedbd5;outline:0;background:transparent;font-family:'IBM Plex Sans',sans-serif;",
+                  oninput:ev=>itPatchEl(e.id,"creado",ev.target.value)})
+              )
+            ),
+            // Controles mover/eliminar
+            el("div",{class:"noprint",style:"display:flex;align-items:center;gap:6px;"},
+              el("button",{style:"width:26px;height:26px;font-size:13px;color:#6f6b64;background:#f0eee9;border:1px solid #dedbd5;border-radius:6px;cursor:pointer;",title:"Subir",
+                onclick:()=>itMoverEl(e.id,-1)}, "↑"),
+              el("button",{style:"width:26px;height:26px;font-size:13px;color:#6f6b64;background:#f0eee9;border:1px solid #dedbd5;border-radius:6px;cursor:pointer;",title:"Bajar",
+                onclick:()=>itMoverEl(e.id,1)}, "↓"),
+              el("button",{style:"display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px;font-family:inherit;font-size:11.5px;color:#8a3a2f;background:#faf0ee;border:1px solid #e8d3ce;border-radius:6px;cursor:pointer;white-space:nowrap;",
+                onclick:()=>{
+                  const its=S.IT; const id=itActual(its).id;
+                  const informes=its.informes.map(i=>i.id!==id?i:Object.assign({},i,{elementos:i.elementos.filter(x=>x.id!==e.id)}));
+                  setState({IT:Object.assign({},its,{informes})},()=>itGuardar(S.IT));
+                }
+              }, "× Eliminar página")
+            )
+          ),
+          // Descripción
+          el("div",{class:"noprint",style:"display:flex;align-items:center;gap:10px;margin-top:14px;"},
+            el("span",{style:lbStyle+"margin:0;"}, "Descripción"),
+            el("button",{
+              style:"padding:4px 10px;font-size:11px;font-weight:600;color:#fff;background:oklch(0.50 0.11 240);border:0;border-radius:6px;cursor:pointer;",
+              onclick:()=>itCorregirIA(e.id,e.texto,t=>itPatchEl(e.id,"texto",t))
+            }, it.iaClave===e.id?"Corrigiendo…":"Corregir con IA")
+          ),
+          el("textarea",{
+            rows:3, placeholder:"Describí lo que muestran las fotos de esta página.",
+            style:"margin-top:6px;font-size:12.4px;line-height:1.68;text-align:justify;width:100%;border:0;outline:0;background:transparent;font-family:'IBM Plex Sans',sans-serif;color:#1b1a18;resize:vertical;",
+            oninput:ev=>itPatchEl(e.id,"texto",ev.target.value)
+          }, e.texto||""),
+          // Fotos 2 columnas
+          el("div",{style:"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px;"},
+            makeSlot("imgA"),
+            makeSlot("imgB")
+          )
+        ),
+        // Número de elemento
+        el("div",{style:"font-size:12px;color:#4f4b45;padding:10px 0 12px;"}, "("+String(k+1)+")"),
+        // Pie de página
+        el("div",{style:"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 26px;padding-top:14px;border-top:1px solid #dedbd5;font-size:10.5px;line-height:1.62;color:#4f4b45;"},
+          el("div",{}, "Contacto: "+(inf.contacto||"")),
+          el("div",{}, "Título: "+(inf.titulo||"")),
+          el("div",{}, "Empresa: "+(inf.empresa||"")),
+          el("div",{}, "N.º de elementos: "+els.length),
+          el("div",{}, "Teléfono: "+(inf.telefono||"")),
+          el("div",{style:"font-family:'IBM Plex Mono',monospace;"}, inf.codigo||""),
+          el("div",{}, "Correo: "+(inf.correo||"")),
+          el("div",{style:"text-align:right;"}, "página "+(k+2)+" de "+paginas),
+          el("div",{}, "Creado: "+(inf.creado||""))
+        )
+      );
+    }),
+
+    // ── Agregar elemento ──
+    el("div",{class:"noprint",style:"width:900px;max-width:100%;margin:0 auto;text-align:center;"},
+      el("button",{
+        style:"padding:11px 20px;font-size:13px;font-weight:600;color:#1b1a18;background:#fff;border:1px dashed #b4aea5;border-radius:9px;cursor:pointer;",
+        onclick:()=>{
+          const it=S.IT; const id=itActual(it).id;
+          const informes=it.informes.map(i=>i.id===id?Object.assign({},i,{elementos:(i.elementos||[]).concat([itNuevoEl()])}):i);
+          setState({IT:Object.assign({},it,{informes})},()=>itGuardar(S.IT));
+        }
+      }, "+ Agregar elemento con foto")
+    )
+  );
+}
+
+function renderTecnicoOLD(porRubro, idxIncluidos, G) {
   const mm = money;
   const hoy = new Date().toLocaleDateString("es-PY", { day:"2-digit", month:"2-digit", year:"numeric" });
 
