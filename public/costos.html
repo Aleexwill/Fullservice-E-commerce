@@ -520,6 +520,7 @@ let S = {
   mostrarAlcance: true,
   ocultarPrecios: false,
   listaUnificada: false,
+  modoEjec: false,
   modoMarca: "",
   herr: "circulo",
   colorMarca: "#c0392b",
@@ -1587,6 +1588,13 @@ function row(color, label, value) {
   );
 }
 
+function imprimirEjecucion() {
+  setState({ modoEjec: true });
+  const reset = () => { setState({ modoEjec: false }); window.removeEventListener("afterprint", reset); };
+  window.addEventListener("afterprint", reset);
+  requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+}
+
 function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
   const fechaHoy = new Date().toLocaleDateString("es-PY",{day:"2-digit",month:"long",year:"numeric"});
   return el("div", { class: "wrap-grid", style: "padding:30px 26px 60px;" },
@@ -1654,7 +1662,7 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
         el("div",{style:"display:flex;flex-direction:column;gap:5px;padding-top:4px;"},
           el("div",{style:"font-size:25px;font-weight:700;letter-spacing:-0.02em;"}, PROPS.empresa),
           el("div",{style:"font-size:11.5px;line-height:1.6;color:#6f6b64;"}, PROPS.empresaRubro),
-          el("div",{style:"font-size:11.5px;line-height:1.55;color:#33312e;white-space:pre-wrap;"}, PROPS.empresaBajada),
+          el("div",{style:"font-size:11.5px;line-height:1.55;color:#33312e;white-space:pre-wrap;"}, S.modoEjec ? "Informe Técnico de Ejecución" : PROPS.empresaBajada),
           el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.6;color:#6f6b64;"}, PROPS.empresaContacto)
         )),
         el("div",{style:"display:flex;flex-direction:column;gap:4px;text-align:right;"},
@@ -1700,26 +1708,26 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
             ),
             // Materiales: cada ítem marcado en fila propia
             matsEnProp.length > 0 ? el("div",{},
-              el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px 150px;padding:8px 0 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;border-bottom:1px solid #efedea;"},
+              el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px" + (S.modoEjec ? "" : " 150px") + ";padding:8px 0 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;border-bottom:1px solid #efedea;"},
                 el("div",{}, "Ítem / Descripción"),
                 el("div",{style:"text-align:right;"}, "Cant."),
                 el("div",{style:"text-align:center;"}, "Unid."),
-                el("div",{style:"text-align:right;"}, "Precio")
+                S.modoEjec ? null : el("div",{style:"text-align:right;"}, "Precio")
               ),
               ...matsEnProp.map(m =>
-                el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px 150px;align-items:baseline;padding:7px 0;border-bottom:1px solid #efedea;"},
+                el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px" + (S.modoEjec ? "" : " 150px") + ";align-items:baseline;padding:7px 0;border-bottom:1px solid #efedea;"},
                   el("div",{style:"font-size:13px;padding-right:12px;"}, m.desc),
                   el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#6f6b64;"}, N(m.cant).toLocaleString("es-PY")),
                   el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:center;color:#86817b;"}, m.unidad||"un"),
-                  el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;white-space:nowrap;"}, money(costoMat(m)*(1+N(r.overhead)/100)*(1+N(m.marg)/100)))
+                  S.modoEjec ? null : el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;white-space:nowrap;"}, money(costoMat(m)*(1+N(r.overhead)/100)*(1+N(m.marg)/100)))
                 )
               ),
-              el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:8px 0;border-bottom:1px solid #d4d0cb;"},
+              S.modoEjec ? null : el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:8px 0;border-bottom:1px solid #d4d0cb;"},
                 el("div",{style:"font-size:12px;font-weight:600;color:#6f6b64;"}, (r.descMat||"").trim() || "Subtotal materiales"),
                 el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:600;text-align:right;white-space:nowrap;"}, money(calc.precioMateriales))
               )
             ) : null,
-            ...lineas.map(l =>
+            ...(!S.modoEjec ? lineas.map(l =>
               el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:11px 0;border-bottom:1px solid #efedea;"},
                 el("div",{style:"display:flex;flex-direction:column;gap:3px;padding-right:20px;"},
                   el("div",{style:"font-size:13.5px;font-weight:500;"}, l.titulo),
@@ -1727,15 +1735,15 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
                 ),
                 el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;text-align:right;white-space:nowrap;"}, l.importe)
               )
-            ),
-            el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:11px 0 0;"},
+            ) : []),
+            S.modoEjec ? null : el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:11px 0 0;"},
               el("div",{style:"font-size:12.5px;font-weight:600;text-align:right;padding-right:20px;"}, "Subtotal " + (r.nombre||"")),
               el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;text-align:right;white-space:nowrap;"}, money(calc.precioRubro))
             )
           );
         }),
-        // Totals
-        el("div",{style:"display:flex;justify-content:flex-end;padding-top:10px;"},
+        // Totals — solo en propuesta comercial
+        S.modoEjec ? null : el("div",{style:"display:flex;justify-content:flex-end;padding-top:10px;"},
           el("div",{style:"width:320px;display:flex;flex-direction:column;"},
             rowPrint("Subtotal general","#6f6b64",money(G.subtotalCliente),true),
             N(S.descuento)>0 ? rowPrint("Descuento " + pct(S.descuento),"#6f6b64",money(-G.montoDescuento),false) : null,
@@ -1748,14 +1756,14 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
           )
         )
       ),
-      // Footer info
-      el("div",{style:"display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;padding:28px 0;margin-top:24px;border-top:1px solid #e6e2da;border-bottom:1px solid #e6e2da;"},
+      // Footer info — solo en propuesta comercial
+      S.modoEjec ? null : el("div",{style:"display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;padding:28px 0;margin-top:24px;border-top:1px solid #e6e2da;border-bottom:1px solid #e6e2da;"},
         infoBlock("Plazo de entrega", S.plazo),
         infoBlock("Forma de pago", S.pago),
         infoBlock("Validez de la oferta", S.validez)
       ),
-      // Conditions
-      el("div",{style:"padding:22px 0 0;"},
+      // Conditions — solo en propuesta comercial
+      S.modoEjec ? null : el("div",{style:"padding:22px 0 0;"},
         el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;"}, "Condiciones"),
         el("div",{style:"font-size:11.5px;line-height:1.7;color:#6f6b64;white-space:pre-wrap;"}, PROPS.condiciones)
       ),
@@ -1778,6 +1786,7 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
     el("div", { class: "noprint", style: "display:flex;flex-direction:column;gap:14px;align-items:center;margin:26px auto 0;max-width:820px;" },
       el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;"},
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:var(--cta-text);background:var(--cta-bg);border:0;border-radius:8px;cursor:pointer;",onclick:()=>window.print()}, "Imprimir / Guardar PDF"),
+        el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#fff;background:#374151;border:0;border-radius:8px;cursor:pointer;",onclick:()=>imprimirEjecucion()}, "Informe de ejecución"),
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#ffffff;background:oklch(0.58 0.15 155);border:0;border-radius:8px;cursor:pointer;",onclick:()=>enviarWhatsapp(idxIncluidos, porRubro, G)}, S.waAviso||"Enviar por WhatsApp"),
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#ffffff;background:oklch(0.52 0.16 255);border:0;border-radius:8px;cursor:pointer;",onclick:()=>enviarCorreo(idxIncluidos, porRubro, G)}, "Enviar por correo"),
         el("button",{style:"padding:11px 18px;font-size:13px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:8px;cursor:pointer;",onclick:()=>copiarResumen(idxIncluidos, porRubro, G)}, S.copiado?"Resumen copiado":"Copiar resumen")
