@@ -106,7 +106,7 @@ const CICLO=['NO','SI','NA'];
 const KEY='twg-tablero-v1';
 const MESES_LIST=[['08','Agosto'],['09','Septiembre'],['10','Octubre'],['11','Noviembre'],['12','Diciembre']];
 const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const ESTADO_OPTS=['SIN CARGAR','PENDIENTE RELEVO','EN PRESUPUESTO','PENDIENTE APROBACION','EN EJECUCION','FINALIZADO','DE BAJA'];
+const ESTADO_OPTS=['SIN CARGAR','PENDIENTE RELEVO','EN PRESUPUESTO','FALTA VISTO BUENO','PENDIENTE APROBACION','EN EJECUCION','FINALIZADO','DE BAJA'];
 const AVANCE_OPTS=['Pendiente','En Proceso','En Espera / Bloqueado','Finalizado'];
 
 // ─── estado global ──────────────────────────────────
@@ -129,6 +129,7 @@ const estadoDe=r=>{
   if(r.alerta==='DE BAJA')return 'DE BAJA';
   if(r.alerta==='APROBADO')return r.avance==='Finalizado'?'FINALIZADO':'EN EJECUCION';
   if(r.alerta==='ENVIADO')return 'PENDIENTE APROBACION';
+  if(r.alerta==='FALTA VISTO BUENO')return 'FALTA VISTO BUENO';
   if(r.alerta==='FALTA PRESUPUESTAR')return 'EN PRESUPUESTO';
   if(r.alerta==='FALTA RELEVAR')return 'PENDIENTE RELEVO';
   if(!r.alerta)return 'SIN CARGAR';
@@ -139,6 +140,7 @@ const chipStyle=estado=>{
   const c={
     'FINALIZADO':['#48BB78','rgba(72,187,120,0.15)','rgba(72,187,120,0.3)'],
     'EN EJECUCION':['#6FC3F5','rgba(111,195,245,0.15)','rgba(111,195,245,0.3)'],
+    'FALTA VISTO BUENO':['#FB923C','rgba(251,146,60,0.15)','rgba(251,146,60,0.3)'],
     'PENDIENTE APROBACION':['#F6C90E','rgba(246,201,14,0.15)','rgba(246,201,14,0.3)'],
     'EN PRESUPUESTO':['#C084FC','rgba(192,132,252,0.15)','rgba(192,132,252,0.3)'],
     'PENDIENTE RELEVO':['#E8862B','rgba(232,134,43,0.15)','rgba(232,134,43,0.3)'],
@@ -223,7 +225,7 @@ function patchRow(id,fields){
 }
 
 function setEstado(id,estado){
-  const mapa={'FINALIZADO':{alerta:'APROBADO',avance:'Finalizado'},'EN EJECUCION':{alerta:'APROBADO',avance:'En Proceso'},'PENDIENTE APROBACION':{alerta:'ENVIADO',avance:'Pendiente'},'EN PRESUPUESTO':{alerta:'FALTA PRESUPUESTAR',avance:'Pendiente'},'PENDIENTE RELEVO':{alerta:'FALTA RELEVAR',avance:'Pendiente'},'DE BAJA':{alerta:'DE BAJA',avance:'Pendiente'},'SIN CARGAR':{alerta:'',avance:'Pendiente'}}[estado];
+  const mapa={'FINALIZADO':{alerta:'APROBADO',avance:'Finalizado'},'EN EJECUCION':{alerta:'APROBADO',avance:'En Proceso'},'FALTA VISTO BUENO':{alerta:'FALTA VISTO BUENO',avance:'Pendiente'},'PENDIENTE APROBACION':{alerta:'ENVIADO',avance:'Pendiente'},'EN PRESUPUESTO':{alerta:'FALTA PRESUPUESTAR',avance:'Pendiente'},'PENDIENTE RELEVO':{alerta:'FALTA RELEVAR',avance:'Pendiente'},'DE BAJA':{alerta:'DE BAJA',avance:'Pendiente'},'SIN CARGAR':{alerta:'',avance:'Pendiente'}}[estado];
   if(!mapa)return;
   patchRow(id,mapa);
 }
@@ -348,7 +350,7 @@ function renderDash(){
   const cuenta=e=>rows.filter(r=>estadoDe(r)===e).length;
 
   // estados bar chart
-  const estados=['PENDIENTE APROBACION','EN EJECUCION','FINALIZADO','DE BAJA','PENDIENTE RELEVO','EN PRESUPUESTO','SIN CARGAR'];
+  const estados=['PENDIENTE APROBACION','FALTA VISTO BUENO','EN EJECUCION','FINALIZADO','DE BAJA','PENDIENTE RELEVO','EN PRESUPUESTO','SIN CARGAR'];
   const conteos=estados.map(e=>({label:e,n:cuenta(e)})).filter(x=>x.n>0);
   const maxN=Math.max(1,...conteos.map(x=>x.n));
   const colorEstado={'FINALIZADO':'#48BB78','EN EJECUCION':'#6FC3F5','PENDIENTE APROBACION':'#F6C90E','DE BAJA':'var(--text3)','PENDIENTE RELEVO':'#E8862B','EN PRESUPUESTO':'#C084FC','SIN CARGAR':'var(--border2)'};
@@ -457,7 +459,7 @@ function renderLista(){
     estadoSel.addEventListener('change',e=>setEstado(r.id,e.target.value));
 
     // Alerta select
-    const alertaOpts=[['','— sin alerta —'],['FALTA RELEVAR','FALTA RELEVAR'],['FALTA PRESUPUESTAR','FALTA PRESUPUESTAR'],['ENVIADO','ENVIADO'],['APROBADO','APROBADO'],['DE BAJA','DE BAJA']];
+    const alertaOpts=[['','— sin alerta —'],['FALTA RELEVAR','FALTA RELEVAR'],['FALTA PRESUPUESTAR','FALTA PRESUPUESTAR'],['FALTA VISTO BUENO','FALTA VISTO BUENO'],['ENVIADO','ENVIADO'],['APROBADO','APROBADO'],['DE BAJA','DE BAJA']];
     const alertaSel=sel('width:100%;padding:6px 7px;font-size:11.5px;background:var(--inp-bg);border:1px solid var(--border);border-radius:6px;color:var(--text);',r.alerta||'',e=>patchRow(r.id,{alerta:e.target.value}),alertaOpts);
 
     // Prioridad select
