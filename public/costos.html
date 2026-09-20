@@ -517,7 +517,6 @@ let S = {
   tab: "costos",
   activo: 0,
   memoria: "",
-  obsRubroTecnico: {},
   mostrarMO: false,
   mostrarOtros: false,
   mostrarAlcance: true,
@@ -1220,7 +1219,7 @@ function render() {
     // ── COMPRAS VIEW ──────────────────────────────────────────────────────
     S.tab === "compras" ? renderCompras() : null,
     S.tab === "informe" ? renderInforme(porRubro, idxIncluidos, G) : null,
-    S.tab === "tecnico" ? renderTecnico(porRubro, idxIncluidos) : null
+    S.tab === "tecnico" ? renderTecnico(porRubro, idxIncluidos, G) : null
   );
   app.replaceWith(newApp);
   newApp.id = "app";
@@ -1956,124 +1955,175 @@ function renderInforme(porRubro, idxIncluidos, G) {
   );
 }
 
-// ─── Informe Técnico ─────────────────────────────────────────────────────────
-function renderTecnico(porRubro, idxIncluidos) {
-  const incluidos = idxIncluidos.map(i => ({ r: S.rubros[i], calc: porRubro[i], idx: i }));
-  const hoy = S.fecha || new Date().toLocaleDateString("es-PY", { day:"2-digit", month:"2-digit", year:"numeric" });
+// ─── Informe Técnico (Planilla interna) ──────────────────────────────────────
+function renderTecnico(porRubro, idxIncluidos, G) {
+  const mm = money;
+  const hoy = new Date().toLocaleDateString("es-PY", { day:"2-digit", month:"2-digit", year:"numeric" });
+
+  // Columnas: desc | un | cant | c.unit | costo
+  const colMat = "minmax(0,1fr) 30px 44px 78px 88px";
+  // Columnas: desc | pers | horas | valor/h | costo
+  const colMo  = "minmax(0,1fr) 30px 44px 78px 88px";
+
+  const thStyle  = "padding:3px 0;border-bottom:1px solid #dedbd5;font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:0.07em;text-transform:uppercase;color:#86817b;";
+  const tdStyle  = "padding:2px 0;border-bottom:1px solid #f0eee9;font-size:9.5px;";
+  const monoSm   = "font-family:'IBM Plex Mono',monospace;font-size:9px;";
 
   function imprimirTecnico() {
     requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
   }
 
-  return el("div", { style: "max-width:1040px;margin:0 auto;padding:26px;" },
+  // Todos los rubros incluidos (los que están en idxIncluidos)
+  const todosRubros = idxIncluidos.map(i => ({ r: S.rubros[i], calc: porRubro[i] }));
 
-    // Toolbar
+  // Acumuladores globales para la fila de totales
+  const acu = {
+    costo: G.costoTotal,
+    margen: G.neto > 0 ? (G.ganancia / G.neto * 100).toFixed(1) + "%" : "—",
+    precio: G.totalFinal
+  };
+
+  return el("div", { style: "max-width:920px;margin:0 auto;padding:26px;" },
+
+    // Toolbar (no imprime)
     el("div", { class: "noprint", style: "display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;" },
-      el("div", { style: "font-size:14px;font-weight:700;flex:1;" }, "Informe técnico"),
-      el("div", { style: "font-size:12px;color:#86817b;" }, "Documento de ejecución · descripción de trabajos por rubro"),
+      el("div", { style: "font-size:14px;font-weight:700;flex:1;" }, "Planilla de costos — informe técnico"),
+      el("div", { style: "font-size:12px;color:#86817b;" }, "Uso interno · con precios y costos de cada rubro"),
       el("button", {
         style: "padding:9px 16px;font-size:12.5px;font-weight:600;color:#fff;background:#1b1a18;border:0;border-radius:7px;cursor:pointer;",
         onclick: () => imprimirTecnico()
-      }, "Imprimir informe")
+      }, "Imprimir planilla")
     ),
 
-    // Hoja imprimible
-    el("div", { style: "background:#fff;border:1px solid #dedbd5;border-radius:12px;overflow:hidden;color:#1b1a18;" },
+    // Hoja
+    el("div", { style: "background:#fff;border:1px solid #dedbd5;border-radius:12px;padding:28px 32px;color:#1b1a18;" },
 
       // Cabecera
-      el("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:28px 32px 22px;border-bottom:2px solid #1b1a18;" },
-        el("div", { style: "display:flex;flex-direction:column;gap:5px;" },
-          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#6f6b64;" }, (PROPS.empresa || "Full Service & Clean") + " · Informe Técnico de Ejecución"),
-          el("div", { style: "font-size:20px;font-weight:700;letter-spacing:-0.01em;" }, "Descripción técnica de trabajos"),
-          S.cliente ? el("div", { style: "font-size:13px;color:#4a4741;margin-top:2px;" }, S.cliente) : null,
-          S.obra    ? el("div", { style: "font-size:12px;color:#6f6b64;max-width:460px;" }, S.obra)    : null,
-          S.domicilio ? el("div", { style: "font-size:11.5px;color:#86817b;" }, S.domicilio) : null
+      el("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:10px;border-bottom:2px solid #1b1a18;margin-bottom:0;" },
+        el("div", { style: "display:flex;flex-direction:column;gap:3px;" },
+          el("div", { style: "font-size:16px;font-weight:700;letter-spacing:-0.01em;" }, PROPS.empresa || "Full Service & Clean"),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:#6f6b64;" }, "Planilla de costos — uso interno"),
+          el("div", { style: "font-size:11px;color:#33312e;margin-top:2px;" },
+            (S.obra ? "Obra: " + S.obra : "") + (S.obra && S.cliente ? " · " : "") + (S.cliente ? "Cliente: " + S.cliente : "")
+          )
         ),
-        el("div", { style: "text-align:right;display:flex;flex-direction:column;gap:3px;flex-shrink:0;" },
-          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;" }, PROPS.nroPresupuesto || "—"),
-          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f6b64;" }, hoy),
-          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#a09a92;margin-top:4px;" }, S.contacto || "")
+        el("div", { style: "display:flex;flex-direction:column;gap:2px;text-align:right;flex-shrink:0;" },
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;" }, PROPS.nroPresupuesto || "—"),
+          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#6f6b64;" }, hoy)
         )
       ),
 
       // Bloques por rubro
-      el("div", { style: "padding:24px 32px;display:flex;flex-direction:column;gap:0;" },
-        ...incluidos.map(({ r, idx }, rubroIdx) => {
-          const matItems = (r.mats || []).filter(m => m.desc && m.desc.trim());
-          const moItems  = (r.mos  || []).filter(m => m.desc && m.desc.trim());
-          const obsKey = String(r.id || idx);
-          const obs = (S.obsRubroTecnico || {})[obsKey] || "";
+      ...todosRubros.map(({ r, calc }, idx) => {
+        const mats   = (r.mats || []).filter(m => m.desc && String(m.desc).trim());
+        const mos    = (r.mos  || []).filter(m => m.desc && String(m.desc).trim());
+        const hayMats = mats.length > 0;
+        const hayMos  = mos.length > 0;
 
-          return el("div", {
-            style: "padding:20px 0;" + (rubroIdx > 0 ? "border-top:1px solid #efedea;" : "")
-          },
-            // Rubro header
-            el("div", { style: "display:flex;align-items:baseline;gap:12px;margin-bottom:14px;" },
-              el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#a09a92;flex-shrink:0;" }, String(rubroIdx + 1).padStart(2, "0")),
-              el("div", { style: "font-size:14px;font-weight:700;letter-spacing:-0.01em;" }, r.nombre || "Rubro"),
-              r.medida ? el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;color:#86817b;border:1px solid #dedbd5;border-radius:4px;padding:2px 7px;white-space:nowrap;" }, r.medida + " " + (r.unidad || "")) : null
+        // Otros costos del rubro
+        const otros = [];
+        if (N(r.flete) > 0)         otros.push({ et: "Flete / transporte",     val: mm(N(r.flete)) });
+        if (N(r.equipos) > 0)       otros.push({ et: "Equipos y herramientas", val: mm(N(r.equipos)) });
+        if (N(r.subcontratos) > 0)  otros.push({ et: "Subcontratos",           val: mm(N(r.subcontratos)) });
+        if (N(r.varios) > 0)        otros.push({ et: "Varios",                 val: mm(N(r.varios)) });
+        if (calc.montoOverhead > 0) otros.push({ et: "Overhead (" + (r.overhead || "12") + "%)", val: mm(calc.montoOverhead) });
+        const hayOtros = otros.length > 0;
+
+        return el("div", { style: "margin-top:11px;" },
+
+          // Nombre del rubro + precio
+          el("div", { style: "display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:4px 0;border-bottom:1px solid #1b1a18;" },
+            el("div", { style: "font-size:12px;font-weight:700;" }, r.nombre || "Rubro " + (idx + 1)),
+            el("div", { style: monoSm + "font-size:11.5px;font-weight:700;white-space:nowrap;" }, mm(calc.precioRubro))
+          ),
+
+          // Materiales
+          hayMats ? el("div", {},
+            el("div", { style: "display:grid;grid-template-columns:" + colMat + ";padding:3px 0;border-bottom:1px solid #dedbd5;" },
+              el("div", { style: thStyle + "padding-right:8px;" }, "Materiales e insumos"),
+              el("div", { style: thStyle + "text-align:center;" }, "Un."),
+              el("div", { style: thStyle + "text-align:right;" }, "Cant."),
+              el("div", { style: thStyle + "text-align:right;" }, "C. unit."),
+              el("div", { style: thStyle + "text-align:right;" }, "Costo")
             ),
+            ...mats.map(m => {
+              const cUnit = N(m.costo);
+              const cant  = N(m.cant);
+              const desp  = N(m.desp || "0") / 100;
+              const sub   = cUnit * cant * (1 + desp);
+              return el("div", { style: "display:grid;grid-template-columns:" + colMat + ";align-items:baseline;" + tdStyle },
+                el("div", { style: "padding-right:8px;line-height:1.35;" }, m.desc),
+                el("div", { style: monoSm + "font-size:8.5px;text-align:center;color:#6f6b64;" }, m.unidad || "un"),
+                el("div", { style: monoSm + "text-align:right;" }, m.cant || "0"),
+                el("div", { style: monoSm + "text-align:right;" }, cUnit ? mm(cUnit) : "—"),
+                el("div", { style: monoSm + "text-align:right;" }, mm(sub))
+              );
+            }),
+            el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 88px;padding:2px 0;" + monoSm + "font-size:9px;font-weight:600;" },
+              el("div", { style: "text-align:right;padding-right:8px;color:#6f6b64;" }, "Subtotal materiales"),
+              el("div", { style: "text-align:right;" }, mm(calc.materiales))
+            )
+          ) : null,
 
-            // Items grid
-            (matItems.length > 0 || moItems.length > 0) ? el("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-bottom:14px;" },
-              // Materiales
-              matItems.length > 0 ? el("div", {},
-                el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;" }, "Materiales y suministros"),
-                el("div", { style: "display:flex;flex-direction:column;gap:6px;" },
-                  ...matItems.map(m =>
-                    el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 60px 50px;gap:6px;align-items:baseline;padding:6px 0;border-bottom:1px solid #f5f4f1;font-size:11.5px;color:#33312e;" },
-                      el("div", {}, m.desc),
-                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-align:right;color:#6f6b64;" }, m.cant || "—"),
-                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:right;color:#86817b;" }, m.unidad || "un")
-                    )
-                  )
-                )
-              ) : null,
-
-              // Mano de obra
-              moItems.length > 0 ? el("div", {},
-                el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;" }, "Tareas de mano de obra"),
-                el("div", { style: "display:flex;flex-direction:column;gap:6px;" },
-                  ...moItems.map(m =>
-                    el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 60px 50px;gap:6px;align-items:baseline;padding:6px 0;border-bottom:1px solid #f5f4f1;font-size:11.5px;color:#33312e;" },
-                      el("div", {}, m.desc),
-                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-align:right;color:#6f6b64;" }, (m.pers && m.pers !== "1" ? m.pers + " pers." : "") || "—"),
-                      el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:right;color:#86817b;" }, m.horas ? m.horas + " h" : "")
-                    )
-                  )
-                )
-              ) : null
-            ) : null,
-
-            // Observaciones técnicas por rubro
-            el("div", { class: "noprint", style: "margin-top:8px;" },
-              el("textarea", {
-                rows: 3,
-                placeholder: "Observaciones técnicas, condiciones de acceso, requerimientos especiales, notas para el equipo...",
-                style: "width:100%;box-sizing:border-box;padding:10px 12px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;line-height:1.55;color:#33312e;background:#fdfcfa;border:1px solid #dedbd5;border-radius:7px;resize:vertical;",
-                oninput: e => {
-                  const upd = Object.assign({}, S.obsRubroTecnico || {});
-                  upd[obsKey] = e.target.value;
-                  setState({ obsRubroTecnico: upd });
-                },
-                value: obs
-              })
+          // Mano de obra
+          hayMos ? el("div", {},
+            el("div", { style: "display:grid;grid-template-columns:" + colMo + ";padding:3px 0;border-bottom:1px solid #dedbd5;" },
+              el("div", { style: thStyle + "padding-right:8px;" }, "Mano de obra"),
+              el("div", { style: thStyle + "text-align:center;" }, "Pers."),
+              el("div", { style: thStyle + "text-align:right;" }, "Horas"),
+              el("div", { style: thStyle + "text-align:right;" }, "Valor/h"),
+              el("div", { style: thStyle + "text-align:right;" }, "Costo")
             ),
-            obs.trim() ? el("div", { class: "onlyprint", style: "display:none;font-size:11px;line-height:1.6;color:#33312e;margin-top:6px;white-space:pre-wrap;border-top:1px dashed #dedbd5;padding-top:8px;" }, obs) : null
-          );
-        }),
+            ...mos.map(m => {
+              const pers  = N(m.pers || "1");
+              const horas = N(m.horas || "0");
+              const vh    = N(m.vh || "0");
+              const sub   = pers * horas * vh;
+              return el("div", { style: "display:grid;grid-template-columns:" + colMo + ";align-items:baseline;" + tdStyle },
+                el("div", { style: "padding-right:8px;line-height:1.35;" }, m.desc),
+                el("div", { style: monoSm + "text-align:center;" }, m.pers || "1"),
+                el("div", { style: monoSm + "text-align:right;" }, m.horas || "0"),
+                el("div", { style: monoSm + "text-align:right;" }, vh ? mm(vh) : "—"),
+                el("div", { style: monoSm + "text-align:right;" }, mm(sub))
+              );
+            }),
+            el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 88px;padding:2px 0;" + monoSm + "font-size:9px;font-weight:600;" },
+              el("div", { style: "text-align:right;padding-right:8px;color:#6f6b64;" }, "Subtotal mano de obra"),
+              el("div", { style: "text-align:right;" }, mm(calc.manoObra))
+            )
+          ) : null,
 
-        // Alcance global
-        S.alcance ? el("div", { style: "margin-top:10px;padding:18px 20px;background:#fafaf8;border-radius:8px;border:1px solid #efedea;" },
-          el("div", { style: "font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;" }, "Alcance general del servicio"),
-          el("div", { style: "font-size:12px;line-height:1.65;color:#33312e;white-space:pre-wrap;" }, S.alcance)
-        ) : null
-      ),
+          // Otros costos
+          hayOtros ? el("div", {},
+            ...otros.map(ot =>
+              el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 88px;padding:2px 0;border-bottom:1px solid #f0eee9;font-size:9.5px;" },
+                el("div", { style: "padding-right:8px;color:#33312e;" }, ot.et),
+                el("div", { style: monoSm + "text-align:right;" }, ot.val)
+              )
+            )
+          ) : null,
 
-      // Pie
-      el("div", { style: "padding:12px 32px;border-top:1px solid #dedbd5;font-size:10px;color:#86817b;display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap;" },
-        el("span", {}, "Informe técnico de ejecución — " + (PROPS.nroPresupuesto || "")),
-        el("span", {}, hoy)
+          // Totales del rubro
+          el("div", { style: "display:grid;grid-template-columns:minmax(0,1fr) 88px 88px 88px;gap:0;padding:3px 0 0;border-top:1px solid #1b1a18;" + monoSm + "font-size:9px;" },
+            el("div", { style: "text-align:right;padding-right:8px;color:#6f6b64;" }, "Costo total · margen · precio del rubro"),
+            el("div", { style: "text-align:right;" }, mm(calc.costoTotal)),
+            el("div", { style: "text-align:right;color:#6f6b64;" },
+              calc.costoTotal > 0 ? (calc.montoMargen / calc.costoTotal * 100).toFixed(1) + "%" : "—"
+            ),
+            el("div", { style: "text-align:right;font-weight:700;" }, mm(calc.precioRubro))
+          )
+        );
+      }),
+
+      // Totales globales
+      el("div", { style: "margin-top:14px;padding-top:7px;border-top:2px solid #1b1a18;display:flex;align-items:baseline;justify-content:space-between;gap:20px;" },
+        el("div", { style: "font-size:11px;color:#33312e;" },
+          "Costo total del presupuesto " + mm(acu.costo) + " · margen " + acu.margen
+        ),
+        el("div", { style: "display:flex;align-items:baseline;gap:10px;" },
+          el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#6f6b64;" }, "Total al cliente"),
+          el("span", { style: "font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;" }, mm(acu.precio))
+        )
       )
     )
   );
