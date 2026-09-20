@@ -168,11 +168,6 @@ export default function AdminPresupuestosPage() {
     return matchSearch;
   });
 
-  // KPI calcs
-  const totalCotizado = items.filter(i => ['enviado','pendiente_aprobacion','aprobado','en_ejecucion','finalizado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || Number(i.estimatedValue) || 0), 0);
-  const totalAprobado = items.filter(i => ['aprobado','en_ejecucion','finalizado'].includes(i.status)).reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
-  const totalCompletado = items.filter(i => i.status === 'finalizado').reduce((s, i) => s + (Number(i.finalValue) || 0), 0);
-  const tasaCierre = allArchive.length > 0 ? Math.round((items.filter(i => i.status === 'finalizado').length / (items.filter(i => i.status === 'finalizado').length + items.filter(i => i.status === 'de_baja').length || 1)) * 100) : 0;
 
   const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
     { key: 'dashboard',    label: 'Tablero de control', icon: BarChart2 },
