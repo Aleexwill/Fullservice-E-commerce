@@ -113,13 +113,15 @@ export async function getOrderStats() {
   const orders = await prisma.order.findMany({ orderBy: { createdAt: 'asc' } });
   const byStatus: Record<string, number> = {};
   const byPayment: Record<string, number> = {};
-  let totalRevenue = 0;
-  let paidRevenue = 0;
+  let totalRevenue = 0;   // all orders including cancelled (kept for internal use)
+  let activeRevenue = 0;  // non-cancelled orders (confirmed/processing/shipped/delivered)
+  let paidRevenue = 0;    // orders with paymentStatus=paid
 
   orders.forEach((o) => {
     byStatus[o.status] = (byStatus[o.status] || 0) + 1;
     byPayment[o.paymentStatus] = (byPayment[o.paymentStatus] || 0) + 1;
     totalRevenue += Number(o.total);
+    if (o.status !== 'cancelled') activeRevenue += Number(o.total);
     if (o.paymentStatus === 'paid') paidRevenue += Number(o.total);
   });
 
@@ -128,6 +130,7 @@ export async function getOrderStats() {
     byStatus,
     byPayment,
     totalRevenue,
+    activeRevenue,
     paidRevenue,
     recentOrders: orders.slice(-5).reverse().map(toOrder),
   };

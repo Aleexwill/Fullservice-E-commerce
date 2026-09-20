@@ -168,10 +168,18 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
 
   // Totals
   const totalPresupuestado = presupuestos.reduce((s, p) => s + (Number(p.finalValue) || Number(p.estimatedValue) || 0), 0);
-  const totalAprobado = presupuestos.filter(p => ['aprobado','en_ejecucion','finalizado'].includes(p.status)).reduce((s, p) => s + (Number(p.finalValue) || 0), 0);
-  const totalFacturado = presupuestos.reduce((s, p) => s + (Number((p.seguimientoData as any)?.vendido) || 0), 0);
+  const totalAprobado = presupuestos
+    .filter(p => ['aprobado','en_ejecucion','finalizado'].includes(p.status))
+    .reduce((s, p) => s + (Number(p.finalValue) || 0), 0);
+  // Vendido: sum of seguimientoData.vendido only when facturado === 'SI'
+  const totalVendido = presupuestos.reduce((s, p) => {
+    const seg = (p.seguimientoData as any) ?? {};
+    if (seg.facturado !== 'SI') return s;
+    return s + (Number(seg.vendido) || 0);
+  }, 0);
+  const totalPedidosPagados = pedidos.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + Number(o.total), 0);
   const totalPedidos = pedidos.reduce((s, o) => s + Number(o.total), 0);
-  const totalGeneral = totalAprobado + totalPedidos;
+  const totalGeneral = totalAprobado + totalPedidosPagados;
 
   const tabBtn = (t: typeof tab, label: string, count: number) => (
     <button onClick={() => setTab(t)}
@@ -268,7 +276,7 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
                   <div><p className="font-mono text-h3 text-arctic">{presupuestos.length}</p><p className="font-body text-caption text-steel-500">Presupuestos</p></div>
                   <div><p className="font-mono text-h3 text-arctic">{presupuestos.filter(p=>['aprobado','en_ejecucion','finalizado'].includes(p.status)).length}</p><p className="font-body text-caption text-steel-500">Aprobados</p></div>
                   <div><p className="font-mono text-body-sm text-arctic">{Gs(totalPresupuestado)}</p><p className="font-body text-caption text-steel-500">Presupuestado</p></div>
-                  <div><p className="font-mono text-body-sm text-arctic">{Gs(totalFacturado)}</p><p className="font-body text-caption text-steel-500">Facturado/Vendido</p></div>
+                  <div><p className="font-mono text-body-sm text-arctic">{Gs(totalVendido)}</p><p className="font-body text-caption text-steel-500">Vendido (facturado)</p></div>
                 </div>
                 {cliente.lastServiceAt && (
                   <p className="flex items-center gap-1.5 pt-1 font-body text-caption text-steel-500">

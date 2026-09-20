@@ -9,7 +9,7 @@ import {
 import { fetchJsonWithStatus } from '@/lib/utils';
 
 interface ProductStats { total: number; active: number; totalStock: number; totalValue: number; outOfStock: number; featured: number; categoriesCount: number; brandsCount: number; }
-interface OrderStats { total: number; byStatus: Record<string, number>; totalRevenue: number; paidRevenue: number; }
+interface OrderStats { total: number; byStatus: Record<string, number>; totalRevenue: number; activeRevenue: number; paidRevenue: number; }
 interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; approvedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; byStatus: Record<string, number>; }
 interface LeadStats { total: number; newLeads: number; converted: number; conversionRate: number; totalEstimated: number; }
 interface AnalyticsData { totalViews: number; todayViews: number; weekViews: number; }
@@ -99,8 +99,8 @@ export default function AdminDashboard() {
           {/* E-commerce KPIs */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Ingresos (pedidos pagados)', value: orders ? formatGs(orders.paidRevenue) : '—', icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light' },
-              { label: 'Cobrado', value: orders ? formatGs(orders.paidRevenue) : '—', icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
+              { label: 'Activo (no cancelado)', value: orders ? formatGs(orders.activeRevenue) : '—', icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light' },
+              { label: 'Cobrado (pagado)', value: orders ? formatGs(orders.paidRevenue) : '—', icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
               { label: 'Valor inventario', value: products ? formatGs(products.totalValue) : '—', icon: Package, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
               { label: 'Sin stock', value: products ? (products.outOfStock).toString() : '—', icon: AlertTriangle, color: products?.outOfStock ? 'text-danger-bright' : 'text-steel-500', bg: 'bg-danger-light' },
             ].map((k) => { const Icon = k.icon; return (

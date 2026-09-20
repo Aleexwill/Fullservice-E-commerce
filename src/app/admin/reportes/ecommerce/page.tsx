@@ -14,7 +14,7 @@ interface ProductStats {
 }
 interface OrderStats {
   total: number; byStatus: Record<string, number>; byPayment: Record<string, number>;
-  totalRevenue: number; paidRevenue: number;
+  totalRevenue: number; activeRevenue: number; paidRevenue: number;
 }
 
 const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
@@ -52,7 +52,8 @@ export default function ReporteEcommercePage() {
     );
   }
 
-  const pendingRevenue = (orders?.totalRevenue || 0) - (orders?.paidRevenue || 0);
+  // Pending = active orders (non-cancelled) that haven't been paid yet
+  const pendingRevenue = (orders?.activeRevenue || 0) - (orders?.paidRevenue || 0);
 
   return (
     <div className="p-6 lg:p-8">
@@ -72,8 +73,8 @@ export default function ReporteEcommercePage() {
       {/* Financial KPIs */}
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
-          { label: 'Facturacion total', value: formatGs(orders?.totalRevenue || 0), icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light', sub: `${orders?.total || 0} pedidos` },
-          { label: 'Cobrado', value: formatGs(orders?.paidRevenue || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light', sub: `${orders?.byPayment?.paid || 0} pagos` },
+          { label: 'Activo (no cancelado)', value: formatGs(orders?.activeRevenue || 0), icon: DollarSign, color: 'text-success-bright', bg: 'bg-success-light', sub: `${orders?.total || 0} pedidos` },
+          { label: 'Cobrado (pagado)', value: formatGs(orders?.paidRevenue || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light', sub: `${orders?.byPayment?.paid || 0} pagos` },
           { label: 'Pendiente cobro', value: formatGs(pendingRevenue), icon: Clock, color: 'text-yellow-bright', bg: 'bg-yellow-muted', sub: `${orders?.byPayment?.pending || 0} pendientes` },
           { label: 'Valor inventario', value: formatGs(products?.totalValue || 0), icon: Package, color: 'text-blue-bright', bg: 'bg-blue-muted', sub: `${products?.totalStock?.toLocaleString() || 0} unidades` },
         ].map((kpi) => {
@@ -169,8 +170,8 @@ export default function ReporteEcommercePage() {
           <h2 className="mb-4 flex items-center gap-2 font-display text-h3 text-arctic"><BarChart3 className="h-5 w-5 text-yellow-bright" /> Resumen financiero</h2>
           <div className="space-y-4">
             <div className="rounded-lg bg-carbon p-4">
-              <p className="font-body text-caption uppercase text-steel-500">Facturacion total</p>
-              <p className="mt-1 font-display text-h1 text-arctic">{formatGs(orders?.totalRevenue || 0)}</p>
+              <p className="font-body text-caption uppercase text-steel-500">Activo (pedidos no cancelados)</p>
+              <p className="mt-1 font-display text-h1 text-arctic">{formatGs(orders?.activeRevenue || 0)}</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg border border-success-bright/20 bg-success-bright/5 p-3 text-center">

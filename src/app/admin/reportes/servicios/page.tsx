@@ -10,7 +10,8 @@ import {
 
 interface PresupuestoStats {
   total: number; nuevos: number; enEjecucion: number; completedCount: number;
-  approvedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number;
+  approvedCount: number; conversionRate: number;
+  totalEstimated: number; totalCotizado: number; totalAprobado: number; totalFacturado: number; totalFinal: number;
   byStatus: Record<string, number>; byType: Record<string, number>; byPriority: Record<string, number>;
 }
 
@@ -60,8 +61,9 @@ export default function ReporteServiciosPage() {
     );
   }
 
-  const margin = stats && stats.totalFinal > 0 && stats.totalEstimated > 0
-    ? Math.round(((stats.totalFinal - stats.totalEstimated) / stats.totalEstimated) * 100)
+  // Margin: approved value vs estimated (not a profitability margin — reflects price vs estimate)
+  const margin = stats && stats.totalAprobado > 0 && stats.totalEstimated > 0
+    ? Math.round(((stats.totalAprobado - stats.totalEstimated) / stats.totalEstimated) * 100)
     : 0;
 
   return (
@@ -83,8 +85,8 @@ export default function ReporteServiciosPage() {
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
           { label: 'Total presupuestos', value: (stats?.total || 0).toString(), icon: Calculator, color: 'text-blue-bright', bg: 'bg-blue-muted', sub: `${stats?.nuevos || 0} nuevos` },
-          { label: 'Estimado total', value: formatGs(stats?.totalEstimated || 0), icon: DollarSign, color: 'text-yellow-bright', bg: 'bg-yellow-muted', sub: 'valor cotizado' },
-          { label: 'Facturado', value: formatGs(stats?.totalFinal || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light', sub: `${stats?.completedCount || 0} completados` },
+          { label: 'Aprobado (activo)', value: formatGs(stats?.totalAprobado || 0), icon: DollarSign, color: 'text-yellow-bright', bg: 'bg-yellow-muted', sub: `${stats?.approvedCount || 0} aprobados / en ejecucion / finalizados` },
+          { label: 'Finalizado', value: formatGs(stats?.totalFacturado || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light', sub: `${stats?.completedCount || 0} trabajos finalizados` },
           { label: 'Tasa aprobacion', value: `${stats?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light', sub: `${stats?.approvedCount || 0} aprobados` },
         ].map((kpi) => {
           const Icon = kpi.icon;
@@ -178,8 +180,8 @@ export default function ReporteServiciosPage() {
                 <p className="mt-1 font-display text-h2 text-yellow-bright">{formatGs(stats?.totalEstimated || 0)}</p>
               </div>
               <div className="rounded-lg border border-success-bright/20 bg-success-bright/5 p-4 text-center">
-                <p className="font-body text-caption text-steel-500">Facturado</p>
-                <p className="mt-1 font-display text-h2 text-success-bright">{formatGs(stats?.totalFinal || 0)}</p>
+                <p className="font-body text-caption text-steel-500">Finalizado</p>
+                <p className="mt-1 font-display text-h2 text-success-bright">{formatGs(stats?.totalFacturado || 0)}</p>
               </div>
             </div>
             <div className="rounded-lg bg-carbon p-4">

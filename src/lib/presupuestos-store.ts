@@ -145,26 +145,47 @@ export async function deletePresupuesto(id: string): Promise<boolean> {
   }
 }
 
+// Statuses that represent active or completed work (exclude de_baja and pre-sale stages from revenue KPIs)
+const ACTIVE_STATUSES = ['aprobado', 'en_ejecucion', 'finalizado'];
+
 export async function getPresupuestoStats() {
   const all = await prisma.presupuesto.findMany();
   const byStatus: Record<string, number> = {};
   const byType: Record<string, number> = {};
   const byPriority: Record<string, number> = {};
-  let totalEstimated = 0, totalFinal = 0, completedCount = 0, approvedCount = 0;
+  let totalEstimated = 0;
+  // totalCotizado: sum of all non-cancelled presupuestos (what was quoted)
+  let totalCotizado = 0;
+  // totalAprobado: sum of finalValue for aprobado/en_ejecucion/finalizado (value of approved work)
+  let totalAprobado = 0;
+  // totalFacturado: sum of finalValue only for 'finalizado' presupuestos (completed and delivered)
+  let totalFacturado = 0;
+  let completedCount = 0, approvedCount = 0;
 
   all.forEach((p) => {
     byStatus[p.status] = (byStatus[p.status] || 0) + 1;
     byType[p.serviceType] = (byType[p.serviceType] || 0) + 1;
     byPriority[p.priority] = (byPriority[p.priority] || 0) + 1;
     if (p.estimatedValue !== null) totalEstimated += Number(p.estimatedValue);
-    if (p.finalValue !== null) totalFinal += Number(p.finalValue);
+    // Cotizado = anything that's not de_baja
+    if (p.status !== 'de_baja' && p.finalValue !== null) totalCotizado += Number(p.finalValue);
+    // Aprobado = active or done
+    if (ACTIVE_STATUSES.includes(p.status) && p.finalValue !== null) totalAprobado += Number(p.finalValue);
+    // Facturado = only finalizado (work is done and delivered)
+    if (p.status === 'finalizado' && p.finalValue !== null) totalFacturado += Number(p.finalValue);
     if (p.status === 'finalizado') completedCount++;
-    if (['aprobado', 'en_ejecucion', 'finalizado'].includes(p.status)) approvedCount++;
+    if (ACTIVE_STATUSES.includes(p.status)) approvedCount++;
   });
 
   const nuevos = all.filter((p) => ['nuevo', 'falta_presupuestar', 'pendiente_relevo'].includes(p.status)).length;
   const enEjecucion = all.filter((p) => p.status === 'en_ejecucion').length;
   const conversionRate = all.length > 0 ? Math.round((approvedCount / all.length) * 100) : 0;
 
-  return { total: all.length, nuevos, enEjecucion, completedCount, approvedCount, conversionRate, totalEstimated, totalFinal, byStatus, byType, byPriority };
+  return {
+    total: all.length, nuevos, enEjecucion, completedCount, approvedCount, conversionRate,
+    totalEstimated, totalCotizado, totalAprobado, totalFacturado,
+    // Keep totalFinal as an alias for totalAprobado for backward compat with existing UI consumers
+    totalFinal: totalAprobado,
+    byStatus, byType, byPriority,
+  };
 }
