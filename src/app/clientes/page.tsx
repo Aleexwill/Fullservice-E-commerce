@@ -43,26 +43,30 @@ const FALLBACK: ClienteLogo[] = [
 // Keyed por nombre normalizado (minúsculas, sin tildes/espacios) para funcionar
 // tanto con los IDs del fallback como con los cuids de la DB.
 const CROPS_BY_NAME: Record<string, [number, number, number, number]> = {
-  tigre:                         [24,  32,  190, 75],
-  grupomao:                      [279, 32,  204, 88],
-  mao:                           [279, 32,  204, 88],
-  paraguaytextil:                [575, 42,  168, 77],
-  agpar:                         [42,  168, 153, 100],
-  agpargruppofarrini:            [42,  168, 153, 100],
-  inyeplast:                     [303, 187, 156, 63],
-  innova:                        [586, 146, 159, 157],
-  innovatechnology:              [586, 146, 159, 157],
-  innovatechnologyparaguay:      [586, 146, 159, 157],
-  ball:                          [20,  317, 156, 153],
-  granusa:                       [267, 375, 210, 72],
-  granusaexcelenciaennutricion:  [267, 375, 210, 72],
-  rodan:                         [541, 344, 211, 112],
-  rodaninmobiliaria:             [541, 344, 211, 112],
-  gala:                          [38,  518, 160, 72],
-  galaalquilerdemueblesdelujo:   [38,  518, 160, 72],
-  sena:                          [262, 524, 254, 81],
-  senaingenieria:                [262, 524, 254, 81],
-  agriplus:                      [560, 522, 181, 72],
+  // row 1
+  tigre:                         [10,  20,  195, 100],
+  grupomao:                      [265, 20,  260, 100],
+  mao:                           [265, 20,  260, 100],
+  paraguaytextil:                [570, 25,  210,  95],
+  // row 2
+  agpar:                         [15,  155, 225, 120],
+  agpargruppofarrini:            [15,  155, 225, 120],
+  inyeplast:                     [275, 175, 255,  90],
+  innova:                        [575, 155, 205, 135],
+  innovatechnology:              [575, 155, 205, 135],
+  innovatechnologyparaguay:      [575, 155, 205, 135],
+  // row 3
+  ball:                          [10,  310, 195, 160],
+  granusa:                       [258, 355, 260,  95],
+  granusaexcelenciaennutricion:  [258, 355, 260,  95],
+  rodan:                         [538, 330, 240, 130],
+  rodaninmobiliaria:             [538, 330, 240, 130],
+  // row 4
+  gala:                          [15,  495, 225,  90],
+  galaalquilerdemueblesdelujo:   [15,  495, 225,  90],
+  sena:                          [258, 505, 260,  95],
+  senaingenieria:                [258, 505, 260,  95],
+  agriplus:                      [565, 510, 215,  90],
 };
 
 function normalizeName(name: string): string {
