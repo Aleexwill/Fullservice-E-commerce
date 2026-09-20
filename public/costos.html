@@ -406,6 +406,7 @@ async function aiEnviar() {
     firmaCargo:  S.firmaCargo,
     mostrarMO:   S.mostrarMO,
     mostrarOtros:S.mostrarOtros,
+    mostrarAlcance:S.mostrarAlcance,
   };
 
   try {
@@ -516,6 +517,7 @@ let S = {
   activo: 0,
   mostrarMO: false,
   mostrarOtros: false,
+  mostrarAlcance: true,
   ocultarPrecios: false,
   modoMarca: "",
   herr: "circulo",
@@ -1300,7 +1302,11 @@ function renderCostos(R, v, porRubro, idxIncluidos, G) {
         el("button", {
           style: "padding:8px 14px;font-size:12.5px;font-weight:500;border-radius:7px;cursor:pointer;background:var(" + (S.mostrarOtros?"--active-bg":"--inactive-bg") + ");color:var(" + (S.mostrarOtros?"--active-text":"--inactive-text") + ");border:1px solid var(" + (S.mostrarOtros?"--active-bdr":"--inactive-bdr") + ");",
           onclick: () => setState({mostrarOtros:!S.mostrarOtros})
-        }, S.mostrarOtros ? "✓ Otros costos activos" : "Incluir otros costos")
+        }, S.mostrarOtros ? "✓ Otros costos activos" : "Incluir otros costos"),
+        el("button", {
+          style: "padding:8px 14px;font-size:12.5px;font-weight:500;border-radius:7px;cursor:pointer;background:var(" + (S.mostrarAlcance?"--active-bg":"--inactive-bg") + ");color:var(" + (S.mostrarAlcance?"--active-text":"--inactive-text") + ");border:1px solid var(" + (S.mostrarAlcance?"--active-bdr":"--inactive-bdr") + ");",
+          onclick: () => setState({mostrarAlcance:!S.mostrarAlcance})
+        }, S.mostrarAlcance ? "✓ Alcance visible" : "Alcance oculto")
       ),
 
       // MO table (if active)
@@ -1669,11 +1675,11 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
           el("div",{style:"font-size:12px;color:#6f6b64;"}, S.domicilio || "")
         )
       ),
-      // Alcance
-      el("div",{style:"padding:24px 0 4px;"},
+      // Alcance (visible según S.mostrarAlcance)
+      S.mostrarAlcance ? el("div",{style:"padding:24px 0 4px;"},
         el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;margin-bottom:8px;"}, "Alcance del trabajo"),
         el("div",{style:"font-size:13px;line-height:1.65;color:#33312e;white-space:pre-wrap;"}, S.alcance || "")
-      ),
+      ) : null,
       // Bloques
       el("div",{style:"padding:26px 0 0;"},
         ...idxIncluidos.map((i,k) => {
