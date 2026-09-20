@@ -32,6 +32,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireRole('canManagePresupuestos');
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await req.json();
     if (!body.customer?.name || !body.serviceTitle) return NextResponse.json({ error: 'Nombre y servicio obligatorios' }, { status: 400 });

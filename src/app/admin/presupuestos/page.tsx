@@ -135,12 +135,19 @@ export default function AdminPresupuestosPage() {
   };
 
   const changeStatus = async (id: string, status: string) => {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, status: status as any } : i));
-    await fetch(`/api/presupuestos/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
+    const prev = items.find(i => i.id === id)?.status;
+    setItems(items => items.map(i => i.id === id ? { ...i, status: status as any } : i));
+    try {
+      const res = await fetch(`/api/presupuestos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+    } catch {
+      // Revert optimistic update on failure
+      if (prev !== undefined) setItems(items => items.map(i => i.id === id ? { ...i, status: prev as any } : i));
+    }
   };
 
   // Solicitudes = llegan desde el sitio web público (source distinto de 'admin')
@@ -295,11 +302,11 @@ export default function AdminPresupuestosPage() {
 
 // ─── Tablero de Control constants ─────────────────────────────
 const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const ALERTA_OPTS = ['','FALTA RELEVAR','FALTA PRESUPUESTAR','ENVIADO','APROBADO','DE BAJA'];
+const ALERTA_OPTS = ['','FALTA RELEVAR','FALTA PRESUPUESTAR','FALTA VISTO BUENO','ENVIADO','APROBADO','DE BAJA'];
 const AVANCE_OPTS = ['Pendiente','En Proceso','En Espera / Bloqueado','Finalizado'];
 const CICLO_OS = ['NO','SI','NA'];
 const PLAN2_KEY = 'fsc-plan2-tareas-v1';
-const ESTADO_OPTS = ['SIN CARGAR','PENDIENTE RELEVO','EN PRESUPUESTO','PENDIENTE APROBACION','EN EJECUCION','FINALIZADO','DE BAJA'];
+const ESTADO_OPTS = ['SIN CARGAR','PENDIENTE RELEVO','EN PRESUPUESTO','FALTA VISTO BUENO','PENDIENTE APROBACION','EN EJECUCION','FINALIZADO','DE BAJA'];
 const PRIORIDAD_SEG_OPTS = ['','Normal','Alta','Urgente'];
 
 function estadoDe(alerta?: string, avance?: string): string {
@@ -307,6 +314,7 @@ function estadoDe(alerta?: string, avance?: string): string {
   if (alerta === 'APROBADO' && avance === 'Finalizado') return 'FINALIZADO';
   if (alerta === 'APROBADO') return 'EN EJECUCION';
   if (alerta === 'ENVIADO') return 'PENDIENTE APROBACION';
+  if (alerta === 'FALTA VISTO BUENO') return 'FALTA VISTO BUENO';
   if (alerta === 'FALTA PRESUPUESTAR') return 'EN PRESUPUESTO';
   if (alerta === 'FALTA RELEVAR') return 'PENDIENTE RELEVO';
   return 'SIN CARGAR';
@@ -319,6 +327,7 @@ function setEstadoFields(estado: string): Partial<SeguimientoData> {
     'PENDIENTE APROBACION':  { alerta: 'ENVIADO',             avance: 'Pendiente' },
     'EN PRESUPUESTO':        { alerta: 'FALTA PRESUPUESTAR',  avance: 'Pendiente' },
     'PENDIENTE RELEVO':      { alerta: 'FALTA RELEVAR',       avance: 'Pendiente' },
+    'FALTA VISTO BUENO':     { alerta: 'FALTA VISTO BUENO',   avance: 'Pendiente' },
     'DE BAJA':               { alerta: 'DE BAJA',             avance: 'Pendiente' },
     'SIN CARGAR':            { alerta: '',                    avance: '' },
   };
@@ -331,6 +340,7 @@ function chipEstado(estado: string): string {
     'EN EJECUCION': 'bg-blue-bright/15 text-blue-bright border border-blue-bright/30',
     'PENDIENTE APROBACION': 'bg-yellow-bright/15 text-yellow-bright border border-yellow-bright/30',
     'EN PRESUPUESTO': 'bg-[#F97316]/15 text-[#F97316] border border-[#F97316]/30',
+    'FALTA VISTO BUENO': 'bg-[#FB923C]/15 text-[#FB923C] border border-[#FB923C]/30',
     'PENDIENTE RELEVO': 'bg-purple-500/15 text-purple-300 border border-purple-500/30',
     'DE BAJA': 'bg-danger-bright/15 text-danger-bright border border-danger-bright/30',
     'SIN CARGAR': 'bg-steel-900 text-steel-500 border border-steel-800',
@@ -375,10 +385,11 @@ function TableroDashboard({ items: _items, loading: _loading, onRefresh: _onRefr
 
 // ─── Presupuestos inline table ─────────────────────────────────
 // Columns: N° PRESU · FECHA · CLIENTE · LOCAL · TRABAJO · PRECIO DE VENTA · VENDIDO · ALERTA · ESTADO · PRIORIDAD · TÉCNICO · ×
-function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
+function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg, onDelete }: {
   items: Presupuesto[]; arrastres: Presupuesto[];
   getSD: (i: Presupuesto) => SeguimientoData;
   patchSeg: (id: string, fields: Partial<SeguimientoData>) => void;
+  onDelete?: (id: string) => void;
 }) {
   const colStyle = '132px 92px 150px 150px minmax(180px,1fr) 140px 140px 156px 170px 96px 130px 30px';
   const hdrs = ['N° PRESU','FECHA','CLIENTE','LOCAL','TRABAJO','PRECIO DE VENTA','VENDIDO','ALERTA','ESTADO','PRIORIDAD','TÉCNICO',''];
@@ -436,7 +447,7 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
             style={{ color: (() => {
               const c: Record<string,string> = {
                 'FINALIZADO':'#48BB78','EN EJECUCION':'#60A5FA','PENDIENTE APROBACION':'#F59E0B',
-                'EN PRESUPUESTO':'#F97316','PENDIENTE RELEVO':'#A78BFA','DE BAJA':'#FC8181',
+                'FALTA VISTO BUENO':'#FB923C','EN PRESUPUESTO':'#F97316','PENDIENTE RELEVO':'#A78BFA','DE BAJA':'#FC8181',
               };
               return c[estado] || '#6B7280';
             })() }}>
@@ -457,7 +468,7 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg }: {
         </div>
         {/* × */}
         <div className="px-1 flex justify-center">
-          <button className="p-1 text-steel-700 hover:text-danger-bright"><X className="h-3 w-3" /></button>
+          <button onClick={() => onDelete?.(item.id)} className="p-1 text-steel-700 hover:text-danger-bright" title="Eliminar"><X className="h-3 w-3" /></button>
         </div>
       </div>
     );
