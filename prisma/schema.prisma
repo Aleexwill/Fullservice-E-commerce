@@ -358,6 +358,16 @@ model CustomRole {
   updatedAt   DateTime @updatedAt
 }
 
+// ============================================================
+// INFORMES TÉCNICOS (respaldo de datos del informe-tecnico.html)
+// ============================================================
+
+model InformeTecnico {
+  id        String   @id @default("v1")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
 model Invitation {
   id        String   @id @default(cuid())
   email     String

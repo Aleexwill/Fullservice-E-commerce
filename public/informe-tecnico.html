@@ -270,44 +270,56 @@ class Component extends DCLogic {
   state = { informes: [], sel: "" };
 
   componentDidMount() {
-    let informes = [], sel = "";
-    try {
-      const raw = localStorage.getItem(KEY);
-      const data = raw ? JSON.parse(raw) : null;
-      if (data && data.informes && data.informes.length) {
-        informes = data.informes;
-        sel = data.sel || informes[0].id;
-      }
-    } catch (e) {}
-    // Los informes viejos reciben su número de archivo al abrir.
-    let libre = 0;
-    informes.forEach(i => {
-      const m = /^IT-(\d{4})-(\d+)$/.exec(String(i.nro || "").trim());
-      if (m) libre = Math.max(libre, parseInt(m[2], 10));
-    });
-    informes = informes.map(i => Object.assign({}, i, {
-      nro: i.nro || "IT-" + new Date().getFullYear() + "-" + String(++libre).padStart(3, "0"),
-      archivado: i.archivado || soloFecha(),
-      creado: i.creado || hoy(),
-      elementos: (i.elementos || []).map(e => e.creado ? e : Object.assign({}, e, { creado: hoy() }))
-    }));
-    // Informes de fábrica: se agregan una sola vez y quedan seleccionados.
-    let sembrado = "";
-    SEMILLA.forEach(b => {
-      if (informes.some(x => String(x.id) === String(b.id))) return;
-      informes = informes.concat([b]);
-      sembrado = b.id;
-    });
-    if (sembrado) sel = sembrado;
-    if (!informes.length) {
-      const i = informeVacio("IT-" + new Date().getFullYear() + "-001");
-      informes = [i];
-      sel = i.id;
-    }
-    this.setState({ informes: informes, sel: sel }, () => { this.guardar(); this.medirTodo(); });
     this._logoTimer = setInterval(this.leerLogo, 700);
     this._onBefore = this.leerLogo;
     window.addEventListener("beforeprint", this._onBefore);
+    // Cargar desde API primero; si falla, usar localStorage como fallback
+    fetch("/api/informes-tecnicos")
+      .then(r => r.ok ? r.json() : null)
+      .then(apiData => {
+        let informes = [], sel = "";
+        // Preferir datos de la API si tienen informes; si no, usar localStorage
+        const fuente = (apiData && Array.isArray(apiData.informes) && apiData.informes.length)
+          ? apiData
+          : (() => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; } })();
+        if (fuente && fuente.informes && fuente.informes.length) {
+          informes = fuente.informes;
+          sel = fuente.sel || informes[0].id;
+        }
+        // Normalizar informes viejos
+        let libre = 0;
+        informes.forEach(i => {
+          const m = /^IT-(\d{4})-(\d+)$/.exec(String(i.nro || "").trim());
+          if (m) libre = Math.max(libre, parseInt(m[2], 10));
+        });
+        informes = informes.map(i => Object.assign({}, i, {
+          nro: i.nro || "IT-" + new Date().getFullYear() + "-" + String(++libre).padStart(3, "0"),
+          archivado: i.archivado || soloFecha(),
+          creado: i.creado || hoy(),
+          elementos: (i.elementos || []).map(e => e.creado ? e : Object.assign({}, e, { creado: hoy() }))
+        }));
+        // Informes de fábrica: se agregan una sola vez
+        let sembrado = "";
+        SEMILLA.forEach(b => {
+          if (informes.some(x => String(x.id) === String(b.id))) return;
+          informes = informes.concat([b]);
+          sembrado = b.id;
+        });
+        if (sembrado) sel = sembrado;
+        if (!informes.length) {
+          const i = informeVacio("IT-" + new Date().getFullYear() + "-001");
+          informes = [i];
+          sel = i.id;
+        }
+        this.setState({ informes: informes, sel: sel }, () => { this.guardar(); this.medirTodo(); });
+      })
+      .catch(() => {
+        // Sin red: cargar solo desde localStorage
+        let informes = [], sel = "";
+        try { const r = localStorage.getItem(KEY); const d = r ? JSON.parse(r) : null; if (d && d.informes) { informes = d.informes; sel = d.sel || (informes[0] && informes[0].id) || ""; } } catch(e) {}
+        if (!informes.length) { const i = informeVacio("IT-" + new Date().getFullYear() + "-001"); informes = [i]; sel = i.id; }
+        this.setState({ informes, sel }, () => { this.medirTodo(); });
+      });
   }
 
   componentWillUnmount() {
@@ -329,7 +341,13 @@ class Component extends DCLogic {
   guardar() {
     clearTimeout(this._t);
     this._t = setTimeout(() => {
-      try { localStorage.setItem(KEY, JSON.stringify({ informes: this.state.informes, sel: this.state.sel })); } catch (e) {}
+      const payload = { informes: this.state.informes, sel: this.state.sel };
+      try { localStorage.setItem(KEY, JSON.stringify(payload)); } catch (e) {}
+      fetch("/api/informes-tecnicos", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
     }, 400);
   }
 
