@@ -1411,8 +1411,25 @@ function renderMatsTable(R, v) {
       el("button", { style: btnIAStyle(!!S.busy_descMat), onclick: () => corregir("descMat","rubro") },
         S.busy_descMat ? "Corrigiendo…" : (S.err_descMat || "Corregir con IA"))
     ),
+    el("div", { style: "display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--border2);flex-wrap:wrap;" },
+      el("label",{style:"display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"},
+        el("input",{type:"checkbox",checked:R.propDesc!==false,onchange:()=>patchRubro({propDesc:R.propDesc===false}),style:"width:13px;height:13px;cursor:pointer;accent-color:var(--active-bg);margin:0;"}),
+        "Descripción del trabajo"
+      ),
+      el("label",{style:"display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"},
+        el("input",{type:"checkbox",checked:R.propCant!==false,onchange:()=>patchRubro({propCant:R.propCant===false}),style:"width:13px;height:13px;cursor:pointer;accent-color:var(--active-bg);margin:0;"}),
+        "Con cantidades"
+      ),
+      el("label",{style:"display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"},
+        el("input",{type:"checkbox",checked:R.propSubt!==false,onchange:()=>patchRubro({propSubt:R.propSubt===false}),style:"width:13px;height:13px;cursor:pointer;accent-color:var(--active-bg);margin:0;"}),
+        "Subtotal del rubro"
+      )
+    ),
     el("div", { style: "display:flex;align-items:baseline;justify-content:flex-end;gap:14px;padding:13px 20px;background:var(--inp-bg);white-space:nowrap;flex-wrap:wrap;" },
-      el("span",{style:"font-size:12px;color:var(--text4);"}, "Costo materiales"),
+      el("label",{style:"display:flex;align-items:center;gap:6px;cursor:pointer;"},
+        el("input",{type:"checkbox",checked:R.propMat!==false,onchange:()=>patchRubro({propMat:R.propMat===false}),style:"width:13px;height:13px;cursor:pointer;accent-color:var(--active-bg);margin:0;"}),
+        el("span",{style:"font-size:12px;color:var(--text4);"}, "Costo materiales")
+      ),
       el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--text4);"}, money(v.materiales)),
       el("span",{style:"font-size:12px;color:var(--text4);margin-left:10px;"}, "Precio de venta"),
       el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--text);"}, money(v.precioMateriales))
@@ -1951,9 +1968,14 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
           const r = S.rubros[i];
           const calc = porRubro[i];
           const matsEnProp = r.mats.filter(m => m.desc && m.enPropuesta !== false);
+          const mostrarDesc = r.propDesc !== false;
+          const mostrarCant = r.propCant !== false;
+          const mostrarSubt = r.propSubt !== false;
+          const mostrarMatSubt = r.propMat !== false;
           const lineas = [];
           if (S.mostrarMO) lineas.push({ titulo:(r.descMo||"").trim()||"Mano de obra y servicios", detalle: detalleMos(r), importe: money(calc.precioManoObra) });
           if (S.mostrarOtros) lineas.push({ titulo:"Logística, equipos y gastos de obra", detalle:"Flete y traslados, equipos y alquileres, subcontratos, permisos y varios", importe: money(calc.precioOtros) });
+          const colsCant = mostrarCant ? " 70px 50px" : "";
           return el("div",{style:"padding-bottom:22px;"},
             el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:0 0 8px;border-bottom:1px solid #1b1a18;"},
               el("div",{style:"display:flex;align-items:baseline;gap:10px;"},
@@ -1963,25 +1985,25 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
               el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#86817b;"}, "Importe")
             ),
             // Materiales: cada ítem marcado en fila propia
-            matsEnProp.length > 0 ? el("div",{},
-              el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px" + (S.modoEjec ? "" : " 150px") + ";padding:8px 0 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;border-bottom:1px solid #efedea;"},
+            mostrarDesc && matsEnProp.length > 0 ? el("div",{},
+              el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr)" + colsCant + (S.modoEjec ? "" : " 150px") + ";padding:8px 0 4px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;border-bottom:1px solid #efedea;"},
                 el("div",{}, "Ítem / Descripción"),
-                el("div",{style:"text-align:right;"}, "Cant."),
-                el("div",{style:"text-align:center;"}, "Unid."),
+                mostrarCant ? el("div",{style:"text-align:right;"}, "Cant.") : null,
+                mostrarCant ? el("div",{style:"text-align:center;"}, "Unid.") : null,
                 S.modoEjec ? null : el("div",{style:"text-align:right;"}, "Precio")
               ),
               ...matsEnProp.map(m =>
-                el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 70px 50px" + (S.modoEjec ? "" : " 150px") + ";align-items:baseline;padding:7px 0;border-bottom:1px solid #efedea;"},
+                el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr)" + colsCant + (S.modoEjec ? "" : " 150px") + ";align-items:baseline;padding:7px 0;border-bottom:1px solid #efedea;"},
                   el("div",{style:"font-size:13px;padding-right:12px;"}, m.desc),
-                  el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#6f6b64;"}, N(m.cant).toLocaleString("es-PY")),
-                  el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:center;color:#86817b;"}, m.unidad||"un"),
+                  mostrarCant ? el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#6f6b64;"}, N(m.cant).toLocaleString("es-PY")) : null,
+                  mostrarCant ? el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:center;color:#86817b;"}, m.unidad||"un") : null,
                   S.modoEjec ? null : el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;white-space:nowrap;"}, money(costoMat(m)*(1+N(r.overhead)/100)*(1+N(m.marg)/100)))
                 )
               ),
-              S.modoEjec ? null : el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:8px 0;border-bottom:1px solid #d4d0cb;"},
+              mostrarMatSubt && !S.modoEjec ? el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:8px 0;border-bottom:1px solid #d4d0cb;"},
                 el("div",{style:"font-size:12px;font-weight:600;color:#6f6b64;"}, (r.descMat||"").trim() || "Subtotal materiales"),
                 el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:600;text-align:right;white-space:nowrap;"}, money(calc.precioMateriales))
-              )
+              ) : null
             ) : null,
             ...(!S.modoEjec ? lineas.map(l =>
               el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:11px 0;border-bottom:1px solid #efedea;"},
@@ -1992,10 +2014,10 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
                 el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:13.5px;text-align:right;white-space:nowrap;"}, l.importe)
               )
             ) : []),
-            S.modoEjec ? null : el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:11px 0 0;"},
+            mostrarSubt && !S.modoEjec ? el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:baseline;padding:11px 0 0;"},
               el("div",{style:"font-size:12.5px;font-weight:600;text-align:right;padding-right:20px;"}, "Subtotal " + (r.nombre||"")),
               el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;text-align:right;white-space:nowrap;"}, money(calc.precioRubro))
-            )
+            ) : null
           );
         }),
         // Totals — solo en propuesta comercial
