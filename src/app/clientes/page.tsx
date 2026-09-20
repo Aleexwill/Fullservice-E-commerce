@@ -43,22 +43,26 @@ const FALLBACK: ClienteLogo[] = [
 // Keyed por nombre normalizado (minúsculas, sin tildes/espacios) para funcionar
 // tanto con los IDs del fallback como con los cuids de la DB.
 const CROPS_BY_NAME: Record<string, [number, number, number, number]> = {
-  tigre:           [24,  32,  190, 75],
-  grupomao:        [279, 32,  204, 88],
-  mao:             [279, 32,  204, 88],
-  paraguaytextil:  [575, 42,  168, 77],
-  agpar:           [42,  168, 153, 100],
-  inyeplast:       [303, 187, 156, 63],
-  innova:          [586, 146, 159, 157],
-  innovatechnology:[586, 146, 159, 157],
-  ball:            [20,  317, 156, 153],
-  granusa:         [267, 375, 210, 72],
-  rodan:           [541, 344, 211, 112],
-  rodaninmobiliaria:[541, 344, 211, 112],
-  gala:            [38,  518, 160, 72],
-  senaingenieria:  [262, 524, 254, 81],
-  sena:            [262, 524, 254, 81],
-  agriplus:        [560, 522, 181, 72],
+  tigre:                         [24,  32,  190, 75],
+  grupomao:                      [279, 32,  204, 88],
+  mao:                           [279, 32,  204, 88],
+  paraguaytextil:                [575, 42,  168, 77],
+  agpar:                         [42,  168, 153, 100],
+  agpargruppofarrini:            [42,  168, 153, 100],
+  inyeplast:                     [303, 187, 156, 63],
+  innova:                        [586, 146, 159, 157],
+  innovatechnology:              [586, 146, 159, 157],
+  innovatechnologyparaguay:      [586, 146, 159, 157],
+  ball:                          [20,  317, 156, 153],
+  granusa:                       [267, 375, 210, 72],
+  granusaexcelenciaennutricion:  [267, 375, 210, 72],
+  rodan:                         [541, 344, 211, 112],
+  rodaninmobiliaria:             [541, 344, 211, 112],
+  gala:                          [38,  518, 160, 72],
+  galaalquilerdemueblesdelujo:   [38,  518, 160, 72],
+  sena:                          [262, 524, 254, 81],
+  senaingenieria:                [262, 524, 254, 81],
+  agriplus:                      [560, 522, 181, 72],
 };
 
 function normalizeName(name: string): string {
@@ -84,22 +88,30 @@ function LogoCard({ client }: { client: ClienteLogo }) {
           className="h-14 w-auto max-w-[130px] object-contain transition-all duration-300 group-hover:grayscale group-hover:scale-105"
         />
       ) : crop ? (
-        <div
-          role="img" aria-label={client.name}
-          className="overflow-hidden transition-all duration-300 group-hover:grayscale group-hover:scale-105"
-          style={{ position: 'relative', width: Math.min(crop[2], 130), height: Math.min(crop[3], 85), maxWidth: '100%' }}
-        >
-          <img
-            src="/partners/empresas.jpeg" alt=""
-            style={{
-              position: 'absolute',
-              width: `${788 / crop[2] * Math.min(crop[2], 130)}px`,
-              height: `${663 / crop[3] * Math.min(crop[3], 85)}px`,
-              left: `-${crop[0] / crop[2] * Math.min(crop[2], 130)}px`,
-              top: `-${crop[1] / crop[3] * Math.min(crop[3], 85)}px`,
-            }}
-          />
-        </div>
+        (() => {
+          const [cx, cy, cw, ch] = crop;
+          const scale = Math.min(130 / cw, 85 / ch);
+          const dw = Math.round(cw * scale);
+          const dh = Math.round(ch * scale);
+          return (
+            <div
+              role="img" aria-label={client.name}
+              className="overflow-hidden transition-all duration-300 group-hover:grayscale group-hover:scale-105"
+              style={{ position: 'relative', width: dw, height: dh }}
+            >
+              <img
+                src="/partners/empresas.jpeg" alt=""
+                style={{
+                  position: 'absolute',
+                  width: `${Math.round(788 * scale)}px`,
+                  height: `${Math.round(663 * scale)}px`,
+                  left: `-${Math.round(cx * scale)}px`,
+                  top: `-${Math.round(cy * scale)}px`,
+                }}
+              />
+            </div>
+          );
+        })()
       ) : (
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EBF5FB]">
           <Building2 className="h-7 w-7 text-[#2D8FCC]" />
@@ -184,9 +196,9 @@ export default function ClientesPage() {
                           ? <span className="inline-block h-6 w-16 overflow-hidden relative">
                               {cliente.logoUrl
                                 ? <img src={cliente.logoUrl} alt={cliente.name} className="h-6 w-auto max-w-[64px] object-contain" />
-                                : (() => { const c = getCrop(cliente)!; const s = Math.min(c[2], 64); const sh = Math.round(c[3] * s / c[2]); return (
-                                    <div style={{position:'relative',width:s,height:sh}}>
-                                      <img src="/partners/empresas.jpeg" alt="" style={{position:'absolute',width:`${788/c[2]*s}px`,height:`${663/c[3]*sh}px`,left:`-${c[0]/c[2]*s}px`,top:`-${c[1]/c[3]*sh}px`}} />
+                                : (() => { const [cx,cy,cw,ch] = getCrop(cliente)!; const sc = Math.min(64/cw,24/ch); const dw=Math.round(cw*sc),dh=Math.round(ch*sc); return (
+                                    <div style={{position:'relative',width:dw,height:dh,overflow:'hidden'}}>
+                                      <img src="/partners/empresas.jpeg" alt="" style={{position:'absolute',width:`${Math.round(788*sc)}px`,height:`${Math.round(663*sc)}px`,left:`-${Math.round(cx*sc)}px`,top:`-${Math.round(cy*sc)}px`}} />
                                     </div>
                                   ); })()
                               }
