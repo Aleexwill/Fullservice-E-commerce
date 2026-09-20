@@ -1222,7 +1222,7 @@ function render() {
         el("button", { style: tabStyle(S.tab === "propuesta"), onclick: () => setState({tab:"propuesta"}) }, "Hoja de propuesta"),
         el("button", { style: tabStyle(S.tab === "compras"), onclick: () => setState({tab:"compras"}) }, "Lista de compras"),
         el("button", { style: tabStyle(S.tab === "informe"), onclick: () => setState({tab:"informe"}) }, "Informe de costos"),
-        el("button", { style: tabStyle(S.tab === "tecnico"), onclick: () => setState({tab:"tecnico"}) }, "Informe técnico")
+        el("a", { href: "/informe-tecnico.html", target: "_blank", style: tabStyle(false) + "text-decoration:none;" }, "Informe técnico ↗")
       ),
       el("div", { style: "flex:1;" }),
       el("div", { style: "display:flex;align-items:baseline;gap:10px;padding:7px 14px;background:var(--btn-bg);border-radius:8px;border:1px solid var(--btn-bdr);" },
@@ -1241,7 +1241,7 @@ function render() {
     // ── COMPRAS VIEW ──────────────────────────────────────────────────────
     S.tab === "compras" ? renderCompras() : null,
     S.tab === "informe" ? renderInforme(porRubro, idxIncluidos, G) : null,
-    S.tab === "tecnico" ? renderTecnico(porRubro, idxIncluidos, G) : null
+    null, /* Informe técnico abre en /informe-tecnico.html */
   );
   app.replaceWith(newApp);
   newApp.id = "app";

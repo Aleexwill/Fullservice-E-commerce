@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  [data-inf], [data-inf] * { box-sizing: border-box; }
+  [data-inf] textarea, [data-inf] input { font-family: inherit; color: inherit; background: transparent; border: 0; outline: 0; padding: 0; width: 100%; }
+  [data-inf] textarea { resize: none; overflow: hidden; }
+  [data-inf] textarea::placeholder, [data-inf] input::placeholder { color: #b4aea5; }
+  @media print {
+    [data-noprint] { display: none !important; }
+    [data-inf] [data-onlyprint] { display: block !important; }
+    html, body { background: #fff !important; }
+    [data-inf] { padding: 0 !important; background: #fff !important; }
+    [data-pg] { box-shadow: none !important; border: 0 !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; width: 100% !important; min-height: 0 !important; height: 249mm !important; overflow: hidden; break-inside: avoid; page-break-inside: avoid; break-after: page; page-break-after: always; }
+    [data-pg]:last-of-type { break-after: auto; page-break-after: auto; }
+    [data-foto] { height: 118mm !important; border-color: #dedbd5 !important; }
+    [data-cover] { height: auto !important; min-height: 249mm !important; overflow: visible !important; break-inside: auto; page-break-inside: auto; }
+    [data-inf] textarea { overflow: visible !important; height: auto !important; }
+    @page { size: letter portrait; margin: 14mm; }
+  }
+</style>
+</helmet>
+<div data-inf="1" style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; background: #f4f3f0; min-height: 100vh; padding: 22px 26px 60px; color: #1b1a18;">
+
+  <div data-noprint="1" style="width: 900px; max-width: 100%; margin: 0 auto 20px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 13px 18px; border-bottom: 1px solid #efedea;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Informes</span>
+      <select value="{{ informeSel }}" onChange="{{ onElegirInforme }}" style="padding: 7px 9px; font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; color: #1b1a18; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; min-width: 230px;">
+        <sc-for list="{{ listaInformes }}" as="o" hint-placeholder-count="1">
+          <option value="{{ o.id }}">{{ o.label }}</option>
+        </sc-for>
+      </select>
+      <button onClick="{{ nuevoInforme }}" style="padding: 8px 13px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: oklch(0.50 0.13 150); border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;">+ Nuevo informe</button>
+      <button onClick="{{ duplicarInforme }}" style="padding: 8px 13px; font-size: 12.5px; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer; white-space: nowrap;">Duplicar</button>
+      <button onClick="{{ borrarInforme }}" style="padding: 8px 13px; font-size: 12.5px; color: #8a3a2f; background: #faf0ee; border: 1px solid #e8d3ce; border-radius: 7px; cursor: pointer; white-space: nowrap;">Eliminar</button>
+      <div style="flex: 1;"></div>
+      <button onClick="{{ toggleArchivo }}" style="padding: 8px 13px; font-size: 12.5px; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer; white-space: nowrap;">{{ labelArchivo }}</button>
+      <button onClick="{{ imprimir }}" style="padding: 8px 15px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;">Imprimir / PDF</button>
+    </div>
+    <sc-if value="{{ verArchivo }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #faf9f7; border-bottom: 1px solid #dedbd5;">
+        <div style="display: grid; grid-template-columns: 118px minmax(0, 1fr) 108px 104px; gap: 10px; padding: 9px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">
+          <div>N.º informe</div>
+          <div>Título</div>
+          <div>Archivado</div>
+          <div>Contenido</div>
+        </div>
+        <sc-for list="{{ archivo }}" as="a" hint-placeholder-count="2">
+          <button onClick="{{ a.onAbrir }}" style="{{ a.style }}">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600;">{{ a.nro }}</span>
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.titulo }}</span>
+            <span style="font-size: 11.5px; color: #6f6b64;">{{ a.archivado }}</span>
+            <span style="font-size: 11.5px; color: #6f6b64;">{{ a.cantidad }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 18px; padding: 15px 18px;">
+      <label style="display: block;">
+        <span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; margin-bottom: 4px;">Título del informe</span>
+        <input value="{{ f.titulo }}" onChange="{{ onTitulo }}" placeholder="SHELL PAI PUKU" style="font-size: 13.5px; font-weight: 600; border-bottom: 1px solid #dedbd5 !important; padding-bottom: 4px !important;" />
+      </label>
+      <label style="display: block;">
+        <span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; margin-bottom: 4px;">Contacto</span>
+        <input value="{{ f.contacto }}" onChange="{{ onContacto }}" placeholder="Ing. Edgar Mendez" style="font-size: 13px; border-bottom: 1px solid #dedbd5 !important; padding-bottom: 4px !important;" />
+      </label>
+      <label style="display: block;">
+        <span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; margin-bottom: 4px;">Empresa</span>
+        <input value="{{ f.empresa }}" onChange="{{ onEmpresa }}" placeholder="fullcleandyservice" style="font-size: 13px; border-bottom: 1px solid #dedbd5 !important; padding-bottom: 4px !important;" />
+      </label>
+      <label style="display: block;">
+        <span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; margin-bottom: 4px;">Teléfono</span>
+        <input value="{{ f.telefono }}" onChange="{{ onTelefono }}" placeholder="0971 235799" style="font-size: 13px; border-bottom: 1px solid #dedbd5 !important; padding-bottom: 4px !important;" />
+      </label>
+      <label style="display: block;">
+        <span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; margin-bottom: 4px;">Correo electrónico</span>
+        <input value="{{ f.correo }}" onChange="{{ onCorreo }}" placeholder="fullcleanyservice@gmail.com" style="font-size: 13px; border-bottom: 1px solid #dedbd5 !important; padding-bottom: 4px !important;" />
+      </label>
+      <label style="display: block;">
+        <span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; margin-bottom: 4px;">Creado</span>
+        <input value="{{ f.creado }}" onChange="{{ onCreado }}" placeholder="jue 20 ago 19:04 2026" style="font-size: 13px; border-bottom: 1px solid #dedbd5 !important; padding-bottom: 4px !important;" />
+      </label>
+      <label style="display: block;">
+        <span style="display: block; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; margin-bottom: 4px;">Código</span>
+        <input value="{{ f.codigo }}" onChange="{{ onCodigo }}" placeholder="1x1s-763697" style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; border-bottom: 1px solid #dedbd5 !important; padding-bottom: 4px !important;" />
+      </label>
+    </div>
+  </div>
+
+  <div data-pg="1" data-cover="1" style="width: 900px; max-width: 100%; min-height: 1130px; margin: 0 auto 22px; padding: 46px 52px 30px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; flex-direction: column;">
+    <div style="flex: 1;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 20px; margin-bottom: 22px; border-bottom: 2px solid #1b1a18;">
+        <div style="width: 218px; height: 74px; flex: none;">
+          <image-slot data-noprint="1" id="logo-informe" src="./logo.png" placeholder="Arrastrá tu logo" style="width: 100%; height: 100%;"></image-slot>
+          <img data-onlyprint="1" ref="{{ logoRef }}" src="./logo.png" alt="Logo" style="display: none; width: 218px; height: 74px; object-fit: contain; object-position: left center;" />
+        </div>
+        <div style="text-align: right; padding-top: 4px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #86817b;">Informe técnico</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #1b1a18; margin-top: 4px;">{{ f.nro }}</div>
+        </div>
+      </div>
+      <div style="font-size: 27px; font-weight: 700; letter-spacing: -0.01em; margin: 8px 0 26px;">{{ f.titulo }}</div>
+      <div data-noprint="1" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Trabajo a realizar</span>
+        <button onClick="{{ iaResumen }}" style="padding: 5px 11px; font-size: 11.5px; font-weight: 600; color: #ffffff; background: oklch(0.50 0.11 240); border: 0; border-radius: 6px; cursor: pointer; white-space: nowrap;">{{ labelIaResumen }}</button>
+        <span style="font-size: 11.5px; color: #86817b;">{{ iaAviso }}</span>
+      </div>
+      <textarea ref="{{ areaRef }}" value="{{ f.resumen }}" onChange="{{ onResumen }}" rows="18" placeholder="Descripción general de la situación relevada y de la solución propuesta." style="font-size: 13.6px; line-height: 1.72; text-align: justify; text-wrap: pretty;"></textarea>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 26px; padding-top: 16px; border-top: 1px solid #dedbd5; font-size: 10.5px; line-height: 1.62; color: #4f4b45;">
+      <div>Contacto: {{ f.contacto }}</div>
+      <div>Título: {{ f.titulo }}</div>
+      <div>Empresa: {{ f.empresa }}</div>
+      <div>N.º de elementos: {{ f.cantidad }}</div>
+      <div>Teléfono: {{ f.telefono }}</div>
+      <div style="font-family: 'IBM Plex Mono', monospace;">{{ f.codigo }}</div>
+      <div>Correo electrónico: {{ f.correo }}</div>
+      <div style="text-align: right;">página 1 de {{ f.paginas }}</div>
+      <div>Creado: {{ f.creado }}</div>
+    </div>
+  </div>
+
+  <sc-for list="{{ elementos }}" as="e" hint-placeholder-count="2">
+    <div data-pg="1" style="width: 900px; max-width: 100%; min-height: 1130px; margin: 0 auto 22px; padding: 46px 52px 30px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; flex-direction: column;">
+      <div style="flex: 1; min-height: 0;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid #dedbd5;">
+          <img ref="{{ logoRef }}" src="./logo.png" alt="Logo" style="width: 168px; height: 56px; object-fit: contain; object-position: left center;" />
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #86817b; padding-top: 6px;">{{ f.nro }}</div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+              <span style="font-size: 11px; color: #4f4b45; white-space: nowrap;">Título:</span>
+              <input value="{{ e.titulo }}" onChange="{{ e.onTitulo }}" placeholder="Título del elemento relevado" style="font-size: 16.5px; font-weight: 600;" />
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 5px;">
+              <span style="font-size: 11px; color: #4f4b45; white-space: nowrap;">Creado:</span>
+              <input value="{{ e.creado }}" onChange="{{ e.onCreado }}" placeholder="jue 20 ago 19:05 2026" style="font-size: 11px; color: #4f4b45;" />
+            </div>
+          </div>
+          <div data-noprint="1" style="display: flex; align-items: center; gap: 6px;">
+            <button onClick="{{ e.onSubir }}" title="Subir" style="width: 26px; height: 26px; font-size: 13px; color: #6f6b64; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 6px; cursor: pointer;">↑</button>
+            <button onClick="{{ e.onBajar }}" title="Bajar" style="width: 26px; height: 26px; font-size: 13px; color: #6f6b64; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 6px; cursor: pointer;">↓</button>
+            <button onClick="{{ e.onDel }}" title="Eliminar esta página" style="display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; font-family: inherit; font-size: 11.5px; color: #8a3a2f; background: #faf0ee; border: 1px solid #e8d3ce; border-radius: 6px; cursor: pointer; white-space: nowrap;" style-hover="background: #f6e3de">× Eliminar página</button>
+          </div>
+        </div>
+        <div data-noprint="1" style="display: flex; align-items: center; gap: 10px; margin-top: 14px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Descripción</span>
+          <button onClick="{{ e.onIa }}" style="padding: 4px 10px; font-size: 11px; font-weight: 600; color: #ffffff; background: oklch(0.50 0.11 240); border: 0; border-radius: 6px; cursor: pointer; white-space: nowrap;">{{ e.labelIa }}</button>
+        </div>
+        <textarea ref="{{ areaRef }}" value="{{ e.texto }}" onChange="{{ e.onTexto }}" rows="3" placeholder="Describí lo que muestran las fotos de esta página." style="margin-top: 6px; font-size: 12.4px; line-height: 1.68; text-align: justify; text-wrap: pretty;"></textarea>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px;">
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Relevamiento</span>
+              <input value="{{ e.rotuloA }}" onChange="{{ e.onRotuloA }}" placeholder="situación encontrada" style="font-size: 10.5px; color: #4f4b45;" />
+            </div>
+            <div data-noprint="1" style="display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
+              <button onClick="{{ e.girarA }}" title="Girar a la izquierda" style="width: 26px; height: 24px; font-size: 12px; color: #6f6b64; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 6px; cursor: pointer;">⟲</button>
+              <button onClick="{{ e.girarA2 }}" title="Girar a la derecha" style="width: 26px; height: 24px; font-size: 12px; color: #6f6b64; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 6px; cursor: pointer;">⟳</button>
+              <button onClick="{{ e.ajustarA }}" title="Cambiar entre foto completa y foto que llena el recuadro" style="{{ e.estiloAjusteA }}">{{ e.labelAjusteA }}</button>
+              <span style="font-size: 10.5px; color: #a09a92;">{{ e.giroA }}</span>
+            </div>
+            <div data-foto="1" style="position: relative; overflow: hidden; container-type: size; height: 620px; background: #ffffff; border: 1px solid #efedea;">
+              <div style="{{ e.marcoA }}">
+                <sc-if value="{{ e.hayImgA }}" hint-placeholder-val="{{ false }}">
+                  {{ e.imgA }}
+                </sc-if>
+                <sc-if value="{{ e.sinImgA }}" hint-placeholder-val="{{ true }}">
+                  <image-slot id="{{ e.slotId }}" fit="{{ e.fitA }}" placeholder="{{ e.slotTexto }}" style="position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto;"></image-slot>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Resultado</span>
+              <input value="{{ e.rotuloB }}" onChange="{{ e.onRotuloB }}" placeholder="después del trabajo" style="font-size: 10.5px; color: #4f4b45;" />
+            </div>
+            <div data-noprint="1" style="display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
+              <button onClick="{{ e.girarB }}" title="Girar a la izquierda" style="width: 26px; height: 24px; font-size: 12px; color: #6f6b64; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 6px; cursor: pointer;">⟲</button>
+              <button onClick="{{ e.girarB2 }}" title="Girar a la derecha" style="width: 26px; height: 24px; font-size: 12px; color: #6f6b64; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 6px; cursor: pointer;">⟳</button>
+              <button onClick="{{ e.ajustarB }}" title="Cambiar entre foto completa y foto que llena el recuadro" style="{{ e.estiloAjusteB }}">{{ e.labelAjusteB }}</button>
+              <span style="font-size: 10.5px; color: #a09a92;">{{ e.giroB }}</span>
+            </div>
+            <div data-foto="1" style="position: relative; overflow: hidden; container-type: size; height: 620px; background: #ffffff; border: 1px solid #efedea;">
+              <div style="{{ e.marcoB }}">
+                <sc-if value="{{ e.hayImgB }}" hint-placeholder-val="{{ false }}">
+                  {{ e.imgB }}
+                </sc-if>
+                <sc-if value="{{ e.sinImgB }}" hint-placeholder-val="{{ true }}">
+                  <image-slot id="{{ e.slotIdB }}" fit="{{ e.fitB }}" placeholder="{{ e.slotTextoB }}" style="position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto;"></image-slot>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #4f4b45; padding: 10px 0 12px;">({{ e.numero }})</div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 26px; padding-top: 14px; border-top: 1px solid #dedbd5; font-size: 10.5px; line-height: 1.62; color: #4f4b45;">
+        <div>Contacto: {{ f.contacto }}</div>
+        <div>Título: {{ f.titulo }}</div>
+        <div>Empresa: {{ f.empresa }}</div>
+        <div>N.º de elementos: {{ f.cantidad }}</div>
+        <div>Teléfono: {{ f.telefono }}</div>
+        <div style="font-family: 'IBM Plex Mono', monospace;">{{ f.codigo }}</div>
+        <div>Correo electrónico: {{ f.correo }}</div>
+        <div style="text-align: right;">página {{ e.pagina }} de {{ f.paginas }}</div>
+        <div>Creado: {{ f.creado }}</div>
+      </div>
+    </div>
+  </sc-for>
+
+  <div data-noprint="1" style="width: 900px; max-width: 100%; margin: 0 auto; text-align: center;">
+    <button onClick="{{ nuevoElemento }}" style="padding: 11px 20px; font-size: 13px; font-weight: 600; color: #1b1a18; background: #ffffff; border: 1px dashed #b4aea5; border-radius: 9px; cursor: pointer;">+ Agregar elemento con foto</button>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KEY = "twg-informes-v1";
+
+const DIAS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+// Fecha del día en el mismo formato del informe: "jue 20 ago 19:04 2026".
+const hoy = () => {
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return DIAS[d.getDay()] + " " + d.getDate() + " " + MESES[d.getMonth()] + " " + hh + ":" + mm + " " + d.getFullYear();
+};
+
+const soloFecha = () => {
+  const d = new Date();
+  return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+};
+
+const nuevoEl = (n) => ({
+  id: "e" + Date.now() + Math.floor(Math.random() * 1000),
+  titulo: "", creado: hoy(), texto: ""
+});
+
+const informeVacio = (nro) => ({
+  id: "i" + Date.now(),
+  nro: nro || "", archivado: soloFecha(),
+  titulo: "", contacto: "Ing. Edgar Mendez", empresa: "fullcleandyservice",
+  telefono: "0971 235799", correo: "fullcleanyservice@gmail.com",
+  creado: hoy(), codigo: "", resumen: "",
+  elementos: [nuevoEl()]
+});
+
+const SEMILLA = [{"id":"it-p018-ssr","nro":"IT-2026-018","archivado":"7/9/2026","titulo":"Relé de estado sólido SSR 60 A — verificación técnica de las dos opciones cotizadas","contacto":"Ing. Edgar Mendez","empresa":"fullcleandyservice","telefono":"0971 235799","correo":"fullcleanyservice@gmail.com","creado":"7/9/2026","codigo":"Presupuesto P-2026-018 · Cliente: TIGRE","resumen":"Se relevaron las dos opciones de relé de estado sólido de 60 A cotizadas en el presupuesto P-2026-018, con el objeto de verificar su compatibilidad con la instalación existente y dejar asentada la diferencia técnica entre ambas antes de la compra.\n\nLas dos son módulos SSR monofásicos de 60 A de corriente nominal y cumplen con la capacidad requerida. La diferencia está en el circuito de control: la opción 1 se comanda con tensión alterna y la opción 2 con tensión continua. No son intercambiables entre sí. La elección depende de con qué señal se comanda el módulo desde el tablero, dato que debe confirmarse en sitio antes de emitir la orden de compra.","elementos":[{"id":"it018e1","titulo":"Opción 1 — FOTEK SSR-60AA, control en corriente alterna","creado":"7/9/2026","texto":"Módulo de estado sólido monofásico, marca FOTEK, modelo SSR-60AA.\n\nCaracterísticas de placa:\n· Corriente nominal de salida: 60 A\n· Tensión de salida: 24 a 380 V CA\n· Tensión de entrada (control): 80 a 250 V CA\n· Certificaciones indicadas en el cuerpo: UL y CE\n· Cuerpo con tapa de protección de bornes y dos agujeros de fijación al disipador\n\nObservaciones: la denominación AA identifica el control en corriente alterna. Es la opción indicada cuando la señal de comando proviene de un contacto, un presostato, un termostato o cualquier mando alimentado en 220 V CA, sin necesidad de fuente auxiliar.\n\nRequiere disipador de calor dimensionado para la corriente de trabajo. Trabajando cerca de los 60 A la disipación es considerable y sin disipador adecuado el módulo se degrada de forma prematura."},{"id":"it018e2","titulo":"Opción 2 — METALTEX TZC-60A, control en corriente continua","creado":"7/9/2026","texto":"Módulo de estado sólido monofásico, marca METALTEX, modelo TZC-60A.\n\nCaracterísticas de placa:\n· Corriente nominal de salida: 60 A\n· Tensión de salida: 48 a 440 V CA\n· Tensión de entrada (control): 4 a 32 V CC\n· Certificación indicada en el cuerpo: CE\n· Led indicador de estado de la entrada en el frente\n· Cuerpo metálico con base plana para montaje sobre disipador\n\nObservaciones: se comanda con tensión continua de bajo nivel, por lo que es la opción indicada cuando la señal proviene de la salida de un PLC, un controlador de temperatura o una placa electrónica. Admite mayor tensión de salida que la opción 1 —hasta 440 V CA— y el led de estado facilita el diagnóstico en el tablero.\n\nNo funciona con señal de comando en 220 V CA: aplicar tensión alterna en la entrada de control daña el módulo."},{"id":"it018e3","titulo":"Comparación y punto a definir antes de la compra","creado":"7/9/2026","texto":"Coincidencias: las dos opciones son SSR monofásicos de 60 A, aptos para la carga prevista, de montaje sobre disipador y con bornes a tornillo.\n\nDiferencias:\n· Señal de control — opción 1: 80 a 250 V CA · opción 2: 4 a 32 V CC. Es la diferencia determinante y no admite adaptación directa.\n· Tensión de salida — opción 1: hasta 380 V CA · opción 2: hasta 440 V CA.\n· Diagnóstico — la opción 2 tiene led indicador de entrada; la opción 1 no.\n· Certificaciones — la opción 1 declara UL y CE; la opción 2, CE.\n\nPunto a definir: con qué señal se comanda el módulo en el tablero existente. Si el mando es un contacto en 220 V CA, corresponde la opción 1. Si la orden sale de un PLC o de un controlador con salida de 12 o 24 V CC, corresponde la opción 2.\n\nSi se necesita conservar el mando en 220 V CA pero usar la opción 2, hay que agregar una fuente de 24 V CC en el tablero, con su protección y espacio en riel. Ese trabajo no está incluido en el presupuesto P-2026-018."},{"id":"it018e4","titulo":"Recomendaciones de montaje","creado":"7/9/2026","texto":"1. Disipador. Ambos módulos exigen disipador dimensionado para la corriente real de trabajo, con pasta térmica en toda la superficie de contacto y tornillos ajustados de manera uniforme. Un contacto parcial es la causa más común de falla temprana en los SSR.\n\n2. Ventilación del tablero. Verificar que el gabinete tenga ventilación o ventilación forzada. Un SSR de 60 A en tablero cerrado y sin circulación de aire alcanza temperaturas que reducen su vida útil.\n\n3. Protección. Instalar protección aguas arriba coordinada con la corriente nominal del módulo. Los SSR no soportan cortocircuitos: quedan en conducción permanente cuando fallan, con la carga alimentada.\n\n4. Ajuste de bornes. Reajustar los bornes de potencia después de las primeras horas de trabajo en carga.\n\n5. Repuesto. Conviene dejar una unidad de repuesto en stock, del mismo modelo elegido, para no interrumpir la operación ante una falla."},{"id":"it018e5","titulo":"Conclusión","creado":"7/9/2026","texto":"Las dos opciones cotizadas son técnicamente aptas en cuanto a corriente y tensión de trabajo. La decisión no es de calidad sino de compatibilidad con la señal de comando existente, y se resuelve verificando el tablero en sitio.\n\nSe recomienda confirmar ese dato antes de emitir la orden de compra, y verificar en la misma visita el estado del disipador y la ventilación del gabinete. Si el módulo a reemplazar trabajaba sin disipador adecuado, corresponde preverlo: de lo contrario la falla se repite con el módulo nuevo.\n\nQueda a disposición para la verificación en sitio y para el montaje una vez definida la opción."}]}];
+
+class Component extends DCLogic {
+  state = { informes: [], sel: "" };
+
+  componentDidMount() {
+    let informes = [], sel = "";
+    try {
+      const raw = localStorage.getItem(KEY);
+      const data = raw ? JSON.parse(raw) : null;
+      if (data && data.informes && data.informes.length) {
+        informes = data.informes;
+        sel = data.sel || informes[0].id;
+      }
+    } catch (e) {}
+    // Los informes viejos reciben su número de archivo al abrir.
+    let libre = 0;
+    informes.forEach(i => {
+      const m = /^IT-(\d{4})-(\d+)$/.exec(String(i.nro || "").trim());
+      if (m) libre = Math.max(libre, parseInt(m[2], 10));
+    });
+    informes = informes.map(i => Object.assign({}, i, {
+      nro: i.nro || "IT-" + new Date().getFullYear() + "-" + String(++libre).padStart(3, "0"),
+      archivado: i.archivado || soloFecha(),
+      creado: i.creado || hoy(),
+      elementos: (i.elementos || []).map(e => e.creado ? e : Object.assign({}, e, { creado: hoy() }))
+    }));
+    // Informes de fábrica: se agregan una sola vez y quedan seleccionados.
+    let sembrado = "";
+    SEMILLA.forEach(b => {
+      if (informes.some(x => String(x.id) === String(b.id))) return;
+      informes = informes.concat([b]);
+      sembrado = b.id;
+    });
+    if (sembrado) sel = sembrado;
+    if (!informes.length) {
+      const i = informeVacio("IT-" + new Date().getFullYear() + "-001");
+      informes = [i];
+      sel = i.id;
+    }
+    this.setState({ informes: informes, sel: sel }, () => { this.guardar(); this.medirTodo(); });
+    this._logoTimer = setInterval(this.leerLogo, 700);
+    this._onBefore = this.leerLogo;
+    window.addEventListener("beforeprint", this._onBefore);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._t);
+    clearInterval(this._logoTimer);
+    window.removeEventListener("beforeprint", this._onBefore);
+  }
+
+  // Número consecutivo al último informe archivado.
+  siguienteNro() {
+    let max = 0;
+    (this.state.informes || []).forEach(i => {
+      const m = /^IT-(\d{4})-(\d+)$/.exec(String(i.nro || "").trim());
+      if (m) max = Math.max(max, parseInt(m[2], 10));
+    });
+    return "IT-" + new Date().getFullYear() + "-" + String(max + 1).padStart(3, "0");
+  }
+
+  guardar() {
+    clearTimeout(this._t);
+    this._t = setTimeout(() => {
+      try { localStorage.setItem(KEY, JSON.stringify({ informes: this.state.informes, sel: this.state.sel })); } catch (e) {}
+    }, 400);
+  }
+
+  // El logo se arrastra una vez en la portada y se copia a todas las páginas.
+  logoRef = (el) => {
+    if (!el) return;
+    this._logos = (this._logos || []).filter(a => a.isConnected);
+    if (this._logos.indexOf(el) < 0) this._logos.push(el);
+    const url = this.logoActual();
+    if (url && el.getAttribute("src") !== url) el.setAttribute("src", url);
+  };
+
+  logoActual() {
+    const slot = document.getElementById("logo-informe");
+    const img = slot && slot.shadowRoot && slot.shadowRoot.querySelector("img");
+    const url = (img && img.getAttribute("src")) || "";
+    return url || (slot && slot.getAttribute("src")) || "./logo.png";
+  }
+
+  leerLogo = () => {
+    const url = this.logoActual();
+    (this._logos || []).forEach(el => {
+      if (el.isConnected && url && el.getAttribute("src") !== url) el.setAttribute("src", url);
+    });
+  };
+
+  // Las áreas de texto crecen con el contenido para que nada se corte al imprimir.
+  areaRef = (el) => {
+    if (!el) return;
+    this._areas = (this._areas || []).filter(a => a.isConnected);
+    if (this._areas.indexOf(el) < 0) this._areas.push(el);
+    this.medir(el);
+  };
+
+  medir(el) {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight + 2) + "px";
+  }
+
+  medirTodo() {
+    setTimeout(() => (this._areas || []).forEach(a => this.medir(a)), 0);
+  }
+
+  // Corrección de redacción con IA: mantiene los datos técnicos, mejora la escritura.
+  async corregir(clave, texto, aplicar) {
+    const base = String(texto || "").trim();
+    if (!base || this.state.iaClave) return;
+    this.setState({ iaClave: clave, iaAviso: "" });
+    try {
+      const salida = await window.claude.complete({
+        max_tokens: 1400,
+        system: "Corregís la redacción de informes técnicos de una empresa paraguaya de servicios de mantenimiento e instalaciones. Devolvés únicamente el texto corregido, sin comentarios, sin comillas y sin títulos. Corregís ortografía, tildes, puntuación y concordancia; ordenás las ideas y usás un tono técnico, claro y directo en español de Paraguay (voseo solo si el original lo usa). No inventás datos, medidas, marcas ni cantidades: mantenés todos los valores tal como están. Conservás aproximadamente la misma extensión.",
+        messages: [{ role: "user", content: base }]
+      });
+      const limpio = String(salida || "").trim();
+      if (limpio) {
+        aplicar(limpio);
+        this.setState({ iaClave: "", iaAviso: "Redacción corregida" });
+      } else {
+        this.setState({ iaClave: "", iaAviso: "No se pudo corregir" });
+      }
+    } catch (e) {
+      this.setState({ iaClave: "", iaAviso: "No se pudo corregir" });
+    }
+    setTimeout(() => this.setState({ iaAviso: "" }), 3500);
+    this.medirTodo();
+  }
+
+  // Marco girado: en 90° y 270° se intercambian alto y ancho del recuadro.
+  marcoFoto(rot) {
+    const base = "position: absolute; left: 50%; top: 50%; ";
+    if (rot === 90 || rot === 270) {
+      return base + "width: 100cqh; height: 100cqw; transform: translate(-50%, -50%) rotate(" + rot + "deg);";
+    }
+    return base + "width: 100%; height: 100%; transform: translate(-50%, -50%) rotate(" + rot + "deg);";
+  }
+
+  estiloAjuste(activo) {
+    return "padding: 3px 9px; font-family: inherit; font-size: 10.5px; font-weight: 600; border-radius: 6px; cursor: pointer; white-space: nowrap; border: 1px solid "
+      + (activo ? "#1b1a18" : "#dedbd5") + "; background: " + (activo ? "#1b1a18" : "#f0eee9")
+      + "; color: " + (activo ? "#ffffff" : "#6f6b64") + ";";
+  }
+
+  actual() {
+    return this.state.informes.find(i => i.id === this.state.sel) || this.state.informes[0] || informeVacio();
+  }
+
+  patch(campo, valor) {
+    const id = this.actual().id;
+    this.setState(s => ({
+      informes: s.informes.map(i => i.id === id ? Object.assign({}, i, { [campo]: valor }) : i)
+    }), () => this.guardar());
+  }
+
+  patchEl(elId, campo, valor) {
+    const id = this.actual().id;
+    this.setState(s => ({
+      informes: s.informes.map(i => i.id !== id ? i : Object.assign({}, i, {
+        elementos: i.elementos.map(e => e.id === elId ? Object.assign({}, e, { [campo]: valor }) : e)
+      }))
+    }), () => this.guardar());
+  }
+
+  moverEl(elId, paso) {
+    const id = this.actual().id;
+    this.setState(s => ({
+      informes: s.informes.map(i => {
+        if (i.id !== id) return i;
+        const arr = i.elementos.slice();
+        const k = arr.findIndex(e => e.id === elId);
+        const dest = k + paso;
+        if (k < 0 || dest < 0 || dest >= arr.length) return i;
+        const tmp = arr[k]; arr[k] = arr[dest]; arr[dest] = tmp;
+        return Object.assign({}, i, { elementos: arr });
+      })
+    }), () => this.guardar());
+  }
+
+  campo(nombre) {
+    return (e) => this.patch(nombre, e.target.value);
+  }
+
+  renderVals() {
+    const inf = this.actual();
+    const els = inf.elementos || [];
+    const paginas = els.length + 1;
+    const etiqueta = (i, k) => (i.titulo || "").trim() || "Informe sin título " + (k + 1);
+
+    return {
+      f: {
+        titulo: inf.titulo, contacto: inf.contacto, empresa: inf.empresa,
+        telefono: inf.telefono, correo: inf.correo, creado: inf.creado,
+        codigo: inf.codigo, resumen: inf.resumen, nro: inf.nro || "",
+        cantidad: String(els.length), paginas: String(paginas)
+      },
+      areaRef: this.areaRef,
+      logoRef: this.logoRef,
+      informeSel: inf.id,
+      listaInformes: this.state.informes.map((i, k) => ({ id: i.id, label: (i.nro ? i.nro + " · " : "") + etiqueta(i, k) })),
+      onElegirInforme: (e) => this.setState({ sel: e.target.value }, () => { this.guardar(); this.medirTodo(); }),
+
+      verArchivo: this.state.verArchivo === true,
+      toggleArchivo: () => this.setState(s => ({ verArchivo: !s.verArchivo })),
+      labelArchivo: (this.state.verArchivo ? "Ocultar archivo" : "Archivo") + " (" + this.state.informes.length + ")",
+      archivo: this.state.informes.map((i, k) => ({
+        nro: i.nro || "—",
+        titulo: etiqueta(i, k),
+        archivado: i.archivado || "—",
+        cantidad: (i.elementos || []).length + " elementos",
+        style: "display: grid; grid-template-columns: 118px minmax(0, 1fr) 108px 104px; align-items: center; gap: 10px; width: 100%; padding: 10px 18px; text-align: left; font-family: inherit; font-size: 12.5px; cursor: pointer; border: 0; border-top: 1px solid #efedea; background: "
+          + (i.id === inf.id ? "#f4f6f9" : "transparent") + "; color: #1b1a18;",
+        onAbrir: () => this.setState({ sel: i.id }, () => { this.guardar(); this.medirTodo(); })
+      })),
+
+      onTitulo: this.campo("titulo"),
+      onContacto: this.campo("contacto"),
+      onEmpresa: this.campo("empresa"),
+      onTelefono: this.campo("telefono"),
+      onCorreo: this.campo("correo"),
+      onCreado: this.campo("creado"),
+      onCodigo: this.campo("codigo"),
+      onResumen: (e) => { this.medir(e.target); this.patch("resumen", e.target.value); },
+      iaResumen: () => this.corregir("resumen", inf.resumen, (t) => this.patch("resumen", t)),
+      labelIaResumen: this.state.iaClave === "resumen" ? "Corrigiendo…" : "Corregir con IA",
+      iaAviso: this.state.iaAviso || "",
+
+      nuevoInforme: () => {
+        const i = informeVacio(this.siguienteNro());
+        this.setState(s => ({ informes: s.informes.concat([i]), sel: i.id }), () => { this.guardar(); this.medirTodo(); });
+      },
+      duplicarInforme: () => {
+        const copia = JSON.parse(JSON.stringify(inf));
+        copia.id = "i" + Date.now();
+        copia.nro = this.siguienteNro();
+        copia.archivado = soloFecha();
+        copia.creado = hoy();
+        copia.titulo = (inf.titulo || "Informe") + " (copia)";
+        copia.elementos = (copia.elementos || []).map((e, k) => Object.assign({}, e, { id: "e" + Date.now() + k }));
+        this.setState(s => ({ informes: s.informes.concat([copia]), sel: copia.id }), () => { this.guardar(); this.medirTodo(); });
+      },
+      borrarInforme: () => {
+        if (this.state.informes.length < 2) return;
+        this.setState(s => {
+          const resto = s.informes.filter(i => i.id !== inf.id);
+          return { informes: resto, sel: resto[0].id };
+        }, () => { this.guardar(); this.medirTodo(); });
+      },
+      imprimir: () => { this.medirTodo(); this.leerLogo(); setTimeout(() => window.print(), 150); },
+
+      nuevoElemento: () => {
+        this.setState(s => ({
+          informes: s.informes.map(i => i.id === inf.id
+            ? Object.assign({}, i, { elementos: (i.elementos || []).concat([nuevoEl()]) })
+            : i)
+        }), () => { this.guardar(); this.medirTodo(); });
+      },
+
+      elementos: els.map((e, k) => ({
+        titulo: e.titulo, creado: e.creado, texto: e.texto,
+        numero: String(k + 1),
+        pagina: String(k + 2),
+        slotId: "inf-" + inf.id + "-" + e.id,
+        slotIdB: "inf-" + inf.id + "-" + e.id + "-b",
+        slotTexto: "Arrastrá acá la foto del relevamiento " + (k + 1),
+        slotTextoB: "Arrastrá acá la foto del resultado " + (k + 1),
+        // Foto traída del presupuesto: se pinta directo, sin arrastrarla otra vez.
+        hayImgA: !!e.imgA,
+        sinImgA: !e.imgA,
+        imgA: e.imgA ? React.createElement("img", { src: e.imgA, alt: "Foto del trabajo", style: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: e.fitA === "cover" ? "cover" : "contain" } }) : null,
+        fitA: e.fitA || "contain",
+        hayImgB: !!e.imgB,
+        sinImgB: !e.imgB,
+        imgB: e.imgB ? React.createElement("img", { src: e.imgB, alt: "Foto del trabajo", style: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: e.fitB === "cover" ? "cover" : "contain" } }) : null,
+        fitB: e.fitB || "contain",
+        marcoA: this.marcoFoto(e.rotA || 0),
+        marcoB: this.marcoFoto(e.rotB || 0),
+        giroA: (e.rotA || 0) ? (e.rotA || 0) + "°" : "",
+        giroB: (e.rotB || 0) ? (e.rotB || 0) + "°" : "",
+        girarA: () => this.patchEl(e.id, "rotA", (((e.rotA || 0) - 90) + 360) % 360),
+        girarA2: () => this.patchEl(e.id, "rotA", ((e.rotA || 0) + 90) % 360),
+        girarB: () => this.patchEl(e.id, "rotB", (((e.rotB || 0) - 90) + 360) % 360),
+        girarB2: () => this.patchEl(e.id, "rotB", ((e.rotB || 0) + 90) % 360),
+        ajustarA: () => this.patchEl(e.id, "fitA", (e.fitA || "contain") === "contain" ? "cover" : "contain"),
+        ajustarB: () => this.patchEl(e.id, "fitB", (e.fitB || "contain") === "contain" ? "cover" : "contain"),
+        labelAjusteA: (e.fitA || "contain") === "contain" ? "Completa" : "Llenar",
+        labelAjusteB: (e.fitB || "contain") === "contain" ? "Completa" : "Llenar",
+        estiloAjusteA: this.estiloAjuste((e.fitA || "contain") === "cover"),
+        estiloAjusteB: this.estiloAjuste((e.fitB || "contain") === "cover"),
+        rotuloA: e.rotuloA || "",
+        rotuloB: e.rotuloB || "",
+        onRotuloA: (ev) => this.patchEl(e.id, "rotuloA", ev.target.value),
+        onRotuloB: (ev) => this.patchEl(e.id, "rotuloB", ev.target.value),
+        onTitulo: (ev) => this.patchEl(e.id, "titulo", ev.target.value),
+        onCreado: (ev) => this.patchEl(e.id, "creado", ev.target.value),
+        onTexto: (ev) => { this.medir(ev.target); this.patchEl(e.id, "texto", ev.target.value); },
+        onIa: () => this.corregir(e.id, e.texto, (t) => this.patchEl(e.id, "texto", t)),
+        labelIa: this.state.iaClave === e.id ? "Corrigiendo…" : "Corregir con IA",
+        onSubir: () => this.moverEl(e.id, -1),
+        onBajar: () => this.moverEl(e.id, 1),
+        onDel: () => {
+          this.setState(s => ({
+            informes: s.informes.map(i => i.id === inf.id
+              ? Object.assign({}, i, { elementos: i.elementos.filter(x => x.id !== e.id) })
+              : i)
+          }), () => this.guardar());
+        }
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>
