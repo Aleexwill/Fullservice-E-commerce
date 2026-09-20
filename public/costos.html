@@ -1537,7 +1537,10 @@ function renderDatosObra() {
       ),
       el("label",{style:"display:flex;flex-direction:column;gap:5px;grid-column:span 2;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);"},
         el("span",{style:"display:flex;align-items:center;justify-content:space-between;gap:10px;"},
-          "Alcance del trabajo",
+          el("label",{style:"display:flex;align-items:center;gap:7px;cursor:pointer;"},
+            el("input",{type:"checkbox",checked:S.mostrarAlcance!==false,onchange:()=>setState({mostrarAlcance:!S.mostrarAlcance}),style:"width:13px;height:13px;cursor:pointer;accent-color:#1b1a18;margin:0;"}),
+            "Alcance del trabajo"
+          ),
           el("button",{style:btnIAStyle(!!S.busy_alcance)+"letter-spacing:0;text-transform:none;font-family:'IBM Plex Sans',sans-serif;padding:4px 9px;font-size:10.5px;",onclick:()=>corregir("alcance","global")},
             S.busy_alcance?"Corrigiendo…":(S.err_alcance||"Corregir con IA"))
         ),
