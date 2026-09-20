@@ -99,6 +99,12 @@
     html, body { background: #fff !important; }
     .print-sheet { box-shadow: none !important; border: 0 !important; margin: 0 !important; width: 100% !important; padding: 0 !important; }
     .wrap-grid { padding: 0 !important; }
+    /* Carpeta: secciones que se activan al imprimir */
+    [data-carp-print="1"] { display: block !important; break-before: page; }
+    [data-off-print="1"]  { display: none !important; }
+    /* Pie fijo de página en propuesta */
+    [data-pie-print="1"]  { display: block !important; }
+    @page { size: A4 portrait; margin: 9mm 10mm 13mm; }
   }
   html, body { margin: 0; padding: 0; background: var(--bg); font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: var(--text); transition: background .2s, color .2s; }
   * { box-sizing: border-box; }
@@ -523,6 +529,14 @@ let S = {
   ocultarPrecios: false,
   listaUnificada: false,
   modoEjec: false,
+  boceto: "",
+  fotos: [],
+  carpPropuesta: true,
+  carpPlanilla: true,
+  carpAnalisis: true,
+  carpBoceto: true,
+  carpImp: false,
+  fotosTope: "",
   modoMarca: "",
   herr: "circulo",
   colorMarca: "#c0392b",
@@ -1594,6 +1608,238 @@ function row(color, label, value) {
   );
 }
 
+// Adjuntar fotos: redimensiona via canvas y guarda base64
+function adjuntarFotos(e) {
+  const files = Array.from((e.target && e.target.files) || []);
+  if (!files.length) return;
+  const previas = S.fotos || [];
+  const cupo = Math.max(0, 6 - previas.length);
+  if (!cupo) { setState({ fotosTope: "Máximo 6 fotos: quitá alguna para agregar otra." }); return; }
+  Promise.all(files.slice(0, cupo).map(f => new Promise(res => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const max = 900;
+        const sc = Math.min(1, max / Math.max(im.width, im.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        res({ nombre: f.name, src: c.toDataURL("image/jpeg", 0.6), nota: "" });
+      };
+      im.onerror = () => res(null);
+      im.src = fr.result;
+    };
+    fr.onerror = () => res(null);
+    fr.readAsDataURL(f);
+  }))).then(list => {
+    const ok = list.filter(Boolean);
+    if (!ok.length) return;
+    const aviso = files.length > cupo ? "Se agregaron " + cupo + ": el máximo es 6 fotos." : "";
+    setState({ fotos: previas.concat(ok), fotosTope: aviso });
+  });
+  e.target.value = "";
+}
+
+// Imprimir solo la propuesta (sin planilla ni otros documentos internos)
+function imprimirSoloPropuesta() {
+  // Aseguramos que carpImp=false para que las secciones internas no aparezcan
+  setState({ carpImp: false });
+  requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+}
+
+// Imprimir carpeta completa (propuesta + docs seleccionados)
+function imprimirCarpeta(porRubro, idxIncluidos, G) {
+  setState({ carpImp: true });
+  // Esperamos que el DOM se actualice con los divs data-carp-print="1"
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => setState({ carpImp: false }), 600);
+  }, 450);
+}
+
+// Versión inline de informe técnico para carpeta (sin toolbar)
+function renderTecnicoInline(porRubro, idxIncluidos, G) {
+  const mm = money;
+  const hoy = new Date().toLocaleDateString("es-PY", { day:"2-digit", month:"2-digit", year:"numeric" });
+  const colMat = "minmax(0,1fr) 30px 44px 78px 88px";
+  const colMo  = "minmax(0,1fr) 30px 44px 78px 88px";
+  const thSt = "padding:3px 0;border-bottom:1px solid #dedbd5;font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:0.07em;text-transform:uppercase;color:#86817b;";
+  const tdSt = "padding:2px 0;border-bottom:1px solid #f0eee9;font-size:9.5px;";
+  const mono  = "font-family:'IBM Plex Mono',monospace;font-size:9px;";
+  const incluidos = idxIncluidos.map(i => ({ r: S.rubros[i], calc: porRubro[i] }));
+  return el("div",{},
+    el("div",{style:"display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:10px;border-bottom:2px solid #1b1a18;"},
+      el("div",{style:"display:flex;flex-direction:column;gap:3px;"},
+        el("div",{style:"font-size:16px;font-weight:700;"}, PROPS.empresa||"Full Service & Clean"),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:#6f6b64;"}, "Planilla de costos — uso interno"),
+        el("div",{style:"font-size:11px;color:#33312e;"}, (S.obra?"Obra: "+S.obra:"")+(S.obra&&S.cliente?" · ":"")+(S.cliente?"Cliente: "+S.cliente:""))
+      ),
+      el("div",{style:"text-align:right;flex-shrink:0;"},
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;"}, PROPS.nroPresupuesto||"—"),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#6f6b64;"}, hoy)
+      )
+    ),
+    ...incluidos.map(({r,calc},idx)=>{
+      const mats=(r.mats||[]).filter(m=>m.desc&&String(m.desc).trim());
+      const mos=(r.mos||[]).filter(m=>m.desc&&String(m.desc).trim());
+      const otros=[];
+      if(N(r.flete)>0)        otros.push({et:"Flete / transporte",val:mm(N(r.flete))});
+      if(N(r.equipos)>0)      otros.push({et:"Equipos y herramientas",val:mm(N(r.equipos))});
+      if(N(r.subcontratos)>0) otros.push({et:"Subcontratos",val:mm(N(r.subcontratos))});
+      if(N(r.varios)>0)       otros.push({et:"Varios",val:mm(N(r.varios))});
+      if(calc.montoOverhead>0)otros.push({et:"Overhead ("+( r.overhead||"12")+"%)",val:mm(calc.montoOverhead)});
+      return el("div",{style:"margin-top:11px;"},
+        el("div",{style:"display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:4px 0;border-bottom:1px solid #1b1a18;"},
+          el("div",{style:"font-size:12px;font-weight:700;"},r.nombre||"Rubro "+(idx+1)),
+          el("div",{style:mono+"font-size:11.5px;font-weight:700;white-space:nowrap;"},mm(calc.precioRubro))
+        ),
+        mats.length?el("div",{},
+          el("div",{style:"display:grid;grid-template-columns:"+colMat+";padding:3px 0;border-bottom:1px solid #dedbd5;"},
+            el("div",{style:thSt+"padding-right:8px;"},"Materiales e insumos"),
+            el("div",{style:thSt+"text-align:center;"},"Un."),
+            el("div",{style:thSt+"text-align:right;"},"Cant."),
+            el("div",{style:thSt+"text-align:right;"},"C. unit."),
+            el("div",{style:thSt+"text-align:right;"},"Costo")
+          ),
+          ...mats.map(m=>{
+            const sub=N(m.costo)*N(m.cant)*(1+N(m.desp||"0")/100);
+            return el("div",{style:"display:grid;grid-template-columns:"+colMat+";align-items:baseline;"+tdSt},
+              el("div",{style:"padding-right:8px;line-height:1.35;"},m.desc),
+              el("div",{style:mono+"font-size:8.5px;text-align:center;color:#6f6b64;"},m.unidad||"un"),
+              el("div",{style:mono+"text-align:right;"},m.cant||"0"),
+              el("div",{style:mono+"text-align:right;"},N(m.costo)?mm(N(m.costo)):"—"),
+              el("div",{style:mono+"text-align:right;"},mm(sub))
+            );
+          }),
+          el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 88px;padding:2px 0;"+mono+"font-size:9px;font-weight:600;"},
+            el("div",{style:"text-align:right;padding-right:8px;color:#6f6b64;"},"Subtotal materiales"),
+            el("div",{style:"text-align:right;"},mm(calc.materiales))
+          )
+        ):null,
+        mos.length?el("div",{},
+          el("div",{style:"display:grid;grid-template-columns:"+colMo+";padding:3px 0;border-bottom:1px solid #dedbd5;"},
+            el("div",{style:thSt+"padding-right:8px;"},"Mano de obra"),
+            el("div",{style:thSt+"text-align:center;"},"Pers."),
+            el("div",{style:thSt+"text-align:right;"},"Horas"),
+            el("div",{style:thSt+"text-align:right;"},"Valor/h"),
+            el("div",{style:thSt+"text-align:right;"},"Costo")
+          ),
+          ...mos.map(m=>{
+            const sub=N(m.pers||"1")*N(m.horas||"0")*N(m.vh||"0");
+            return el("div",{style:"display:grid;grid-template-columns:"+colMo+";align-items:baseline;"+tdSt},
+              el("div",{style:"padding-right:8px;line-height:1.35;"},m.desc),
+              el("div",{style:mono+"text-align:center;"},m.pers||"1"),
+              el("div",{style:mono+"text-align:right;"},m.horas||"0"),
+              el("div",{style:mono+"text-align:right;"},N(m.vh)?mm(N(m.vh)):"—"),
+              el("div",{style:mono+"text-align:right;"},mm(sub))
+            );
+          }),
+          el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 88px;padding:2px 0;"+mono+"font-size:9px;font-weight:600;"},
+            el("div",{style:"text-align:right;padding-right:8px;color:#6f6b64;"},"Subtotal mano de obra"),
+            el("div",{style:"text-align:right;"},mm(calc.manoObra))
+          )
+        ):null,
+        otros.length?el("div",{},
+          ...otros.map(ot=>el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 88px;padding:2px 0;border-bottom:1px solid #f0eee9;font-size:9.5px;"},
+            el("div",{style:"padding-right:8px;color:#33312e;"},ot.et),
+            el("div",{style:mono+"text-align:right;"},ot.val)
+          ))
+        ):null,
+        el("div",{style:"display:grid;grid-template-columns:minmax(0,1fr) 88px 88px 88px;gap:0;padding:3px 0 0;border-top:1px solid #1b1a18;"+mono+"font-size:9px;"},
+          el("div",{style:"text-align:right;padding-right:8px;color:#6f6b64;"},"Costo total · margen · precio del rubro"),
+          el("div",{style:"text-align:right;"},mm(calc.costoTotal)),
+          el("div",{style:"text-align:right;color:#6f6b64;"},calc.costoTotal>0?(calc.montoMargen/calc.costoTotal*100).toFixed(1)+"%":"—"),
+          el("div",{style:"text-align:right;font-weight:700;"},mm(calc.precioRubro))
+        )
+      );
+    }),
+    el("div",{style:"margin-top:14px;padding-top:7px;border-top:2px solid #1b1a18;display:flex;align-items:baseline;justify-content:space-between;gap:20px;"},
+      el("div",{style:"font-size:11px;color:#33312e;"},
+        "Costo total "+mm(G.costoTotal)+" · margen "+(G.neto>0?(G.ganancia/G.neto*100).toFixed(1)+"%":"—")
+      ),
+      el("div",{style:"display:flex;align-items:baseline;gap:10px;"},
+        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#6f6b64;"},"Total al cliente"),
+        el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;"},mm(G.totalFinal))
+      )
+    )
+  );
+}
+
+// Versión inline de informe de costos para carpeta (sin toolbar)
+function renderInformeInline(porRubro, idxIncluidos, G) {
+  const mm = money;
+  const incluidos = idxIncluidos.map(i=>({r:S.rubros[i],calc:porRubro[i]}));
+  const col = "minmax(0,1fr) 110px 110px 90px 118px 60px 120px";
+  const margenCosto = G.costoTotal>0?(G.ganancia/G.costoTotal*100).toFixed(1)+"%":"—";
+  const margenVenta = G.neto>0?(G.ganancia/G.neto*100).toFixed(1)+"%":"—";
+  return el("div",{},
+    el("div",{style:"display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:10px;border-bottom:2px solid #1b1a18;"},
+      el("div",{style:"display:flex;flex-direction:column;gap:3px;"},
+        el("div",{style:"font-size:16px;font-weight:700;"},PROPS.empresa||"Full Service & Clean"),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:#6f6b64;"},"Análisis de costo — uso interno"),
+        el("div",{style:"font-size:11px;color:#33312e;"},(S.obra?"Obra: "+S.obra:"")+(S.obra&&S.cliente?" · ":"")+(S.cliente?"Cliente: "+S.cliente:""))
+      ),
+      el("div",{style:"text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;"},PROPS.nroPresupuesto||"—")
+    ),
+    el("div",{style:"padding:14px 0 6px;font-size:11px;line-height:1.7;white-space:pre-wrap;text-wrap:pretty;"},
+      S.memoria||"Sin memoria de cálculo cargada para este presupuesto."
+    ),
+    el("div",{style:"display:grid;grid-template-columns:"+col+";gap:8px;padding:8px 0;border-bottom:1px solid #1b1a18;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:0.07em;text-transform:uppercase;color:#6f6b64;"},
+      el("div",{},"Rubro"),
+      el("div",{style:"text-align:right;"},"Materiales"),
+      el("div",{style:"text-align:right;"},"Mano de obra"),
+      el("div",{style:"text-align:right;"},"Otros"),
+      el("div",{style:"text-align:right;"},"Costo total"),
+      el("div",{style:"text-align:right;"},"Margen"),
+      el("div",{style:"text-align:right;"},"Precio venta")
+    ),
+    ...incluidos.map(({r,calc})=>{
+      const pct=calc.costoTotal>0?(calc.montoMargen/calc.costoTotal*100).toFixed(1)+"%":"—";
+      return el("div",{style:"display:grid;grid-template-columns:"+col+";gap:8px;padding:9px 0;border-bottom:1px solid #efedea;align-items:baseline;"},
+        el("div",{style:"font-size:12px;color:#33312e;"},r.nombre),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;"},mm(calc.materiales)),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;"},mm(calc.manoObra)),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;"},mm(calc.otros+calc.montoOverhead)),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;color:#33312e;"},mm(calc.costoTotal)),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;"},pct),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-align:right;"},mm(calc.precioRubro))
+      );
+    }),
+    el("div",{style:"display:grid;grid-template-columns:"+col+";gap:8px;padding:10px 0;border-top:2px solid #1b1a18;align-items:baseline;"},
+      el("div",{style:"font-size:12px;font-weight:700;"},"Total con IVA"),
+      el("div",{}),el("div",{}),el("div",{}),
+      el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-align:right;color:#6f6b64;"},mm(G.costoTotal)),
+      el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#6f6b64;"},margenVenta),
+      el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;text-align:right;"},mm(G.totalFinal))
+    )
+  );
+}
+
+// Boceto del trabajo para carpeta
+function renderBoceto() {
+  const hoy = new Date().toLocaleDateString("es-PY",{day:"2-digit",month:"2-digit",year:"numeric"});
+  return el("div",{},
+    el("div",{style:"display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:10px;border-bottom:2px solid #1b1a18;"},
+      el("div",{style:"display:flex;flex-direction:column;gap:3px;"},
+        el("div",{style:"font-size:16px;font-weight:700;"},PROPS.empresa||"Full Service & Clean"),
+        el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.11em;text-transform:uppercase;color:#6f6b64;"},"Boceto del trabajo a realizar"),
+        el("div",{style:"font-size:11px;color:#33312e;"},(S.obra?"Obra: "+S.obra:"")+(S.obra&&S.cliente?" · ":"")+(S.cliente?"Cliente: "+S.cliente:""))
+      ),
+      el("div",{style:"text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;"},PROPS.nroPresupuesto||"—")
+    ),
+    S.boceto?el("div",{style:"padding:12px 0;font-size:11.5px;line-height:1.65;white-space:pre-wrap;"},S.boceto):null,
+    (S.fotos||[]).length>0?el("div",{style:"display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;"},
+      ...(S.fotos||[]).map(f=>
+        el("div",{style:"break-inside:avoid;"},
+          el("img",{src:f.src,alt:f.nombre||"Foto del boceto",style:"width:100%;height:auto;display:block;border:1px solid #dedbd5;border-radius:4px;"}),
+          f.nota&&f.nota.trim()?el("div",{style:"font-size:10.5px;line-height:1.5;color:#4a4741;padding:5px 0 0;"},f.nota):null
+        )
+      )
+    ):null
+  );
+}
+
 function imprimirEjecucion() {
   setState({ modoEjec: true });
   const reset = () => { setState({ modoEjec: false }); window.removeEventListener("afterprint", reset); };
@@ -1790,18 +2036,132 @@ function renderPropuesta(porRubro, idxIncluidos, G, detalleMats, detalleMos) {
 
     // Bottom actions
     el("div", { class: "noprint", style: "display:flex;flex-direction:column;gap:14px;align-items:center;margin:26px auto 0;max-width:820px;" },
+
+      // Fila 1: botones principales
       el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;"},
+        el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#fff;background:oklch(0.48 0.14 285);border:0;border-radius:8px;cursor:pointer;",title:"Imprime solo la hoja de propuesta, sin la planilla interna",onclick:()=>imprimirSoloPropuesta()}, "Imprimir solo la propuesta"),
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:var(--cta-text);background:var(--cta-bg);border:0;border-radius:8px;cursor:pointer;",onclick:()=>window.print()}, "Imprimir / Guardar PDF"),
-        el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#fff;background:#374151;border:0;border-radius:8px;cursor:pointer;",onclick:()=>imprimirEjecucion()}, "Informe de ejecución"),
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#ffffff;background:oklch(0.58 0.15 155);border:0;border-radius:8px;cursor:pointer;",onclick:()=>enviarWhatsapp(idxIncluidos, porRubro, G)}, S.waAviso||"Enviar por WhatsApp"),
         el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#ffffff;background:oklch(0.52 0.16 255);border:0;border-radius:8px;cursor:pointer;",onclick:()=>enviarCorreo(idxIncluidos, porRubro, G)}, "Enviar por correo"),
         el("button",{style:"padding:11px 18px;font-size:13px;font-weight:500;color:var(--btn-text);background:var(--btn-bg);border:1px solid var(--btn-bdr);border-radius:8px;cursor:pointer;",onclick:()=>copiarResumen(idxIncluidos, porRubro, G)}, S.copiado?"Resumen copiado":"Copiar resumen")
       ),
+
+      // Fila 2: informe de ejecución
+      el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;"},
+        el("button",{style:"padding:11px 20px;font-size:13px;font-weight:600;color:#fff;background:#374151;border:0;border-radius:8px;cursor:pointer;",onclick:()=>imprimirEjecucion()}, "Informe de ejecución")
+      ),
+
+      // Card: carpeta para aprobación
+      el("div",{style:"width:100%;max-width:640px;margin:6px auto 0;padding:16px 18px;background:#ffffff;border:1px solid #dedbd5;border-radius:10px;text-align:left;"},
+
+        // Header de la carpeta
+        el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;"},
+          el("span",{style:"font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;"}, "Carpeta para aprobación"),
+          el("button",{
+            style:"margin-left:auto;padding:8px 15px;font-size:12.5px;font-weight:600;color:#fff;background:oklch(0.48 0.14 285);border:0;border-radius:7px;cursor:pointer;",
+            onclick: () => imprimirCarpeta(porRubro, idxIncluidos, G)
+          }, "Imprimir carpeta")
+        ),
+
+        // Checkboxes de documentos
+        el("div",{style:"display:flex;flex-direction:column;gap:7px;"},
+          el("label",{style:"display:flex;align-items:center;gap:9px;font-size:12.5px;color:#33312e;cursor:pointer;"},
+            el("input",{type:"checkbox",checked:S.carpPropuesta!==false,onchange:()=>setState({carpPropuesta:S.carpPropuesta===false}),style:"width:15px;height:15px;cursor:pointer;accent-color:#1b1a18;"}),
+            "1 · Hoja de propuesta"
+          ),
+          el("label",{style:"display:flex;align-items:center;gap:9px;font-size:12.5px;color:#33312e;cursor:pointer;"},
+            el("input",{type:"checkbox",checked:S.carpPlanilla!==false,onchange:()=>setState({carpPlanilla:S.carpPlanilla===false}),style:"width:15px;height:15px;cursor:pointer;accent-color:#1b1a18;"}),
+            "2 · Planilla de costos"
+          ),
+          el("label",{style:"display:flex;align-items:center;gap:9px;font-size:12.5px;color:#33312e;cursor:pointer;"},
+            el("input",{type:"checkbox",checked:S.carpAnalisis!==false,onchange:()=>setState({carpAnalisis:S.carpAnalisis===false}),style:"width:15px;height:15px;cursor:pointer;accent-color:#1b1a18;"}),
+            "3 · Informe del análisis"
+          ),
+          el("label",{style:"display:flex;align-items:center;gap:9px;font-size:12.5px;color:#33312e;cursor:pointer;"},
+            el("input",{type:"checkbox",checked:S.carpBoceto!==false,onchange:()=>setState({carpBoceto:S.carpBoceto===false}),style:"width:15px;height:15px;cursor:pointer;accent-color:#1b1a18;"}),
+            "4 · Boceto del trabajo"
+          )
+        ),
+
+        // Boceto: descripción + fotos
+        el("div",{style:"margin-top:12px;padding-top:12px;border-top:1px solid #efedea;"},
+          el("div",{style:"font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;margin-bottom:7px;"}, "Boceto · descripción y fotos"),
+
+          el("textarea",{
+            rows:2,
+            placeholder:"Qué se va a hacer, medidas, referencias del lugar.",
+            style:"width:100%;box-sizing:border-box;padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;line-height:1.55;color:#33312e;background:#fdfcfa;border:1px solid #dedbd5;border-radius:7px;resize:vertical;",
+            oninput: e => setState({boceto:e.target.value}),
+            value: S.boceto||""
+          }),
+
+          // Adjuntar fotos
+          el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px;"},
+            el("label",{style:"padding:7px 13px;font-size:12px;font-weight:600;color:#33312e;background:#f0eee9;border:1px solid #dedbd5;border-radius:7px;cursor:pointer;"},
+              "Adjuntar fotos",
+              el("input",{type:"file",accept:"image/*",multiple:true,style:"display:none;",
+                onchange: e => adjuntarFotos(e)
+              })
+            ),
+            el("span",{style:"font-size:11.5px;color:#86817b;"}, S.fotosTope || ((S.fotos||[]).length ? (S.fotos||[]).length + ((S.fotos||[]).length===1?" foto adjunta":" fotos adjuntas") : "Ninguna foto adjunta"))
+          ),
+
+          // Grid de miniaturas
+          (S.fotos||[]).length > 0 ? el("div",{style:"display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px;"},
+            ...(S.fotos||[]).map((f, k) =>
+              el("div",{style:"position:relative;border:1px solid #dedbd5;border-radius:7px;overflow:hidden;background:#faf9f7;"},
+                el("img",{src:f.src,alt:f.nombre||"Foto",style:"width:100%;height:82px;object-fit:cover;display:block;"}),
+                el("button",{
+                  title:"Quitar la foto",
+                  style:"position:absolute;top:4px;right:4px;width:22px;height:22px;font-size:13px;line-height:1;color:#fff;background:rgba(27,26,24,0.72);border:0;border-radius:5px;cursor:pointer;",
+                  onclick: () => setState({fotos:(S.fotos||[]).filter((_,i)=>i!==k), fotosTope:""})
+                }, "×"),
+                el("textarea",{
+                  rows:2,
+                  placeholder:"Qué trabajo se hace acá",
+                  title:"Este texto sale al pie de la foto en la carpeta impresa",
+                  style:"width:100%;padding:6px 7px;font-family:'IBM Plex Sans',sans-serif;font-size:11px;line-height:1.45;color:#33312e;background:#fff;border:0;border-top:1px solid #dedbd5;border-radius:0;resize:none;display:block;",
+                  oninput: e => {
+                    const txt = e.target.value;
+                    setState({fotos:(S.fotos||[]).map((x,i)=>i===k?Object.assign({},x,{nota:txt}):x)});
+                  },
+                  value: f.nota||""
+                })
+              )
+            )
+          ) : null
+        )
+      ),
+
+      // Aviso
       el("div",{style:"display:flex;align-items:center;gap:10px;font-size:12px;color:#86817b;text-align:center;"},
-        el("span",{}, "El mensaje va con el resumen del presupuesto."),
+        el("span",{}, "El mensaje va con el número, la obra y el total. Al tocar Enviar por WhatsApp se abre WhatsApp con el mensaje."),
         el("a",{href:"#",onclick:e=>{e.preventDefault();setState({tab:"costos"});}}, "Volver a la planilla")
       )
+    ),
+
+    // ── Secciones de carpeta (solo se muestran al imprimir con carpImp=true) ──
+    el("div",{
+      "data-carp-print": S.carpImp && S.carpPlanilla!==false ? "1" : "0",
+      style:"display:none;width:100%;color:#1b1a18;padding:0 32px;"
+    },
+      renderTecnicoInline(porRubro, idxIncluidos, G)
+    ),
+
+    el("div",{
+      "data-carp-print": S.carpImp && S.carpAnalisis!==false ? "1" : "0",
+      style:"display:none;width:100%;color:#1b1a18;padding:0 32px;"
+    },
+      renderInformeInline(porRubro, idxIncluidos, G)
+    ),
+
+    el("div",{
+      "data-carp-print": S.carpImp && S.carpBoceto!==false && (S.boceto||(S.fotos||[]).length>0) ? "1" : "0",
+      style:"display:none;width:100%;color:#1b1a18;padding:0 32px;"
+    },
+      renderBoceto()
     )
+
   );
 }
 
