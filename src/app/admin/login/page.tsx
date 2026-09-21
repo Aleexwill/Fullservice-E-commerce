@@ -183,7 +183,7 @@ function LoginForm() {
                   name="user"
                   type="text"
                   autoComplete="username"
-                  maxLength={24}
+                  maxLength={254}
                   placeholder="admin"
                   autoCapitalize="none"
                   spellCheck={false}
