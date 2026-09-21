@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { createSessionToken, SESSION_COOKIE } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import type { Role } from '@/lib/roles';
+import { rateLimit, getIp } from '@/lib/rate-limit';
 
 function setCookie(res: NextResponse, token: string) {
   res.cookies.set(SESSION_COOKIE, token, {
@@ -15,6 +16,12 @@ function setCookie(res: NextResponse, token: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const ip = getIp(request);
+  const rl = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Demasiados intentos. Intente de nuevo en 15 minutos.' }, { status: 429 });
+  }
+
   try {
     const { username, password } = await request.json();
 
