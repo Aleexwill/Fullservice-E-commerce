@@ -273,6 +273,8 @@ class Component extends DCLogic {
     this._logoTimer = setInterval(this.leerLogo, 700);
     this._onBefore = this.leerLogo;
     window.addEventListener("beforeprint", this._onBefore);
+    // Si se abre con ?presupuesto=<id>, filtrar informes a ese presupuesto
+    this._presupuestoId = new URLSearchParams(window.location.search).get("presupuesto") || "";
     // Cargar desde API primero; si falla, usar localStorage como fallback
     fetch("/api/informes-tecnicos")
       .then(r => r.ok ? r.json() : null)
@@ -311,6 +313,17 @@ class Component extends DCLogic {
           informes = [i];
           sel = i.id;
         }
+        // Si hay filtro por presupuesto, seleccionar el primero de ese presupuesto (o crear uno)
+        if (this._presupuestoId) {
+          const propios = informes.filter(i => i.presupuestoId === this._presupuestoId);
+          if (propios.length) {
+            sel = propios[0].id;
+          } else {
+            const nuevo = Object.assign(informeVacio(this.siguienteNroDeList(informes)), { presupuestoId: this._presupuestoId });
+            informes = informes.concat([nuevo]);
+            sel = nuevo.id;
+          }
+        }
         this.setState({ informes: informes, sel: sel }, () => { this.guardar(); this.medirTodo(); });
       })
       .catch(() => {
@@ -328,15 +341,17 @@ class Component extends DCLogic {
     window.removeEventListener("beforeprint", this._onBefore);
   }
 
-  // Número consecutivo al último informe archivado.
-  siguienteNro() {
+  // Número consecutivo al último informe en la lista global.
+  siguienteNroDeList(list) {
     let max = 0;
-    (this.state.informes || []).forEach(i => {
+    (list || []).forEach(i => {
       const m = /^IT-(\d{4})-(\d+)$/.exec(String(i.nro || "").trim());
       if (m) max = Math.max(max, parseInt(m[2], 10));
     });
     return "IT-" + new Date().getFullYear() + "-" + String(max + 1).padStart(3, "0");
   }
+
+  siguienteNro() { return this.siguienteNroDeList(this.state.informes); }
 
   guardar() {
     clearTimeout(this._t);
@@ -476,6 +491,11 @@ class Component extends DCLogic {
     const els = inf.elementos || [];
     const paginas = els.length + 1;
     const etiqueta = (i, k) => (i.titulo || "").trim() || "Informe sin título " + (k + 1);
+    // En modo filtrado sólo mostramos informes del presupuesto activo
+    const pid = this._presupuestoId;
+    const visibles = pid
+      ? this.state.informes.filter(i => i.presupuestoId === pid)
+      : this.state.informes;
 
     return {
       f: {
@@ -487,13 +507,13 @@ class Component extends DCLogic {
       areaRef: this.areaRef,
       logoRef: this.logoRef,
       informeSel: inf.id,
-      listaInformes: this.state.informes.map((i, k) => ({ id: i.id, label: (i.nro ? i.nro + " · " : "") + etiqueta(i, k) })),
+      listaInformes: visibles.map((i, k) => ({ id: i.id, label: (i.nro ? i.nro + " · " : "") + etiqueta(i, k) })),
       onElegirInforme: (e) => this.setState({ sel: e.target.value }, () => { this.guardar(); this.medirTodo(); }),
 
       verArchivo: this.state.verArchivo === true,
       toggleArchivo: () => this.setState(s => ({ verArchivo: !s.verArchivo })),
-      labelArchivo: (this.state.verArchivo ? "Ocultar archivo" : "Archivo") + " (" + this.state.informes.length + ")",
-      archivo: this.state.informes.map((i, k) => ({
+      labelArchivo: (this.state.verArchivo ? "Ocultar archivo" : "Archivo") + " (" + visibles.length + ")",
+      archivo: visibles.map((i, k) => ({
         nro: i.nro || "—",
         titulo: etiqueta(i, k),
         archivado: i.archivado || "—",
@@ -516,7 +536,7 @@ class Component extends DCLogic {
       iaAviso: this.state.iaAviso || "",
 
       nuevoInforme: () => {
-        const i = informeVacio(this.siguienteNro());
+        const i = Object.assign(informeVacio(this.siguienteNro()), pid ? { presupuestoId: pid } : {});
         this.setState(s => ({ informes: s.informes.concat([i]), sel: i.id }), () => { this.guardar(); this.medirTodo(); });
       },
       duplicarInforme: () => {
@@ -527,13 +547,15 @@ class Component extends DCLogic {
         copia.creado = hoy();
         copia.titulo = (inf.titulo || "Informe") + " (copia)";
         copia.elementos = (copia.elementos || []).map((e, k) => Object.assign({}, e, { id: "e" + Date.now() + k }));
+        if (pid) copia.presupuestoId = pid;
         this.setState(s => ({ informes: s.informes.concat([copia]), sel: copia.id }), () => { this.guardar(); this.medirTodo(); });
       },
       borrarInforme: () => {
-        if (this.state.informes.length < 2) return;
+        if (visibles.length < 2) return;
         this.setState(s => {
           const resto = s.informes.filter(i => i.id !== inf.id);
-          return { informes: resto, sel: resto[0].id };
+          const selVis = (pid ? resto.filter(i => i.presupuestoId === pid) : resto);
+          return { informes: resto, sel: (selVis[0] || resto[0] || {}).id || "" };
         }, () => { this.guardar(); this.medirTodo(); });
       },
       imprimir: () => { this.medirTodo(); this.leerLogo(); setTimeout(() => window.print(), 150); },
