@@ -1101,7 +1101,7 @@ function openCatalogoModal(rubroIdx) {
       const priceEl = document.createElement("div");
       const rawPrice = p.unitPrice ?? p.price ?? p.precio ?? p.costo ?? 0;
       priceEl.style.cssText = "font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;flex-shrink:0;";
-      priceEl.textContent = money(Number(rawPrice));
+      priceEl.textContent = money(N(rawPrice));
 
       const addBtn = document.createElement("button");
       addBtn.textContent = "Agregar";
@@ -1134,7 +1134,7 @@ function openCatalogoModal(rubroIdx) {
 }
 
 function addCatalogoItem(rubroIdx, producto) {
-  const price = Number(producto.unitPrice ?? producto.price ?? producto.precio ?? producto.costo ?? 0);
+  const price = N(producto.unitPrice ?? producto.price ?? producto.precio ?? producto.costo ?? 0);
   const unit  = producto.unit || producto.unidad || "un";
   const newItem = {
     id: Date.now() + Math.random(),

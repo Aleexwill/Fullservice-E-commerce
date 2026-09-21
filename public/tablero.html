@@ -237,7 +237,7 @@ function patchRow(id,fields){
   S.rows=S.rows.map(r=>{if(r.id!==id)return r;const u=Object.assign({},r,fields);return u;});
   persistir();
   const r=S.rows.find(x=>x.id===id);
-  if(r&&r._id){const sd={alerta:r.alerta,avance:r.avance,os:r.os,informe:r.informe,facturado:r.facturado,nroFactura:r.nroFactura,tecnico:r.tecnico,prioridad:r.prioridad,obs:r.obs,pct:r.pct,dias:r.dias,vendido:Number(r.vendido)||0,local:r.local,mes:r._mes};patchAPI(r._id,sd);}
+  if(r&&r._id){const sd={alerta:r.alerta,avance:r.avance,os:r.os,informe:r.informe,facturado:r.facturado,nroFactura:r.nroFactura,tecnico:r.tecnico,prioridad:r.prioridad,obs:r.obs,pct:r.pct,dias:r.dias,vendido:N(r.vendido),local:r.local,mes:r._mes};patchAPI(r._id,sd);}
   render();
 }
 
