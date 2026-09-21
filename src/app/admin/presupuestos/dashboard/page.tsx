@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, TrendingUp, DollarSign, CheckCircle2, Clock, XCircle,
-  FileText, BarChart2, Wrench, AlertTriangle, RefreshCw,
+  BarChart2, Wrench, CheckCircle2, Clock, RefreshCw, Download, Printer,
+  FileText, TrendingUp, AlertCircle,
 } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 
@@ -17,6 +17,8 @@ interface Stats {
   conversionRate: number;
   totalEstimated: number;
   totalFinal: number;
+  totalAprobado: number;
+  totalFacturado: number;
   byStatus: Record<string, number>;
   byType: Record<string, number>;
   byPriority: Record<string, number>;
@@ -61,15 +63,8 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const PIPELINE_ORDER = [
-  'falta_presupuestar',
-  'pendiente_relevo',
-  'nuevo',
-  'en_revision',
-  'enviado',
-  'pendiente_aprobacion',
-  'aprobado',
-  'en_ejecucion',
-  'finalizado',
+  'falta_presupuestar', 'pendiente_relevo', 'nuevo', 'en_revision',
+  'enviado', 'pendiente_aprobacion', 'aprobado', 'en_ejecucion', 'finalizado',
 ];
 
 export default function PresupuestosDashboard() {
@@ -84,6 +79,23 @@ export default function PresupuestosDashboard() {
   }
 
   useEffect(() => { load(); }, []);
+
+  function handlePrint() { window.print(); }
+
+  function handleExcel() {
+    if (!stats) return;
+    const rows = PIPELINE_ORDER
+      .filter((s) => (stats.byStatus[s] || 0) > 0)
+      .map((s) => `${STATUS_LABELS[s] || s}\t${stats.byStatus[s] || 0}`)
+      .join('\n');
+    const blob = new Blob([`Estado\tCantidad\n${rows}`], { type: 'text/tab-separated-values' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'presupuestos-pipeline.tsv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   if (loading) {
     return (
@@ -109,9 +121,8 @@ export default function PresupuestosDashboard() {
     );
   }
 
-  const activeStatuses = ['falta_presupuestar', 'pendiente_relevo', 'nuevo', 'en_revision', 'enviado', 'pendiente_aprobacion', 'aprobado', 'en_ejecucion'];
-  const activeCount = activeStatuses.reduce((sum, s) => sum + (stats.byStatus[s] || 0), 0);
   const bajasCount = stats.byStatus['de_baja'] || 0;
+  const pendienteAprobacion = stats.byStatus['pendiente_aprobacion'] || 0;
 
   const pipelineData = PIPELINE_ORDER
     .map((s) => ({ status: s, count: stats.byStatus[s] || 0 }))
@@ -128,38 +139,57 @@ export default function PresupuestosDashboard() {
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href="/admin/presupuestos" className="flex h-8 w-8 items-center justify-center rounded-md text-steel-400 hover:bg-steel-900 hover:text-arctic">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div>
-            <h1 className="font-display text-h1 uppercase text-arctic">Dashboard Presupuestos</h1>
-            <p className="mt-0.5 font-body text-body-sm text-steel-400">Resumen ejecutivo del pipeline de servicios</p>
-          </div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-h1 uppercase text-arctic">Tablero de control</h1>
+          <p className="mt-0.5 font-body text-body-sm text-steel-400">Pipeline de presupuestos · resumen ejecutivo</p>
         </div>
-        <button
-          type="button"
-          onClick={load}
-          className="btn-secondary"
-        >
-          <RefreshCw className="h-4 w-4" /> Actualizar
-        </button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Aprobado total */}
+          <div className="flex items-baseline gap-2 rounded-lg bg-steel-900/60 px-4 py-2">
+            <span className="font-body text-caption uppercase tracking-widest text-steel-500">Aprobado</span>
+            <span className="font-mono text-[1.05rem] font-semibold text-success-bright">
+              {formatGs(stats.totalAprobado || stats.totalFinal)}
+            </span>
+          </div>
+
+          <button type="button" onClick={handleExcel} className="btn-secondary gap-2">
+            <Download className="h-4 w-4" /> Excel
+          </button>
+          <button type="button" onClick={handlePrint} className="btn-secondary gap-2">
+            <Printer className="h-4 w-4" /> PDF
+          </button>
+          <button type="button" onClick={load} className="btn-secondary gap-2">
+            <RefreshCw className="h-4 w-4" /> Actualizar
+          </button>
+        </div>
       </div>
 
-      {/* KPI Strip */}
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+      {/* Tab nav */}
+      <div className="mb-6 flex gap-1 rounded-lg bg-steel-900/40 p-1 w-fit">
+        <span className="rounded-md bg-steel-800 px-4 py-2 font-body text-body-sm font-semibold text-arctic">
+          Dashboard
+        </span>
+        <Link href="/admin/presupuestos" className="rounded-md px-4 py-2 font-body text-body-sm text-steel-400 hover:text-arctic">
+          Presupuestos
+        </Link>
+        <Link href="/admin/presupuestos/seguimiento" className="rounded-md px-4 py-2 font-body text-body-sm text-steel-400 hover:text-arctic">
+          Seguimiento
+        </Link>
+      </div>
+
+      {/* KPI Strip — matches reference: cargados, pendiente aprobación, en ejecución, finalizados */}
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-4">
         {[
-          { label: 'Total',         value: stats.total.toString(),            icon: FileText,      color: 'text-steel-300',   bg: 'bg-steel-900/60' },
-          { label: 'Activos',       value: activeCount.toString(),            icon: Clock,         color: 'text-blue-bright',  bg: 'bg-blue-muted' },
-          { label: 'En ejecución',  value: stats.enEjecucion.toString(),      icon: Wrench,        color: 'text-yellow-bright',bg: 'bg-yellow-muted' },
-          { label: 'Finalizados',   value: stats.completedCount.toString(),   icon: CheckCircle2,  color: 'text-success-bright',bg: 'bg-success-light' },
-          { label: 'De baja',       value: bajasCount.toString(),             icon: XCircle,       color: 'text-danger-bright', bg: 'bg-danger-light' },
-          { label: 'Tasa cierre',   value: `${stats.conversionRate}%`,        icon: TrendingUp,    color: 'text-success-bright',bg: 'bg-success-light' },
+          { label: 'Presupuestos cargados', value: stats.total.toString(),            icon: FileText,      color: 'text-steel-300',    bg: 'bg-steel-900/60' },
+          { label: 'Pendiente aprobación',  value: pendienteAprobacion.toString(),    icon: AlertCircle,   color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
+          { label: 'En ejecución',          value: stats.enEjecucion.toString(),      icon: Wrench,        color: 'text-blue-bright',   bg: 'bg-blue-muted' },
+          { label: 'Finalizados',           value: stats.completedCount.toString(),   icon: CheckCircle2,  color: 'text-success-bright',bg: 'bg-success-light' },
         ].map((k) => {
           const Icon = k.icon;
           return (
-            <div key={k.label} className="card p-4">
+            <div key={k.label} className="card p-5">
               <div className="flex items-center gap-2">
                 <div className={`flex h-7 w-7 items-center justify-center rounded-md ${k.bg}`}>
                   <Icon className={`h-3.5 w-3.5 ${k.color}`} />
@@ -173,28 +203,29 @@ export default function PresupuestosDashboard() {
       </div>
 
       {/* Valores */}
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="card p-5">
-          <div className="flex items-center gap-2 text-steel-400">
-            <DollarSign className="h-4 w-4" />
-            <span className="font-body text-caption uppercase tracking-wider">Valor estimado total</span>
-          </div>
+          <span className="font-body text-caption uppercase tracking-wider text-steel-400">Valor estimado total</span>
           <p className="mt-2 font-display text-h1 text-arctic">{formatGs(stats.totalEstimated)}</p>
-          <p className="mt-1 font-body text-caption text-steel-500">Suma de valores estimados de todos los presupuestos activos</p>
+          <p className="mt-1 font-body text-caption text-steel-500">Todos los presupuestos activos</p>
         </div>
         <div className="card p-5">
-          <div className="flex items-center gap-2 text-success-bright">
-            <CheckCircle2 className="h-4 w-4" />
-            <span className="font-body text-caption uppercase tracking-wider">Valor facturado / final</span>
+          <span className="font-body text-caption uppercase tracking-wider text-success-bright">Valor aprobado</span>
+          <p className="mt-2 font-display text-h1 text-arctic">{formatGs(stats.totalAprobado || stats.totalFinal)}</p>
+          <p className="mt-1 font-body text-caption text-steel-500">Presupuestos aprobados y en ejecución</p>
+        </div>
+        <div className="card p-5">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-success-bright" />
+            <span className="font-body text-caption uppercase tracking-wider text-steel-400">Tasa de cierre</span>
           </div>
-          <p className="mt-2 font-display text-h1 text-arctic">{formatGs(stats.totalFinal)}</p>
-          <p className="mt-1 font-body text-caption text-steel-500">Suma de valores finales cerrados y facturados</p>
+          <p className="mt-2 font-display text-h1 text-arctic">{stats.conversionRate}%</p>
+          <p className="mt-1 font-body text-caption text-steel-500">Facturado: {formatGs(stats.totalFacturado || 0)}</p>
         </div>
       </div>
 
       {/* Two columns: Pipeline + Tipos */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-
         {/* Pipeline por estado */}
         <div className="card p-5">
           <div className="mb-4 flex items-center gap-2">
@@ -211,16 +242,11 @@ export default function PresupuestosDashboard() {
                 return (
                   <div key={status}>
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="font-body text-body-sm text-steel-300">
-                        {STATUS_LABELS[status] || status}
-                      </span>
+                      <span className="font-body text-body-sm text-steel-300">{STATUS_LABELS[status] || status}</span>
                       <span className="font-mono text-caption text-steel-500">{count}</span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-steel-900/60">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, backgroundColor: color }}
-                      />
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
                     </div>
                   </div>
                 );
@@ -234,10 +260,7 @@ export default function PresupuestosDashboard() {
                       <span className="font-mono text-caption text-steel-500">{bajasCount}</span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-steel-900/60">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${Math.round((bajasCount / maxPipeline) * 100)}%`, backgroundColor: STATUS_COLORS['de_baja'] }}
-                      />
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.round((bajasCount / maxPipeline) * 100)}%`, backgroundColor: STATUS_COLORS['de_baja'] }} />
                     </div>
                   </div>
                 </>
@@ -261,16 +284,11 @@ export default function PresupuestosDashboard() {
                 return (
                   <div key={type}>
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="font-body text-body-sm text-steel-300">
-                        {TYPE_LABELS[type] || type}
-                      </span>
+                      <span className="font-body text-body-sm text-steel-300">{TYPE_LABELS[type] || type}</span>
                       <span className="font-mono text-caption text-steel-500">{count} ({Math.round((count / stats.total) * 100)}%)</span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-steel-900/60">
-                      <div
-                        className="h-full rounded-full bg-yellow-bright/70 transition-all duration-500"
-                        style={{ width: `${pct}%` }}
-                      />
+                      <div className="h-full rounded-full bg-yellow-bright/70 transition-all duration-500" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
@@ -285,8 +303,8 @@ export default function PresupuestosDashboard() {
         <Link href="/admin/presupuestos" className="btn-primary">
           <FileText className="h-4 w-4" /> Ver todos los presupuestos
         </Link>
-        <Link href="/admin/reportes/servicios" className="btn-secondary">
-          <BarChart2 className="h-4 w-4" /> Reporte servicios
+        <Link href="/admin/presupuestos/seguimiento" className="btn-secondary">
+          <Clock className="h-4 w-4" /> Seguimiento 1·2·3·5·7
         </Link>
       </div>
     </div>
