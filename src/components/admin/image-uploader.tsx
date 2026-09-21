@@ -25,7 +25,9 @@ export function ImageUploader({ value, onChange, label, hint, className = '', pr
       const fd = new FormData();
       fd.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      const json = await res.json();
+      const text = await res.text();
+      let json: any;
+      try { json = JSON.parse(text); } catch { throw new Error('Error en el servidor al subir imagen'); }
       if (!res.ok) throw new Error(json.error || 'Error al subir');
       onChange(json.url);
     } catch (e) {
@@ -122,7 +124,9 @@ export function MultiImageUploader({ value, onChange, label, max = 10 }: MultiPr
         const fd = new FormData();
         fd.append('file', file);
         const res = await fetch('/api/upload', { method: 'POST', body: fd });
-        const json = await res.json();
+        const text = await res.text();
+        let json: any;
+        try { json = JSON.parse(text); } catch { setError('Error en el servidor al subir imagen'); break; }
         if (!res.ok) { setError(json.error || 'Error al subir'); break; }
         uploaded.push(json.url);
       }
