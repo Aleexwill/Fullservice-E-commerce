@@ -3,6 +3,53 @@
 import { useRef, useState } from 'react';
 import { Upload, X, ImageIcon, Loader2 } from 'lucide-react';
 
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_DIMENSION = 1920;
+
+/** Comprime una imagen usando Canvas si supera MAX_BYTES. Devuelve un File listo para subir. */
+async function compressIfNeeded(file: File): Promise<File> {
+  if (file.size <= MAX_BYTES) return file;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+
+      // Reducir dimensiones si exceden MAX_DIMENSION
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Bajar calidad iterativamente hasta entrar en MAX_BYTES
+      let quality = 0.85;
+      const tryBlob = () => {
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+          if (blob.size <= MAX_BYTES || quality <= 0.3) {
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+          } else {
+            quality -= 0.1;
+            tryBlob();
+          }
+        }, 'image/jpeg', quality);
+      };
+      tryBlob();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 interface Props {
   value: string;
   onChange: (url: string) => void;
@@ -15,12 +62,18 @@ interface Props {
 /** Single-image uploader: drag & drop or click → Vercel Blob → returns URL */
 export function ImageUploader({ value, onChange, label, hint, className = '', previewHeight = 'h-36' }: Props) {
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function upload(file: File) {
-    setUploading(true);
     setError('');
+    if (file.size > MAX_BYTES) {
+      setCompressing(true);
+      file = await compressIfNeeded(file);
+      setCompressing(false);
+    }
+    setUploading(true);
     try {
       const fd = new FormData();
       fd.append('file', file);
@@ -42,7 +95,7 @@ export function ImageUploader({ value, onChange, label, hint, className = '', pr
       {label && <label className="mb-1.5 block font-body text-xs text-steel-400">{label}</label>}
 
       <div
-        className={`group relative flex cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-steel-700 transition hover:border-blue ${previewHeight} ${uploading ? 'pointer-events-none' : ''}`}
+        className={`group relative flex cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-steel-700 transition hover:border-blue ${previewHeight} ${uploading || compressing ? 'pointer-events-none' : ''}`}
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
@@ -60,10 +113,10 @@ export function ImageUploader({ value, onChange, label, hint, className = '', pr
               <span className="font-body text-xs text-white">Cambiar imagen</span>
             </div>
           </>
-        ) : uploading ? (
+        ) : compressing || uploading ? (
           <div className="flex flex-col items-center gap-2 text-steel-400">
             <Loader2 className="h-6 w-6 animate-spin text-blue" />
-            <span className="font-body text-xs">Subiendo…</span>
+            <span className="font-body text-xs">{compressing ? 'Optimizando…' : 'Subiendo…'}</span>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 px-4 text-center text-steel-500">
@@ -112,15 +165,21 @@ interface MultiProps {
 /** Multi-image uploader: add multiple images, show thumbnails with remove buttons */
 export function MultiImageUploader({ value, onChange, label, max = 10 }: MultiProps) {
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function upload(files: FileList) {
-    setUploading(true);
     setError('');
     const uploaded: string[] = [];
     try {
-      for (const file of Array.from(files)) {
+      for (let file of Array.from(files)) {
+        if (file.size > MAX_BYTES) {
+          setCompressing(true);
+          file = await compressIfNeeded(file);
+          setCompressing(false);
+        }
+        setUploading(true);
         const fd = new FormData();
         fd.append('file', file);
         const res = await fetch('/api/upload', { method: 'POST', body: fd });
@@ -135,6 +194,7 @@ export function MultiImageUploader({ value, onChange, label, max = 10 }: MultiPr
       setError(e instanceof Error ? e.message : 'Error al subir');
     } finally {
       setUploading(false);
+      setCompressing(false);
     }
   }
 
@@ -166,13 +226,16 @@ export function MultiImageUploader({ value, onChange, label, max = 10 }: MultiPr
       {/* Drop zone */}
       {value.length < max && (
         <div
-          className={`flex h-20 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-steel-700 transition hover:border-blue ${uploading ? 'pointer-events-none opacity-60' : ''}`}
+          className={`flex h-20 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-steel-700 transition hover:border-blue ${uploading || compressing ? 'pointer-events-none opacity-60' : ''}`}
           onClick={() => fileRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files.length) upload(e.dataTransfer.files); }}
         >
-          {uploading ? (
-            <Loader2 className="h-5 w-5 animate-spin text-blue" />
+          {compressing || uploading ? (
+            <div className="flex items-center gap-2 text-steel-400">
+              <Loader2 className="h-5 w-5 animate-spin text-blue" />
+              <span className="font-body text-xs">{compressing ? 'Optimizando…' : 'Subiendo…'}</span>
+            </div>
           ) : (
             <>
               <Upload className="h-4 w-4 text-steel-500" />
