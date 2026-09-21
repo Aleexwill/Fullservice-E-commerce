@@ -783,6 +783,8 @@ function PresupuestoRow({ item, onOpen, onDelete, onStatusChange, hideWebBadge }
   );
 }
 
+const PRES_PAGE_SIZE = 20;
+
 // ─── Solicitudes tab ──────────────────────────────────────────
 function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFilterStatus, filterType, setFilterType, onOpen, onDelete, onNew }: {
   items: Presupuesto[]; loading: boolean;
@@ -791,7 +793,11 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
   filterType: string; setFilterType: (v: string) => void;
   onOpen: (id: string) => void; onDelete: (id: string) => void; onNew: () => void;
 }) {
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [search, filterStatus, filterType, items.length]);
   const activeStatuses = Object.entries(STATUS_MAP).filter(([k]) => !ARCHIVE_STATUSES.includes(k));
+  const totalPages = Math.ceil(items.length / PRES_PAGE_SIZE);
+  const pageItems = items.slice(page * PRES_PAGE_SIZE, (page + 1) * PRES_PAGE_SIZE);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -819,7 +825,14 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} />)}
+          {pageItems.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} />)}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="btn-secondary disabled:opacity-40">Anterior</button>
+              <span className="font-body text-caption text-steel-500">Página {page + 1} de {totalPages} · {items.length} registros</span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="btn-secondary disabled:opacity-40">Siguiente</button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -833,8 +846,12 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
   onStatusChange: (id: string, status: string) => void;
 }) {
   const [filterStatus, setFilterStatus] = useState('');
+  const [page, setPage] = useState(0);
   const archiveStatuses = Object.entries(STATUS_MAP).filter(([k]) => ARCHIVE_STATUSES.includes(k));
   const filtered = filterStatus ? items.filter(i => i.status === filterStatus) : items;
+  const totalPages = Math.ceil(filtered.length / PRES_PAGE_SIZE);
+  const pageFiltered = filtered.slice(page * PRES_PAGE_SIZE, (page + 1) * PRES_PAGE_SIZE);
+  useEffect(() => { setPage(0); }, [filterStatus, search, items.length]);
 
   return (
     <div className="space-y-4">
@@ -858,7 +875,7 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map(item => (
+          {pageFiltered.map(item => (
             <PresupuestoRow
               key={item.id}
               item={item}
@@ -868,6 +885,13 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
               hideWebBadge
             />
           ))}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="btn-secondary disabled:opacity-40">Anterior</button>
+              <span className="font-body text-caption text-steel-500">Página {page + 1} de {totalPages} · {filtered.length} registros</span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="btn-secondary disabled:opacity-40">Siguiente</button>
+            </div>
+          )}
         </div>
       )}
     </div>
