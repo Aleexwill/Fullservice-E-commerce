@@ -85,14 +85,14 @@ const formatScheduledDate = (d: string) => {
   return new Date(y, m - 1, day).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-type Tab = 'solicitudes' | 'archivo' | 'planificacion' | 'aprobacion';
+type Tab = 'archivo' | 'planificacion' | 'aprobacion';
 
 export default function AdminPresupuestosPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Presupuesto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('solicitudes');
+  const [activeTab, setActiveTab] = useState<Tab>('archivo');
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
@@ -189,7 +189,6 @@ export default function AdminPresupuestosPage() {
   }, [canAprobar]);
 
   const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
-    { key: 'solicitudes',  label: 'Solicitudes',    icon: List,         count: allActive.length },
     { key: 'archivo',      label: 'Archivo',        icon: Archive,      count: allArchive.length },
     { key: 'planificacion',label: 'Planificación',  icon: ClipboardList },
     ...(canAprobar ? [{ key: 'aprobacion' as Tab, label: 'Aprobación', icon: ShieldCheck, count: pendingApproval.length }] : []),
@@ -237,20 +236,6 @@ export default function AdminPresupuestosPage() {
           <button onClick={fetchData} className="rounded p-1.5 text-steel-500 hover:text-arctic transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
         </div>
       </div>
-
-      {/* Solicitudes tab */}
-      {activeTab === 'solicitudes' && (
-        <SolicitudesTab
-          items={filteredSolicitudes} loading={loading}
-          search={search} setSearch={setSearch}
-          filterStatus={filterStatus} setFilterStatus={setFilterStatus}
-          filterType={filterType} setFilterType={setFilterType}
-          onOpen={(id) => router.push(`/admin/presupuestos/${id}`)}
-          onDelete={del}
-          onNew={() => setShowCreate(true)}
-          onSendToApproval={!canAprobar ? (id) => changeStatus(id, 'pendiente_aprobacion') : undefined}
-        />
-      )}
 
       {/* Archivo tab */}
       {activeTab === 'archivo' && (
