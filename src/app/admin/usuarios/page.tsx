@@ -195,7 +195,8 @@ export default function UsuariosPage() {
               <div>
                 <label className="mb-1 block font-body text-caption text-steel-400">Correo electrónico</label>
                 <input
-                  type="email"
+                  type="text"
+                  inputMode="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="correo@ejemplo.com"
