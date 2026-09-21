@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/auth';
 import { can } from '@/lib/roles';
 import { parseBody, UpdateUserSchema } from '@/lib/schemas';
+import bcrypt from 'bcryptjs';
 
 async function requireAdmin(request: NextRequest) {
   const auth = await requireAuth();
@@ -20,12 +21,19 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
   const parsed = await parseBody(request, UpdateUserSchema);
   if (parsed.error) return parsed.error;
-  const { name, role, isActive } = parsed.data;
+  const { name, role, isActive, password } = parsed.data;
+
+  const passwordHash = password ? await bcrypt.hash(password, 12) : undefined;
 
   const user = await prisma.user.update({
     where: { id: params.id },
-    data: { ...(name && { name }), ...(role && { role }), ...(isActive !== undefined && { isActive }) },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+    data: {
+      ...(name && { name }),
+      ...(role && { role }),
+      ...(isActive !== undefined && { isActive }),
+      ...(passwordHash && { passwordHash, mustChangePassword: true }),
+    },
+    select: { id: true, email: true, name: true, role: true, isActive: true, mustChangePassword: true, createdAt: true },
   });
 
   return NextResponse.json({ user });

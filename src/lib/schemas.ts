@@ -33,6 +33,7 @@ export const UpdateUserSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   role: z.string().min(1).max(60).optional(),
   isActive: z.boolean().optional(),
+  password: z.string().min(6).max(128).optional(),
 }).refine(d => Object.keys(d).length > 0, { message: 'Se requiere al menos un campo' });
 
 // ── Clientes ──────────────────────────────────────────────────────────────────

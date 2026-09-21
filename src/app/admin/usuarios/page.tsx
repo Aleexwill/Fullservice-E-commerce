@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { UserPlus, Trash2, ToggleLeft, ToggleRight, Shield, X, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { UserPlus, Trash2, ToggleLeft, ToggleRight, Shield, X, Eye, EyeOff, AlertTriangle, KeyRound, RefreshCw } from 'lucide-react';
 import { ROLE_LABELS } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 
@@ -27,6 +27,11 @@ export default function UsuariosPage() {
   const [availableRoles, setAvailableRoles] = useState<{ name: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [resetUser, setResetUser] = useState<User | null>(null);
+  const [resetPass, setResetPass] = useState('');
+  const [showResetPass, setShowResetPass] = useState(false);
+  const [resetSaving, setResetSaving] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   // form state
   const [email, setEmail] = useState('');
@@ -37,6 +42,11 @@ export default function UsuariosPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   const [formMsg, setFormMsg] = useState('');
+
+  function generatePassword() {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+    return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,6 +70,39 @@ export default function UsuariosPage() {
     setEmail(''); setName(''); setRole('vendedor'); setTempPass('');
     setFormError(''); setFormMsg(''); setShowPass(false);
     setShowCreate(true);
+  }
+
+  function openReset(user: User) {
+    setResetUser(user);
+    setResetPass('');
+    setResetError('');
+    setShowResetPass(false);
+  }
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault();
+    if (!resetUser) return;
+    setResetError('');
+    setResetSaving(true);
+    try {
+      const res = await fetch(`/api/usuarios/${resetUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: resetPass }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setResetError(data.error || 'Error al restablecer');
+      } else {
+        setFormMsg(`Contraseña de ${resetUser.name} restablecida. Deberá cambiarla al ingresar.`);
+        setResetUser(null);
+        load();
+      }
+    } catch {
+      setResetError('Error de conexión');
+    } finally {
+      setResetSaving(false);
+    }
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -183,17 +226,27 @@ export default function UsuariosPage() {
                     value={tempPass}
                     onChange={e => setTempPass(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    className="input w-full pr-10"
+                    className="input w-full pr-20"
                     required
                     minLength={6}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-500 hover:text-arctic"
-                  >
-                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => { const p = generatePassword(); setTempPass(p); setShowPass(true); }}
+                      title="Generar contraseña"
+                      className="rounded p-1.5 text-steel-500 hover:text-arctic"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(v => !v)}
+                      className="rounded p-1.5 text-steel-500 hover:text-arctic"
+                    >
+                      {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-1 font-body text-caption text-steel-500">
                   El usuario deberá cambiarla al ingresar por primera vez.
@@ -208,6 +261,68 @@ export default function UsuariosPage() {
                   {saving ? 'Creando...' : 'Crear usuario'}
                 </button>
                 <button type="button" onClick={() => setShowCreate(false)} className="btn-ghost flex-1 justify-center">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset password modal */}
+      {resetUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-carbon/70 px-4 backdrop-blur-sm">
+          <div className="card w-full max-w-sm p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="font-display text-h4 text-arctic">Restablecer contraseña</h2>
+              <button onClick={() => setResetUser(null)} className="rounded p-1 text-steel-500 hover:text-arctic"><X className="h-5 w-5" /></button>
+            </div>
+            <p className="mb-4 font-body text-body-sm text-steel-400">
+              Usuario: <span className="text-arctic">{resetUser.name}</span> ({resetUser.email})
+            </p>
+            <form onSubmit={handleReset} className="space-y-4">
+              <div>
+                <label className="mb-1 block font-body text-caption text-steel-400">Nueva contraseña temporal</label>
+                <div className="relative">
+                  <input
+                    type={showResetPass ? 'text' : 'password'}
+                    value={resetPass}
+                    onChange={e => setResetPass(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="input w-full pr-20"
+                    required
+                    minLength={6}
+                  />
+                  <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => { const p = generatePassword(); setResetPass(p); setShowResetPass(true); }}
+                      title="Generar contraseña"
+                      className="rounded p-1.5 text-steel-500 hover:text-arctic"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPass(v => !v)}
+                      className="rounded p-1.5 text-steel-500 hover:text-arctic"
+                    >
+                      {showResetPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-1 font-body text-caption text-steel-500">
+                  El usuario deberá cambiarla al próximo ingreso.
+                </p>
+              </div>
+              {resetError && (
+                <p className="rounded-md bg-danger-light/10 px-3 py-2 font-body text-caption text-danger-bright">{resetError}</p>
+              )}
+              <div className="flex gap-2 pt-2">
+                <button type="submit" disabled={resetSaving} className="btn-primary flex-1 justify-center disabled:opacity-50">
+                  {resetSaving ? 'Guardando...' : 'Restablecer'}
+                </button>
+                <button type="button" onClick={() => setResetUser(null)} className="btn-ghost flex-1 justify-center">
                   Cancelar
                 </button>
               </div>
@@ -262,6 +377,14 @@ export default function UsuariosPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => openReset(user)}
+                        aria-label="Restablecer contraseña"
+                        title="Restablecer contraseña"
+                        className="rounded p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </button>
                       <button
                         onClick={() => toggleActive(user)}
                         aria-label={user.isActive ? 'Desactivar' : 'Activar'}
