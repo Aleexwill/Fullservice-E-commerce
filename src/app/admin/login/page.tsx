@@ -1,110 +1,135 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-/* ─── Robot animated head ─────────────────────────────────────────────────── */
-function RobotHead({ message }: { message: string }) {
-  const headRef = useRef<HTMLDivElement>(null);
-  const eyeLRef = useRef<HTMLSpanElement>(null);
-  const eyeRRef = useRef<HTMLSpanElement>(null);
-  const visualRef = useRef<HTMLDivElement>(null);
+const PAGE_CSS = `
+    :root {
+        --bg: #0a0f1d;
+        --panel-l: #0d1322;
+        --panel-r: #131b34;
+        --line: rgba(120, 150, 210, .18);
+        --text: #e6ecfa;
+        --muted: #8593b5;
+        --blue: #3aa0e6;
+        --blue-2: #2478b5;
+        --orange: #ff8a1f;
+        --danger: #ff7a7a;
+        --ok: #5dffa4;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+        background: var(--bg); color: var(--text);
+        font: 400 15px/1.5 'Inter', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 12px; }
+    .stage {
+        position: relative; display: flex; align-items: center; justify-content: center; padding: 32px 24px;
+        border: 1px solid var(--line); border-radius: 26px; overflow: hidden;
+        background:
+            radial-gradient(circle at 50% 45%, rgba(58, 110, 200, .12), transparent 60%),
+            linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px) 0 0 / 34px 34px,
+            linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px) 0 0 / 34px 34px,
+            var(--panel-l);
+    }
+    #fsc-robot { width: 100%; max-width: 330px; }
+    .side { position: relative; display: flex; align-items: center; justify-content: center; padding: 56px 40px;
+        background: linear-gradient(180deg, var(--panel-r), #0c1224); border-radius: 26px; }
+    .secure { position: absolute; top: 18px; right: 18px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px;
+        font-size: 10px; font-weight: 500; letter-spacing: .16em; color: var(--muted); text-transform: uppercase; }
+    .form-wrap { width: 100%; max-width: 380px; }
+    .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: 11px; font-weight: 700; letter-spacing: .16em; color: #4db3f0; text-transform: uppercase; }
+    .eyebrow::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 10px rgba(255,138,31,.7); }
+    .fsc-h1 { margin: 0 0 14px; font: 400 clamp(44px, 6vw, 60px)/.95 'Anton', Impact, sans-serif; letter-spacing: -.005em; color: #fff; }
+    .lead { margin: 0 0 28px; color: var(--muted); font-size: 14px; }
+    label { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 600; color: #dbe4fb; }
+    .field { position: relative; margin-bottom: 20px; }
+    .field input {
+        width: 100%; height: 48px; padding: 0 46px 0 16px; border: 2px solid transparent; border-radius: 14px;
+        background: #e8f0fe; color: #0b1020; font: 500 15px 'Inter', system-ui, sans-serif; outline: none;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    .field input::placeholder { color: #7b88a8; }
+    .field input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(58, 160, 230, .25); }
+    .field .ico { position: absolute; right: 14px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); color: #5b3f9e; pointer-events: none; }
+    .field button.ico { pointer-events: auto; border: 0; padding: 0; background: none; color: #6a7896; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+    .field button.ico:hover { color: #2f3b5a; }
+    .field button.ico svg, .field .ico svg { width: 100%; height: 100%; }
+    .submit {
+        width: 100%; height: 48px; margin-top: 4px; border: 0; border-radius: 14px; cursor: pointer; color: #fff;
+        background: linear-gradient(180deg, var(--blue), var(--blue-2)); box-shadow: 0 12px 34px rgba(42, 140, 220, .35);
+        font: 400 17px/1 'Anton', Impact, sans-serif; letter-spacing: .02em;
+        transition: transform .1s, filter .15s;
+    }
+    .submit:hover:not(:disabled) { filter: brightness(1.08); }
+    .submit:active:not(:disabled) { transform: translateY(1px); }
+    .submit:disabled { cursor: progress; filter: saturate(.7); }
+    .fsc-msg { min-height: 22px; margin: 14px 0 0; font-size: 13px; text-align: center; color: var(--danger); }
+    @media (max-width: 860px) {
+        .shell { grid-template-columns: 1fr; gap: 12px; padding: 8px; }
+        .stage { padding: 20px 16px 12px; }
+        #fsc-robot { max-width: 200px; }
+        .side { padding: 44px 22px 32px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+`;
 
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      const el = visualRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const x = (e.clientX - (rect.left + rect.width / 2)) / rect.width;
-      const y = (e.clientY - (rect.top + rect.height / 2)) / rect.height;
-      const rx = Math.max(-10, Math.min(10, -y * 18));
-      const ry = Math.max(-14, Math.min(14, x * 24));
-      if (headRef.current) headRef.current.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-      const ex = Math.max(-5, Math.min(5, x * 9));
-      const ey = Math.max(-3, Math.min(3, y * 6));
-      if (eyeLRef.current) eyeLRef.current.style.transform = `translate(${ex}px,${ey}px)`;
-      if (eyeRRef.current) eyeRRef.current.style.transform = `translate(${ex}px,${ey}px)`;
-    };
-    const onLeave = () => {
-      if (headRef.current) headRef.current.style.transform = 'rotateX(0) rotateY(0)';
-      if (eyeLRef.current) eyeLRef.current.style.transform = 'translate(0,0)';
-      if (eyeRRef.current) eyeRRef.current.style.transform = 'translate(0,0)';
-    };
-    window.addEventListener('pointermove', onMove);
-    visualRef.current?.addEventListener('pointerleave', onLeave);
-    return () => {
-      window.removeEventListener('pointermove', onMove);
-      visualRef.current?.removeEventListener('pointerleave', onLeave);
-    };
-  }, []);
-
-  return (
-    <div ref={visualRef} style={styles.visual}>
-      {/* inner border */}
-      <div style={styles.visualInner} />
-      {/* glow */}
-      <div style={styles.glow} />
-
-      <div style={styles.robotWrap}>
-        {/* Speech bubble */}
-        <div style={styles.bubble} role="status" aria-live="polite">
-          {message}
-        </div>
-
-        {/* Antenna */}
-        <div style={styles.antenna} aria-hidden="true">
-          <span style={styles.antennaRod} />
-          <span style={styles.antennaTip} />
-        </div>
-
-        {/* Head */}
-        <div style={styles.head3d} aria-hidden="true">
-          <div ref={headRef} style={styles.head}>
-            <span style={styles.visor} />
-            <span style={{ ...styles.ear, ...styles.earL }} />
-            <span style={{ ...styles.ear, ...styles.earR }} />
-            <span ref={eyeLRef} style={{ ...styles.eye, ...styles.eyeL }} />
-            <span ref={eyeRRef} style={{ ...styles.eye, ...styles.eyeR }} />
-            <span style={styles.mouth} />
-            <span style={{ ...styles.cheek, left: 54 }} />
-            <span style={{ ...styles.cheek, right: 54 }} />
-          </div>
-        </div>
-
-        {/* Brand */}
-        <div style={styles.brand} aria-hidden="true">
-          <span style={styles.brandLine} />
-          <span style={styles.brandText}>FULL SERVICE &amp; CLEAN</span>
-          <span style={styles.brandLine} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Login form ──────────────────────────────────────────────────────────── */
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('Hola. Soy el guardián de este panel.');
   const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const botRef = useRef<any>(null);
+  const scriptLoaded = useRef(false);
 
-  const setBubble = useCallback((msg: string) => setMessage(msg), []);
+  useEffect(() => {
+    if (scriptLoaded.current) return;
+    scriptLoaded.current = true;
+    const script = document.createElement('script');
+    script.src = '/fsc-login-bot.js';
+    script.onload = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any;
+      if (w.FSCLoginBot) {
+        botRef.current = w.FSCLoginBot.mount('#fsc-robot', {
+          username: '#fsc-user',
+          password: '#fsc-pass',
+          toggle: '#fsc-toggle',
+        });
+      }
+    };
+    document.head.appendChild(script);
+    return () => { if (document.head.contains(script)) document.head.removeChild(script); };
+  }, []);
+
+  const togglePwd = () => {
+    const passEl = document.getElementById('fsc-pass') as HTMLInputElement | null;
+    const toggleEl = document.getElementById('fsc-toggle') as HTMLButtonElement | null;
+    const show = !showPwd;
+    setShowPwd(show);
+    if (passEl) passEl.type = show ? 'text' : 'password';
+    if (toggleEl) {
+      toggleEl.setAttribute('aria-pressed', String(show));
+      toggleEl.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    }
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!username || !password) {
-      setError('Completá ambos campos.');
-      setBubble('Faltan datos. No puedo abrir la puerta.');
+    setError('');
+    if (!username.trim() || !password) {
+      setError('Completá usuario y contraseña.');
+      botRef.current?.error('Completá usuario y contraseña.');
       return;
     }
     setLoading(true);
-    setError('');
-    setBubble('Verificando credenciales…');
+    botRef.current?.loading();
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -113,539 +138,100 @@ function LoginForm() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        const msg = data.error || 'Credenciales inválidas';
+        const msg = data.error || 'Usuario o contraseña incorrectos.';
         setError(msg);
-        setBubble('Acceso denegado. Verificá los datos.');
+        botRef.current?.error(msg);
         setLoading(false);
         return;
       }
-      setBubble('¡Acceso confirmado! Bienvenido.');
+      botRef.current?.success(username.trim());
       const redirectTo = searchParams.get('redirect') || '/admin';
       router.push(redirectTo);
       router.refresh();
     } catch {
-      setError('Error de conexión');
-      setBubble('No pude conectarme. Intentá de nuevo.');
+      setError('Error de conexión. Intentá de nuevo.');
+      botRef.current?.error('Error de conexión. Intentá de nuevo.');
       setLoading(false);
     }
   }
 
   return (
-    <div style={styles.page}>
-      <RobotHead message={message} />
-
-      <section style={styles.loginSection}>
-        <div style={styles.badge}>ACCESO SEGURO</div>
-
-        <div style={styles.kicker}>
-          <span style={styles.kickerDot} />
-          Panel Administrativo
-        </div>
-
-        <h1 style={styles.h1}>Bienvenido<br />de nuevo.</h1>
-        <p style={styles.subtitle}>
-          Ingresá tus credenciales para continuar. El asistente reacciona mientras escribís.
-        </p>
-
-        <form onSubmit={handleSubmit} noValidate>
-          {/* Usuario */}
-          <div style={styles.field}>
-            <label style={styles.label} htmlFor="username">Usuario</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                onFocus={() => setBubble('Primero el usuario. Estoy mirando.')}
-                onInput={() => setBubble(username.length > 1 ? 'Bien, seguí.' : 'Esperando...')}
-                placeholder="Nombre de usuario"
-                autoComplete="username"
-                required
-                style={styles.input}
-              />
-              <span style={styles.inputIcon}>👤</span>
-            </div>
-          </div>
-
-          {/* Contraseña */}
-          <div style={styles.field}>
-            <label style={styles.label} htmlFor="password">Contraseña</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="password"
-                type={showPwd ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                onFocus={() => setBubble('Modo contraseña. Escudo de privacidad activado.')}
-                onInput={() => {
-                  if (!password) setBubble('Te espero.');
-                  else if (password.length < 6) setBubble('Un poco más larga sería mejor.');
-                  else setBubble('Bien. Eso se ve sólido.');
-                }}
-                placeholder="Contraseña"
-                autoComplete="current-password"
-                required
-                style={{ ...styles.input, paddingRight: 80 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwd(v => !v)}
-                style={styles.togglePwd}
-                tabIndex={-1}
-                aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
-                {showPwd ? '🙈' : '👁'}
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      {/* eslint-disable-next-line react/no-danger */}
+      <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
+      <main className="shell">
+        <section className="stage" aria-label="Asistente de acceso">
+          <div id="fsc-robot" />
+        </section>
+        <section className="side">
+          <span className="secure">Acceso seguro</span>
+          <div className="form-wrap">
+            <p className="eyebrow">Panel administrativo</p>
+            <h1 className="fsc-h1">Bienvenido<br />de nuevo.</h1>
+            <p className="lead">Ingresá tus credenciales para continuar. El asistente reacciona mientras escribís.</p>
+            <form onSubmit={handleSubmit} noValidate>
+              <label htmlFor="fsc-user">Usuario</label>
+              <div className="field">
+                <input
+                  id="fsc-user"
+                  name="user"
+                  type="text"
+                  autoComplete="username"
+                  maxLength={24}
+                  placeholder="admin"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                />
+                <span className="ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.5" r="4.2"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg>
+                </span>
+              </div>
+              <label htmlFor="fsc-pass">Contraseña</label>
+              <div className="field">
+                <input
+                  id="fsc-pass"
+                  name="pass"
+                  type={showPwd ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  id="fsc-toggle"
+                  className="ico"
+                  aria-label="Mostrar contraseña"
+                  aria-pressed={showPwd}
+                  onClick={togglePwd}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </div>
+              {error && <p className="fsc-msg" role="alert">{error}</p>}
+              <button className="submit" type="submit" disabled={loading}>
+                {loading ? 'Verificando…' : 'Ingresar al panel'}
               </button>
-            </div>
+            </form>
           </div>
-
-          {/* Error */}
-          {error && (
-            <div style={styles.errorBox} role="alert">{error}</div>
-          )}
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ ...styles.btn, ...(loading ? styles.btnDisabled : {}) }}
-            onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.filter = 'brightness(1.1)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; }}
-          >
-            {loading ? 'Ingresando…' : 'Ingresar al panel'}
-          </button>
-        </form>
-      </section>
-    </div>
+        </section>
+      </main>
+    </>
   );
 }
 
-/* ─── Styles ──────────────────────────────────────────────────────────────── */
-// Full Service & Clean palette
-const C = {
-  carbon:    '#0B1120',
-  carbonL:   '#131B2E',
-  steel900:  '#1A2640',
-  steel700:  '#2A3A5C',
-  steel500:  '#4A5E80',
-  steel300:  '#8094B4',
-  blue:      '#2D8FCC',
-  blueB:     '#3CAAE0',
-  blueD:     '#1E6FA0',
-  blueMuted: '#132A3D',
-  orange:    '#E8862B',
-  orangeB:   '#F5993D',
-  arctic:    '#F4F7FB',
-  cloud:     '#C0CEDF',
-  danger:    '#FC8181',
-  dangerBg:  '#3D1A1A',
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    display: 'grid',
-    gridTemplateColumns: '1.05fr .95fr',
-    width: 'min(1120px, 100%)',
-    minHeight: 680,
-    borderRadius: 28,
-    border: '1px solid rgba(255,255,255,.10)',
-    background: `rgba(19,27,46,.96)`,
-    boxShadow: '0 28px 80px rgba(0,0,0,.5)',
-    overflow: 'hidden',
-    backdropFilter: 'blur(18px)',
-  },
-
-  /* ── visual panel ── */
-  visual: {
-    position: 'relative',
-    minHeight: 680,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '52px 40px',
-    background: `radial-gradient(circle at 48% 38%, rgba(60,170,224,.09), transparent 32%),
-                 linear-gradient(145deg, #172035, #0B1120 72%)`,
-    isolation: 'isolate',
-  },
-  visualInner: {
-    position: 'absolute',
-    inset: 20,
-    border: '1px solid rgba(255,255,255,.06)',
-    borderRadius: 22,
-    pointerEvents: 'none',
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    borderRadius: '50%',
-    background: `radial-gradient(circle, rgba(45,143,204,.28), rgba(232,134,43,.07) 38%, transparent 70%)`,
-    filter: 'blur(14px)',
-    zIndex: -1,
-    animation: 'fscPulse 4.5s ease-in-out infinite',
-  },
-  robotWrap: {
-    position: 'relative',
-    width: 330,
-    height: 390,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-
-  /* bubble */
-  bubble: {
-    position: 'absolute',
-    top: -36,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: 'max-content',
-    maxWidth: 300,
-    padding: '13px 17px',
-    border: `1px solid ${C.steel700}`,
-    borderRadius: 14,
-    background: `rgba(10,16,32,.92)`,
-    boxShadow: '0 10px 28px rgba(0,0,0,.35)',
-    color: C.arctic,
-    fontSize: 13.5,
-    lineHeight: 1.38,
-    letterSpacing: '.01em',
-    animation: 'fscBubbleIn .6s .4s both',
-    zIndex: 10,
-    whiteSpace: 'nowrap',
-  },
-
-  /* antenna */
-  antenna: {
-    position: 'absolute',
-    top: 46,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    zIndex: 3,
-  },
-  antennaRod: {
-    display: 'block',
-    width: 8,
-    height: 50,
-    background: `linear-gradient(180deg, ${C.steel300}, ${C.steel700})`,
-    borderRadius: 8,
-  },
-  antennaTip: {
-    display: 'block',
-    position: 'absolute' as const,
-    top: -12,
-    width: 24,
-    height: 24,
-    borderRadius: '50%',
-    background: `radial-gradient(circle at 35% 30%, #dffcff 0 16%, ${C.blueB} 32%, ${C.blueD} 76%)`,
-    boxShadow: `0 0 26px rgba(60,170,224,.7)`,
-    animation: 'fscTipBlink 2.7s infinite',
-  },
-
-  /* head */
-  head3d: {
-    position: 'absolute',
-    top: 90,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: 260,
-    height: 260,
-    perspective: 1000,
-  },
-  head: {
-    position: 'absolute',
-    inset: 0,
-    margin: 'auto',
-    width: 240,
-    height: 240,
-    borderRadius: '46% 46% 42% 42% / 44% 44% 52% 52%',
-    background: `linear-gradient(145deg, #1f3255 0%, #152340 52%, #0B1120 100%)`,
-    border: `2px solid rgba(45,143,204,.22)`,
-    boxShadow: `
-      inset 12px 12px 22px rgba(60,170,224,.05),
-      inset -16px -18px 26px rgba(0,0,0,.32),
-      0 22px 40px rgba(0,0,0,.45)`,
-    transformStyle: 'preserve-3d',
-    transition: 'transform .14s ease-out',
-  },
-  visor: {
-    position: 'absolute',
-    left: 28,
-    right: 28,
-    top: 54,
-    height: 108,
-    borderRadius: 32,
-    background: 'linear-gradient(180deg,#090d18,#060911)',
-    border: '1px solid rgba(255,255,255,.07)',
-    boxShadow: 'inset 0 0 30px rgba(0,0,0,.8)',
-  },
-  eye: {
-    position: 'absolute',
-    top: 93,
-    width: 38,
-    height: 18,
-    borderRadius: '50%',
-    background: `radial-gradient(circle at 50% 50%, #fff 0 14%, #a8e8ff 28%, ${C.blueB} 52%, rgba(60,170,224,.2) 70%, transparent 76%)`,
-    filter: `drop-shadow(0 0 7px rgba(60,170,224,.95))`,
-    zIndex: 2,
-    transition: 'transform .12s ease-out',
-  },
-  eyeL: { left: 66 },
-  eyeR: { right: 66 },
-  mouth: {
-    position: 'absolute',
-    left: '50%',
-    top: 133,
-    width: 46,
-    height: 15,
-    transform: 'translateX(-50%)',
-    borderBottom: `3px solid ${C.steel500}`,
-    borderRadius: '0 0 50px 50px',
-    opacity: .75,
-    zIndex: 2,
-  },
-  ear: {
-    position: 'absolute',
-    top: 86,
-    width: 34,
-    height: 64,
-    borderRadius: 18,
-    background: `linear-gradient(180deg, ${C.steel700}, #0B1120)`,
-    border: '1px solid rgba(255,255,255,.09)',
-    zIndex: -1,
-  },
-  earL: { left: -18 },
-  earR: { right: -18 },
-  cheek: {
-    position: 'absolute',
-    top: 142,
-    width: 20,
-    height: 8,
-    borderRadius: 999,
-    background: `rgba(232,134,43,.3)`,
-    filter: 'blur(.3px)',
-    zIndex: 2,
-  },
-
-  /* brand label below head */
-  brand: {
-    position: 'absolute',
-    bottom: 16,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    whiteSpace: 'nowrap',
-  },
-  brandLine: {
-    display: 'block',
-    width: 28,
-    height: 1,
-    background: `linear-gradient(90deg, transparent, ${C.blueB})`,
-  },
-  brandText: {
-    fontSize: 10,
-    fontWeight: 700,
-    letterSpacing: '.16em',
-    color: C.steel300,
-    textTransform: 'uppercase' as const,
-  },
-
-  /* ── login panel ── */
-  loginSection: {
-    position: 'relative',
-    minHeight: 680,
-    padding: '64px 56px',
-    background: `linear-gradient(180deg, rgba(26,36,64,.97), rgba(11,17,32,.99))`,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  badge: {
-    position: 'absolute' as const,
-    right: 24,
-    top: 24,
-    fontSize: 11,
-    color: C.steel300,
-    padding: '7px 12px',
-    border: `1px solid ${C.steel700}`,
-    borderRadius: 999,
-    letterSpacing: '.1em',
-  },
-  kicker: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    color: C.blueB,
-    fontSize: 12,
-    fontWeight: 700,
-    letterSpacing: '.14em',
-    textTransform: 'uppercase' as const,
-    marginBottom: 16,
-  },
-  kickerDot: {
-    display: 'inline-block',
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    background: C.orange,
-    boxShadow: `0 0 12px rgba(232,134,43,.7)`,
-  },
-  h1: {
-    margin: '0 0 12px',
-    fontSize: 'clamp(34px,4.5vw,54px)',
-    lineHeight: .97,
-    letterSpacing: '-.04em',
-    color: C.arctic,
-    fontWeight: 800,
-  },
-  subtitle: {
-    margin: '0 0 30px',
-    color: C.steel300,
-    lineHeight: 1.6,
-    fontSize: 14.5,
-    maxWidth: 400,
-  },
-  field: { marginBottom: 16 },
-  label: {
-    display: 'block',
-    fontSize: 13,
-    color: C.cloud,
-    marginBottom: 7,
-    fontWeight: 650,
-  },
-  input: {
-    width: '100%',
-    height: 52,
-    borderRadius: 12,
-    border: `1px solid ${C.steel700}`,
-    background: C.steel900,
-    color: C.arctic,
-    padding: '0 48px 0 16px',
-    outline: 'none',
-    fontSize: 15,
-    boxSizing: 'border-box' as const,
-    transition: 'border-color .2s, box-shadow .2s',
-  },
-  inputIcon: {
-    position: 'absolute' as const,
-    right: 14,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    fontSize: 16,
-    pointerEvents: 'none',
-  },
-  togglePwd: {
-    position: 'absolute' as const,
-    right: 12,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: 17,
-    padding: '0 4px',
-    width: 'auto',
-    height: 'auto',
-    color: C.steel300,
-    boxShadow: 'none',
-  },
-  errorBox: {
-    marginBottom: 14,
-    borderRadius: 10,
-    background: 'rgba(197,48,48,.15)',
-    border: '1px solid rgba(252,129,129,.2)',
-    padding: '10px 14px',
-    fontSize: 13.5,
-    color: C.danger,
-  },
-  btn: {
-    width: '100%',
-    height: 52,
-    border: 0,
-    borderRadius: 12,
-    background: `linear-gradient(135deg, ${C.blue}, ${C.blueD})`,
-    color: C.arctic,
-    fontSize: 15,
-    fontWeight: 800,
-    cursor: 'pointer',
-    boxShadow: `0 10px 26px rgba(45,143,204,.3)`,
-    transition: 'filter .2s, transform .15s',
-    letterSpacing: '.02em',
-  },
-  btnDisabled: {
-    opacity: .55,
-    cursor: 'not-allowed',
-  },
-};
-
-/* ─── Keyframe injection ─────────────────────────────────────────────────── */
-const KEYFRAMES = `
-  @keyframes fscPulse {
-    0%,100% { transform: scale(.95); opacity: .72; }
-    50%      { transform: scale(1.08); opacity: 1; }
-  }
-  @keyframes fscBubbleIn {
-    from { opacity: 0; transform: translate(-50%, 10px); }
-    to   { opacity: 1; transform: translate(-50%, 0); }
-  }
-  @keyframes fscTipBlink {
-    0%,92%,100% { filter: brightness(1); }
-    96%         { filter: brightness(1.9); }
-  }
-
-  /* Responsive */
-  @media (max-width: 860px) {
-    .fsc-login-page { grid-template-columns: 1fr !important; }
-    .fsc-visual     { min-height: 420px !important; }
-    .fsc-login-sec  { min-height: auto !important; padding: 44px 28px 52px !important; }
-    .fsc-robot-wrap { transform: scale(.82); }
-  }
-  @media (max-width: 480px) {
-    .fsc-visual  { min-height: 360px !important; padding: 32px 16px !important; }
-    .fsc-robot-wrap { transform: scale(.7); }
-    .fsc-login-sec  { padding: 36px 18px 44px !important; }
-  }
-
-  input:focus {
-    border-color: rgba(60,170,224,.75) !important;
-    box-shadow: 0 0 0 3px rgba(45,143,204,.14) !important;
-    background: #1a2640 !important;
-  }
-`;
-
-function StyleInjector() {
-  return <style dangerouslySetInnerHTML={{ __html: KEYFRAMES }} />;
-}
-
-/* ─── Page wrapper ───────────────────────────────────────────────────────── */
-function LoginPage() {
+export default function LoginPage() {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 24,
-        background: `
-          radial-gradient(circle at 50% -8%, rgba(45,143,204,.15), transparent 34%),
-          linear-gradient(180deg, #0f1b2d 0%, #0B1120 100%)`,
-        fontFamily: 'IBM Plex Sans, ui-sans-serif, system-ui, sans-serif',
-        overflowX: 'hidden',
-      }}
-    >
-      <StyleInjector />
-      <Suspense fallback={null}>
-        <LoginForm />
-      </Suspense>
-    </div>
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
-
-export default LoginPage;
