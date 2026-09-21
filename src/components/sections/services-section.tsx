@@ -57,7 +57,7 @@ export async function ServicesSection() {
               <Link key={service.id} href={href} className={`fs-service${service.image ? ' fs-service--photo' : ''}`}>
                 {service.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={service.image} alt="" aria-hidden="true" className="fs-service-bg" />
+                  <img src={service.image} alt="" aria-hidden="true" className="fs-service-bg" loading="lazy" decoding="async" />
                 )}
                 <div className="fs-service-inner">
                   <div className="fs-service-icon"><Icon size={26} /></div>

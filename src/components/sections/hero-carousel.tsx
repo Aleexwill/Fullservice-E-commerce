@@ -107,6 +107,9 @@ export function HeroDiagonalCarousel() {
             className="fs-carousel-bg absolute inset-0 h-full w-full object-cover will-change-transform"
             title={current.label}
             style={{ animation: 'fsKenBurns 5s ease-out forwards' }}
+            fetchPriority={active === 0 ? 'high' : 'low'}
+            loading={active === 0 ? 'eager' : 'lazy'}
+            decoding="async"
           />
         ) : null}
 
