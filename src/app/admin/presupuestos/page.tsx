@@ -46,16 +46,16 @@ interface Presupuesto {
 }
 
 const STATUS_MAP: Record<string, { label: string; badge: string; color: string }> = {
-  falta_presupuestar:  { label: 'Falta presupuestar', badge: 'badge-neutral',color: '#A78BFA' },
-  pendiente_relevo:    { label: 'Pendiente relevo',   badge: 'badge-neutral',color: '#F97316' },
-  nuevo:               { label: 'Nuevo',              badge: 'badge-blue',   color: '#3B82F6' },
-  en_revision:         { label: 'En revisión',        badge: 'badge-yellow', color: '#F59E0B' },
-  enviado:             { label: 'Enviado',             badge: 'badge-yellow', color: '#EAB308' },
-  pendiente_aprobacion:{ label: 'Pendiente aprobación',badge: 'badge-yellow',color: '#F59E0B' },
+  falta_presupuestar:  { label: 'Sin presupuestar',   badge: 'badge-neutral',color: '#9B7FE8' },
+  pendiente_relevo:    { label: 'Pendiente relevo',   badge: 'badge-neutral',color: '#C2813A' },
+  nuevo:               { label: 'Nuevo',              badge: 'badge-blue',   color: '#4A90D9' },
+  en_revision:         { label: 'En revisión',        badge: 'badge-yellow', color: '#C9922A' },
+  enviado:             { label: 'Enviado',             badge: 'badge-yellow', color: '#C9A020' },
+  pendiente_aprobacion:{ label: 'Pendiente aprobación',badge: 'badge-yellow',color: '#D4802A' },
   aprobado:            { label: 'Aprobado',            badge: 'badge-green',  color: '#48BB78' },
-  en_ejecucion:        { label: 'En ejecución',        badge: 'badge-green',  color: '#22C55E' },
-  finalizado:          { label: 'Finalizado',          badge: 'badge-green',  color: '#16A34A' },
-  de_baja:             { label: 'De baja',             badge: 'badge-red',    color: '#FC8181' },
+  en_ejecucion:        { label: 'En ejecución',        badge: 'badge-green',  color: '#3B8FCC' },
+  finalizado:          { label: 'Finalizado',          badge: 'badge-green',  color: '#3A8C62' },
+  de_baja:             { label: 'De baja',             badge: 'badge-red',    color: '#A09A92' },
 };
 
 const TYPE_MAP: Record<string, { label: string; icon: any; color: string }> = {

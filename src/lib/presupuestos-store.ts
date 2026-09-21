@@ -157,7 +157,7 @@ const ACTIVE_STATUSES = ['aprobado', 'en_ejecucion', 'finalizado'];
 export async function getPresupuestoStats() {
   const [all, segRow] = await Promise.all([
     prisma.presupuesto.findMany({
-      select: { status: true, serviceType: true, priority: true, estimatedValue: true, finalValue: true },
+      select: { status: true, serviceType: true, priority: true, estimatedValue: true, finalValue: true, customer: true },
     }),
     prisma.siteSettings.findUnique({ where: { id: 'seguimiento' } }),
   ]);
@@ -165,6 +165,7 @@ export async function getPresupuestoStats() {
   const byStatus: Record<string, number> = {};
   const byType: Record<string, number> = {};
   const byPriority: Record<string, number> = {};
+  const byCustomer: Record<string, number> = {};
   let totalEstimated = 0;
   let totalCotizado = 0;
   let totalAprobado = 0;
@@ -177,7 +178,12 @@ export async function getPresupuestoStats() {
     byPriority[p.priority] = (byPriority[p.priority] || 0) + 1;
     if (p.estimatedValue !== null) totalEstimated += Number(p.estimatedValue);
     if (p.status !== 'de_baja' && p.finalValue !== null) totalCotizado += Number(p.finalValue);
-    if (ACTIVE_STATUSES.includes(p.status) && p.finalValue !== null) totalAprobado += Number(p.finalValue);
+    if (['aprobado', 'en_ejecucion', 'finalizado'].includes(p.status) && p.finalValue !== null) {
+      totalAprobado += Number(p.finalValue);
+      const cust = p.customer as { name?: string; company?: string } | null;
+      const name = cust?.company || cust?.name || 'Sin nombre';
+      byCustomer[name] = (byCustomer[name] || 0) + Number(p.finalValue);
+    }
     if (p.status === 'finalizado' && p.finalValue !== null) totalFacturado += Number(p.finalValue);
     if (p.status === 'finalizado') completedCount++;
     if (ACTIVE_STATUSES.includes(p.status)) approvedCount++;
@@ -202,7 +208,7 @@ export async function getPresupuestoStats() {
     total: all.length, nuevos, enEjecucion, completedCount, approvedCount, conversionRate,
     totalEstimated, totalCotizado, totalAprobado, totalFacturado,
     totalFinal: totalAprobado,
-    byStatus, byType, byPriority,
+    byStatus, byType, byPriority, byCustomer,
     seguimiento: { total: segTotal, activos: segActivos, aprobados: segAprobados, perdidos: segPerdidos, pausados: segPausados, conversionRate: segConversionRate },
   };
 }

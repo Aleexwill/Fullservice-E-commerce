@@ -22,6 +22,7 @@ interface Stats {
   byStatus: Record<string, number>;
   byType: Record<string, number>;
   byPriority: Record<string, number>;
+  byCustomer: Record<string, number>;
 }
 
 const formatGs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
@@ -39,17 +40,18 @@ const STATUS_LABELS: Record<string, string> = {
   de_baja:              'De baja',
 };
 
+// Colors aligned with reference document palette
 const STATUS_COLORS: Record<string, string> = {
-  falta_presupuestar:   '#A78BFA',
-  pendiente_relevo:     '#F97316',
-  nuevo:                '#3B82F6',
-  en_revision:          '#F59E0B',
-  enviado:              '#EAB308',
-  pendiente_aprobacion: '#F59E0B',
-  aprobado:             '#48BB78',
-  en_ejecucion:         '#22C55E',
-  finalizado:           '#16A34A',
-  de_baja:              '#FC8181',
+  falta_presupuestar:   '#9B7FE8',  // purple — sin presupuestar
+  pendiente_relevo:     '#C2813A',  // amber-brown
+  nuevo:                '#4A90D9',  // blue
+  en_revision:          '#C9922A',  // amber
+  enviado:              '#C9A020',  // yellow-amber
+  pendiente_aprobacion: '#D4802A',  // orange — pendiente
+  aprobado:             '#48BB78',  // green
+  en_ejecucion:         '#3B8FCC',  // blue — en ejecucion
+  finalizado:           '#3A8C62',  // green-teal — finalizado
+  de_baja:              '#A09A92',  // neutral gray — de baja
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -123,6 +125,13 @@ export default function PresupuestosDashboard() {
 
   const bajasCount = stats.byStatus['de_baja'] || 0;
   const pendienteAprobacion = stats.byStatus['pendiente_aprobacion'] || 0;
+  const sinPresupuestar = stats.byStatus['falta_presupuestar'] || 0;
+  const porFacturar = Math.max(0, (stats.totalAprobado || 0) - (stats.totalFacturado || 0));
+
+  const customerData = Object.entries(stats.byCustomer || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+  const maxCustomer = Math.max(...customerData.map(([, v]) => v), 1);
 
   const pipelineData = PIPELINE_ORDER
     .map((s) => ({ status: s, count: stats.byStatus[s] || 0 }))
@@ -179,48 +188,46 @@ export default function PresupuestosDashboard() {
         </Link>
       </div>
 
-      {/* KPI Strip — matches reference: cargados, pendiente aprobación, en ejecución, finalizados */}
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-4">
+      {/* KPI Strip — 6 tiles matching reference */}
+      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {[
-          { label: 'Presupuestos cargados', value: stats.total.toString(),            icon: FileText,      color: 'text-steel-300',    bg: 'bg-steel-900/60' },
-          { label: 'Pendiente aprobación',  value: pendienteAprobacion.toString(),    icon: AlertCircle,   color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
-          { label: 'En ejecución',          value: stats.enEjecucion.toString(),      icon: Wrench,        color: 'text-blue-bright',   bg: 'bg-blue-muted' },
-          { label: 'Finalizados',           value: stats.completedCount.toString(),   icon: CheckCircle2,  color: 'text-success-bright',bg: 'bg-success-light' },
-        ].map((k) => {
-          const Icon = k.icon;
-          return (
-            <div key={k.label} className="card p-5">
-              <div className="flex items-center gap-2">
-                <div className={`flex h-7 w-7 items-center justify-center rounded-md ${k.bg}`}>
-                  <Icon className={`h-3.5 w-3.5 ${k.color}`} />
-                </div>
-                <span className="font-body text-caption uppercase tracking-[0.06em] text-steel-500">{k.label}</span>
-              </div>
-              <p className="mt-2 font-display text-h2 text-arctic">{k.value}</p>
-            </div>
-          );
-        })}
+          { label: 'Cargados',              value: stats.total.toString(),            accent: '#8094B4' },
+          { label: 'Pendiente aprobación',  value: pendienteAprobacion.toString(),    accent: '#D4802A' },
+          { label: 'En ejecución',          value: stats.enEjecucion.toString(),      accent: '#3B8FCC' },
+          { label: 'Finalizados',           value: stats.completedCount.toString(),   accent: '#3A8C62' },
+          { label: 'Sin presupuestar',      value: sinPresupuestar.toString(),        accent: '#9B7FE8' },
+          { label: 'De baja',              value: bajasCount.toString(),             accent: '#A09A92' },
+        ].map((k) => (
+          <div key={k.label} className="card p-4">
+            <span className="block font-body text-caption uppercase tracking-[0.06em] text-steel-500">{k.label}</span>
+            <p className="mt-2 font-mono text-[1.9rem] font-semibold leading-none" style={{ color: k.accent }}>
+              {k.value}
+            </p>
+          </div>
+        ))}
       </div>
 
-      {/* Valores */}
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="card p-5">
-          <span className="font-body text-caption uppercase tracking-wider text-steel-400">Valor estimado total</span>
-          <p className="mt-2 font-display text-h1 text-arctic">{formatGs(stats.totalEstimated)}</p>
-          <p className="mt-1 font-body text-caption text-steel-500">Todos los presupuestos activos</p>
+      {/* Valores — dark tiles like reference */}
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl bg-steel-900 p-5">
+          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-steel-500">Total cotizado</span>
+          <p className="mt-2 font-mono text-[1.35rem] font-semibold leading-tight text-arctic">{formatGs(stats.totalEstimated)}</p>
+          <p className="mt-1 font-body text-caption text-steel-500">Sin contar los de baja</p>
         </div>
-        <div className="card p-5">
-          <span className="font-body text-caption uppercase tracking-wider text-success-bright">Valor aprobado</span>
-          <p className="mt-2 font-display text-h1 text-arctic">{formatGs(stats.totalAprobado || stats.totalFinal)}</p>
-          <p className="mt-1 font-body text-caption text-steel-500">Presupuestos aprobados y en ejecución</p>
+        <div className="rounded-xl bg-steel-900 p-5">
+          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-steel-500">Aprobado / vendido</span>
+          <p className="mt-2 font-mono text-[1.35rem] font-semibold leading-tight" style={{ color: '#3B8FCC' }}>{formatGs(stats.totalAprobado || stats.totalFinal)}</p>
+          <p className="mt-1 font-body text-caption text-steel-500">Tasa de cierre {stats.conversionRate}%</p>
         </div>
-        <div className="card p-5">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-success-bright" />
-            <span className="font-body text-caption uppercase tracking-wider text-steel-400">Tasa de cierre</span>
-          </div>
-          <p className="mt-2 font-display text-h1 text-arctic">{stats.conversionRate}%</p>
-          <p className="mt-1 font-body text-caption text-steel-500">Facturado: {formatGs(stats.totalFacturado || 0)}</p>
+        <div className="rounded-xl bg-steel-900 p-5">
+          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-steel-500">Facturado</span>
+          <p className="mt-2 font-mono text-[1.35rem] font-semibold leading-tight text-arctic">{formatGs(stats.totalFacturado || 0)}</p>
+          <p className="mt-1 font-body text-caption text-steel-500">{stats.completedCount} trabajos finalizados</p>
+        </div>
+        <div className="rounded-xl bg-steel-900 p-5">
+          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-steel-500">Por facturar</span>
+          <p className="mt-2 font-mono text-[1.35rem] font-semibold leading-tight" style={{ color: '#D4802A' }}>{formatGs(porFacturar)}</p>
+          <p className="mt-1 font-body text-caption text-steel-500">Aprobado que aún no se facturó</p>
         </div>
       </div>
 
@@ -297,6 +304,34 @@ export default function PresupuestosDashboard() {
           )}
         </div>
       </div>
+
+      {/* Monto aprobado por cliente */}
+      {customerData.length > 0 && (
+        <div className="mt-6 card p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-success-bright" />
+            <h2 className="font-display text-h3 uppercase text-arctic">Monto aprobado por cliente</h2>
+          </div>
+          <div className="space-y-3">
+            {customerData.map(([name, amount]) => {
+              const pct = Math.round((amount / maxCustomer) * 100);
+              return (
+                <div key={name} className="grid grid-cols-[1fr_auto] items-center gap-4">
+                  <div>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="font-body text-body-sm text-steel-300 truncate">{name}</span>
+                      <span className="font-mono text-caption text-steel-400 whitespace-nowrap">{formatGs(amount)}</span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-steel-900/60">
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: '#3A8C62' }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="mt-6 flex flex-wrap gap-3">
