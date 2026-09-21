@@ -42,7 +42,7 @@ export interface Presupuesto {
   updatedAt: string;
 }
 
-function toPresupuesto(p: PrismaPresupuesto): Presupuesto {
+export function toPresupuesto(p: PrismaPresupuesto): Presupuesto {
   return {
     id: p.id,
     code: p.code,
@@ -82,9 +82,15 @@ export async function getPresupuestoById(id: string): Promise<Presupuesto | null
 export async function createPresupuesto(
   data: Omit<Presupuesto, 'id' | 'code' | 'createdAt' | 'updatedAt' | 'costosData' | 'seguimientoData'>
 ): Promise<Presupuesto> {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const count = await prisma.presupuesto.count();
-    const code = `PRES-${String(count + 1 + attempt).padStart(4, '0')}`;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    // Use the highest existing numeric suffix to derive the next code, avoiding
+    // the count() race condition where two concurrent inserts could get the same count.
+    const last = await prisma.presupuesto.findFirst({
+      orderBy: { createdAt: 'desc' },
+      select: { code: true },
+    });
+    const lastNum = last ? (parseInt(last.code.replace('PRES-', ''), 10) || 0) : 0;
+    const code = `PRES-${String(lastNum + 1 + attempt).padStart(4, '0')}`;
     try {
       const p = await prisma.presupuesto.create({
         data: {
@@ -150,7 +156,9 @@ const ACTIVE_STATUSES = ['aprobado', 'en_ejecucion', 'finalizado'];
 
 export async function getPresupuestoStats() {
   const [all, segRow] = await Promise.all([
-    prisma.presupuesto.findMany(),
+    prisma.presupuesto.findMany({
+      select: { status: true, serviceType: true, priority: true, estimatedValue: true, finalValue: true },
+    }),
     prisma.siteSettings.findUnique({ where: { id: 'seguimiento' } }),
   ]);
 

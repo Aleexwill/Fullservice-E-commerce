@@ -1,28 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, requireRole } from '@/lib/auth';
-import { getAllPresupuestos, createPresupuesto } from '@/lib/presupuestos-store';
+import { requireRole } from '@/lib/auth';
+import { createPresupuesto, toPresupuesto } from '@/lib/presupuestos-store';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
   const auth = await requireRole('canManagePresupuestos');
   if (auth instanceof NextResponse) return auth;
   try {
-    let data = await getAllPresupuestos();
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get('search');
-    if (search) { const q = search.toLowerCase(); data = data.filter((p) => p.customer.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.serviceTitle.toLowerCase().includes(q)); }
-    const status = searchParams.get('status');
-    if (status) data = data.filter((p) => p.status === status);
-    const type = searchParams.get('type');
-    if (type) data = data.filter((p) => p.serviceType === type);
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || '';
+    const type = searchParams.get('type') || '';
+    const dateFrom = searchParams.get('dateFrom') || '';
+    const dateTo = searchParams.get('dateTo') || '';
 
-    // Filter by scheduled date range (scheduledDate stored as YYYY-MM-DD string)
-    const dateFrom = searchParams.get('dateFrom');
-    const dateTo = searchParams.get('dateTo');
-    if (dateFrom) data = data.filter((p) => p.scheduledDate >= dateFrom);
-    if (dateTo) data = data.filter((p) => p.scheduledDate <= dateTo);
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+    if (type) where.serviceType = type;
+    if (dateFrom || dateTo) {
+      const range: Record<string, string> = {};
+      if (dateFrom) range.gte = dateFrom;
+      if (dateTo) range.lte = dateTo;
+      where.scheduledDate = range;
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      where.OR = [
+        { code: { contains: q, mode: 'insensitive' } },
+        { serviceTitle: { contains: q, mode: 'insensitive' } },
+        // customer is a JSON field — filter in memory after fetch (Prisma can't query inside JSON)
+      ];
+    }
 
-    data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const raw = await prisma.presupuesto.findMany({
+      where: where as any,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // customer is a JSON column — apply customer-name filter in memory after the DB query.
+    // All other filters (status, type, date, code, serviceTitle) are already applied above.
+    const q = search.toLowerCase();
+    const rows = search
+      ? raw.filter((p) => {
+          const cust = p.customer as { name?: string } | null;
+          if (cust?.name?.toLowerCase().includes(q)) return true;
+          // code / serviceTitle already matched via OR in `where`
+          const code = p.code.toLowerCase();
+          const title = p.serviceTitle.toLowerCase();
+          return code.includes(q) || title.includes(q);
+        })
+      : raw;
+
+    const data = rows.map((p) => toPresupuesto(p as Parameters<typeof toPresupuesto>[0]));
     return NextResponse.json({ presupuestos: data, total: data.length }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Error en GET /api/presupuestos:', error);
