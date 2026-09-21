@@ -82,6 +82,7 @@ export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/clientes', requiredPermission: 'canManageClients' },
   { path: '/api/pedidos', requiredPermission: 'canManageOrders' },
   { path: '/api/presupuestos', requiredPermission: 'canManagePresupuestos' },
+  { path: '/api/seguimiento', requiredPermission: 'canManagePresupuestos' },
   { path: '/api/informes-tecnicos', requiredPermission: 'canManagePresupuestos' },
   { path: '/api/admin', requiredPermission: 'canManageConfig' },
   { path: '/api/upload', requiredPermission: 'canManageContent' },
