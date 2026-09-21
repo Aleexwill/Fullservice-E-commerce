@@ -10,7 +10,7 @@ import {
 
 interface ProductStats { total: number; active: number; totalStock: number; totalValue: number; outOfStock: number; featured: number; }
 interface OrderStats { total: number; totalRevenue: number; paidRevenue: number; byStatus: Record<string, number>; }
-interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; }
+interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; seguimiento?: { total: number; activos: number; aprobados: number; perdidos: number; pausados: number; conversionRate: number }; }
 interface LeadStats { total: number; newLeads: number; converted: number; conversionRate: number; totalEstimated: number; }
 interface AnalyticsData { totalViews: number; todayViews: number; weekViews: number; }
 

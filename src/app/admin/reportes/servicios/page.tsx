@@ -13,6 +13,7 @@ interface PresupuestoStats {
   approvedCount: number; conversionRate: number;
   totalEstimated: number; totalCotizado: number; totalAprobado: number; totalFacturado: number; totalFinal: number;
   byStatus: Record<string, number>; byType: Record<string, number>; byPriority: Record<string, number>;
+  seguimiento: { total: number; activos: number; aprobados: number; perdidos: number; pausados: number; conversionRate: number };
 }
 
 const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
@@ -168,6 +169,53 @@ export default function ReporteServiciosPage() {
               })}
             </div>
           ) : <p className="py-8 text-center font-body text-body-sm text-steel-500">Sin datos aun</p>}
+        </div>
+
+        {/* Seguimiento pipeline */}
+        <div className="card p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 font-display text-h3 text-arctic"><TrendingUp className="h-5 w-5 text-blue-bright" /> Pipeline de seguimiento</h2>
+            <Link href="/admin/presupuestos/seguimiento" className="font-body text-caption text-blue-bright hover:underline">Ver seguimiento</Link>
+          </div>
+          {stats?.seguimiento && stats.seguimiento.total > 0 ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-carbon p-3 text-center">
+                  <p className="font-body text-caption text-steel-500">En seguimiento</p>
+                  <p className="mt-1 font-display text-h2 text-arctic">{stats.seguimiento.total}</p>
+                </div>
+                <div className="rounded-lg border border-blue-bright/20 bg-blue-bright/5 p-3 text-center">
+                  <p className="font-body text-caption text-steel-500">Conv. seguimiento</p>
+                  <p className="mt-1 font-display text-h2 text-blue-bright">{stats.seguimiento.conversionRate}%</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { label: 'Activos (en curso)', count: stats.seguimiento.activos, color: 'bg-blue-bright' },
+                  { label: 'Aprobados', count: stats.seguimiento.aprobados, color: 'bg-success-bright' },
+                  { label: 'Perdidos', count: stats.seguimiento.perdidos, color: 'bg-danger-bright' },
+                  { label: 'Pausados', count: stats.seguimiento.pausados, color: 'bg-yellow-bright' },
+                ].map(({ label, count, color }) => {
+                  const pct = stats.seguimiento.total > 0 ? Math.round((count / stats.seguimiento.total) * 100) : 0;
+                  return (
+                    <div key={label}>
+                      <div className="mb-1 flex items-center justify-between font-body text-body-sm">
+                        <span className="text-steel-300">{label}</span>
+                        <span className="font-mono text-caption text-arctic">{count} <span className="text-steel-500">({pct}%)</span></span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-steel-900">
+                        <div className={`h-full rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="py-8 text-center font-body text-body-sm text-steel-500">
+              {stats?.seguimiento?.total === 0 ? 'No hay presupuestos en seguimiento aun' : 'Sin datos aun'}
+            </p>
+          )}
         </div>
 
         {/* Financial summary */}

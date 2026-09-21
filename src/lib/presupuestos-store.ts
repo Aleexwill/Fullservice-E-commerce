@@ -149,16 +149,17 @@ export async function deletePresupuesto(id: string): Promise<boolean> {
 const ACTIVE_STATUSES = ['aprobado', 'en_ejecucion', 'finalizado'];
 
 export async function getPresupuestoStats() {
-  const all = await prisma.presupuesto.findMany();
+  const [all, segRow] = await Promise.all([
+    prisma.presupuesto.findMany(),
+    prisma.siteSettings.findUnique({ where: { id: 'seguimiento' } }),
+  ]);
+
   const byStatus: Record<string, number> = {};
   const byType: Record<string, number> = {};
   const byPriority: Record<string, number> = {};
   let totalEstimated = 0;
-  // totalCotizado: sum of all non-cancelled presupuestos (what was quoted)
   let totalCotizado = 0;
-  // totalAprobado: sum of finalValue for aprobado/en_ejecucion/finalizado (value of approved work)
   let totalAprobado = 0;
-  // totalFacturado: sum of finalValue only for 'finalizado' presupuestos (completed and delivered)
   let totalFacturado = 0;
   let completedCount = 0, approvedCount = 0;
 
@@ -167,11 +168,8 @@ export async function getPresupuestoStats() {
     byType[p.serviceType] = (byType[p.serviceType] || 0) + 1;
     byPriority[p.priority] = (byPriority[p.priority] || 0) + 1;
     if (p.estimatedValue !== null) totalEstimated += Number(p.estimatedValue);
-    // Cotizado = anything that's not de_baja
     if (p.status !== 'de_baja' && p.finalValue !== null) totalCotizado += Number(p.finalValue);
-    // Aprobado = active or done
     if (ACTIVE_STATUSES.includes(p.status) && p.finalValue !== null) totalAprobado += Number(p.finalValue);
-    // Facturado = only finalizado (work is done and delivered)
     if (p.status === 'finalizado' && p.finalValue !== null) totalFacturado += Number(p.finalValue);
     if (p.status === 'finalizado') completedCount++;
     if (ACTIVE_STATUSES.includes(p.status)) approvedCount++;
@@ -181,11 +179,22 @@ export async function getPresupuestoStats() {
   const enEjecucion = all.filter((p) => p.status === 'en_ejecucion').length;
   const conversionRate = all.length > 0 ? Math.round((approvedCount / all.length) * 100) : 0;
 
+  // Seguimiento pipeline stats — sourced from the dedicated seguimiento store
+  interface SegEntry { id: string; cerrado: '' | 'aprobado' | 'perdido' | 'pausado'; envio: string; }
+  const segData = segRow?.data as { seg?: SegEntry[] } | null;
+  const seg: SegEntry[] = Array.isArray(segData?.seg) ? (segData!.seg as SegEntry[]) : [];
+  const segTotal = seg.length;
+  const segActivos = seg.filter((e) => e.cerrado === '').length;
+  const segAprobados = seg.filter((e) => e.cerrado === 'aprobado').length;
+  const segPerdidos = seg.filter((e) => e.cerrado === 'perdido').length;
+  const segPausados = seg.filter((e) => e.cerrado === 'pausado').length;
+  const segConversionRate = segTotal > 0 ? Math.round((segAprobados / segTotal) * 100) : 0;
+
   return {
     total: all.length, nuevos, enEjecucion, completedCount, approvedCount, conversionRate,
     totalEstimated, totalCotizado, totalAprobado, totalFacturado,
-    // Keep totalFinal as an alias for totalAprobado for backward compat with existing UI consumers
     totalFinal: totalAprobado,
     byStatus, byType, byPriority,
+    seguimiento: { total: segTotal, activos: segActivos, aprobados: segAprobados, perdidos: segPerdidos, pausados: segPausados, conversionRate: segConversionRate },
   };
 }
