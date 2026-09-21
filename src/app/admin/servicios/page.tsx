@@ -91,7 +91,7 @@ export default function AdminServiciosPage() {
         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="card animate-pulse p-4"><div className="h-16 rounded bg-steel-900" /></div>)}</div>
       ) : services.length === 0 ? (
         <div className="card p-12 text-center">
-          <Wrench className="mx-auto h-12 w-12 text-steel-700" />
+          <Wrench className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin servicios</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">Cargá los 6 servicios predefinidos y luego agregá la imagen de cada uno.</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -124,7 +124,7 @@ export default function AdminServiciosPage() {
                 {s.features.length > 0 && <div className="mt-1 flex flex-wrap gap-1">{s.features.slice(0, 4).map((f) => <span key={f} className="badge-neutral text-[0.55rem]">{f}</span>)}{s.features.length > 4 && <span className="badge-neutral text-[0.55rem]">+{s.features.length - 4}</span>}</div>}
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <button onClick={() => toggle(s.id, 'isFeatured', s.isFeatured)} className={`rounded p-1.5 ${s.isFeatured ? 'text-yellow-bright' : 'text-steel-700 hover:text-steel-300'}`}><Star className="h-4 w-4" fill={s.isFeatured ? 'currentColor' : 'none'} /></button>
+                <button onClick={() => toggle(s.id, 'isFeatured', s.isFeatured)} className={`rounded p-1.5 ${s.isFeatured ? 'text-yellow-bright' : 'text-steel-500 hover:text-steel-300'}`}><Star className="h-4 w-4" fill={s.isFeatured ? 'currentColor' : 'none'} /></button>
                 <button onClick={() => toggle(s.id, 'isActive', s.isActive)} className="rounded p-1.5 text-steel-500 hover:text-arctic">{s.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
                 <button onClick={() => { setIsNew(false); setEditing(s); }} className="rounded p-1.5 text-steel-500 hover:bg-blue-muted hover:text-blue-bright"><Pencil className="h-4 w-4" /></button>
                 <button onClick={() => del(s.id)} className="rounded p-1.5 text-steel-500 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>

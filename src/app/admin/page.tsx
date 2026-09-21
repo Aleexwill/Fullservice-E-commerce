@@ -131,8 +131,8 @@ export default function AdminDashboard() {
 
           {/* Quick actions ecommerce */}
           <div className="flex gap-2">
-            <Link href="/admin/productos/nuevo" className="card-interactive flex flex-1 items-center gap-3 p-3"><Plus className="h-4 w-4 text-blue-bright" /><span className="font-body text-body-sm text-arctic">Nuevo producto</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
-            <Link href="/admin/reportes/ecommerce" className="card-interactive flex flex-1 items-center gap-3 p-3"><TrendingUp className="h-4 w-4 text-success-bright" /><span className="font-body text-body-sm text-arctic">Reporte E-com</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
+            <Link href="/admin/productos/nuevo" className="card-interactive flex flex-1 items-center gap-3 p-3"><Plus className="h-4 w-4 text-blue-bright" /><span className="font-body text-body-sm text-arctic">Nuevo producto</span><ArrowRight className="ml-auto h-3 w-3 text-steel-500" /></Link>
+            <Link href="/admin/reportes/ecommerce" className="card-interactive flex flex-1 items-center gap-3 p-3"><TrendingUp className="h-4 w-4 text-success-bright" /><span className="font-body text-body-sm text-arctic">Reporte E-com</span><ArrowRight className="ml-auto h-3 w-3 text-steel-500" /></Link>
           </div>
         </div>
 
@@ -178,8 +178,8 @@ export default function AdminDashboard() {
 
           {/* Quick actions servicios */}
           <div className="flex gap-2">
-            <Link href="/admin/presupuestos" className="card-interactive flex flex-1 items-center gap-3 p-3"><Calculator className="h-4 w-4 text-yellow-bright" /><span className="font-body text-body-sm text-arctic">Nuevo presupuesto</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
-            <Link href="/admin/reportes/servicios" className="card-interactive flex flex-1 items-center gap-3 p-3"><Wrench className="h-4 w-4 text-yellow-bright" /><span className="font-body text-body-sm text-arctic">Reporte Serv.</span><ArrowRight className="ml-auto h-3 w-3 text-steel-700" /></Link>
+            <Link href="/admin/presupuestos" className="card-interactive flex flex-1 items-center gap-3 p-3"><Calculator className="h-4 w-4 text-yellow-bright" /><span className="font-body text-body-sm text-arctic">Nuevo presupuesto</span><ArrowRight className="ml-auto h-3 w-3 text-steel-500" /></Link>
+            <Link href="/admin/reportes/servicios" className="card-interactive flex flex-1 items-center gap-3 p-3"><Wrench className="h-4 w-4 text-yellow-bright" /><span className="font-body text-body-sm text-arctic">Reporte Serv.</span><ArrowRight className="ml-auto h-3 w-3 text-steel-500" /></Link>
           </div>
         </div>
       </div>

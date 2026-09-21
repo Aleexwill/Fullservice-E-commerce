@@ -212,7 +212,7 @@ export default function AdminPresupuestosPage() {
           <TrendingUp className="h-3.5 w-3.5" />Seguimiento 1·2·3·5·7
         </button>
         <div className="ml-auto flex items-center pb-1">
-          <button onClick={fetchData} className="rounded p-1.5 text-steel-600 hover:text-arctic transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
+          <button onClick={fetchData} className="rounded p-1.5 text-steel-500 hover:text-arctic transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
         </div>
       </div>
 
@@ -463,7 +463,7 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg, onDelete 
         </div>
         {/* × */}
         <div className="px-1 flex justify-center">
-          <button onClick={() => onDelete?.(item.id)} className="p-1 text-steel-700 hover:text-danger-bright" title="Eliminar"><X className="h-3 w-3" /></button>
+          <button onClick={() => onDelete?.(item.id)} className="p-1 text-steel-500 hover:text-danger-bright" title="Eliminar"><X className="h-3 w-3" /></button>
         </div>
       </div>
     );
@@ -478,7 +478,7 @@ function TableroPresupuestosTable({ items, arrastres, getSD, patchSeg, onDelete 
           {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
         </div>
         {items.length === 0 && arrastres.length === 0 && (
-          <p className="p-6 text-center font-body text-caption text-steel-600">Sin presupuestos para este mes</p>
+          <p className="p-6 text-center font-body text-caption text-steel-500">Sin presupuestos para este mes</p>
         )}
         {items.map(i => renderRow(i))}
         {arrastres.length > 0 && (
@@ -517,7 +517,7 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
         <div style={{ display:'grid', gridTemplateColumns: colStyle }} className="border-b border-steel-800 theme-table-head">
           {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
         </div>
-        {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin items para el período</p>}
+        {items.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-500">Sin items para el período</p>}
         {items.map(item => {
           const sd = getSD(item);
           const avanceColor: Record<string,string> = {
@@ -534,7 +534,7 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
               {/* CLIENTE / LOCAL */}
               <div className="px-1 min-w-0">
                 <p className="font-body text-[0.6rem] text-steel-300 truncate">{item.customer.name}</p>
-                {sd.local && <p className="font-mono text-[0.55rem] text-steel-600 truncate">{sd.local}</p>}
+                {sd.local && <p className="font-mono text-[0.55rem] text-steel-500 truncate">{sd.local}</p>}
               </div>
               {/* TRABAJO */}
               <div className="px-1 font-body text-caption text-steel-300 truncate">{item.serviceTitle}</div>
@@ -568,7 +568,7 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
                     className={`w-full rounded px-1 py-0.5 font-mono text-[0.55rem] font-medium border transition-colors ${
                       sd[f]==='SI' ? 'bg-success-bright/15 text-success-bright border-success-bright/30' :
                       sd[f]==='NA' ? 'bg-steel-800 text-steel-500 border-steel-700' :
-                      'bg-transparent text-steel-600 border-steel-800'
+                      'bg-transparent text-steel-500 border-steel-800'
                     }`}>{sd[f]||'NO'}</button>
                 </div>
               ))}
@@ -587,7 +587,7 @@ function TableroPlantab({ items, getSD, patchSeg, showCierre }: {
               {/* × — sets alerta back to ENVIADO (removes from espejo) */}
               <div className="px-1 flex justify-center">
                 <button onClick={() => patchSeg(item.id, { alerta: 'ENVIADO', avance: 'Pendiente' })}
-                  className="p-1 text-steel-700 hover:text-steel-400"><X className="h-3 w-3" /></button>
+                  className="p-1 text-steel-500 hover:text-steel-400"><X className="h-3 w-3" /></button>
               </div>
             </div>
           );
@@ -618,7 +618,7 @@ function Plan2TableNew({ tareas, onEdit: _onEdit, onDelete, onField }: {
         <div style={{ display:'grid', gridTemplateColumns: colStyle }} className="border-b border-steel-800 theme-table-head">
           {hdrs.map(h => <div key={h} className="px-2 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500 whitespace-nowrap">{h}</div>)}
         </div>
-        {tareas.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-600">Sin tareas manuales</p>}
+        {tareas.length === 0 && <p className="p-6 text-center font-body text-caption text-steel-500">Sin tareas manuales</p>}
         {tareas.map(t => (
           <div key={t.id}
             className="items-center border-b border-steel-900/40 hover:bg-steel-900/20"
@@ -665,7 +665,7 @@ function Plan2TableNew({ tareas, onEdit: _onEdit, onDelete, onField }: {
                 className={inp} placeholder="obs..." />
             </div>
             <div className="px-1 flex justify-center">
-              <button onClick={() => onDelete(t.id)} className="p-1 text-steel-700 hover:text-danger-bright"><X className="h-3 w-3" /></button>
+              <button onClick={() => onDelete(t.id)} className="p-1 text-steel-500 hover:text-danger-bright"><X className="h-3 w-3" /></button>
             </div>
           </div>
         ))}
@@ -750,11 +750,11 @@ function PresupuestoRow({ item, onOpen, onDelete, onStatusChange, hideWebBadge }
         {item.scheduledDate ? (
           <p className="font-body text-caption text-blue-bright/70">📅 {formatScheduledDate(item.scheduledDate)}</p>
         ) : (
-          <p className="font-body text-caption text-steel-700">{formatDate(item.createdAt)}</p>
+          <p className="font-body text-caption text-steel-500">{formatDate(item.createdAt)}</p>
         )}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-700"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
+        {item.notes.length > 0 && <span className="flex items-center gap-0.5 font-mono text-caption text-steel-500"><MessageSquare className="h-3 w-3" />{item.notes.length}</span>}
         {onStatusChange ? (
           <select
             value={item.status}
@@ -772,7 +772,7 @@ function PresupuestoRow({ item, onOpen, onDelete, onStatusChange, hideWebBadge }
         <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-blue-bright hover:bg-blue-muted transition-colors">
           <Calculator className="h-3 w-3" /> Planilla
         </button>
-        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label="Eliminar" className="rounded p-1.5 text-steel-700 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
+        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label="Eliminar" className="rounded p-1.5 text-steel-500 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
       </div>
     </div>
   );
@@ -807,7 +807,7 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
         <div className="space-y-3">{Array.from({length:4}).map((_,i) => <div key={i} className="card animate-pulse p-4"><div className="h-16 rounded bg-steel-900" /></div>)}</div>
       ) : items.length === 0 ? (
         <div className="card p-12 text-center">
-          <List className="mx-auto h-12 w-12 text-steel-700" />
+          <List className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin solicitudes activas</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">Las solicitudes de presupuesto activas aparecerán aquí.</p>
           <button onClick={onNew} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Nueva solicitud</button>
@@ -847,7 +847,7 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
         <div className="space-y-3">{Array.from({length:3}).map((_,i) => <div key={i} className="card animate-pulse p-4"><div className="h-14 rounded bg-steel-900" /></div>)}</div>
       ) : filtered.length === 0 ? (
         <div className="card p-12 text-center">
-          <Archive className="mx-auto h-12 w-12 text-steel-700" />
+          <Archive className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Archivo vacío</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">Los presupuestos creados aparecerán aquí. Podés cambiar el estado directamente desde la lista.</p>
         </div>
@@ -891,7 +891,7 @@ function PlanificacionTab({ items, loading, onOpen }: { items: Presupuesto[]; lo
               return (
                 <div key={item.id} className="card-interactive flex items-center gap-4 p-4" onClick={() => onOpen(item.id)}>
                   <div className="shrink-0 text-center w-14">
-                    <p className="font-mono text-[0.6rem] text-steel-600 uppercase">{new Date(item.scheduledDate + 'T00:00:00').toLocaleDateString('es-PY', { month: 'short' })}</p>
+                    <p className="font-mono text-[0.6rem] text-steel-500 uppercase">{new Date(item.scheduledDate + 'T00:00:00').toLocaleDateString('es-PY', { month: 'short' })}</p>
                     <p className="font-display text-2xl font-bold text-arctic">{new Date(item.scheduledDate + 'T00:00:00').getDate()}</p>
                   </div>
                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-steel-900 ${tp.color}`}><TpIcon className="h-4 w-4" /></div>
@@ -929,7 +929,7 @@ function PlanificacionTab({ items, loading, onOpen }: { items: Presupuesto[]; lo
                     </div>
                     <p className="font-body text-body-sm text-arctic">{item.serviceTitle} — {item.customer.name}</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-steel-600 shrink-0" />
+                  <ChevronRight className="h-4 w-4 text-steel-500 shrink-0" />
                 </div>
               );
             })}
@@ -938,7 +938,7 @@ function PlanificacionTab({ items, loading, onOpen }: { items: Presupuesto[]; lo
       )}
       {withDate.length === 0 && withoutDate.length === 0 && (
         <div className="card p-12 text-center">
-          <ClipboardList className="mx-auto h-12 w-12 text-steel-700" />
+          <ClipboardList className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin solicitudes activas</h3>
         </div>
       )}
@@ -971,7 +971,7 @@ function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
       <div className="flex items-center gap-2 rounded-md border border-blue/30 bg-carbon px-3 py-2">
         {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-bright shrink-0" /> : <Search className="h-3.5 w-3.5 text-blue-bright shrink-0" />}
         <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => results.length > 0 && setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
-          className="flex-1 bg-transparent font-body text-body-sm text-arctic outline-none placeholder:text-steel-700"
+          className="flex-1 bg-transparent font-body text-body-sm text-arctic outline-none placeholder:text-steel-500"
           placeholder="Buscar cliente existente por nombre, empresa o teléfono..." />
       </div>
       {open && results.length > 0 && (
@@ -983,7 +983,7 @@ function ClienteBuscador({ onSelect }: { onSelect: (c: any) => void }) {
                 <p className="font-body text-body-sm font-medium text-arctic">{c.name}</p>
                 <p className="font-body text-caption text-steel-500">{[c.company, c.phone, c.email].filter(Boolean).join(' · ')}</p>
               </div>
-              <span className="shrink-0 font-mono text-[0.6rem] text-steel-700">{c.jobsCount} trabajo{c.jobsCount !== 1 ? 's' : ''}</span>
+              <span className="shrink-0 font-mono text-[0.6rem] text-steel-500">{c.jobsCount} trabajo{c.jobsCount !== 1 ? 's' : ''}</span>
             </button>
           ))}
         </div>
@@ -1114,7 +1114,7 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: {
             <div className="card p-4">
               <h3 className="mb-3 font-display text-h4 text-arctic">Cliente</h3>
               <ClienteBuscador onSelect={fillFromCliente} />
-              <p className="mb-3 mt-1.5 font-body text-caption text-steel-700">O completá los datos manualmente:</p>
+              <p className="mb-3 mt-1.5 font-body text-caption text-steel-500">O completá los datos manualmente:</p>
               <div className="grid grid-cols-2 gap-3">
                 <input type="text" placeholder="Nombre del cliente" value={f.customerName} onChange={(e) => setF({ ...f, customerName: e.target.value })} className="input" />
                 <input type="text" placeholder="Empresa" value={f.customerCompany} onChange={(e) => setF({ ...f, customerCompany: e.target.value })} className="input" />
@@ -1127,7 +1127,7 @@ function CreatePresupuestoModal({ onClose, onCreated, initialData, aiResult }: {
         </div>
         <div className="shrink-0 border-t border-steel-900/40 bg-carbon-light px-6 py-4">
           {saveError && <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-body text-caption text-red-400">{saveError}</div>}
-          <p className="mb-3 font-body text-caption text-steel-500"><span className="text-steel-700">Falta presupuestar:</span> guardá y continuá después. <span className="text-steel-700">Enviado:</span> va al Archivo como presupuesto enviado al cliente.</p>
+          <p className="mb-3 font-body text-caption text-steel-500"><span className="text-steel-500">Falta presupuestar:</span> guardá y continuá después. <span className="text-steel-500">Enviado:</span> va al Archivo como presupuesto enviado al cliente.</p>
           <div className="flex gap-3">
             <button onClick={() => guardar('falta_presupuestar')} disabled={!!saving || !f.serviceTitle.trim()} className="btn-secondary flex-1 justify-center gap-2 disabled:opacity-50">
               {saving === 'falta_presupuestar' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />} Falta presupuestar

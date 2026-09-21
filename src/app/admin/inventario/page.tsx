@@ -74,7 +74,7 @@ export default function AdminInventarioPage() {
           </div>
           {items.map((m) => (
             <div key={m.id} className={`grid grid-cols-[40px_1fr_80px_80px_130px_120px_80px] gap-2 border-t border-steel-900/30 px-4 py-3 items-center hover:bg-steel-900/20 ${!m.isActive ? 'opacity-40' : ''}`}>
-              <span className="font-mono text-caption text-steel-700">{m.code}</span>
+              <span className="font-mono text-caption text-steel-500">{m.code}</span>
               <span className="font-body text-body-sm text-arctic">{m.description}</span>
               <span className="font-mono text-caption text-steel-400">{m.unit}</span>
               <span className="font-body text-caption text-steel-500">{CATEGORIES[m.category] || m.category}</span>
@@ -82,7 +82,7 @@ export default function AdminInventarioPage() {
               <span className="font-body text-caption text-steel-500 truncate">{m.provider}</span>
               <div className="flex items-center gap-1">
                 <button onClick={() => setEditing(m)} className="rounded p-1 text-steel-500 hover:text-arctic"><Save className="h-3.5 w-3.5" /></button>
-                <button onClick={() => del(m.id)} className="rounded p-1 text-steel-700 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
+                <button onClick={() => del(m.id)} className="rounded p-1 text-steel-500 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
             </div>
           ))}
@@ -251,7 +251,7 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
                     <tbody>
                       {visible.map((r, i) => (
                         <tr key={i} className={`border-t border-steel-900/30 hover:bg-steel-900/20 ${r.status === 'error' ? 'border-l-2 border-l-danger-bright' : r.status === 'warning' ? 'border-l-2 border-l-[#F6C90E]' : 'border-l-2 border-l-success-bright'}`}>
-                          <td className="px-3 py-2 font-mono text-steel-600">{r.rowNum}</td>
+                          <td className="px-3 py-2 font-mono text-steel-500">{r.rowNum}</td>
                           <td className="px-3 py-2">
                             <div className="font-body text-arctic">{r.description || <span className="italic text-danger-bright">vacío</span>}</div>
                             {r.errors.map((e, j) => <div key={j} className="text-danger-bright mt-0.5">✕ {e}</div>)}

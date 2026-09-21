@@ -86,7 +86,7 @@ export default function ReporteEcommercePage() {
                 <span className="font-body text-caption uppercase tracking-[0.06em] text-steel-500">{kpi.label}</span>
               </div>
               <p className="mt-3 font-display text-h2 text-arctic">{kpi.value}</p>
-              <p className="mt-0.5 font-body text-caption text-steel-700">{kpi.sub}</p>
+              <p className="mt-0.5 font-body text-caption text-steel-500">{kpi.sub}</p>
             </div>
           );
         })}
@@ -109,7 +109,7 @@ export default function ReporteEcommercePage() {
                   <div key={status}>
                     <div className="mb-1 flex items-center justify-between font-body text-body-sm">
                       <span className="flex items-center gap-1.5 text-steel-300"><Icon className="h-3.5 w-3.5" />{cfg.label}</span>
-                      <span className="font-mono text-caption text-arctic">{count} <span className="text-steel-700">({pct}%)</span></span>
+                      <span className="font-mono text-caption text-arctic">{count} <span className="text-steel-500">({pct}%)</span></span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-steel-900">
                       <div className={`h-full rounded-full ${cfg.color} transition-all duration-500`} style={{ width: `${pct}%` }} />
@@ -133,7 +133,7 @@ export default function ReporteEcommercePage() {
                 return (
                   <div key={status} className="flex items-center justify-between rounded-md bg-carbon p-3">
                     <div className="flex items-center gap-2"><div className={`h-3 w-3 rounded-full ${cfg.color}`} /><span className="font-body text-body-sm text-steel-300">{cfg.label}</span></div>
-                    <div className="flex items-center gap-2"><span className="font-mono text-body-sm font-medium text-arctic">{count}</span><span className="font-mono text-caption text-steel-700">{pct}%</span></div>
+                    <div className="flex items-center gap-2"><span className="font-mono text-body-sm font-medium text-arctic">{count}</span><span className="font-mono text-caption text-steel-500">{pct}%</span></div>
                   </div>
                 );
               })}
@@ -186,7 +186,7 @@ export default function ReporteEcommercePage() {
             <div className="rounded-lg bg-carbon p-4">
               <p className="font-body text-caption uppercase text-steel-500">Valor total inventario</p>
               <p className="mt-1 font-display text-h2 text-arctic">{formatGs(products?.totalValue || 0)}</p>
-              <p className="mt-0.5 font-body text-caption text-steel-700">{products?.totalStock?.toLocaleString() || 0} unidades en {products?.categoriesCount || 0} categorias</p>
+              <p className="mt-0.5 font-body text-caption text-steel-500">{products?.totalStock?.toLocaleString() || 0} unidades en {products?.categoriesCount || 0} categorias</p>
             </div>
           </div>
         </div>

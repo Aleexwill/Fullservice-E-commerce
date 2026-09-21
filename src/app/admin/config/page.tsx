@@ -398,7 +398,7 @@ export default function AdminConfigPage() {
                     className="input min-h-[80px] resize-y"
                     rows={3}
                   />
-                  <p className="mt-1 font-mono text-[0.6rem] text-steel-700">{settings.seo.metaDescription.length}/160 caracteres</p>
+                  <p className="mt-1 font-mono text-[0.6rem] text-steel-500">{settings.seo.metaDescription.length}/160 caracteres</p>
                 </div>
                 <Field label="OG Image URL" value={settings.seo.ogImage} onChange={(v) => update('seo', 'ogImage', v)} placeholder="https://..." />
                 <Field label="Google Analytics ID" value={settings.seo.googleAnalyticsId} onChange={(v) => update('seo', 'googleAnalyticsId', v)} placeholder="G-XXXXXXXXXX" />

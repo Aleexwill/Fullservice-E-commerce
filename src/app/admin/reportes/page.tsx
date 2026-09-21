@@ -67,17 +67,17 @@ export default function AdminReportesPage() {
           <div className="rounded-lg bg-carbon p-5 text-center">
             <p className="font-body text-caption uppercase text-steel-500">Facturacion total</p>
             <p className="mt-2 font-display text-h1 text-arctic">{formatGs(totalRevenue)}</p>
-            <p className="mt-1 font-body text-caption text-steel-700">E-Commerce + Servicios</p>
+            <p className="mt-1 font-body text-caption text-steel-500">E-Commerce + Servicios</p>
           </div>
           <div className="rounded-lg border border-blue-bright/20 bg-blue-bright/5 p-5 text-center">
             <p className="font-body text-caption uppercase text-steel-500">E-Commerce</p>
             <p className="mt-2 font-display text-h2 text-blue-bright">{formatGs(ecomRevenue)}</p>
-            <p className="mt-1 font-body text-caption text-steel-700">{orders?.total || 0} pedidos | Cobrado: {formatGs(orders?.paidRevenue || 0)}</p>
+            <p className="mt-1 font-body text-caption text-steel-500">{orders?.total || 0} pedidos | Cobrado: {formatGs(orders?.paidRevenue || 0)}</p>
           </div>
           <div className="rounded-lg border border-yellow-bright/20 bg-yellow-bright/5 p-5 text-center">
             <p className="font-body text-caption uppercase text-steel-500">Servicios</p>
             <p className="mt-2 font-display text-h2 text-yellow-bright">{formatGs(servRevenue)}</p>
-            <p className="mt-1 font-body text-caption text-steel-700">{presupuestos?.total || 0} presupuestos | Estimado: {formatGs(presupuestos?.totalEstimated || 0)}</p>
+            <p className="mt-1 font-body text-caption text-steel-500">{presupuestos?.total || 0} presupuestos | Estimado: {formatGs(presupuestos?.totalEstimated || 0)}</p>
           </div>
         </div>
         {/* Revenue split bar */}
@@ -91,7 +91,7 @@ export default function AdminReportesPage() {
               <div className="bg-blue-bright transition-all" style={{ width: `${totalRevenue > 0 ? (ecomRevenue / totalRevenue) * 100 : 50}%` }} />
               <div className="bg-yellow-bright transition-all" style={{ width: `${totalRevenue > 0 ? (servRevenue / totalRevenue) * 100 : 50}%` }} />
             </div>
-            <div className="mt-1 flex items-center justify-between font-mono text-[0.6rem] text-steel-700">
+            <div className="mt-1 flex items-center justify-between font-mono text-[0.6rem] text-steel-500">
               <span className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-blue-bright" /> E-Commerce</span>
               <span className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-yellow-bright" /> Servicios</span>
             </div>
@@ -124,7 +124,7 @@ export default function AdminReportesPage() {
               <h3 className="font-display text-h3 text-arctic group-hover:text-blue-bright">Reporte E-Commerce</h3>
               <p className="font-body text-caption text-steel-500">Ventas, pedidos, inventario y pagos</p>
             </div>
-            <ArrowRight className="ml-auto h-5 w-5 text-steel-700 transition-transform group-hover:translate-x-1 group-hover:text-blue-bright" />
+            <ArrowRight className="ml-auto h-5 w-5 text-steel-500 transition-transform group-hover:translate-x-1 group-hover:text-blue-bright" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded bg-carbon p-2 text-center"><p className="font-mono text-[0.6rem] text-steel-500">Pedidos</p><p className="font-display text-h4 text-arctic">{orders?.total || 0}</p></div>
@@ -140,7 +140,7 @@ export default function AdminReportesPage() {
               <h3 className="font-display text-h3 text-arctic group-hover:text-yellow-bright">Reporte Servicios</h3>
               <p className="font-body text-caption text-steel-500">Presupuestos, ejecucion y facturacion</p>
             </div>
-            <ArrowRight className="ml-auto h-5 w-5 text-steel-700 transition-transform group-hover:translate-x-1 group-hover:text-yellow-bright" />
+            <ArrowRight className="ml-auto h-5 w-5 text-steel-500 transition-transform group-hover:translate-x-1 group-hover:text-yellow-bright" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded bg-carbon p-2 text-center"><p className="font-mono text-[0.6rem] text-steel-500">Presupuestos</p><p className="font-display text-h4 text-arctic">{presupuestos?.total || 0}</p></div>

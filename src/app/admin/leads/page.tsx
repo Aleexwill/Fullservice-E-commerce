@@ -189,16 +189,16 @@ export default function AdminLeadsCRM() {
                               {lead.estimatedValue ? <span className="rounded bg-success-light px-1.5 py-0.5 font-mono text-[0.6rem] text-success-bright">{formatGs(lead.estimatedValue)}</span> : null}
                             </div>
                             <div className="mt-2 flex items-center justify-between">
-                              <span className="font-mono text-[0.6rem] text-steel-700">{timeAgo(lead.updatedAt)}</span>
+                              <span className="font-mono text-[0.6rem] text-steel-500">{timeAgo(lead.updatedAt)}</span>
                               <div className="flex items-center gap-1">
                                 {lead.tasks?.some((t) => !t.completed) && <CheckSquare className="h-3 w-3 text-yellow-bright" />}
-                                {lead.notes?.length > 0 && <span className="flex items-center gap-0.5 font-mono text-[0.6rem] text-steel-700"><MessageSquare className="h-2.5 w-2.5" />{lead.notes.length}</span>}
+                                {lead.notes?.length > 0 && <span className="flex items-center gap-0.5 font-mono text-[0.6rem] text-steel-500"><MessageSquare className="h-2.5 w-2.5" />{lead.notes.length}</span>}
                               </div>
                             </div>
                           </div>
                         );
                       })}
-                      {stageLeads.length === 0 && <p className="py-6 text-center font-body text-[0.6rem] text-steel-700">Sin leads</p>}
+                      {stageLeads.length === 0 && <p className="py-6 text-center font-body text-[0.6rem] text-steel-500">Sin leads</p>}
                     </div>
                   </div>
                 );
@@ -221,12 +221,12 @@ export default function AdminLeadsCRM() {
                       <div className="hidden shrink-0 md:flex md:items-center md:gap-2">{lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}</div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[0.55rem] font-medium ${stage.color} ${stage.bg}`}>{stage.label}</span>
                       {lead.estimatedValue ? <span className="hidden shrink-0 font-mono text-caption text-success-bright md:block">{formatGs(lead.estimatedValue)}</span> : null}
-                      <span className="shrink-0 font-mono text-[0.55rem] text-steel-700">{timeAgo(lead.updatedAt)}</span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-steel-700" />
+                      <span className="shrink-0 font-mono text-[0.55rem] text-steel-500">{timeAgo(lead.updatedAt)}</span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-steel-500" />
                     </div>
                   );
                 })}
-                {filteredLeads.length === 0 && <div className="card p-12 text-center"><Users className="mx-auto h-12 w-12 text-steel-700" /><h3 className="mt-4 font-display text-h3 text-arctic">No hay leads</h3><p className="mt-2 font-body text-body-sm text-steel-500">Los leads se generan desde el formulario de contacto o puedes crear uno manualmente.</p></div>}
+                {filteredLeads.length === 0 && <div className="card p-12 text-center"><Users className="mx-auto h-12 w-12 text-steel-500" /><h3 className="mt-4 font-display text-h3 text-arctic">No hay leads</h3><p className="mt-2 font-body text-body-sm text-steel-500">Los leads se generan desde el formulario de contacto o puedes crear uno manualmente.</p></div>}
               </div>
             </div>
           )}
@@ -330,7 +330,7 @@ export default function AdminLeadsCRM() {
                           <div className={`relative z-10 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full ${cfg.bg}`}><Icon className={`h-3.5 w-3.5 ${cfg.color}`} /></div>
                           <div className="min-w-0 flex-1 pt-1">
                             <p className="font-body text-body-sm text-steel-300">{act.text}</p>
-                            <p className="mt-0.5 font-mono text-[0.55rem] text-steel-700">{formatDate(act.createdAt)}</p>
+                            <p className="mt-0.5 font-mono text-[0.55rem] text-steel-500">{formatDate(act.createdAt)}</p>
                           </div>
                         </div>
                       );
@@ -344,7 +344,7 @@ export default function AdminLeadsCRM() {
                 <div className="space-y-3">
                   <div className="flex gap-2"><input type="text" value={newNote} onChange={(e) => setNewNote(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addNote()} placeholder="Agregar nota..." className="input h-9 flex-1 text-body-sm" /><button onClick={addNote} disabled={saving || !newNote.trim()} className="btn-primary h-9 shrink-0 px-3 disabled:opacity-50"><Send className="h-3.5 w-3.5" /></button></div>
                   {selected.notes?.length > 0 ? [...selected.notes].reverse().map((n) => (
-                    <div key={n.id} className="rounded-md border border-steel-900/30 bg-carbon p-3"><p className="font-body text-body-sm text-steel-300">{n.text}</p><p className="mt-1 font-mono text-[0.55rem] text-steel-700">{formatDate(n.createdAt)}</p></div>
+                    <div key={n.id} className="rounded-md border border-steel-900/30 bg-carbon p-3"><p className="font-body text-body-sm text-steel-300">{n.text}</p><p className="mt-1 font-mono text-[0.55rem] text-steel-500">{formatDate(n.createdAt)}</p></div>
                   )) : <p className="py-6 text-center font-body text-caption text-steel-500">Sin notas</p>}
                 </div>
               )}
@@ -355,7 +355,7 @@ export default function AdminLeadsCRM() {
                   {selected.tasks?.length > 0 ? selected.tasks.map((t) => (
                     <div key={t.id} onClick={() => toggleTask(t.id)} className="flex cursor-pointer items-start gap-2.5 rounded-md border border-steel-900/30 bg-carbon p-3 transition-colors hover:border-steel-700">
                       {t.completed ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-bright" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-steel-500" />}
-                      <div className="flex-1"><p className={`font-body text-body-sm ${t.completed ? 'text-steel-500 line-through' : 'text-arctic'}`}>{t.text}</p>{t.dueDate && <p className="mt-0.5 flex items-center gap-1 font-mono text-[0.55rem] text-steel-700"><Calendar className="h-2.5 w-2.5" />{t.dueDate}</p>}</div>
+                      <div className="flex-1"><p className={`font-body text-body-sm ${t.completed ? 'text-steel-500 line-through' : 'text-arctic'}`}>{t.text}</p>{t.dueDate && <p className="mt-0.5 flex items-center gap-1 font-mono text-[0.55rem] text-steel-500"><Calendar className="h-2.5 w-2.5" />{t.dueDate}</p>}</div>
                     </div>
                   )) : <p className="py-6 text-center font-body text-caption text-steel-500">Sin tareas</p>}
                 </div>

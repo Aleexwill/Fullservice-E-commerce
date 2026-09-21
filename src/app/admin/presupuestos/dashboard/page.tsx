@@ -231,7 +231,7 @@ export default function PresupuestosDashboard() {
                   <div>
                     <div className="mb-1 flex items-center justify-between">
                       <span className="font-body text-body-sm text-steel-500">De baja</span>
-                      <span className="font-mono text-caption text-steel-700">{bajasCount}</span>
+                      <span className="font-mono text-caption text-steel-500">{bajasCount}</span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-steel-900/60">
                       <div

@@ -82,7 +82,7 @@ function EditField({ label, value, onSave, type = 'text', options }: {
     const cls = 'w-full rounded border border-blue/60 bg-steel-900 px-2 py-1 font-body text-body-sm text-arctic outline-none focus:border-blue-bright';
     return (
       <div className="flex flex-col gap-0.5">
-        <span className="font-body text-[0.6rem] uppercase tracking-wider text-steel-700">{label}</span>
+        <span className="font-body text-[0.6rem] uppercase tracking-wider text-steel-500">{label}</span>
         <div className="flex items-center gap-2">
           {options ? (
             <select ref={ref as any} value={draft} onChange={e => setDraft(e.target.value)} className={cls}>
@@ -104,10 +104,10 @@ function EditField({ label, value, onSave, type = 'text', options }: {
 
   return (
     <div className="group flex flex-col gap-0.5 cursor-pointer" onClick={() => setEditing(true)}>
-      <span className="font-body text-[0.6rem] uppercase tracking-wider text-steel-700">{label}</span>
+      <span className="font-body text-[0.6rem] uppercase tracking-wider text-steel-500">{label}</span>
       <div className="flex items-center gap-1.5">
-        <span className="font-body text-body-sm text-steel-300 group-hover:text-arctic">{value || <span className="text-steel-700 italic">Sin datos</span>}</span>
-        <Edit2 className="h-3 w-3 shrink-0 text-steel-700 opacity-0 group-hover:opacity-100" />
+        <span className="font-body text-body-sm text-steel-300 group-hover:text-arctic">{value || <span className="text-steel-500 italic">Sin datos</span>}</span>
+        <Edit2 className="h-3 w-3 shrink-0 text-steel-500 opacity-0 group-hover:opacity-100" />
       </div>
     </div>
   );
@@ -207,7 +207,7 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
                   {!cliente.isActive && <Chip label="Inactivo" color="#FC8181" />}
                 </div>
                 {cliente.company && <p className="font-body text-caption text-steel-500">{cliente.company}</p>}
-                <p className="font-body text-[0.6rem] text-steel-700 mt-0.5">Cliente desde {fDate(cliente.createdAt)}</p>
+                <p className="font-body text-[0.6rem] text-steel-500 mt-0.5">Cliente desde {fDate(cliente.createdAt)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -232,7 +232,7 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
               <div key={label} className="rounded-lg border border-steel-900/60 bg-steel-950/50 p-2.5 text-center">
                 <Icon className="mx-auto mb-1 h-3.5 w-3.5 text-blue-bright" />
                 <p className="font-mono text-[0.75rem] font-semibold text-arctic leading-tight">{value}</p>
-                <p className="font-body text-[0.6rem] text-steel-700">{label}</p>
+                <p className="font-body text-[0.6rem] text-steel-500">{label}</p>
               </div>
             ))}
           </div>
@@ -266,12 +266,12 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
               </div>
 
               <div className="card p-4">
-                <p className="mb-2 font-body text-[0.6rem] uppercase tracking-wider text-steel-700">Notas internas</p>
+                <p className="mb-2 font-body text-[0.6rem] uppercase tracking-wider text-steel-500">Notas internas</p>
                 <EditField label="" value={cliente.notes} type="textarea" onSave={v => patch({ notes: v })} />
               </div>
 
               <div className="card p-4 space-y-2">
-                <p className="font-body text-[0.6rem] uppercase tracking-wider text-steel-700">Resumen histórico</p>
+                <p className="font-body text-[0.6rem] uppercase tracking-wider text-steel-500">Resumen histórico</p>
                 <div className="grid grid-cols-2 gap-3 text-center">
                   <div><p className="font-mono text-h3 text-arctic">{presupuestos.length}</p><p className="font-body text-caption text-steel-500">Presupuestos</p></div>
                   <div><p className="font-mono text-h3 text-arctic">{presupuestos.filter(p=>['aprobado','en_ejecucion','finalizado'].includes(p.status)).length}</p><p className="font-body text-caption text-steel-500">Aprobados</p></div>
@@ -292,7 +292,7 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
             <div className="space-y-2">
               {presupuestos.length === 0 ? (
                 <div className="py-12 text-center">
-                  <FileText className="mx-auto h-10 w-10 text-steel-700" />
+                  <FileText className="mx-auto h-10 w-10 text-steel-500" />
                   <p className="mt-3 font-body text-body-sm text-steel-500">Sin presupuestos vinculados</p>
                 </div>
               ) : presupuestos.map(p => {
@@ -318,7 +318,7 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
                       )}
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="font-body text-[0.6rem] text-steel-700">{fDate(p.createdAt)}</p>
+                      <p className="font-body text-[0.6rem] text-steel-500">{fDate(p.createdAt)}</p>
                       <a href={`/admin/presupuestos/${p.id}`} className="flex items-center gap-1 font-body text-caption text-blue-bright hover:underline">
                         Ver <ChevronRight className="h-3 w-3" />
                       </a>
@@ -334,7 +334,7 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
             <div className="space-y-2">
               {pedidos.length === 0 ? (
                 <div className="py-12 text-center">
-                  <ShoppingCart className="mx-auto h-10 w-10 text-steel-700" />
+                  <ShoppingCart className="mx-auto h-10 w-10 text-steel-500" />
                   <p className="mt-3 font-body text-body-sm text-steel-500">Sin pedidos vinculados</p>
                 </div>
               ) : pedidos.map(o => {
@@ -361,7 +361,7 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
                             <span className="shrink-0 text-steel-500 ml-2">x{it.qty || it.quantity || 1} · {Gs(Number(it.price || it.unitPrice || 0))}</span>
                           </div>
                         ))}
-                        {items.length > 4 && <p className="px-3 py-1.5 font-body text-caption text-steel-700">+{items.length - 4} ítems más</p>}
+                        {items.length > 4 && <p className="px-3 py-1.5 font-body text-caption text-steel-500">+{items.length - 4} ítems más</p>}
                       </div>
                     )}
                     <div className="flex items-center justify-between pt-1">
@@ -442,7 +442,7 @@ export default function AdminClientesPage() {
         ))}</div>
       ) : items.length === 0 ? (
         <div className="card p-12 text-center">
-          <Users className="mx-auto h-12 w-12 text-steel-700" />
+          <Users className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin clientes</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">Los clientes se crean automáticamente al aprobar un presupuesto.</p>
         </div>
@@ -463,9 +463,9 @@ export default function AdminClientesPage() {
               </div>
               <div className="hidden shrink-0 text-right sm:block">
                 <p className="font-mono text-body-sm text-arctic">{c.jobsCount} trabajo{c.jobsCount !== 1 ? 's' : ''}</p>
-                <p className="font-body text-caption text-steel-700">Último: {c.lastServiceAt || '—'}</p>
+                <p className="font-body text-caption text-steel-500">Último: {c.lastServiceAt || '—'}</p>
               </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-steel-700" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-steel-500" />
             </div>
           ))}
         </div>

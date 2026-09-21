@@ -149,7 +149,7 @@ export default function AdminClientesLogoPage() {
         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="card animate-pulse p-4"><div className="h-20 rounded bg-steel-900" /></div>)}</div>
       ) : clientes.length === 0 ? (
         <div className="card p-12 text-center">
-          <Building2 className="mx-auto h-12 w-12 text-steel-700" />
+          <Building2 className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin clientes</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">Agregá los logos de tus clientes.</p>
           <button onClick={openNew} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Agregar cliente</button>
@@ -160,13 +160,13 @@ export default function AdminClientesLogoPage() {
             <div key={c.id} className="card overflow-hidden">
               <div className="flex items-center gap-4 p-4">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-steel-900/40 bg-steel-950 overflow-hidden">
-                  {c.logoUrl ? <img src={c.logoUrl} alt={c.name} className="h-full w-full object-contain p-1" /> : <Building2 className="h-6 w-6 text-steel-600" />}
+                  {c.logoUrl ? <img src={c.logoUrl} alt={c.name} className="h-full w-full object-contain p-1" /> : <Building2 className="h-6 w-6 text-steel-500" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-h4 text-arctic">{c.name}</h3>
                   {c.website && <p className="font-body text-caption text-steel-500 truncate">{c.website}</p>}
                   {(c.children?.length || 0) > 0 && (
-                    <p className="font-body text-caption text-steel-600 flex items-center gap-1">
+                    <p className="font-body text-caption text-steel-500 flex items-center gap-1">
                       <Layers className="h-3 w-3" /> {c.children.length} subdivisione{c.children.length !== 1 ? 's' : ''}
                     </p>
                   )}
@@ -194,13 +194,13 @@ export default function AdminClientesLogoPage() {
                   {c.children.map((sub) => (
                     <div key={sub.id} className="flex items-center gap-3 border-b border-steel-900/20 px-4 py-3 last:border-b-0">
                       <div className="ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-steel-900/40 bg-steel-950 overflow-hidden">
-                        {sub.logoUrl ? <img src={sub.logoUrl} alt={sub.name} className="h-full w-full object-contain p-0.5" /> : <Building2 className="h-4 w-4 text-steel-600" />}
+                        {sub.logoUrl ? <img src={sub.logoUrl} alt={sub.name} className="h-full w-full object-contain p-0.5" /> : <Building2 className="h-4 w-4 text-steel-500" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-body text-body-sm font-semibold text-arctic">{sub.name}</p>
                         {sub.website && <p className="font-body text-caption text-steel-500 truncate">{sub.website}</p>}
                       </div>
-                      <span className={`text-caption font-body ${sub.isActive ? 'text-green-400' : 'text-steel-600'}`}>{sub.isActive ? 'Visible' : 'Oculta'}</span>
+                      <span className={`text-caption font-body ${sub.isActive ? 'text-green-400' : 'text-steel-500'}`}>{sub.isActive ? 'Visible' : 'Oculta'}</span>
                     </div>
                   ))}
                 </div>
@@ -266,7 +266,7 @@ export default function AdminClientesLogoPage() {
                       <div key={sub.tempId} className="rounded-lg border border-steel-900/60 bg-carbon p-4">
                         <div className="mb-3 flex items-center justify-between">
                           <span className="font-body text-caption font-semibold text-steel-400">Subdivisión {idx + 1}</span>
-                          <button onClick={() => removeSub(sub)} className="rounded p-1 text-steel-600 hover:bg-red-500/10 hover:text-red-400"><X className="h-3.5 w-3.5" /></button>
+                          <button onClick={() => removeSub(sub)} className="rounded p-1 text-steel-500 hover:bg-red-500/10 hover:text-red-400"><X className="h-3.5 w-3.5" /></button>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="sm:col-span-2">

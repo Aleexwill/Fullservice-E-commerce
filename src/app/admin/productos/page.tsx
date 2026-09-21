@@ -199,7 +199,7 @@ export default function AdminProductosPage() {
         </div>
       ) : products.length === 0 ? (
         <div className="card p-12 text-center">
-          <Package className="mx-auto h-12 w-12 text-steel-700" />
+          <Package className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">No hay productos</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">
             {search || filterActive || filterCategory
@@ -289,7 +289,7 @@ export default function AdminProductosPage() {
                           className={`rounded p-1.5 transition-colors ${
                             p.isFeatured
                               ? 'text-yellow-bright hover:bg-yellow-muted'
-                              : 'text-steel-700 hover:bg-steel-900 hover:text-steel-300'
+                              : 'text-steel-500 hover:bg-steel-900 hover:text-steel-300'
                           }`}
                           title={p.isFeatured ? 'Quitar destacado' : 'Marcar como destacado'}
                         >

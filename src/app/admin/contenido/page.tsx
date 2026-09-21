@@ -87,7 +87,7 @@ export default function AdminContenidoPage() {
                 <div key={i} className="flex items-center gap-2">
                   <input type="text" value={s.value} onChange={(e) => { const st = [...content.hero.stats]; st[i] = { ...st[i], value: e.target.value }; u('hero', 'stats', st); }} className="input w-24 font-mono" placeholder="+150" />
                   <input type="text" value={s.label} onChange={(e) => { const st = [...content.hero.stats]; st[i] = { ...st[i], label: e.target.value }; u('hero', 'stats', st); }} className="input flex-1" placeholder="Proyectos" />
-                  <button onClick={() => { const st = content.hero.stats.filter((_, j) => j !== i); u('hero', 'stats', st); }} className="p-1 text-steel-700 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => { const st = content.hero.stats.filter((_, j) => j !== i); u('hero', 'stats', st); }} className="p-1 text-steel-500 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
               <button onClick={() => u('hero', 'stats', [...content.hero.stats, { value: '', label: '' }])} className="btn-ghost py-1 text-caption"><Plus className="h-3 w-3" /> Agregar stat</button>
@@ -113,7 +113,7 @@ export default function AdminContenidoPage() {
                 <div key={i} className="flex items-center gap-2">
                   <input type="text" value={val.title} onChange={(e) => { const vs = [...content.about.values]; vs[i] = { ...vs[i], title: e.target.value }; u('about', 'values', vs); }} className="input w-32" placeholder="Titulo" />
                   <input type="text" value={val.description} onChange={(e) => { const vs = [...content.about.values]; vs[i] = { ...vs[i], description: e.target.value }; u('about', 'values', vs); }} className="input flex-1" placeholder="Descripcion" />
-                  <button onClick={() => u('about', 'values', content.about.values.filter((_, j) => j !== i))} className="p-1 text-steel-700 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => u('about', 'values', content.about.values.filter((_, j) => j !== i))} className="p-1 text-steel-500 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
               <button onClick={() => u('about', 'values', [...content.about.values, { title: '', description: '' }])} className="btn-ghost py-1 text-caption"><Plus className="h-3 w-3" /> Agregar valor</button>
@@ -128,14 +128,14 @@ export default function AdminContenidoPage() {
           <div className="flex items-center justify-between"><h2 className="font-display text-h3 text-arctic">Testimonios</h2>
             <button onClick={() => setContent({ ...content, testimonials: [...content.testimonials, { id: Date.now().toString(36), name: '', role: '', company: '', text: '', rating: 5, avatar: '', isActive: true }] })} className="btn-primary text-caption"><Plus className="h-3 w-3" /> Agregar</button>
           </div>
-          {content.testimonials.length === 0 && <div className="card p-8 text-center"><MessageSquare className="mx-auto h-10 w-10 text-steel-700" /><p className="mt-3 text-body-sm text-steel-500">Sin testimonios aun</p></div>}
+          {content.testimonials.length === 0 && <div className="card p-8 text-center"><MessageSquare className="mx-auto h-10 w-10 text-steel-500" /><p className="mt-3 text-body-sm text-steel-500">Sin testimonios aun</p></div>}
           {content.testimonials.map((t, i) => (
             <div key={t.id} className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="badge-blue">Testimonio #{i + 1}</span>
                 <div className="flex gap-1">
                   <label className="flex items-center gap-1 text-caption"><input type="checkbox" checked={t.isActive} onChange={(e) => { const ts = [...content.testimonials]; ts[i] = { ...ts[i], isActive: e.target.checked }; setContent({ ...content, testimonials: ts }); }} className="h-3 w-3 accent-blue" />Activo</label>
-                  <button onClick={() => setContent({ ...content, testimonials: content.testimonials.filter((_, j) => j !== i) })} className="p-1 text-steel-700 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => setContent({ ...content, testimonials: content.testimonials.filter((_, j) => j !== i) })} className="p-1 text-steel-500 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -146,7 +146,7 @@ export default function AdminContenidoPage() {
               <textarea value={t.text} onChange={(e) => { const ts = [...content.testimonials]; ts[i] = { ...ts[i], text: e.target.value }; setContent({ ...content, testimonials: ts }); }} className="input" placeholder="Texto del testimonio" rows={2} />
               <div className="flex items-center gap-3">
                 <input type="url" value={t.avatar} onChange={(e) => { const ts = [...content.testimonials]; ts[i] = { ...ts[i], avatar: e.target.value }; setContent({ ...content, testimonials: ts }); }} className="input flex-1" placeholder="URL avatar" />
-                <div className="flex items-center gap-1">{[1,2,3,4,5].map((n) => <button key={n} onClick={() => { const ts = [...content.testimonials]; ts[i] = { ...ts[i], rating: n }; setContent({ ...content, testimonials: ts }); }}><Star className={`h-4 w-4 ${n <= t.rating ? 'fill-yellow text-yellow' : 'text-steel-700'}`} /></button>)}</div>
+                <div className="flex items-center gap-1">{[1,2,3,4,5].map((n) => <button key={n} onClick={() => { const ts = [...content.testimonials]; ts[i] = { ...ts[i], rating: n }; setContent({ ...content, testimonials: ts }); }}><Star className={`h-4 w-4 ${n <= t.rating ? 'fill-yellow text-yellow' : 'text-steel-500'}`} /></button>)}</div>
               </div>
             </div>
           ))}
@@ -159,14 +159,14 @@ export default function AdminContenidoPage() {
           <div className="flex items-center justify-between"><h2 className="font-display text-h3 text-arctic">Banners</h2>
             <button onClick={() => setContent({ ...content, banners: [...content.banners, { id: Date.now().toString(36), title: '', subtitle: '', image: '', link: '', position: 'home', isActive: true }] })} className="btn-primary text-caption"><Plus className="h-3 w-3" /> Agregar</button>
           </div>
-          {content.banners.length === 0 && <div className="card p-8 text-center"><ImageIcon className="mx-auto h-10 w-10 text-steel-700" /><p className="mt-3 text-body-sm text-steel-500">Sin banners configurados</p></div>}
+          {content.banners.length === 0 && <div className="card p-8 text-center"><ImageIcon className="mx-auto h-10 w-10 text-steel-500" /><p className="mt-3 text-body-sm text-steel-500">Sin banners configurados</p></div>}
           {content.banners.map((b, i) => (
             <div key={b.id} className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="badge-yellow">Banner #{i + 1}</span>
                 <div className="flex gap-1">
                   <label className="flex items-center gap-1 text-caption"><input type="checkbox" checked={b.isActive} onChange={(e) => { const bs = [...content.banners]; bs[i] = { ...bs[i], isActive: e.target.checked }; setContent({ ...content, banners: bs }); }} className="h-3 w-3 accent-blue" />Activo</label>
-                  <button onClick={() => setContent({ ...content, banners: content.banners.filter((_, j) => j !== i) })} className="p-1 text-steel-700 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => setContent({ ...content, banners: content.banners.filter((_, j) => j !== i) })} className="p-1 text-steel-500 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">

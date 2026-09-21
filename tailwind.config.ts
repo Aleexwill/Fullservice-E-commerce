@@ -23,8 +23,8 @@ const config: Config = {
         },
         steel: {
           900: '#1A2640',
-          700: '#2A3A5C',
-          500: '#4A5E80',
+          700: '#2E4060',   // borders/surfaces — unchanged visually
+          500: '#6B82A0',   // muted text — lifted for 4.7:1 contrast on carbon
           300: '#8094B4',
           100: '#C0CEDF',
         },

@@ -140,7 +140,7 @@ export default function AdminPedidosPage() {
         <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="card animate-pulse p-4"><div className="h-12 rounded bg-steel-900" /></div>)}</div>
       ) : orders.length === 0 ? (
         <div className="card p-12 text-center">
-          <ShoppingCart className="mx-auto h-12 w-12 text-steel-700" />
+          <ShoppingCart className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">No hay pedidos</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">{search || filterStatus ? 'No se encontraron pedidos con esos filtros.' : 'Los pedidos apareceran aqui cuando los clientes compren o los crees manualmente.'}</p>
           <button onClick={() => setShowCreateModal(true)} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Crear pedido manual</button>
@@ -329,7 +329,7 @@ function CreateOrderModal({ onClose, onCreated }: { onClose: () => void; onCreat
                   <input type="text" placeholder="SKU" value={item.sku} onChange={(e) => updateItem(i, 'sku', e.target.value)} className="input flex-1 font-mono" />
                   <input type="number" placeholder="Cant" value={item.quantity} onChange={(e) => updateItem(i, 'quantity', e.target.value)} className="input w-16 font-mono" min="1" />
                   <input type="number" placeholder="Precio" value={item.unitPrice} onChange={(e) => updateItem(i, 'unitPrice', e.target.value)} className="input w-28 font-mono" min="0" />
-                  {items.length > 1 && <button type="button" onClick={() => removeItem(i)} className="p-1 text-steel-700 hover:text-red-400"><X className="h-4 w-4" /></button>}
+                  {items.length > 1 && <button type="button" onClick={() => removeItem(i)} className="p-1 text-steel-500 hover:text-red-400"><X className="h-4 w-4" /></button>}
                 </div>
               ))}
             </div>

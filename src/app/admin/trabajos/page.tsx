@@ -62,7 +62,7 @@ export default function AdminPortfolioPage() {
         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="card animate-pulse p-4"><div className="h-20 rounded bg-steel-900" /></div>)}</div>
       ) : projects.length === 0 ? (
         <div className="card p-12 text-center">
-          <FolderOpen className="mx-auto h-12 w-12 text-steel-700" />
+          <FolderOpen className="mx-auto h-12 w-12 text-steel-500" />
           <h3 className="mt-4 font-display text-h3 text-arctic">Sin proyectos</h3>
           <p className="mt-2 font-body text-body-sm text-steel-500">Agrega proyectos para mostrarlos en tu galería de trabajos.</p>
           <button onClick={openNew} className="btn-primary mt-6 inline-flex"><Plus className="h-4 w-4" /> Crear proyecto</button>
@@ -72,7 +72,7 @@ export default function AdminPortfolioPage() {
           {projects.map((p) => (
             <div key={p.id} className="card overflow-hidden">
               <div className="relative h-40 bg-gradient-to-br from-steel-900 to-steel-700">
-                {p.image ? <img src={p.image} alt={p.title} className="h-full w-full object-cover" /> : <FolderOpen className="absolute inset-0 m-auto h-12 w-12 text-steel-700" />}
+                {p.image ? <img src={p.image} alt={p.title} className="h-full w-full object-cover" /> : <FolderOpen className="absolute inset-0 m-auto h-12 w-12 text-steel-500" />}
                 <div className="absolute left-2 top-2 flex gap-1">
                   <span className={`badge-${p.badge}`}>{CAT_LABELS[p.category] || p.category}</span>
                   {p.isFeatured && <span className="badge-yellow">Destacado</span>}
@@ -88,7 +88,7 @@ export default function AdminPortfolioPage() {
                   {p.year && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{p.year}</span>}
                 </div>
                 <div className="mt-3 flex items-center gap-1 border-t border-steel-900/30 pt-3">
-                  <button onClick={() => toggle(p.id, 'isFeatured', p.isFeatured)} className={`rounded p-1.5 transition-colors ${p.isFeatured ? 'text-yellow-bright hover:bg-yellow-muted' : 'text-steel-700 hover:text-steel-300'}`}><Star className="h-4 w-4" fill={p.isFeatured ? 'currentColor' : 'none'} /></button>
+                  <button onClick={() => toggle(p.id, 'isFeatured', p.isFeatured)} className={`rounded p-1.5 transition-colors ${p.isFeatured ? 'text-yellow-bright hover:bg-yellow-muted' : 'text-steel-500 hover:text-steel-300'}`}><Star className="h-4 w-4" fill={p.isFeatured ? 'currentColor' : 'none'} /></button>
                   <button onClick={() => toggle(p.id, 'isActive', p.isActive)} className="rounded p-1.5 text-steel-500 hover:text-arctic">{p.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
                   <button onClick={() => { setIsNew(false); setEditing(p); }} className="rounded p-1.5 text-steel-500 hover:bg-blue-muted hover:text-blue-bright"><Pencil className="h-4 w-4" /></button>
                   <button onClick={() => del(p.id)} className="rounded p-1.5 text-steel-500 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
@@ -148,7 +148,7 @@ export default function AdminPortfolioPage() {
                   }} className="rounded-lg border border-steel-700 px-3 py-1.5 font-body text-caption text-steel-300 hover:bg-steel-900">+ Agregar campo</button>
                 </div>
                 {Object.keys(editing.technicalDetails || {}).length === 0 ? (
-                  <p className="font-body text-caption text-steel-600">Sin detalles técnicos. Agregá campos como Superficie, Materiales, Equipo, etc.</p>
+                  <p className="font-body text-caption text-steel-500">Sin detalles técnicos. Agregá campos como Superficie, Materiales, Equipo, etc.</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
                     {Object.entries(editing.technicalDetails).map(([k, v]) => (
@@ -158,7 +158,7 @@ export default function AdminPortfolioPage() {
                           <button type="button" onClick={() => {
                             const { [k]: _, ...rest } = editing.technicalDetails;
                             setEditing({ ...editing, technicalDetails: rest });
-                          }} className="text-steel-700 hover:text-red-400"><X className="h-3.5 w-3.5" /></button>
+                          }} className="text-steel-500 hover:text-red-400"><X className="h-3.5 w-3.5" /></button>
                         </div>
                         <input type="text" value={v} onChange={(e) => setEditing({ ...editing, technicalDetails: { ...editing.technicalDetails, [k]: e.target.value } })} className="input py-1.5 text-sm" placeholder={`Valor de ${k}`} />
                       </div>

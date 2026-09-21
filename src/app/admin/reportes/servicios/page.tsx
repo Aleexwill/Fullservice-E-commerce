@@ -97,7 +97,7 @@ export default function ReporteServiciosPage() {
                 <span className="font-body text-caption uppercase tracking-[0.06em] text-steel-500">{kpi.label}</span>
               </div>
               <p className="mt-3 font-display text-h2 text-arctic">{kpi.value}</p>
-              <p className="mt-0.5 font-body text-caption text-steel-700">{kpi.sub}</p>
+              <p className="mt-0.5 font-body text-caption text-steel-500">{kpi.sub}</p>
             </div>
           );
         })}
@@ -120,7 +120,7 @@ export default function ReporteServiciosPage() {
                   <div key={status}>
                     <div className="mb-1 flex items-center justify-between font-body text-body-sm">
                       <span className="flex items-center gap-1.5 text-steel-300"><Icon className="h-3.5 w-3.5" />{cfg.label}</span>
-                      <span className="font-mono text-caption text-arctic">{count} <span className="text-steel-700">({pct}%)</span></span>
+                      <span className="font-mono text-caption text-arctic">{count} <span className="text-steel-500">({pct}%)</span></span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-steel-900">
                       <div className={`h-full rounded-full ${cfg.color} transition-all duration-500`} style={{ width: `${pct}%` }} />
@@ -144,7 +144,7 @@ export default function ReporteServiciosPage() {
                 return (
                   <div key={type} className="flex items-center justify-between rounded-md bg-carbon p-3">
                     <span className="flex items-center gap-2 font-body text-body-sm text-steel-300"><div className={`flex h-7 w-7 items-center justify-center rounded ${cfg.color}`}><Icon className="h-3.5 w-3.5 text-arctic" /></div>{cfg.label}</span>
-                    <div className="flex items-center gap-2"><span className="font-mono text-body-sm font-medium text-arctic">{count}</span><span className="font-mono text-caption text-steel-700">{pct}%</span></div>
+                    <div className="flex items-center gap-2"><span className="font-mono text-body-sm font-medium text-arctic">{count}</span><span className="font-mono text-caption text-steel-500">{pct}%</span></div>
                   </div>
                 );
               })}
@@ -162,7 +162,7 @@ export default function ReporteServiciosPage() {
                 return (
                   <div key={priority} className="flex items-center justify-between rounded-md bg-carbon p-3">
                     <span className="flex items-center gap-2 font-body text-body-sm text-steel-300"><div className={`h-3 w-3 rounded-full ${cfg.color}`} />{cfg.label}</span>
-                    <div className="flex items-center gap-2"><span className="font-mono text-body-sm font-medium text-arctic">{count}</span><span className="font-mono text-caption text-steel-700">{stats.total > 0 ? Math.round((count / stats.total) * 100) : 0}%</span></div>
+                    <div className="flex items-center gap-2"><span className="font-mono text-body-sm font-medium text-arctic">{count}</span><span className="font-mono text-caption text-steel-500">{stats.total > 0 ? Math.round((count / stats.total) * 100) : 0}%</span></div>
                   </div>
                 );
               })}
@@ -201,7 +201,7 @@ export default function ReporteServiciosPage() {
             <div className="rounded-lg border border-blue-bright/20 bg-blue-bright/5 p-4 text-center">
               <p className="font-body text-caption text-steel-500">Tasa de aprobacion</p>
               <p className="mt-1 font-display text-h1 text-blue-bright">{stats?.conversionRate || 0}%</p>
-              <p className="mt-0.5 font-body text-caption text-steel-700">{stats?.approvedCount || 0} de {stats?.total || 0} presupuestos</p>
+              <p className="mt-0.5 font-body text-caption text-steel-500">{stats?.approvedCount || 0} de {stats?.total || 0} presupuestos</p>
             </div>
           </div>
         </div>

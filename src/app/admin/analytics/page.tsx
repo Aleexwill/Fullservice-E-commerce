@@ -74,7 +74,7 @@ export default function AdminAnalyticsPage() {
                   <div className="flex flex-1 w-full flex-col justify-end">
                     <div className="w-full rounded-t bg-blue transition-all hover:bg-blue-bright" style={{ height: `${Math.max(h, 4)}%` }} />
                   </div>
-                  <span className="font-body text-[0.55rem] text-steel-700">{dayName}</span>
+                  <span className="font-body text-[0.55rem] text-steel-500">{dayName}</span>
                 </div>
               );
             })}
@@ -93,7 +93,7 @@ export default function AdminAnalyticsPage() {
                   <div className="flex flex-1 w-full flex-col justify-end">
                     <div className="w-full rounded-t bg-yellow-muted transition-all hover:bg-yellow" style={{ height: `${Math.max(pct, 2)}%` }} />
                   </div>
-                  {h % 4 === 0 && <span className="font-mono text-[0.55rem] text-steel-700">{h}h</span>}
+                  {h % 4 === 0 && <span className="font-mono text-[0.55rem] text-steel-500">{h}h</span>}
                 </div>
               );
             })}

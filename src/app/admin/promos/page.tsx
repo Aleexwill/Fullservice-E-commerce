@@ -278,8 +278,8 @@ export default function PromosAdminPage() {
 
               {/* Order controls */}
               <div className="flex flex-col gap-0.5">
-                <button disabled={idx === 0} onClick={() => move(banner, -1)} className="text-steel-600 hover:text-arctic disabled:opacity-20"><ChevronUp className="h-3.5 w-3.5" /></button>
-                <button disabled={idx === banners.length - 1} onClick={() => move(banner, 1)} className="text-steel-600 hover:text-arctic disabled:opacity-20"><ChevronDown className="h-3.5 w-3.5" /></button>
+                <button disabled={idx === 0} onClick={() => move(banner, -1)} className="text-steel-500 hover:text-arctic disabled:opacity-20"><ChevronUp className="h-3.5 w-3.5" /></button>
+                <button disabled={idx === banners.length - 1} onClick={() => move(banner, 1)} className="text-steel-500 hover:text-arctic disabled:opacity-20"><ChevronDown className="h-3.5 w-3.5" /></button>
               </div>
 
               {/* Preview thumb */}

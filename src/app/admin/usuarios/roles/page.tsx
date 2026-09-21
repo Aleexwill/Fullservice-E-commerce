@@ -240,7 +240,7 @@ export default function RolesPage() {
                     {!role.isSystem && (
                       <button
                         onClick={e => { e.stopPropagation(); deleteRole(role); }}
-                        className="ml-1 rounded p-1 text-steel-700 hover:bg-danger-light/10 hover:text-danger-light"
+                        className="ml-1 rounded p-1 text-steel-500 hover:bg-danger-light/10 hover:text-danger-light"
                         title="Eliminar rol"
                       >
                         <Trash2 className="h-3.5 w-3.5" />

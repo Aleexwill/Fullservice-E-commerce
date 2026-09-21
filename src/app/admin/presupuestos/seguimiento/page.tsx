@@ -181,11 +181,11 @@ export default function SeguimientoPage() {
           </button>
           <div>
             <h1 className="font-display text-h1 uppercase text-arctic">Seguimiento</h1>
-            <p className="mt-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-steel-600">Método 1 · 2 · 3 · 5 · 7 — {new Date().toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <p className="mt-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-steel-500">Método 1 · 2 · 3 · 5 · 7 — {new Date().toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {saving && <span className="flex items-center gap-1 font-mono text-caption text-steel-600"><RotateCcw className="h-3 w-3 animate-spin" />Guardando…</span>}
+          {saving && <span className="flex items-center gap-1 font-mono text-caption text-steel-500"><RotateCcw className="h-3 w-3 animate-spin" />Guardando…</span>}
           <button onClick={() => setVerCerrados(v => !v)} className={`btn-secondary text-sm ${verCerrados ? 'border-blue/40 text-blue-bright' : ''}`}>
             {verCerrados ? 'Ocultar cerrados' : 'Mostrar cerrados'}
           </button>
@@ -209,7 +209,7 @@ export default function SeguimientoPage() {
           return (
             <div key={k.label} className="card p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-steel-600">{k.label}</span>
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-steel-500">{k.label}</span>
                 <Icon className={`h-4 w-4 ${k.color}`} />
               </div>
               <p className={`font-mono text-2xl font-bold ${k.color}`}>{k.value}</p>
@@ -222,21 +222,21 @@ export default function SeguimientoPage() {
       <div className="mb-6 rounded-xl overflow-hidden bg-carbon border border-steel-900/60">
         <div className="flex items-baseline justify-between gap-3 px-5 py-4 border-b border-steel-900/60">
           <span className="font-display text-h4 text-arctic">Lo que hay que hacer hoy</span>
-          <span className="font-mono text-[0.65rem] text-steel-600">{pendientes.length === 0 ? 'Todo al día' : `${pendientes.length} acción${pendientes.length !== 1 ? 'es' : ''} pendiente${pendientes.length !== 1 ? 's' : ''}`}</span>
+          <span className="font-mono text-[0.65rem] text-steel-500">{pendientes.length === 0 ? 'Todo al día' : `${pendientes.length} acción${pendientes.length !== 1 ? 'es' : ''} pendiente${pendientes.length !== 1 ? 's' : ''}`}</span>
         </div>
         {pendientes.length === 0 ? (
-          <div className="px-5 py-8 text-center font-body text-body-sm text-steel-600">Nada pendiente para hoy. Todo el seguimiento está al día.</div>
+          <div className="px-5 py-8 text-center font-body text-body-sm text-steel-500">Nada pendiente para hoy. Todo el seguimiento está al día.</div>
         ) : (
           pendientes.map(({ entry, px, cliente, obra, nro, monto, vencido }) => (
             <div key={entry.id} className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-3.5 border-b border-steel-900/40 last:border-0">
               <div className="flex flex-col gap-1 min-w-0">
                 <span className="font-body text-body-sm font-semibold text-arctic">{cliente}</span>
-                <span className="truncate font-mono text-caption text-steel-600">{nro} · {obra} · {monto}</span>
+                <span className="truncate font-mono text-caption text-steel-500">{nro} · {obra} · {monto}</span>
                 <div>
                   <span className={`font-body text-caption font-semibold ${vencido ? 'text-danger-bright' : 'text-blue-bright'}`}>
                     Día {px.paso.n} — {px.paso.label}
                   </span>
-                  <span className="ml-2 font-mono text-[0.6rem] text-steel-600">
+                  <span className="ml-2 font-mono text-[0.6rem] text-steel-500">
                     {vencido ? `Vencido hace ${px.atraso} día${px.atraso !== 1 ? 's' : ''}` : 'Corresponde hoy'}
                   </span>
                 </div>
@@ -262,7 +262,7 @@ export default function SeguimientoPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-steel-900/40">
           <div>
             <h2 className="font-display text-h4 text-arctic">Presupuestos en seguimiento</h2>
-            <p className="mt-0.5 font-body text-caption text-steel-600">Día 1 enviar · día 2 sondeo · día 3 sondear · día 5 sondear · día 7 llamar. Tocá cada paso para marcarlo.</p>
+            <p className="mt-0.5 font-body text-caption text-steel-500">Día 1 enviar · día 2 sondeo · día 3 sondear · día 5 sondear · día 7 llamar. Tocá cada paso para marcarlo.</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <select value={nuevoId} onChange={(e) => setNuevoId(e.target.value)}
@@ -279,7 +279,7 @@ export default function SeguimientoPage() {
         </div>
 
         {/* Table header */}
-        <div className="grid min-w-[860px] border-b border-steel-900/40 bg-carbon px-5 font-mono text-[0.6rem] uppercase tracking-widest text-steel-600"
+        <div className="grid min-w-[860px] border-b border-steel-900/40 bg-carbon px-5 font-mono text-[0.6rem] uppercase tracking-widest text-steel-500"
           style={{ gridTemplateColumns: 'minmax(140px,1.4fr) minmax(0,90px) minmax(0,120px) minmax(0,100px) minmax(0,200px) minmax(0,130px) minmax(0,120px)' }}>
           {['Cliente y obra','N°','Monto','Envío','1 · 2 · 3 · 5 · 7','Próximo paso','Cierre'].map(h => (
             <div key={h} className="px-2 py-2.5 first:pl-0 last:pr-0">{h}</div>
@@ -287,7 +287,7 @@ export default function SeguimientoPage() {
         </div>
 
         {filas.length === 0 ? (
-          <div className="px-5 py-10 text-center font-body text-body-sm text-steel-600">
+          <div className="px-5 py-10 text-center font-body text-body-sm text-steel-500">
             Todavía no hay presupuestos en seguimiento. Sumá uno desde el selector de arriba.
           </div>
         ) : filas.map(entry => {
@@ -296,11 +296,11 @@ export default function SeguimientoPage() {
           const monto = p ? Number(p.finalValue ?? p.estimatedValue ?? 0) : 0;
           const alerta = !entry.cerrado && px && px.atraso > 0;
 
-          let proxLabel = 'Ciclo completo', proxCuando = 'Sin pasos pendientes', proxColor = 'text-steel-600';
+          let proxLabel = 'Ciclo completo', proxCuando = 'Sin pasos pendientes', proxColor = 'text-steel-500';
           if (entry.cerrado) {
             proxLabel = entry.cerrado === 'aprobado' ? 'Aprobado' : (entry.cerrado === 'perdido' ? 'Perdido' : 'En pausa');
             proxCuando = 'Fuera del ciclo';
-            proxColor = entry.cerrado === 'aprobado' ? 'text-success-bright' : 'text-steel-600';
+            proxColor = entry.cerrado === 'aprobado' ? 'text-success-bright' : 'text-steel-500';
           } else if (px) {
             proxLabel = `Día ${px.paso.n} — ${px.paso.label}`;
             proxCuando = px.atraso > 0 ? `Vencido hace ${px.atraso}d` : (px.atraso === 0 ? 'Hoy' : `El ${fmtDate(px.fecha)}`);
@@ -315,7 +315,7 @@ export default function SeguimientoPage() {
               {/* Cliente */}
               <div className="flex flex-col gap-0.5 py-3 pr-2 min-w-0">
                 <span className="font-body text-body-sm font-semibold text-arctic truncate">{p?.customer.name || '—'}</span>
-                <span className="truncate font-body text-caption text-steel-600">{p?.serviceTitle || '—'}</span>
+                <span className="truncate font-body text-caption text-steel-500">{p?.serviceTitle || '—'}</span>
               </div>
 
               {/* N° */}
@@ -361,7 +361,7 @@ export default function SeguimientoPage() {
               {/* Próximo */}
               <div className="flex flex-col justify-center gap-0.5 px-2 py-3">
                 <span className={`font-body text-caption font-semibold ${proxColor}`}>{proxLabel}</span>
-                <span className="font-mono text-[0.6rem] text-steel-700">{proxCuando}</span>
+                <span className="font-mono text-[0.6rem] text-steel-500">{proxCuando}</span>
               </div>
 
               {/* Cierre */}
@@ -376,7 +376,7 @@ export default function SeguimientoPage() {
                 </select>
                 <button onClick={() => { const next = seg.filter(s => s.id !== entry.id); setSeg2(next); }}
                   title="Quitar del seguimiento"
-                  className="shrink-0 h-6 w-6 flex items-center justify-center rounded text-steel-700 hover:bg-red-500/20 hover:text-red-400 transition-colors text-lg leading-none">
+                  className="shrink-0 h-6 w-6 flex items-center justify-center rounded text-steel-500 hover:bg-red-500/20 hover:text-red-400 transition-colors text-lg leading-none">
                   ×
                 </button>
               </div>

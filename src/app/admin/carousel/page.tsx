@@ -97,7 +97,7 @@ function SlideEditor({
                 onChange={(e) => setForm((f) => ({ ...f, overlayOpacity: Number(e.target.value) }))}
                 className="w-full accent-blue"
               />
-              <div className="mt-1 flex justify-between font-body text-[0.6rem] text-steel-600">
+              <div className="mt-1 flex justify-between font-body text-[0.6rem] text-steel-500">
                 <span>0% — imagen limpia</span>
                 <span>100% — fondo sólido</span>
               </div>
@@ -358,16 +358,16 @@ export default function CarouselAdminPage() {
                 <button
                   disabled={idx === 0}
                   onClick={() => moveOrder(slide, -1)}
-                  className="text-steel-600 hover:text-arctic disabled:opacity-20"
+                  className="text-steel-500 hover:text-arctic disabled:opacity-20"
                   title="Subir"
                 >
                   ▲
                 </button>
-                <GripVertical className="h-4 w-4 text-steel-700" />
+                <GripVertical className="h-4 w-4 text-steel-500" />
                 <button
                   disabled={idx === slides.length - 1}
                   onClick={() => moveOrder(slide, 1)}
-                  className="text-steel-600 hover:text-arctic disabled:opacity-20"
+                  className="text-steel-500 hover:text-arctic disabled:opacity-20"
                   title="Bajar"
                 >
                   ▼
@@ -398,7 +398,7 @@ export default function CarouselAdminPage() {
                 <p className="font-display text-sm font-bold text-arctic truncate">{slide.label}</p>
                 <p className="font-body text-xs text-steel-400 truncate">{slide.tag}</p>
                 {slide.description && (
-                  <p className="mt-0.5 font-body text-xs text-steel-600 line-clamp-1">{slide.description}</p>
+                  <p className="mt-0.5 font-body text-xs text-steel-500 line-clamp-1">{slide.description}</p>
                 )}
                 {!slide.photoUrl && (
                   <span className="mt-1 inline-block rounded-full bg-orange/10 px-2 py-0.5 font-body text-[0.6rem] text-orange">
