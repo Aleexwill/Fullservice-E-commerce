@@ -66,7 +66,7 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#0B1120]/98 backdrop-blur-md" onClick={onClose}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 md:p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-start justify-between gap-4 bg-[#0B1120] p-4 md:p-6" onClick={(e) => e.stopPropagation()}>
         <div>
           <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${badgeColors[project.badge] || badgeColors.neutral}`}>
             {categoryLabel[project.category] || project.category}
