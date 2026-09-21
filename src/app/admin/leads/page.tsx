@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { fetchJson } from '@/lib/utils';
 import {
   Search, RefreshCw, Plus, Trash2, X, Send, User, Mail, Phone, MessageSquare,
@@ -68,12 +68,27 @@ const getInitials = (n: string) => n.split(' ').map((w) => w[0]).join('').toUppe
 const AVATAR_COLORS = ['bg-blue-muted', 'bg-orange-muted', 'bg-success-light', 'bg-[#2D1B69]', 'bg-[#0C2D48]', 'bg-danger-light'];
 const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
 
-export default function AdminLeadsCRM() {
+export default function LeadsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminLeadsCRM />
+    </Suspense>
+  );
+}
+
+function AdminLeadsCRM() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // view persists in localStorage; search persists in URL query param
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [view, setView] = useState<'kanban' | 'list'>('kanban');
+  const [search, setSearch] = useState(() => searchParams.get('q') ?? '');
+  const [view, setView] = useState<'kanban' | 'list'>(() => {
+    if (typeof window === 'undefined') return 'kanban';
+    return (localStorage.getItem('leads_view') as 'kanban' | 'list') ?? 'kanban';
+  });
   const [selected, setSelected] = useState<Lead | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [detailTab, setDetailTab] = useState<'timeline' | 'notes' | 'tasks' | 'info'>('timeline');
@@ -82,6 +97,19 @@ export default function AdminLeadsCRM() {
   const [actType, setActType] = useState<string>('note');
   const [actText, setActText] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Keep URL in sync with search state
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (search) { params.set('q', search); } else { params.delete('q'); }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  // Persist view preference
+  useEffect(() => {
+    localStorage.setItem('leads_view', view);
+  }, [view]);
 
   const fetchLeads = useCallback(() => {
     setLoading(true);
