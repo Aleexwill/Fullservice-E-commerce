@@ -20,20 +20,18 @@ export async function parseBody<T>(
   return { data: result.data, error: null };
 }
 
-const VALID_ROLES = ['admin', 'vendedor', 'tecnico'] as const;
-
 // ── Usuarios ──────────────────────────────────────────────────────────────────
 
 export const CreateUserSchema = z.object({
   email: z.string().email('Email inválido').max(254),
   name: z.string().min(1, 'El nombre es obligatorio').max(120),
-  role: z.enum(VALID_ROLES, { errorMap: () => ({ message: 'Rol inválido' }) }),
+  role: z.string().min(1, 'El rol es obligatorio').max(60),
   password: z.string().min(6, 'La contraseña temporal debe tener al menos 6 caracteres').max(128),
 });
 
 export const UpdateUserSchema = z.object({
   name: z.string().min(1).max(120).optional(),
-  role: z.enum(VALID_ROLES).optional(),
+  role: z.string().min(1).max(60).optional(),
   isActive: z.boolean().optional(),
 }).refine(d => Object.keys(d).length > 0, { message: 'Se requiere al menos un campo' });
 
