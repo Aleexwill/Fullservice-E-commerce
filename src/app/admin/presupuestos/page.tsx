@@ -98,6 +98,8 @@ export default function AdminPresupuestosPage() {
   const [filterType, setFilterType] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [showAsistente, setShowAsistente] = useState(false);
+  const [currentRole, setCurrentRole] = useState<string>('');
+  const [canAprobar, setCanAprobar] = useState(false);
   const [leadPrefill, setLeadPrefill] = useState<Record<string, string> | null>(null);
   const [aiPrefill, setAiPrefill] = useState<AsistenteResult | null>(null);
 
@@ -110,6 +112,13 @@ export default function AdminPresupuestosPage() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Load current user role once on mount
+  useEffect(() => {
+    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
+      if (d) { setCurrentRole(d.role); setCanAprobar(!!d.canAprobarPresupuestos); }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fromLead = searchParams.get('from_lead');
@@ -171,12 +180,20 @@ export default function AdminPresupuestosPage() {
 
   const pendingApproval = items.filter(i => i.status === 'pendiente_aprobacion');
 
+  // Navigate to approval tab when coming from notification bell link
+  useEffect(() => {
+    if (searchParams.get('tab') === 'aprobacion' && canAprobar) {
+      setActiveTab('aprobacion');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canAprobar]);
+
   const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
     { key: 'dashboard',    label: 'Tablero de control', icon: BarChart2 },
     { key: 'solicitudes',  label: 'Solicitudes',    icon: List,         count: allActive.length },
     { key: 'archivo',      label: 'Archivo',        icon: Archive,      count: allArchive.length },
     { key: 'planificacion',label: 'Planificación',  icon: ClipboardList },
-    { key: 'aprobacion',   label: 'Aprobación',     icon: ShieldCheck,  count: pendingApproval.length },
+    ...(canAprobar ? [{ key: 'aprobacion' as Tab, label: 'Aprobación', icon: ShieldCheck, count: pendingApproval.length }] : []),
   ];
 
   return (
@@ -234,7 +251,7 @@ export default function AdminPresupuestosPage() {
           onOpen={(id) => router.push(`/admin/presupuestos/${id}`)}
           onDelete={del}
           onNew={() => setShowCreate(true)}
-          onSendToApproval={(id) => changeStatus(id, 'pendiente_aprobacion')}
+          onSendToApproval={!canAprobar ? (id) => changeStatus(id, 'pendiente_aprobacion') : undefined}
         />
       )}
 
@@ -246,7 +263,7 @@ export default function AdminPresupuestosPage() {
           onOpen={(id) => router.push(`/admin/presupuestos/${id}`)}
           onDelete={del}
           onStatusChange={changeStatus}
-          onSendToApproval={(id) => changeStatus(id, 'pendiente_aprobacion')}
+          onSendToApproval={!canAprobar ? (id) => changeStatus(id, 'pendiente_aprobacion') : undefined}
         />
       )}
 
@@ -819,7 +836,7 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
   filterStatus: string; setFilterStatus: (v: string) => void;
   filterType: string; setFilterType: (v: string) => void;
   onOpen: (id: string) => void; onDelete: (id: string) => void; onNew: () => void;
-  onSendToApproval: (id: string) => void;
+  onSendToApproval?: (id: string) => void;
 }) {
   const [page, setPage] = useState(0);
   useEffect(() => { setPage(0); }, [search, filterStatus, filterType, items.length]);
@@ -853,7 +870,7 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
         </div>
       ) : (
         <div className="space-y-2">
-          {pageItems.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} onSendToApproval={() => onSendToApproval(item.id)} />)}
+          {pageItems.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} onSendToApproval={() => onSendToApproval?.(item.id)} />)}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-3 pt-4">
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="btn-secondary disabled:opacity-40">Anterior</button>
@@ -872,7 +889,7 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
   items: Presupuesto[]; loading: boolean; search: string; setSearch: (v: string) => void;
   onOpen: (id: string) => void; onDelete: (id: string) => void;
   onStatusChange: (id: string, status: string) => void;
-  onSendToApproval: (id: string) => void;
+  onSendToApproval?: (id: string) => void;
 }) {
   const [filterStatus, setFilterStatus] = useState('');
   const [page, setPage] = useState(0);
@@ -911,7 +928,7 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
               onOpen={() => onOpen(item.id)}
               onDelete={() => onDelete(item.id)}
               onStatusChange={(status) => onStatusChange(item.id, status)}
-              onSendToApproval={() => onSendToApproval(item.id)}
+              onSendToApproval={() => onSendToApproval?.(item.id)}
               hideWebBadge
             />
           ))}

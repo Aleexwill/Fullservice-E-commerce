@@ -1,9 +1,10 @@
-export type Role = 'admin' | 'vendedor' | 'tecnico';
+export type Role = 'admin' | 'vendedor' | 'tecnico' | 'comercial';
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: 'Administrador',
   vendedor: 'Vendedor',
   tecnico: 'Técnico',
+  comercial: 'Comercial',
 };
 
 // Qué puede ver/usar cada rol en el admin
@@ -14,6 +15,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
   canManageProducts: boolean;
   canManageOrders: boolean;
   canManagePresupuestos: boolean;
+  canAprobarPresupuestos: boolean; // solo admin puede aprobar internamente
   canManageLeads: boolean;
   canManageClients: boolean;
   canManageInventory: boolean;
@@ -23,20 +25,30 @@ export const ROLE_PERMISSIONS: Record<Role, {
   admin: {
     canManageUsers: true, canManageConfig: true, canManageContent: true,
     canManageProducts: true, canManageOrders: true, canManagePresupuestos: true,
+    canAprobarPresupuestos: true,
     canManageLeads: true, canManageClients: true, canManageInventory: true,
     canViewReports: true, canViewAnalytics: true,
   },
   vendedor: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
     canManageProducts: false, canManageOrders: true, canManagePresupuestos: true,
+    canAprobarPresupuestos: false,
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
   },
   tecnico: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
     canManageProducts: false, canManageOrders: false, canManagePresupuestos: true,
+    canAprobarPresupuestos: false,
     canManageLeads: false, canManageClients: false, canManageInventory: true,
     canViewReports: false, canViewAnalytics: false,
+  },
+  comercial: {
+    canManageUsers: false, canManageConfig: false, canManageContent: false,
+    canManageProducts: false, canManageOrders: false, canManagePresupuestos: true,
+    canAprobarPresupuestos: false,
+    canManageLeads: true, canManageClients: true, canManageInventory: false,
+    canViewReports: true, canViewAnalytics: false,
   },
 };
 
