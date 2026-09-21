@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  BarChart2, Wrench, CheckCircle2, Clock, RefreshCw, Download, Printer,
-  FileText, TrendingUp, AlertCircle,
+  BarChart2, Wrench, CheckCircle2, RefreshCw, Download, Printer,
+  TrendingUp, AlertCircle,
 } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ interface Stats {
   approvedCount: number;
   conversionRate: number;
   totalEstimated: number;
+  totalCotizado: number;
   totalFinal: number;
   totalAprobado: number;
   totalFacturado: number;
@@ -211,7 +212,7 @@ export default function PresupuestosDashboard() {
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl bg-steel-900 p-5">
           <span className="font-mono text-[0.65rem] uppercase tracking-widest text-steel-500">Total cotizado</span>
-          <p className="mt-2 font-mono text-[1.35rem] font-semibold leading-tight text-arctic">{formatGs(stats.totalEstimated)}</p>
+          <p className="mt-2 font-mono text-[1.35rem] font-semibold leading-tight text-arctic">{formatGs(stats.totalCotizado)}</p>
           <p className="mt-1 font-body text-caption text-steel-500">Sin contar los de baja</p>
         </div>
         <div className="rounded-xl bg-steel-900 p-5">
@@ -333,15 +334,6 @@ export default function PresupuestosDashboard() {
         </div>
       )}
 
-      {/* Quick actions */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link href="/admin/presupuestos" className="btn-primary">
-          <FileText className="h-4 w-4" /> Ver todos los presupuestos
-        </Link>
-        <Link href="/admin/presupuestos/seguimiento" className="btn-secondary">
-          <Clock className="h-4 w-4" /> Seguimiento 1·2·3·5·7
-        </Link>
-      </div>
     </div>
   );
 }
