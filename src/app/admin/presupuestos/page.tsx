@@ -85,7 +85,7 @@ const formatScheduledDate = (d: string) => {
   return new Date(y, m - 1, day).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-type Tab = 'dashboard' | 'solicitudes' | 'archivo' | 'planificacion' | 'aprobacion';
+type Tab = 'solicitudes' | 'archivo' | 'planificacion' | 'aprobacion';
 
 export default function AdminPresupuestosPage() {
   const router = useRouter();
@@ -189,7 +189,6 @@ export default function AdminPresupuestosPage() {
   }, [canAprobar]);
 
   const tabs: { key: Tab; label: string; icon: any; count?: number }[] = [
-    { key: 'dashboard',    label: 'Tablero de control', icon: BarChart2 },
     { key: 'solicitudes',  label: 'Solicitudes',    icon: List,         count: allActive.length },
     { key: 'archivo',      label: 'Archivo',        icon: Archive,      count: allArchive.length },
     { key: 'planificacion',label: 'Planificación',  icon: ClipboardList },
@@ -205,13 +204,16 @@ export default function AdminPresupuestosPage() {
           <p className="mt-1 font-body text-body-sm text-steel-300">Tablero de control — Full Service & Clean</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/admin/presupuestos/dashboard" className="btn-secondary"><BarChart2 className="h-4 w-4" /> Dashboard</Link>
           <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> Nuevo presupuesto</button>
         </div>
       </div>
 
       {/* Tab nav */}
       <div className="mb-6 flex gap-1 border-b border-steel-900/50">
+        <button onClick={() => router.push('/admin/presupuestos/dashboard')}
+          className="flex items-center gap-1.5 px-4 py-2.5 font-body text-body-sm font-medium transition-colors border-b-2 -mb-px border-transparent text-steel-500 hover:text-steel-300">
+          <BarChart2 className="h-3.5 w-3.5" />Tablero de control
+        </button>
         {tabs.map(t => {
           const Icon = t.icon;
           const active = activeTab === t.key;
@@ -235,11 +237,6 @@ export default function AdminPresupuestosPage() {
           <button onClick={fetchData} className="rounded p-1.5 text-steel-500 hover:text-arctic transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
         </div>
       </div>
-
-      {/* Dashboard tab */}
-      {activeTab === 'dashboard' && (
-        <TableroDashboard items={items} loading={loading} onRefresh={fetchData} />
-      )}
 
       {/* Solicitudes tab */}
       {activeTab === 'solicitudes' && (
@@ -396,20 +393,6 @@ interface Plan2Tarea {
   id: string; nro?: string; cliente: string; local: string; descripcion: string; tecnico: string;
   avance: string; pct?: number; dias: number; obs: string; scheduledDate?: string;
 }
-
-// ─── TableroDashboard ─────────────────────────────────────────
-function TableroDashboard({ items: _items, loading: _loading, onRefresh: _onRefresh }: {
-  items: Presupuesto[]; loading: boolean; onRefresh: () => void;
-}) {
-  return (
-    <iframe
-      src="/tablero.html"
-      style={{ width: '100%', height: 'calc(100vh - 120px)', border: 'none', display: 'block' }}
-      title="Tablero de Control"
-    />
-  );
-}
-
 
 // ─── Presupuestos inline table ─────────────────────────────────
 // Columns: N° PRESU · FECHA · CLIENTE · LOCAL · TRABAJO · PRECIO DE VENTA · VENDIDO · ALERTA · ESTADO · PRIORIDAD · TÉCNICO · ×
