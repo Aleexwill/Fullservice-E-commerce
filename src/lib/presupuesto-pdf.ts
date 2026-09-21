@@ -1,4 +1,4 @@
-import type { CalculationData, FilaCalculo } from '@/components/admin/presupuesto-calculo';
+import type { CalculationData, FilaCalculo } from '@/lib/presupuesto-types';
 
 export interface PdfDetallOpts {
   incluirDetalle: boolean;

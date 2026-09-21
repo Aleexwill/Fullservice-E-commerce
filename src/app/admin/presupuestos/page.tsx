@@ -12,7 +12,7 @@ import {
   XCircle, PauseCircle, Globe, Shield
 } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
-import { PresupuestoCalculo, type CalculationData } from '@/components/admin/presupuesto-calculo';
+import type { CalculationData } from '@/lib/presupuesto-types';
 import { imprimirPresupuesto, type PdfDetallOpts } from '@/lib/presupuesto-pdf';
 import { PresupuestoAsistente, type AsistenteResult } from '@/components/admin/presupuesto-asistente';
 
