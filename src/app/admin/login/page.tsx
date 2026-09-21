@@ -142,9 +142,14 @@ function LoginForm() {
         setLoading(false);
         return;
       }
+      const data = await res.json().catch(() => ({}));
       botRef.current?.success(username.trim());
-      const redirectTo = searchParams.get('redirect') || '/admin';
-      router.push(redirectTo);
+      if (data.mustChangePassword) {
+        router.push('/admin/cambiar-password');
+      } else {
+        const redirectTo = searchParams.get('redirect') || '/admin';
+        router.push(redirectTo);
+      }
       router.refresh();
     } catch {
       setError('Error de conexión. Intentá de nuevo.');

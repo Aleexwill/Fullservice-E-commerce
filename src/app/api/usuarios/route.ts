@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
-      select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, isActive: true, mustChangePassword: true, createdAt: true },
     });
     return NextResponse.json({ users });
   } catch (error) {
@@ -51,13 +51,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Rol inválido' }, { status: 400 });
   }
 
+  if (password.length < 6) {
+    return NextResponse.json({ error: 'La contraseña temporal debe tener al menos 6 caracteres' }, { status: 400 });
+  }
+
   const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
   if (existing) return NextResponse.json({ error: 'Ya existe un usuario con ese email' }, { status: 409 });
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({
-    data: { email: email.toLowerCase(), name, role, passwordHash },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+    data: { email: email.toLowerCase(), name, role, passwordHash, mustChangePassword: true },
+    select: { id: true, email: true, name: true, role: true, isActive: true, mustChangePassword: true, createdAt: true },
   });
 
   return NextResponse.json({ user }, { status: 201 });

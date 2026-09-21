@@ -29,7 +29,12 @@ export async function POST(request: NextRequest) {
       const passOk = await bcrypt.compare(password, dbUser.passwordHash);
       if (passOk) {
         const token = await createSessionToken(dbUser.email, dbUser.role as Role, dbUser.id);
-        const res = NextResponse.json({ ok: true, role: dbUser.role, name: dbUser.name });
+        const res = NextResponse.json({
+          ok: true,
+          role: dbUser.role,
+          name: dbUser.name,
+          mustChangePassword: dbUser.mustChangePassword ?? false,
+        });
         setCookie(res, token);
         return res;
       }
