@@ -117,7 +117,7 @@ export default function AdminPortfolioPage() {
                 <div><label className="label mb-1 block">Cliente</label><input type="text" value={editing.client} onChange={(e) => setEditing({ ...editing, client: e.target.value })} className="input" /></div>
                 <div><label className="label mb-1 block">Ubicacion</label><input type="text" value={editing.location} onChange={(e) => setEditing({ ...editing, location: e.target.value })} className="input" /></div>
                 <div><label className="label mb-1 block">Duracion</label><input type="text" value={editing.duration} onChange={(e) => setEditing({ ...editing, duration: e.target.value })} className="input" placeholder="Ej: 3 meses" /></div>
-                <div><label className="label mb-1 block">Ano</label><input type="text" value={editing.year} onChange={(e) => setEditing({ ...editing, year: e.target.value })} className="input" /></div>
+                <div><label className="label mb-1 block">Año</label><input type="text" value={editing.year} onChange={(e) => setEditing({ ...editing, year: e.target.value })} className="input" /></div>
                 <div className="col-span-2">
                   <ImageUploader
                     label="Imagen principal"
