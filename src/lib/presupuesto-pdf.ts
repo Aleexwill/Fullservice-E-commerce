@@ -6,6 +6,13 @@ export interface PdfDetallOpts {
   mostrarObservaciones: boolean;
 }
 
+interface CostosRubro {
+  nombre: string;
+  mats?: { desc?: string; unidad?: string; cantidad?: number; precioUnitario?: number; precioVenta?: number }[];
+  mos?: { desc?: string; unidad?: string; cantidad?: number; precioUnitario?: number; precioVenta?: number }[];
+  otros?: { desc?: string; unidad?: string; cantidad?: number; precioUnitario?: number; precioVenta?: number }[];
+}
+
 interface PresupuestoData {
   code: string;
   serviceTitle: string;
@@ -16,8 +23,33 @@ interface PresupuestoData {
   assignedTo: string;
   customer: { name: string; email: string; phone: string; company: string; address: string };
   calculationData: CalculationData | null;
+  costosData?: { rubros?: CostosRubro[] } | null;
   createdAt: string;
   opts?: PdfDetallOpts;
+}
+
+// Convert costosData.rubros (new format from costos.html) into FilaCalculo[] so the
+// PDF renderer can handle both legacy (calculationData.filas) and new data seamlessly.
+function rubrosToFilas(rubros: CostosRubro[]): FilaCalculo[] {
+  let seq = 0;
+  const filas: FilaCalculo[] = [];
+  for (const r of rubros) {
+    const tituloId = `t${seq++}`;
+    filas.push({ id: tituloId, tipo: 'titulo', descripcion: r.nombre, unidad: '', cantidad: 0, precioUnitario: 0, precioVenta: 0 });
+    const rows = [...(r.mats ?? []), ...(r.mos ?? []), ...(r.otros ?? [])];
+    for (const row of rows) {
+      filas.push({
+        id: `r${seq++}`,
+        tipo: 'material',
+        descripcion: row.desc ?? '',
+        unidad: row.unidad ?? 'un',
+        cantidad: row.cantidad ?? 0,
+        precioUnitario: row.precioUnitario ?? 0,
+        precioVenta: row.precioVenta ?? (row.cantidad ?? 0) * (row.precioUnitario ?? 0),
+      });
+    }
+  }
+  return filas;
 }
 
 const gs = (n: number) => 'Gs. ' + Math.round(n).toLocaleString('es-PY');
@@ -47,7 +79,11 @@ function filasDeSeccion(titFila: FilaCalculo, todasFilas: FilaCalculo[]) {
 export function imprimirPresupuesto(p: PresupuestoData) {
   const opts: PdfDetallOpts = p.opts ?? { incluirDetalle: true, mostrarTotalSeccion: true, mostrarObservaciones: true };
   const cd = p.calculationData;
-  const filas = cd?.filas ?? [];
+  // Prefer calculationData.filas; fall back to costosData.rubros (new format from costos.html)
+  const rawFilas = cd?.filas ?? [];
+  const filas: FilaCalculo[] = rawFilas.length > 0
+    ? rawFilas
+    : rubrosToFilas(p.costosData?.rubros ?? []);
   const titulos = filas.filter(f => f.tipo === 'titulo');
   const filasItems = filas.filter(f => f.tipo !== 'titulo');
 

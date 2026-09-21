@@ -1,21 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getIp } from '@/lib/rate-limit';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-// Rate limit simple en memoria (defensa adicional; el endpoint ya requiere
-// sesión de admin vía middleware). No es perfecto en serverless multi-instancia,
-// pero acota loops accidentales o de un admin comprometido.
-const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60_000;
-const requestLog = new Map<string, number[]>();
-
-function isRateLimited(key: string): boolean {
-  const now = Date.now();
-  const timestamps = (requestLog.get(key) || []).filter((t) => now - t < RATE_WINDOW_MS);
-  timestamps.push(now);
-  requestLog.set(key, timestamps);
-  return timestamps.length > RATE_LIMIT;
-}
 
 const SYSTEM_PROMPT = `Eres un redactor profesional de e-commerce especializado en ferreteria, construccion, herramientas industriales y materiales de obra. Tu trabajo es crear descripciones de producto optimizadas para venta online.
 
@@ -139,11 +125,11 @@ function generateFallbackDescription(data: {
 }
 
 export async function POST(request: NextRequest) {
+  const rl = rateLimit(`ai-desc:${getIp(request)}`, 10, 60 * 1000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes, esperá un minuto' }, { status: 429 });
+  }
   try {
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    if (isRateLimited(ip)) {
-      return NextResponse.json({ error: 'Demasiadas solicitudes, esperá un minuto' }, { status: 429 });
-    }
 
     const body = await request.json();
 

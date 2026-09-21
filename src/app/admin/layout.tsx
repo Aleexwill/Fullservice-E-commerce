@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
 import { AdminThemeProvider, AdminShell } from '@/components/admin/theme-provider';
 import { ThemeToggle } from '@/components/admin/theme-toggle';
+import { ToastProvider } from '@/components/admin/toast';
 
 interface NavGroup {
   label: string;
@@ -112,6 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AdminThemeProvider>
     <AdminShell>
+    <ToastProvider>
     <div className="flex min-h-screen bg-carbon">
 {sidebarOpen && <div className="fixed inset-0 z-40 bg-carbon/70 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
       <aside className={cn('fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200', 'lg:translate-x-0', sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}>
@@ -131,6 +133,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {children}
       </main>
     </div>
+    </ToastProvider>
     </AdminShell>
     </AdminThemeProvider>
   );

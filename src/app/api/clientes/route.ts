@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuth, requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { parseBody, CreateClienteSchema } from '@/lib/schemas';
 
 export async function GET(request: Request) {
   const auth = await requireRole('canManageClients');
@@ -37,7 +38,9 @@ export async function POST(request: Request) {
   const auth = await requireRole('canManageClients');
   if (auth instanceof NextResponse) return auth;
   try {
-    const body = await request.json();
+    const parsed = await parseBody(request, CreateClienteSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     // Check if client with same email or phone already exists
     if (body.email || body.phone) {
       const existing = await prisma.cliente.findFirst({
@@ -65,14 +68,14 @@ export async function POST(request: Request) {
     const cliente = await prisma.cliente.create({
       data: {
         name: body.name,
-        company: body.company || '',
-        email: body.email || '',
-        phone: body.phone || '',
-        address: body.address || '',
-        ruc: body.ruc || '',
-        category: body.category || 'servicios',
-        notes: body.notes || '',
-        leadId: body.leadId || '',
+        company: body.company,
+        email: body.email,
+        phone: body.phone,
+        address: body.address,
+        ruc: body.ruc,
+        category: body.category,
+        notes: body.notes,
+        leadId: body.leadId,
         jobsCount: 1,
         lastServiceAt: new Date().toISOString().split('T')[0],
       },

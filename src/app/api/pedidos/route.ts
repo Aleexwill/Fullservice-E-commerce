@@ -3,8 +3,10 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, requireRole } from '@/lib/auth';
 import { getAllOrders, createOrder } from '@/lib/orders-store';
+import type { OrderStatus, PaymentStatus } from '@/lib/orders-store';
 import { getEffectivePrice } from '@/lib/products-store';
 import { prisma } from '@/lib/prisma';
+import { parseBody, CreatePedidoSchema } from '@/lib/schemas';
 
 export async function GET(request: NextRequest) {
   const auth = await requireRole('canManageOrders');
@@ -40,15 +42,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    if (!body.customer?.name) {
-      return NextResponse.json({ error: 'Nombre del cliente es obligatorio' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, CreatePedidoSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
 
-    const rawItems: { productId: string; quantity: number }[] = (body.items || []).map((item: any) => ({
-      productId: String(item.productId || ''),
-      quantity: Math.max(1, Number(item.quantity) || 1),
-    }));
+    const rawItems = body.items;
 
     // El precio SIEMPRE se toma de la base de datos, nunca del cliente,
     // para que no se pueda manipular el monto del pedido desde el navegador.
@@ -90,24 +88,26 @@ export async function POST(request: NextRequest) {
       )
     );
 
+    const shipping = body.shipping ?? 0;
+    const discount = body.discount ?? 0;
     const order = await createOrder({
-      status: body.status || 'pending',
-      paymentStatus: body.paymentStatus || 'pending',
+      status: (body.status ?? 'pending') as OrderStatus,
+      paymentStatus: (body.paymentStatus ?? 'pending') as PaymentStatus,
       customer: {
         name: body.customer.name,
-        email: body.customer.email || '',
-        phone: body.customer.phone || '',
-        address: body.customer.address || '',
-        city: body.customer.city || '',
-        notes: body.customer.notes || '',
+        email: body.customer.email ?? '',
+        phone: body.customer.phone ?? '',
+        address: body.customer.address ?? '',
+        city: body.customer.city ?? '',
+        notes: body.customer.notes ?? '',
       },
       items,
       subtotal,
-      shipping: Number(body.shipping) || 0,
-      discount: Number(body.discount) || 0,
-      total: subtotal + (Number(body.shipping) || 0) - (Number(body.discount) || 0),
-      paymentMethod: body.paymentMethod || 'pending',
-      adminNotes: body.adminNotes || '',
+      shipping,
+      discount,
+      total: subtotal + shipping - discount,
+      paymentMethod: body.paymentMethod ?? 'pending',
+      adminNotes: body.adminNotes ?? '',
     });
 
     return NextResponse.json(order, { status: 201 });

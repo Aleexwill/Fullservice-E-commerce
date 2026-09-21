@@ -67,24 +67,14 @@ export default function SeguimientoPage() {
   const cargar = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/presupuestos?limit=200');
-      const data = await res.json();
-      const items: Presupuesto[] = data?.presupuestos || [];
-      setPresupuestos(items);
-
-      // Merge seguimientoData from all entries — find first one that has it
-      // In practice we store a shared seg list on the first presupuesto that has seguimientoData
-      // For simplicity: store as a special "global" key via a dedicated API endpoint
-      // For now load from first presupuesto that has seguimientoData populated
-      let foundSeg: SegEntry[] = [];
-      for (const p of items) {
-        const sd = (p as any).seguimientoData;
-        if (sd && Array.isArray(sd.seg) && sd.seg.length > 0) {
-          foundSeg = sd.seg;
-          break;
-        }
-      }
-      setSeg(foundSeg);
+      const [presRes, segRes] = await Promise.all([
+        fetch('/api/presupuestos?limit=200'),
+        fetch('/api/seguimiento'),
+      ]);
+      const presData = await presRes.json();
+      const segData = await segRes.json();
+      setPresupuestos(presData?.presupuestos || []);
+      setSeg(Array.isArray(segData?.seg) ? segData.seg : []);
     } finally {
       setLoading(false);
     }
@@ -92,20 +82,15 @@ export default function SeguimientoPage() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  // Persist seguimientoData to the DB on the first presupuesto (as shared store).
-  // We merge with existing seguimientoData to avoid overwriting fields set by other views (tablero.html).
   const persistir = useCallback(async (newSeg: SegEntry[]) => {
-    if (presupuestos.length === 0) return;
     setSaving(true);
-    const target = presupuestos[0];
-    const existing = (target as any).seguimientoData ?? {};
-    await fetch(`/api/presupuestos/${target.id}`, {
+    await fetch('/api/seguimiento', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ seguimientoData: { ...existing, seg: newSeg } }),
+      body: JSON.stringify({ seg: newSeg }),
     });
     setSaving(false);
-  }, [presupuestos]);
+  }, []);
 
   const setSeg2 = useCallback((newSeg: SegEntry[]) => {
     setSeg(newSeg);

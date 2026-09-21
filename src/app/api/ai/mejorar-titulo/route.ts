@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getIp } from '@/lib/rate-limit';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
@@ -73,6 +74,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const rl = rateLimit(`ai-titulo:${getIp(request)}`, 30, 60 * 1000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes. Intente en un momento.' }, { status: 429 });
+  }
   try {
     const body = await request.json();
     const texto = String(body.texto || '').trim();

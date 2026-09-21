@@ -39,7 +39,7 @@ interface Presupuesto {
   customer: { name: string; email: string; phone: string; company: string; address: string };
   description: string; details: string; estimatedValue: number | null; finalValue: number | null;
   estimatedDuration: string; priority: string; source: string; assignedTo: string;
-  scheduledDate: string; calculationData: CalculationData | null; createdBy: string;
+  scheduledDate: string; calculationData: CalculationData | null; costosData?: any | null; createdBy: string;
   notes: { id: string; text: string; createdAt: string }[];
   createdAt: string; updatedAt: string;
   seguimientoData?: SeguimientoData;
@@ -772,11 +772,18 @@ function PresupuestoRow({ item, onOpen, onDelete, onStatusChange, hideWebBadge }
         <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-blue-bright hover:bg-blue-muted transition-colors">
           <Calculator className="h-3 w-3" /> Planilla
         </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); imprimirPresupuesto({ code: item.code, serviceTitle: item.serviceTitle, serviceType: item.serviceType, description: item.description, scheduledDate: item.scheduledDate, estimatedDuration: item.estimatedDuration, assignedTo: item.assignedTo, customer: item.customer, calculationData: item.calculationData, costosData: item.costosData ?? null, createdAt: item.createdAt }); }}
+          aria-label="Imprimir presupuesto"
+          className="rounded p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"
+        ><Printer className="h-4 w-4" /></button>
         <button onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label="Eliminar" className="rounded p-1.5 text-steel-500 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
       </div>
     </div>
   );
 }
+
+const PRES_PAGE_SIZE = 20;
 
 // ─── Solicitudes tab ──────────────────────────────────────────
 function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFilterStatus, filterType, setFilterType, onOpen, onDelete, onNew }: {
@@ -786,7 +793,11 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
   filterType: string; setFilterType: (v: string) => void;
   onOpen: (id: string) => void; onDelete: (id: string) => void; onNew: () => void;
 }) {
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [search, filterStatus, filterType, items.length]);
   const activeStatuses = Object.entries(STATUS_MAP).filter(([k]) => !ARCHIVE_STATUSES.includes(k));
+  const totalPages = Math.ceil(items.length / PRES_PAGE_SIZE);
+  const pageItems = items.slice(page * PRES_PAGE_SIZE, (page + 1) * PRES_PAGE_SIZE);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -814,7 +825,14 @@ function SolicitudesTab({ items, loading, search, setSearch, filterStatus, setFi
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} />)}
+          {pageItems.map(item => <PresupuestoRow key={item.id} item={item} onOpen={() => onOpen(item.id)} onDelete={() => onDelete(item.id)} />)}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="btn-secondary disabled:opacity-40">Anterior</button>
+              <span className="font-body text-caption text-steel-500">Página {page + 1} de {totalPages} · {items.length} registros</span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="btn-secondary disabled:opacity-40">Siguiente</button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -828,8 +846,12 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
   onStatusChange: (id: string, status: string) => void;
 }) {
   const [filterStatus, setFilterStatus] = useState('');
+  const [page, setPage] = useState(0);
   const archiveStatuses = Object.entries(STATUS_MAP).filter(([k]) => ARCHIVE_STATUSES.includes(k));
   const filtered = filterStatus ? items.filter(i => i.status === filterStatus) : items;
+  const totalPages = Math.ceil(filtered.length / PRES_PAGE_SIZE);
+  const pageFiltered = filtered.slice(page * PRES_PAGE_SIZE, (page + 1) * PRES_PAGE_SIZE);
+  useEffect(() => { setPage(0); }, [filterStatus, search, items.length]);
 
   return (
     <div className="space-y-4">
@@ -853,7 +875,7 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map(item => (
+          {pageFiltered.map(item => (
             <PresupuestoRow
               key={item.id}
               item={item}
@@ -863,6 +885,13 @@ function ArchivoTab({ items, loading, search, setSearch, onOpen, onDelete, onSta
               hideWebBadge
             />
           ))}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="btn-secondary disabled:opacity-40">Anterior</button>
+              <span className="font-body text-caption text-steel-500">Página {page + 1} de {totalPages} · {filtered.length} registros</span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="btn-secondary disabled:opacity-40">Siguiente</button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { fetchJson } from '@/lib/utils';
+import { useToast } from '@/components/admin/toast';
 import {
   Search,
   RefreshCw,
@@ -62,6 +63,7 @@ const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
 const formatDate = (d: string) => new Date(d).toLocaleDateString('es-PY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default function AdminPedidosPage() {
+  const { showToast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -83,23 +85,29 @@ export default function AdminPedidosPage() {
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const updateStatus = async (id: string, status: string) => {
-    await fetch(`/api/pedidos/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    fetchOrders();
-    if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, status });
+    try {
+      const res = await fetch(`/api/pedidos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) { showToast('No se pudo actualizar el estado', 'error'); return; }
+      fetchOrders();
+      if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, status });
+    } catch { showToast('Error de conexión', 'error'); }
   };
 
   const updatePayment = async (id: string, paymentStatus: string) => {
-    await fetch(`/api/pedidos/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paymentStatus }),
-    });
-    fetchOrders();
-    if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, paymentStatus });
+    try {
+      const res = await fetch(`/api/pedidos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentStatus }),
+      });
+      if (!res.ok) { showToast('No se pudo actualizar el pago', 'error'); return; }
+      fetchOrders();
+      if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, paymentStatus });
+    } catch { showToast('Error de conexión', 'error'); }
   };
 
   const deleteOrder = async (id: string) => {
@@ -270,6 +278,7 @@ export default function AdminPedidosPage() {
    CREATE ORDER MODAL
    ============================================================ */
 function CreateOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', customerAddress: '', customerCity: '', paymentMethod: 'efectivo', adminNotes: '' });
   const [items, setItems] = useState([{ productName: '', sku: '', quantity: '1', unitPrice: '' }]);
@@ -294,8 +303,11 @@ function CreateOrderModal({ onClose, onCreated }: { onClose: () => void; onCreat
           discount: 0,
         }),
       });
+      showToast('Pedido creado', 'success');
       onCreated();
-    } catch {} finally { setSaving(false); }
+    } catch {
+      showToast('Error al crear el pedido', 'error');
+    } finally { setSaving(false); }
   };
 
   return (

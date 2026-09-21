@@ -385,18 +385,22 @@ function FichaPanel({ clienteId, onClose, onUpdated }: {
 }
 
 // ── Main page ──────────────────────────────────────────────────
+const PAGE_SIZE = 25;
+
 export default function AdminClientesPage() {
   const [items, setItems] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [page, setPage] = useState(0);
 
   const fetchData = useCallback((q = '') => {
     setLoading(true);
+    setPage(0);
     const p = new URLSearchParams();
     if (q) p.set('q', q);
-    p.set('limit', '100');
+    p.set('limit', '500');
     fetch(`/api/clientes?${p}`).then(r => r.json()).then(d => { setItems(d?.clientes || []); setLoading(false); });
   }, []);
 
@@ -410,6 +414,8 @@ export default function AdminClientesPage() {
 
   const activos90 = items.filter(c => c.lastServiceAt && c.lastServiceAt >= new Date(Date.now() - 90*24*3600*1000).toISOString().split('T')[0]).length;
   const totalTrabajos = items.reduce((s, c) => s + c.jobsCount, 0);
+  const totalPages = Math.ceil(items.length / PAGE_SIZE);
+  const pageItems = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <div className="p-6 lg:p-8">
@@ -448,7 +454,7 @@ export default function AdminClientesPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map((c) => (
+          {pageItems.map((c) => (
             <div key={c.id} className={`card-interactive flex items-center gap-4 p-4 ${!c.isActive ? 'opacity-50' : ''}`}
               onClick={() => setSelectedId(c.id)}>
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue/20 font-display text-h4 text-blue-bright">
@@ -468,6 +474,15 @@ export default function AdminClientesPage() {
               <ChevronRight className="h-4 w-4 shrink-0 text-steel-500" />
             </div>
           ))}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+                className="btn-secondary disabled:opacity-40">Anterior</button>
+              <span className="font-body text-caption text-steel-500">Página {page + 1} de {totalPages}</span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+                className="btn-secondary disabled:opacity-40">Siguiente</button>
+            </div>
+          )}
         </div>
       )}
 

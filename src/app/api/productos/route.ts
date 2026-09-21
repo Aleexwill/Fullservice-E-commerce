@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, requireRole } from '@/lib/auth';
 import { getAllProducts, createProduct, getEffectivePrice, type Product } from '@/lib/products-store';
+import { parseBody, CreateProductoSchema } from '@/lib/schemas';
 
 const SORTABLE_FIELDS = ['createdAt', 'name', 'price', 'rating', 'salesCount', 'stock'] as const;
 type SortableField = (typeof SORTABLE_FIELDS)[number];
@@ -90,38 +91,32 @@ export async function POST(request: NextRequest) {
   const auth = await requireRole('canManageProducts');
   if (auth instanceof NextResponse) return auth;
   try {
-    const body = await request.json();
-
-    // Validacion basica
-    if (!body.name || !body.sku || !body.price) {
-      return NextResponse.json(
-        { error: 'Nombre, SKU y precio son obligatorios' },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseBody(request, CreateProductoSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
 
     const product = await createProduct({
       sku: body.sku,
       name: body.name,
-      slug: body.slug || '',
-      description: body.description || '',
-      shortDescription: body.shortDescription || '',
-      category: body.category || 'general',
-      brand: body.brand || '',
-      price: Number(body.price),
-      compareAtPrice: body.compareAtPrice ? Number(body.compareAtPrice) : null,
-      stock: Number(body.stock) || 0,
-      images: body.images || [],
-      specifications: body.specifications || {},
-      tags: body.tags || [],
-      isFeatured: Boolean(body.isFeatured),
-      isActive: body.isActive !== false,
+      slug: body.slug ?? '',
+      description: body.description ?? '',
+      shortDescription: body.shortDescription ?? '',
+      category: body.category ?? 'general',
+      brand: body.brand ?? '',
+      price: body.price,
+      compareAtPrice: body.compareAtPrice ?? null,
+      stock: body.stock ?? 0,
+      images: body.images ?? [],
+      specifications: body.specifications ?? {},
+      tags: body.tags ?? [],
+      isFeatured: body.isFeatured ?? false,
+      isActive: body.isActive ?? true,
+      promoDiscountPercent: body.promoDiscountPercent ?? null,
+      promoStartsAt: body.promoStartsAt ?? null,
+      promoEndsAt: body.promoEndsAt ?? null,
       rating: 0,
       reviewCount: 0,
       salesCount: 0,
-      promoDiscountPercent: body.promoDiscountPercent ? Number(body.promoDiscountPercent) : null,
-      promoStartsAt: body.promoStartsAt || null,
-      promoEndsAt: body.promoEndsAt || null,
     });
 
     return NextResponse.json(product, { status: 201 });

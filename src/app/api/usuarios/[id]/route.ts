@@ -3,7 +3,7 @@ import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/auth';
 import { can } from '@/lib/roles';
-import type { Role } from '@/lib/roles';
+import { parseBody, UpdateUserSchema } from '@/lib/schemas';
 
 async function requireAdmin(request: NextRequest) {
   const auth = await requireAuth();
@@ -18,12 +18,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   const session = await requireAdmin(request);
   if (!session || session instanceof NextResponse) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
-  const { name, role, isActive } = await request.json();
-
-  const validRoles: Role[] = ['admin', 'vendedor', 'tecnico'];
-  if (role && !validRoles.includes(role)) {
-    return NextResponse.json({ error: 'Rol inválido' }, { status: 400 });
-  }
+  const parsed = await parseBody(request, UpdateUserSchema);
+  if (parsed.error) return parsed.error;
+  const { name, role, isActive } = parsed.data;
 
   const user = await prisma.user.update({
     where: { id: params.id },

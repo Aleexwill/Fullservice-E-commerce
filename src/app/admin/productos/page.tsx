@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { fetchJson } from '@/lib/utils';
+import { useToast } from '@/components/admin/toast';
 import {
   Plus,
   Search,
@@ -34,6 +35,7 @@ interface Product {
 const PAGE_SIZE = 20;
 
 export default function AdminProductosPage() {
+  const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [filterActive, setFilterActive] = useState('');
@@ -80,7 +82,12 @@ export default function AdminProductosPage() {
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p.id !== id));
         setTotal((prev) => prev - 1);
+        showToast('Producto eliminado', 'success');
+      } else {
+        showToast('No se pudo eliminar el producto', 'error');
       }
+    } catch {
+      showToast('Error de conexión al eliminar', 'error');
     } finally {
       setDeleting(null);
     }
@@ -97,8 +104,12 @@ export default function AdminProductosPage() {
         setProducts((prev) =>
           prev.map((p) => (p.id === id ? { ...p, isActive: !current } : p))
         );
+      } else {
+        showToast('No se pudo actualizar el producto', 'error');
       }
-    } catch {}
+    } catch {
+      showToast('Error de conexión', 'error');
+    }
   };
 
   const toggleFeatured = async (id: string, current: boolean) => {
@@ -112,8 +123,12 @@ export default function AdminProductosPage() {
         setProducts((prev) =>
           prev.map((p) => (p.id === id ? { ...p, isFeatured: !current } : p))
         );
+      } else {
+        showToast('No se pudo actualizar el producto', 'error');
       }
-    } catch {}
+    } catch {
+      showToast('Error de conexión', 'error');
+    }
   };
 
   const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');

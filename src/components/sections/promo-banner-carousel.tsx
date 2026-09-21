@@ -66,6 +66,8 @@ export function PromoBannerCarousel() {
               src={banner.imageUrl}
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           )}
 

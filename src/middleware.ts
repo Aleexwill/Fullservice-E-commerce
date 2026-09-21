@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/auth';
-import { can, RESTRICTED_ROUTES } from '@/lib/roles';
+import { can, RESTRICTED_ROUTES, RESTRICTED_API_ROUTES } from '@/lib/roles';
 
 // Rutas de API que deben quedar abiertas al público (formularios del sitio, tracking).
 // Todo lo demás bajo /api requiere sesión de admin.
@@ -41,13 +41,20 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     }
+    // Role-based API enforcement: GET requests to public-readable resources already
+    // filtered above; all other methods (POST/PUT/PATCH/DELETE) and admin-only GETs
+    // are checked here.
+    const restricted = RESTRICTED_API_ROUTES.find(r => pathname.startsWith(r.path));
+    if (restricted && !can(session.role, restricted.requiredPermission)) {
+      return NextResponse.json({ error: 'Sin permiso' }, { status: 403 });
+    }
     return NextResponse.next();
   }
 
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login') return NextResponse.next();
-    // Invitation acceptance pages are public
     if (pathname.startsWith('/admin/invitacion/')) return NextResponse.next();
+    if (pathname === '/admin/cambiar-password') return NextResponse.next();
 
     const session = await getSession(token);
     if (!session) {

@@ -2,7 +2,9 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllLeads, createLead } from '@/lib/leads-store';
+import type { LeadStatus, LeadPriority, LeadSource } from '@/lib/leads-store';
 import { requireAuth, requireRole } from '@/lib/auth';
+import { parseBody, CreateLeadSchema } from '@/lib/schemas';
 
 export async function GET(request: NextRequest) {
   const auth = await requireRole('canManageLeads');
@@ -41,36 +43,28 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    if (!body.customer?.name || !body.subject) {
-      return NextResponse.json({ error: 'Nombre y asunto son obligatorios' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, CreateLeadSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
 
     const lead = await createLead({
-      status: body.status || 'new',
-      priority: body.priority || 'medium',
-      source: body.source || 'contact_form',
-      customer: {
-        name: body.customer.name,
-        email: body.customer.email || '',
-        phone: body.customer.phone || '',
-        company: body.customer.company || '',
-        position: body.customer.position || '',
-        avatar: body.customer.avatar || '',
-      },
+      status: body.status as LeadStatus,
+      priority: body.priority as LeadPriority,
+      source: body.source as LeadSource,
+      customer: body.customer as typeof body.customer & { email: string; phone: string; company: string; position: string; avatar: string },
       subject: body.subject,
-      message: body.message || '',
-      serviceInterest: body.serviceInterest || '',
-      estimatedValue: body.estimatedValue ? Number(body.estimatedValue) : null,
+      message: body.message ?? '',
+      serviceInterest: body.serviceInterest ?? '',
+      estimatedValue: body.estimatedValue ?? null,
       tags: [],
       activities: [],
       tasks: [],
       notes: [],
-      assignedTo: body.assignedTo || '',
+      assignedTo: body.assignedTo ?? '',
       lastContactedAt: '',
       nextFollowUp: '',
       lostReason: '',
-      leadType: body.leadType || 'general',
+      leadType: body.leadType ?? 'general',
     });
 
     return NextResponse.json(lead, { status: 201 });

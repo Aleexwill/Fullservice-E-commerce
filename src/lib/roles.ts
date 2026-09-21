@@ -44,8 +44,10 @@ export function can(role: Role, permission: keyof typeof ROLE_PERMISSIONS['admin
   return ROLE_PERMISSIONS[role]?.[permission] ?? false;
 }
 
+type RouteRestriction = { path: string; requiredPermission: keyof typeof ROLE_PERMISSIONS['admin'] };
+
 // Rutas admin restringidas por rol (prefijo)
-export const RESTRICTED_ROUTES: { path: string; requiredPermission: keyof typeof ROLE_PERMISSIONS['admin'] }[] = [
+export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/usuarios', requiredPermission: 'canManageUsers' },
   { path: '/admin/config', requiredPermission: 'canManageConfig' },
   { path: '/admin/contenido', requiredPermission: 'canManageContent' },
@@ -59,4 +61,31 @@ export const RESTRICTED_ROUTES: { path: string; requiredPermission: keyof typeof
   { path: '/admin/inventario', requiredPermission: 'canManageInventory' },
   { path: '/admin/leads', requiredPermission: 'canManageLeads' },
   { path: '/admin/clientes', requiredPermission: 'canManageClients' },
+];
+
+// Rutas de API restringidas por rol (prefijo o ruta exacta)
+// Se aplica solo a métodos que modifican datos (no GET públicos ya filtrados en isPublicApi)
+export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
+  { path: '/api/usuarios', requiredPermission: 'canManageUsers' },
+  { path: '/api/roles', requiredPermission: 'canManageUsers' },
+  { path: '/api/config', requiredPermission: 'canManageConfig' },
+  { path: '/api/contenido', requiredPermission: 'canManageContent' },
+  { path: '/api/carousel-slides', requiredPermission: 'canManageContent' },
+  { path: '/api/promo-banners', requiredPermission: 'canManageContent' },
+  { path: '/api/trabajos', requiredPermission: 'canManageContent' },
+  { path: '/api/servicios-cms', requiredPermission: 'canManageContent' },
+  { path: '/api/portfolio', requiredPermission: 'canManageContent' },
+  { path: '/api/clientes-logo', requiredPermission: 'canManageContent' },
+  { path: '/api/productos', requiredPermission: 'canManageProducts' },
+  { path: '/api/materiales', requiredPermission: 'canManageInventory' },
+  { path: '/api/leads', requiredPermission: 'canManageLeads' },
+  { path: '/api/clientes', requiredPermission: 'canManageClients' },
+  { path: '/api/pedidos', requiredPermission: 'canManageOrders' },
+  { path: '/api/presupuestos', requiredPermission: 'canManagePresupuestos' },
+  { path: '/api/seguimiento', requiredPermission: 'canManagePresupuestos' },
+  { path: '/api/informes-tecnicos', requiredPermission: 'canManagePresupuestos' },
+  { path: '/api/admin', requiredPermission: 'canManageConfig' },
+  { path: '/api/upload', requiredPermission: 'canManageContent' },
+  { path: '/api/ai', requiredPermission: 'canManagePresupuestos' },
+  { path: '/api/notifications', requiredPermission: 'canManageLeads' },
 ];
