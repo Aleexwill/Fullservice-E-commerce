@@ -72,6 +72,9 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
             {categoryLabel[project.category] || project.category}
           </span>
           <h2 className="mt-2 font-display text-xl font-bold text-white md:text-2xl">{project.title}</h2>
+          {project.description && (
+            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-white/60">{project.description}</p>
+          )}
         </div>
         <button onClick={onClose} className="rounded-xl bg-white/10 p-2.5 text-white/70 hover:bg-white/20 hover:text-white">
           <X className="h-5 w-5" />
@@ -127,8 +130,7 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
       <div className="border-t border-white/10 bg-white/[0.03] px-4 py-4 md:px-6" onClick={(e) => e.stopPropagation()}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <p className="text-sm leading-relaxed text-white/70">{project.description}</p>
-            <div className="mt-3 flex flex-wrap gap-4 text-xs text-white/50">
+            <div className="flex flex-wrap gap-4 text-xs text-white/50">
               {project.location && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-[#6FC3F5]" />{project.location}</span>}
               {project.duration && <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5 text-[#6FC3F5]" />{project.duration} · {project.year}</span>}
               {project.client && <span className="text-white/40">Cliente: <span className="text-white/60">{project.client}</span></span>}
