@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 // Extension is derived from the verified MIME type — never from the client filename.
@@ -62,8 +65,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: blob.url });
   } catch (error) {
-    console.error('Error en /api/upload:', error);
-    const message = error instanceof Error ? error.message : 'Error desconocido';
-    return NextResponse.json({ error: `Error al subir la imagen: ${message}` }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error en /api/upload:', message);
+    return NextResponse.json({ error: `Error al subir: ${message}` }, { status: 500 });
   }
 }
