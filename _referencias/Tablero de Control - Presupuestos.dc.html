@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="omelette-owns-print" content="1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  * { box-sizing: border-box; }
+  a { color: oklch(0.50 0.09 220); text-decoration: none; }
+  a:hover { color: oklch(0.40 0.09 220); }
+  input, textarea, button, select { font-family: inherit; color: inherit; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid oklch(0.50 0.09 220); outline-offset: -1px; }
+  @media print {
+    [data-noprint] { display: none !important; }
+    html, body { background: #fff !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    /* La planificación sale horizontal, completa y sin scroll lateral. */
+    @page { size: A4 landscape; margin: 8mm; }
+    [data-scroll] { overflow: visible !important; }
+    [data-scroll] > div { min-width: 0 !important; }
+    [data-plan-row], [data-plan-head] { break-inside: avoid; }
+    /* La tabla de presupuestos entra en A4 horizontal: las columnas de texto ceden ancho. */
+    [data-presu-head], [data-presu-row] {
+      grid-template-columns: 118px 86px 144px minmax(0, 1fr) minmax(0, 1.7fr) 88px 88px 74px 78px 44px 84px !important;
+      break-inside: avoid;
+    }
+    [data-presu-head] > div, [data-presu-row] > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    /* En papel el trabajo se lee completo: el campo se reemplaza por texto que envuelve. */
+    [data-presu-row] [data-solo-pantalla] { display: none !important; }
+    [data-presu-row] [data-solo-papel] { display: block !important; padding: 8px; font-size: 9px; line-height: 1.35; white-space: normal; overflow-wrap: anywhere; }
+    input, select { border: 0 !important; background: transparent !important; }
+  }
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18; min-height: 100vh; background: #f4f3f0;">
+
+  <div style="position: sticky; top: 0; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; padding: 13px 26px; background: #ffffff; border-bottom: 1px solid #dedbd5;">
+    <div style="display: flex; flex-direction: column; gap: 1px; flex: 0 1 auto; min-width: 150px; max-width: 260px; overflow: hidden;">
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ empresa }}</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Tablero de control · {{ mesActual }}</div>
+    </div>
+    <div style="display: flex; gap: 4px; padding: 3px; background: #f0eee9; border-radius: 8px;">
+      <button onClick="{{ verDash }}" style="{{ tabDash }}">Dashboard</button>
+      <button onClick="{{ verLista }}" style="{{ tabLista }}">Presupuestos</button>
+      <button onClick="{{ verPlan }}" style="{{ tabPlan }}">Planificación</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+      <sc-for list="{{ mesesTabs }}" as="mt" hint-placeholder-count="5">
+        <button onClick="{{ mt.onSel }}" style="{{ mt.style }}">{{ mt.label }}</button>
+      </sc-for>
+    </div>
+    <div style="flex: 1;"></div>
+    <div style="display: flex; align-items: baseline; gap: 10px; padding: 7px 14px; background: #f0eee9; border-radius: 8px;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Aprobado</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap;">{{ k.aprobado }}</span>
+    </div>
+    <span style="padding: 9px 16px; font-size: 13px; font-weight: 600; color: #ffffff; background: oklch(0.52 0.19 25); border-radius: 7px; white-space: nowrap;">Tablero de control</span>
+    <button onClick="{{ imprimirPdf }}" title="Imprime o guarda en PDF la vista que estás viendo" style="padding: 9px 14px; font-size: 12.5px; font-weight: 500; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: #33312e">Imprimir PDF</button>
+    <button onClick="{{ exportarExcel }}" title="Baja la lista de presupuestos del mes en Excel" style="padding: 9px 14px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: oklch(0.48 0.12 155); border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: oklch(0.41 0.12 155)">Descargar Excel</button>
+    <button onClick="{{ irInforme }}" title="Abre el informe listo para imprimir o guardar en PDF" style="padding: 9px 14px; font-size: 12.5px; font-weight: 500; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: #e6e2da">Informe PDF</button>
+    <input type="file" accept=".json,application/json" ref="{{ fileRef }}" onChange="{{ onArchivo }}" style="display: none;">
+  </div>
+
+  <sc-if value="{{ esDash }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width: 1520px; margin: 0 auto; padding: 26px; display: flex; flex-direction: column; gap: 22px;">
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;">
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 20px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Presupuestos cargados</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px;">{{ k.total }}</div>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 20px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Pendiente aprobación</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; color: oklch(0.62 0.13 70);">{{ k.pendientes }}</div>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 20px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">En ejecución</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; color: oklch(0.52 0.11 220);">{{ k.ejecucion }}</div>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 20px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Finalizados</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; color: oklch(0.55 0.11 150);">{{ k.finalizados }}</div>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 20px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Sin presupuestar</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; color: oklch(0.58 0.10 300);">{{ k.sinPresupuestar }}</div>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 20px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">De baja</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; color: #a09a92;">{{ k.baja }}</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+      <div style="background: #1b1a18; border-radius: 12px; padding: 20px; color: #f4f3f0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8f8a83;">Total cotizado</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; white-space: nowrap;">{{ k.cotizado }}</div>
+        <div style="font-size: 11.5px; color: #b8b3ac; margin-top: 6px;">Sin contar los de baja</div>
+      </div>
+      <div style="background: #1b1a18; border-radius: 12px; padding: 20px; color: #f4f3f0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8f8a83;">Aprobado / vendido</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; white-space: nowrap; color: oklch(0.80 0.11 200);">{{ k.aprobado }}</div>
+        <div style="font-size: 11.5px; color: #b8b3ac; margin-top: 6px;">Tasa de cierre {{ k.tasaCierre }}</div>
+      </div>
+      <div style="background: #1b1a18; border-radius: 12px; padding: 20px; color: #f4f3f0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8f8a83;">Facturado</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; white-space: nowrap;">{{ k.facturado }}</div>
+        <div style="font-size: 11.5px; color: #b8b3ac; margin-top: 6px;">{{ k.factCount }} trabajos facturados</div>
+      </div>
+      <div style="background: #1b1a18; border-radius: 12px; padding: 20px; color: #f4f3f0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8f8a83;">Por facturar</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; white-space: nowrap; color: oklch(0.78 0.13 70);">{{ k.porFacturar }}</div>
+        <div style="font-size: 11.5px; color: #b8b3ac; margin-top: 6px;">Aprobado que aún no se facturó</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 22px;">
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 20px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Estado de los presupuestos</div>
+        <sc-for list="{{ barsEstado }}" as="b" hint-placeholder-count="5">
+          <div style="display: grid; grid-template-columns: 160px minmax(0, 1fr) 42px; align-items: center; gap: 12px; padding: 6px 0;">
+            <div style="font-size: 12px; color: #4a4741;">{{ b.label }}</div>
+            <div style="height: 10px; background: #f0eee9; border-radius: 5px; overflow: hidden;">
+              <div style="{{ b.barStyle }}"></div>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; text-align: right;">{{ b.n }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 20px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 3px;">Cierre administrativo</div>
+        <div style="font-size: 12px; color: #86817b; margin-bottom: 16px;">Sobre {{ k.aprobadosCount }} trabajos aprobados.</div>
+        <sc-for list="{{ barsCierre }}" as="b" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 160px minmax(0, 1fr) 60px; align-items: center; gap: 12px; padding: 6px 0;">
+            <div style="font-size: 12px; color: #4a4741;">{{ b.label }}</div>
+            <div style="height: 10px; background: #f0eee9; border-radius: 5px; overflow: hidden;">
+              <div style="{{ b.barStyle }}"></div>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; text-align: right;">{{ b.n }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 20px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">Monto aprobado por cliente</div>
+        <sc-for list="{{ barsCliente }}" as="b" hint-placeholder-count="4">
+          <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px; align-items: center; gap: 12px; padding: 6px 0;">
+            <div style="font-size: 12px; color: #4a4741; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ b.label }}</div>
+            <div style="height: 10px; background: #f0eee9; border-radius: 5px; overflow: hidden;">
+              <div style="{{ b.barStyle }}"></div>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap;">{{ b.monto }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ esLista }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width: 1720px; margin: 0 auto; padding: 26px;">
+    <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #dedbd5; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 14px; font-weight: 600;">Panel de control de presupuestos — {{ mesActual }}</div>
+          <div style="font-size: 12px; color: #86817b;">Cambiá el Estado a EN EJECUCION o FINALIZADO y el trabajo pasa solo a Planificación.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button onClick="{{ pasarPendientes }}" title="Mueve al mes siguiente todo lo que aún no está aprobado" style="padding: 8px 13px; font-size: 12px; font-weight: 500; color: oklch(0.42 0.09 220); background: oklch(0.96 0.014 220); border: 1px solid oklch(0.86 0.03 220); border-radius: 6px; cursor: pointer; white-space: nowrap;" style-hover="background: oklch(0.92 0.03 220)">Pasar no aprobados al mes siguiente</button>
+          <input value="{{ filtro }}" onChange="{{ onFiltro }}" placeholder="Buscar cliente, local, trabajo o N°" style="width: 260px; padding: 8px 11px; font-size: 12.5px; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #86817b;">{{ visibles }}</span>
+        </div>
+      </div>
+
+      <div data-scroll="1" style="overflow-x: auto;">
+        <div style="min-width: 1560px;">
+          <div data-presu-head="1" style="display: grid; grid-template-columns: 132px 92px 150px 150px minmax(180px, 1fr) 140px 140px 156px 170px 96px 130px 30px; background: #faf9f7; border-bottom: 1px solid #dedbd5; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;">
+            <div style="padding: 9px 8px;">N° presu</div>
+            <div style="padding: 9px 8px;">Fecha</div>
+            <div style="padding: 9px 8px;">Cliente</div>
+            <div style="padding: 9px 8px;">Local</div>
+            <div style="padding: 9px 8px;">Trabajo</div>
+            <div style="padding: 9px 8px; text-align: right;">Precio de venta</div>
+            <div style="padding: 9px 8px; text-align: right;">Vendido</div>
+            <div style="padding: 9px 8px;">Alerta</div>
+            <div style="padding: 9px 8px;">Estado</div>
+            <div style="padding: 9px 8px;">Prioridad</div>
+            <div style="padding: 9px 8px;">Técnico</div>
+            <div></div>
+          </div>
+          <sc-for list="{{ filas }}" as="r" hint-placeholder-count="8">
+            <div>
+            <sc-if value="{{ r.sep }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 14px 8px 10px; border-top: 2px solid #1b1a18;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6b64; white-space: nowrap;">{{ r.sepTexto }}</span>
+              </div>
+            </sc-if>
+            <div data-presu-row="1" style="display: grid; grid-template-columns: 132px 92px 150px 150px minmax(180px, 1fr) 140px 140px 156px 170px 96px 130px 30px; align-items: center; border-bottom: 1px solid #efedea;">
+              <input value="{{ r.nro }}" onChange="{{ r.onNro }}" style="width: 100%; padding: 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: transparent; border: 0;">
+              <input value="{{ r.fecha }}" onChange="{{ r.onFecha }}" style="width: 100%; padding: 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6f6b64; background: transparent; border: 0;">
+              <input value="{{ r.cliente }}" onChange="{{ r.onCliente }}" style="width: 100%; padding: 10px 8px; font-size: 12.5px; background: transparent; border: 0;">
+              <input value="{{ r.local }}" onChange="{{ r.onLocal }}" style="width: 100%; padding: 10px 8px; font-size: 12.5px; color: #6f6b64; background: transparent; border: 0;">
+              <input value="{{ r.trabajo }}" onChange="{{ r.onTrabajo }}" style="width: 100%; padding: 10px 8px; font-size: 12.5px; background: transparent; border: 0;">
+              <input value="{{ r.precio }}" onChange="{{ r.onPrecio }}" inputMode="decimal" style="width: 100%; padding: 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; text-align: right; background: transparent; border: 0;">
+              <input value="{{ r.vendido }}" onChange="{{ r.onVendido }}" inputMode="decimal" placeholder="—" style="width: 100%; padding: 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: oklch(0.45 0.11 150); text-align: right; background: transparent; border: 0;" />
+              <div style="padding: 6px 8px;">
+                <sc-raw-select value="{{ r.alerta }}" onChange="{{ r.onAlerta }}" style="width: 100%; padding: 6px 7px; font-size: 11.5px; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;">
+                  <option value="">— sin alerta —</option>
+                  <option value="FALTA RELEVAR">FALTA RELEVAR</option>
+                  <option value="FALTA PRESUPUESTAR">FALTA PRESUPUESTAR</option>
+                  <option value="ENVIADO">ENVIADO</option>
+                  <option value="APROBADO">APROBADO</option>
+                  <option value="DE BAJA">DE BAJA</option>
+                </sc-raw-select>
+              </div>
+              <div style="padding: 6px 8px;">
+                <sc-raw-select value="{{ r.estado }}" onChange="{{ r.onEstado }}" style="{{ r.chip }} width: 100%; cursor: pointer; appearance: none; text-align: center;">
+                  <option value="SIN CARGAR">SIN CARGAR</option>
+                  <option value="PENDIENTE RELEVO">PENDIENTE RELEVO</option>
+                  <option value="EN PRESUPUESTO">EN PRESUPUESTO</option>
+                  <option value="PENDIENTE APROBACION">PENDIENTE APROBACION</option>
+                  <option value="EN EJECUCION">EN EJECUCION</option>
+                  <option value="FINALIZADO">FINALIZADO</option>
+                  <option value="DE BAJA">DE BAJA</option>
+                </sc-raw-select>
+              </div>
+              <div style="padding: 6px 8px;">
+                <sc-raw-select value="{{ r.prioridad }}" onChange="{{ r.onPrioridad }}" style="width: 100%; padding: 6px 7px; font-size: 11.5px; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;">
+                  <option value="Normal">Normal</option>
+                  <option value="Alta">Alta</option>
+                  <option value="Urgente">Urgente</option>
+                </sc-raw-select>
+              </div>
+              <input value="{{ r.tecnico }}" onChange="{{ r.onTecnico }}" placeholder="—" style="width: 100%; padding: 10px 8px; font-size: 12px; color: #6f6b64; background: transparent; border: 0;">
+              <button data-noprint="1" onClick="{{ r.onDel }}" title="Eliminar" style="justify-self: center; width: 24px; height: 24px; font-size: 16px; line-height: 1; color: #b4aea5; background: transparent; border: 0; border-radius: 5px; cursor: pointer;" style-hover="color: #1b1a18; background: #f0eee9">×</button>
+            </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: baseline; justify-content: flex-end; gap: 14px; padding: 14px 20px; background: #faf9f7; flex-wrap: wrap;">
+        <span style="font-size: 12px; color: #6f6b64;">Presupuestado</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #6f6b64; white-space: nowrap;">{{ k.presupuestado }}</span>
+        <span style="font-size: 12px; color: #6f6b64; margin-left: 10px;">Cotizado vivo</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #6f6b64; white-space: nowrap;">{{ k.cotizado }}</span>
+        <span style="font-size: 12px; color: #6f6b64; margin-left: 10px;">Aprobado</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #6f6b64; white-space: nowrap;">{{ k.aprobado }}</span>
+        <span style="font-size: 12px; color: #6f6b64; margin-left: 10px;">Vendido</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: oklch(0.45 0.11 150); white-space: nowrap;">{{ k.vendido }}</span>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ esPlan }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width: 1720px; margin: 0 auto; padding: 26px;">
+    <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #dedbd5; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="display: flex; align-items: baseline; gap: 6px;">
+            <input value="{{ planCarpLabel }}" onChange="{{ onPlanCarpNombre }}" title="Nombre de la carpeta" placeholder="Nombre de la carpeta" size="16" style="width: auto; min-width: 90px; max-width: 260px; field-sizing: content; padding: 2px 4px; margin-left: -4px; font-family: inherit; font-size: 14px; font-weight: 600; background: transparent; border: 0; border-bottom: 1px dashed #cfc9c0;" />
+            <span style="font-size: 14px; font-weight: 600; white-space: nowrap;">y cierre de trabajos — {{ planLabel }}</span>
+          </div>
+          <div style="font-size: 12px; color: #86817b;">Planificación 1 sigue en vivo a los presupuestos APROBADOS de todos los meses; lo que edités acá se guarda en el presupuesto. Planificación 2 es para tareas cargadas a mano.</div>
+          <div data-noprint="1" style="display: flex; gap: 3px; margin-top: 6px; padding: 3px; background: #f0eee9; border-radius: 8px; align-self: flex-start;">
+            <sc-for list="{{ planCarpBtns }}" as="cb" hint-placeholder-count="2">
+              <button onClick="{{ cb.onSel }}" style="{{ cb.style }}">{{ cb.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div data-noprint="1" style="display: flex; gap: 3px; padding: 3px; background: #f0eee9; border-radius: 8px;">
+            <sc-for list="{{ planPerBtns }}" as="pb" hint-placeholder-count="5">
+              <button onClick="{{ pb.onSel }}" style="{{ pb.style }}">{{ pb.label }}</button>
+            </sc-for>
+          </div>
+          <input data-noprint="1" type="date" value="{{ planAnc }}" onChange="{{ onPlanAnc }}" title="Fecha de referencia del filtro" style="padding: 6px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px;" />
+          <sc-raw-select data-noprint="1" value="{{ planCli }}" onChange="{{ onPlanCli }}" title="Filtrar por cliente" style="padding: 6px 8px; font-size: 11.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px;">
+            <option value="">Todos los clientes</option>
+            <sc-for list="{{ planClientes }}" as="c" hint-placeholder-count="0">
+              <option value="{{ c }}">{{ c }}</option>
+            </sc-for>
+          </sc-raw-select>
+          <button data-noprint="1" onClick="{{ agregarTarea }}" style="padding: 7px 13px; font-size: 12px; font-weight: 600; color: oklch(0.42 0.09 220); background: oklch(0.96 0.014 220); border: 1px solid oklch(0.88 0.04 220); border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: oklch(0.92 0.03 220)">+ Agregar tarea</button>
+          <button data-noprint="1" onClick="{{ togglePend }}" style="{{ estiloPend }}">{{ labelPend }}</button>
+          <button data-noprint="1" onClick="{{ imprimirPlan }}" title="Imprime la planificación del mes o la guarda en PDF" style="padding: 7px 13px; font-size: 12px; font-weight: 600; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: #33312e">Imprimir</button>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #86817b;">{{ planCount }}</span>
+        </div>
+      </div>
+
+      <sc-if value="{{ hayFuera }}" hint-placeholder-val="{{ false }}">
+        <button data-noprint="1" onClick="{{ verTodas }}" style="width: 100%; padding: 9px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; text-align: left; color: oklch(0.42 0.09 220); background: oklch(0.97 0.012 220); border: 0; border-bottom: 1px solid #dedbd5; cursor: pointer;" style-hover="background: oklch(0.94 0.025 220)">{{ fueraLabel }}</button>
+      </sc-if>
+
+      <div data-scroll="1" style="overflow-x: auto;">
+        <div style="min-width: 1500px;">
+          <div data-plan-head="1" style="display: grid; grid-template-columns: {{ planGrid }}; background: #faf9f7; border-bottom: 1px solid #dedbd5; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;">
+            <div style="padding: 9px 8px;">Fecha</div>
+            <div style="padding: 9px 8px;">N° presu</div>
+            <div style="padding: 9px 8px;">Cliente / local</div>
+            <div style="padding: 9px 8px;">Trabajo</div>
+            <div style="padding: 9px 8px;">Técnico</div>
+            <div style="padding: 9px 8px;">Avance</div>
+            <div style="padding: 9px 4px; text-align: right;">% avance</div>
+            <div style="padding: 9px 4px; text-align: right;">Días</div>
+            <sc-if value="{{ esEspejo }}" hint-placeholder-val="{{ true }}">
+              <div style="padding: 9px 4px; text-align: center;">O. serv.</div>
+              <div style="padding: 9px 4px; text-align: center;">Informe</div>
+              <div style="padding: 9px 4px; text-align: center;">Fact.</div>
+              <div style="padding: 9px 8px;">N° factura</div>
+            </sc-if>
+            <div style="padding: 9px 8px;">Observaciones</div>
+            <div></div>
+          </div>
+          <sc-for list="{{ plan }}" as="r" hint-placeholder-count="6">
+            <div data-plan-row="1" style="display: grid; grid-template-columns: {{ planGrid }}; align-items: center; border-bottom: 1px solid #efedea;">
+              <input type="date" value="{{ r.fecha }}" onChange="{{ r.onFecha }}" style="width: 100%; min-width: 0; padding: 10px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: transparent; border: 0;" />
+              <input value="{{ r.nro }}" onChange="{{ r.onNro }}" placeholder="—" style="width: 100%; min-width: 0; padding: 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: transparent; border: 0;" />
+              <div style="display: flex; flex-direction: column; gap: 0; padding: 4px 0;">
+                <input value="{{ r.cliente }}" onChange="{{ r.onCliente }}" placeholder="Cliente" style="width: 100%; min-width: 0; padding: 4px 8px; font-size: 12.5px; font-weight: 500; background: transparent; border: 0;" />
+                <input value="{{ r.local }}" onChange="{{ r.onLocal }}" placeholder="Local" style="width: 100%; min-width: 0; padding: 4px 8px; font-size: 11px; color: #86817b; background: transparent; border: 0;" />
+              </div>
+              <input value="{{ r.trabajo }}" onChange="{{ r.onTrabajo }}" placeholder="Trabajo" style="width: 100%; min-width: 0; padding: 10px 8px; font-size: 12.5px; background: transparent; border: 0;" />
+              <input value="{{ r.tecnico }}" onChange="{{ r.onTecnico }}" placeholder="Asignar" style="width: 100%; padding: 10px 8px; font-size: 12px; background: transparent; border: 0;">
+              <div style="padding: 6px 8px;">
+                <sc-raw-select value="{{ r.avance }}" onChange="{{ r.onAvance }}" style="width: 100%; padding: 6px 7px; font-size: 11.5px; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;">
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En Proceso">En Proceso</option>
+                  <option value="En Espera / Bloqueado">En Espera / Bloqueado</option>
+                  <option value="Finalizado">Finalizado</option>
+                </sc-raw-select>
+              </div>
+              <input value="{{ r.pct }}" onChange="{{ r.onPct }}" inputMode="decimal" placeholder="0" style="width: 100%; min-width: 0; padding: 10px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; text-align: right; background: transparent; border: 0;" />
+              <input value="{{ r.dias }}" onChange="{{ r.onDias }}" inputMode="decimal" placeholder="0" style="width: 100%; min-width: 0; padding: 10px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-align: right; background: transparent; border: 0;" />
+              <sc-if value="{{ esEspejo }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ r.onOs }}" style="{{ r.osStyle }}">{{ r.os }}</button>
+                <button onClick="{{ r.onInf }}" style="{{ r.infStyle }}">{{ r.informe }}</button>
+                <button onClick="{{ r.onFac }}" style="{{ r.facStyle }}">{{ r.facturado }}</button>
+                <input value="{{ r.nroFactura }}" onChange="{{ r.onNroFactura }}" placeholder="—" style="width: 100%; padding: 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: transparent; border: 0;">
+              </sc-if>
+              <input value="{{ r.obs }}" onChange="{{ r.onObs }}" placeholder="—" style="width: 100%; min-width: 0; padding: 10px 8px; font-size: 12px; color: #6f6b64; background: transparent; border: 0;">
+              <button data-noprint="1" onClick="{{ r.onDel }}" title="Quitar la tarea" style="justify-self: center; width: 20px; height: 20px; font-size: 14px; line-height: 1; color: #c9c4bc; background: transparent; border: 0; cursor: pointer;" style-hover="color: oklch(0.52 0.19 25)">×</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <sc-if value="{{ sinPlan }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 34px 20px; text-align: center; font-size: 12.5px; color: #a09a92;">No hay tareas en {{ planLabel }}. Tocá "+ Agregar tarea" para cargar una, o cambiá el filtro de fecha.</div>
+      </sc-if>
+
+      <div style="display: flex; align-items: baseline; justify-content: flex-end; gap: 14px; padding: 14px 20px; background: #faf9f7; flex-wrap: wrap;">
+        <span style="font-size: 12px; color: #6f6b64;">Días</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #6f6b64; white-space: nowrap;">{{ planDias }}</span>
+        <span style="font-size: 12px; color: #6f6b64; margin-left: 10px;">Avance total</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; white-space: nowrap;">{{ planPct }}</span>
+        <sc-if value="{{ esEspejo }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size: 12px; color: #6f6b64; margin-left: 10px;">Facturado</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #6f6b64; white-space: nowrap;">{{ k.facturado }}</span>
+          <span style="font-size: 12px; color: #6f6b64; margin-left: 10px;">Por facturar</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; white-space: nowrap;">{{ k.porFacturar }}</span>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;empresa&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;The Wealt Group Export Import S.A.&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Empresa&quot;},&quot;periodo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Agosto 2026&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Empresa&quot;},&quot;simboloMoneda&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Gs.&quot;,&quot;₲&quot;,&quot;PYG&quot;,&quot;US$&quot;],&quot;default&quot;:&quot;Gs.&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Moneda&quot;}}">
+const N = (v) => { const n = parseFloat(String(v ?? "").replace(/\./g, "").replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
+const CICLO = ["NO", "SI", "NA"];
+const KEY = "twg-tablero-v1";
+const CARGA_AGOSTO = "planilla-agosto-2026-v8";
+// Copias de seguimiento: lo que en Agosto no quedó aprobado se sigue viendo en Septiembre.
+const arrastreSept = () => AGOSTO.map(fromAgosto)
+  .filter(r => r.alerta !== "APROBADO" && r.alerta !== "DE BAJA")
+  .map((r, i) => Object.assign({}, r, { id: "ag09-" + i, arrastre: "08", avance: "Pendiente" }));
+
+// Carga de la planilla TABLERO AGOSTO 2026 (presupuestado y vendido tal cual la planilla).
+// [nro, fecha, cliente, local, trabajo, precio, vendido, alerta, avance, os, informe, facturado, nroFactura, tecnico]
+const AGOSTO = [
+  ["260807200","07/08/2026","BAHIA","SHELL ÑEMBY 2","CIELORRASO PVC REPARACION",1700000,1700000,"APROBADO","Finalizado","SI","SI","SI","001-001-0003816","OSCAR"],
+  ["260809XXX","07/07/2026","LA ADMINITRADORA","DI CARLO","2 A Y TERRAZA",5222175,5222175,"APROBADO","En Proceso","SI","SI","NO","","EMANUEL"],
+  ["260610127REV.3","","","SHELL CAACUPE","ACONDICIONAMIENTO DE CAMARA SEPTICA",11474377,11474377,"APROBADO","En Proceso","SI","SI","SI","001-001-0003818","WILFRIDO"],
+  ["260610127REV.2","","","SHELL CAACUPE","TAPA POZO CIEGO",4075205,4072205,"APROBADO","En Proceso","SI","SI","SI","001-001-0003817","WILFRIDO"],
+  ["260730201","05/08/2026","BAHIA","SHELL LOMA PYTA","REP, DE PISO DE HORMIGON",14154030,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260730202","30/07/2026","BAHIA","SHELL BAHIA YPACARAI","SUMINISTRO DE CERRADURA",2432520,0,"DE BAJA","Pendiente","NO","NO","NO","","WILFRIDO"],
+  ["260730203","30/07/2026","MAO","SHELL CHACO BOREAL","ESCUELA EN EESS CHACO BOREAL - OBRAS CIVILES 2026",14217927,0,"ENVIADO","Pendiente","NO","NO","NO","","LUCAS"],
+  ["260803204","03/08/2026","JORGE MARTINEZ","AMPLIACION","AMPLIACION",18968765,0,"DE BAJA","Pendiente","NO","NO","NO","",""],
+  ["260804205","03/08/2026","BAHIA","SHELL AVIADORES","Pinturas varias",24030028,24030028,"APROBADO","Finalizado","SI","SI","SI","001-001-0003822","7"],
+  ["260804206","03/08/2026","BAHIA","SHELL SANTA NI","REFUERZO DE ESTRUCTURA DE TECHO",73277360,0,"ENVIADO","Pendiente","NO","NO","NO","","ALDO"],
+  ["260804208","05/08/2026","MAO","MAO","PROVISION DE SILLAS",1233818,1233818,"APROBADO","Finalizado","NO","NO","NO","","FATIMA"],
+  ["260804209","05/08/2026","BAHIA","SHELL YVAPOVO","REPOSICION DE GOMA DE PISO",1330625,1330625,"APROBADO","En Proceso","SI","SI","SI","001-001-0003820","OSCAR"],
+  ["260807210","07/08/2026","MAO","SHELL CAACUPE","CAMBIO DE POLIGAL",3298867,3298867,"APROBADO","Finalizado","SI","SI","SI","001-001-0003815","WILFRIDO"],
+  ["260807211","07/08/2026","TIGRE","LOGISTICA","FABRICACION Y PROVISION DE PORTA PALET",2471433,2471433,"APROBADO","En Proceso","NA","NA","NA","",""],
+  ["260807212","07/08/2026","LA ADMINISTRADORA","EDIF.LOOK","PINTURA E IMPERMEABILIZACION",12573554,0,"ENVIADO","Pendiente","NO","NO","NO","","RODRIGO"],
+  ["260807213","07/08/2026","BAHIA","SHELL AUTOPISTA","IMPERMEABILIZACION Y REPARACION DE LUCES",7578340,0,"ENVIADO","Pendiente","NO","NO","NO","","FATIMA"],
+  ["260807214","07/08/2026","BAHIA","PETROPAR MRA","TRABAJOS VARIOS",0,0,"DE BAJA","Pendiente","NO","NO","NO","","MAIRA"],
+  ["260807215","07/08/2026","LA ADMINISTRADORA","EDIF. PLATINIUM","REVOQUE Y PINTURA",37303860,0,"DE BAJA","Pendiente","NO","NO","NO","","RODRIGO"],
+  ["260807216REV1","07/08/2026","BAHIA","SHELL LIMPIO 1","REPOSICION DE H°A°",3753048,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260807217","07/08/2026","MAO","SHELL VLLA ELISA","REPARACIONES VARIAS",6990229,0,"DE BAJA","Pendiente","NO","NO","NO","","OSCAR"],
+  ["260804206 REV1","07/08/2026","MAO","SHELL VLLA ELISA","Reposicion de ACM de pilar de ACM zona generador electrico,",2218920,2218920,"APROBADO","Finalizado","SI","SI","SI","001-001-0003831","OSCAR"],
+  ["260807218","07/08/2026","BAHIA","SHELL BOTANICO","RAPRACION DE CIELORRASO",2088949,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260715156","16/07/2026","MAO","SHELL FIC","ASISTENCIA , FABRICACION Y COLOCACION DE TAPAS H°A° POZO, CAMARA SEPTICA Y REGISTROS",9052429,9052429,"APROBADO","Finalizado","SI","SI","SI","001-001-0003812","PAULA"],
+  ["260804206REV2","03/08/2026","BAHIA","SHELL BOTANICO","REPARACION DE PARED DURLOCK",2278767,2278767,"APROBADO","Finalizado","SI","SI","SI","001-001-0003828","ABEL"],
+  ["260728188","28/07/2026","MAO","SHELL YPACARAI","MANTENIMIENTOS VARIOS",4054600,4054600,"APROBADO","Finalizado","SI","SI","SI","001-001-0003819","WILFRIDO"],
+  ["260715158","17/07/2026","MAO","SHELL BOTANICO SACRAMENTO","SONDEO Y REPARACION",4215545,4215545,"APROBADO","Finalizado","SI","SI","SI","001-001-0003823","ABEL"],
+  ["260809219","09/08/2026","DR. SANTACRUZ","CASA DE DR","PINTURAS",2000000,0,"APROBADO","Finalizado","NA","SI","SI","001-001-0003844","XIMENA"],
+  ["2608092XX","09/08/2026","DOMINGO SAVIO","AMPLIACION","PROPUESTAS POR HONORARIOSM",0,0,"ENVIADO","En Proceso","SI","SI","NO","","GUIDO"],
+  ["260730198","09/08/2026","LA ADMINISTRADORA","DI CARLO","PINTURA E IMPEMEABILIZACIOMN",916364,0,"DE BAJA","En Proceso","NO","NO","NO","","RODRIGO"],
+  ["260811220","10/08/2026","BAHIA","SHELL ÑEMBY 2","REP. DE PUERTA METALICA Y AJUSTES VARIOS",1080453,1080453,"APROBADO","En Proceso","SI","SI","SI","001-001-0003830","PAULA"],
+  ["260811221","10/08/2026","CESAR PEREIRA","CESAR PEREIRA","FILTRACION",32623173,0,"ENVIADO","Pendiente","NO","NO","NO","","CESAR PREIRA"],
+  ["260811222","10/08/2026","LA ADMINISTRADORA","EDIF.RIVIERA","PINTURA ESTACIONAMIENTO SUBSUELO",46675649,0,"ENVIADO","Pendiente","NO","NO","NO","","EMANUEL"],
+  ["260811223","11/08/2026","TIGRE","EDIF.LOGISTICA","PINTURA EDIFICIO LOGISTICA",16901830,0,"ENVIADO","Pendiente","NO","NO","NO","",""],
+  ["260812224","12/08/2026","SENA INGENIERIA","VILLETA SENA","REP.MEDIA SOMBRA Y MODIF DE CONTENEDOR",12441660,0,"ENVIADO","Pendiente","NO","NO","NO","","ROSALINO"],
+  ["260813225","13/08/2026","BAHIA","PETROPAR SALTO DEL GUAIRA","DESAGOTE DE POZO CIEGO Y CAMARA SEPTICA",5500128,0,"ENVIADO","Pendiente","NO","NO","NO","","MAIRA"],
+  ["260814226","14/08/2026","TIGRE","PLANTA","REPOSICION DE PISO DE H°A°",4423080,4423080,"APROBADO","Finalizado","NA","SI","NO","","ALEXIS"],
+  ["260814227","14/08/2026","BAHIA","SHELL J.A.SALDIVAR","REDIRECCIONAMIENOT DE CAÑERIA DE DESAGUE",20420989,0,"ENVIADO","Pendiente","NO","NO","NO","","WILFRIDO"],
+  ["260814228","14/08/2026","BAHIA","SHELL PAI PUKU","ASISTENCIA Y DESAGOTE",5154221,5154221,"APROBADO","Finalizado","SI","SI","SI","001-001-0003829","ABEL"],
+  ["260817187REV 2","17/08/2026","TIGRE","LOGISTICA","INSTALACION DE DOS BIODIGESTORES",19664640,19664640,"APROBADO","En Proceso","SI","SI","NO","","ROBERT"],
+  ["260817229","17/08/2026","MAO","MAO","PROVISION DE MATERIALES",2782560,0,"ENVIADO","Pendiente","NO","NO","NO","","CARLOS"],
+  ["260817230","17/08/2026","MAO","SHELL CHACO BOREAL","ASISTENCIA PLOMERIA",352000,352000,"APROBADO","Finalizado","SI","SI","SI","001-001-0003833","ABEL"],
+  ["260817231","17/08/2026","MAO","SHELL BRASILIA","ASISTENCIA MANTENIMINTO DE CANALETA",478500,478500,"APROBADO","Finalizado","SI","SI","SI","001-001-0003832","ABEL"],
+  ["260817232","17/08/2026","BAHIA","SHELL BAHIA ACCESO II","TAPA DE REGISTRO METALICO",1917828,0,"ENVIADO","Pendiente","NO","NO","NO","","OSCAR"],
+  ["260818233","18/08/2026","BAIA","SHELL AVIADORES","Provisión e Instalación de Elementos de Captación y Limpieza Integral de Red Pluvial 52 ml a intervenir aproximadamente.",25993077,0,"ENVIADO","Pendiente","NO","NO","NO","","LUCAS"],
+  ["260819234","19/08/2026","BAHIA","SHELL CHACO BOREAL","REPARACION CENTINELA",12355474,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260819235","19/08/2026","BAHIA","SHELL AVIADORES","FILTRACIONES Y RETOQUE DE PINTURA",2500000,2500000,"APROBADO","En Proceso","SI","NO","NO","","LUCAS"],
+  ["260819236","19/08/2026","LA ADMINISTRADORA","RESIDENCIAL DEL CARMEN","FILTRACIONES",4871130,0,"ENVIADO","Pendiente","NO","NO","NO","","EMANUEL"],
+  ["260819234REV2","20/08/2026","BAHIA","SHELL CHACO BOREAL","CAMBIO DE CEINTINELAS Y PISO DEP",8713980,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260820237","20/08/2026","BAHIA","SHELL PAI PUKU","ASISTENCIA Y DESAGOTE",2545455,2545455,"APROBADO","En Proceso","SI","SI","SI","","ABEL"],
+  ["260821238","21/08/2026","BAHIA","SHELL PAI PUKU","REACONDICIONAMIENTO DE SISTEMA DE DESAGUE",0,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260824239","24/08/2026","TIGRE","PLANTA","FABRICACION DE PALET",2471433,2471433,"APROBADO","En Proceso","NA","NA","NA","","ALEXIS"],
+  ["260827240","24/08/2026","TIGRE","TIGRE URUGUAY","INSTALACIONES TRATAMIENTO DE AGUA",0,0,"ENVIADO","Pendiente","NO","NO","NO","","Robert"],
+  ["260825241","24/08/2026","BAHIA","SHELL PAI PUKU","REPARACION DE CISTERNAS",4379734,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260825242","25/08/2026","MAO","SHELL BRASILIA","REP. DE PISO H°A° Y TAPAS VARIAS",9103520,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260827243","27/08/2026","MANGURUJU","MANGURUJU SAMBER","REP. DE MADERAS EN GENERAL",0,0,"ENVIADO","Pendiente","NO","NO","NO","","ALEX"],
+  ["260827244","27/08/2026","TIGRE","LOGISTICA","Poda, destronque de palmera y reparación de tramo de tubería obstruida (13 m).",7192812,0,"ENVIADO","Pendiente","NO","NO","NO","","ALEXIS"],
+  ["260827245","27/08/2026","BAHIA","SHELL CHACO BOREAL","SERVICIO DE CAMBIO DE CANILLA",650000,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260828246","28/08/2026","TIGRE","PLANTA","Adaptación de portón existente para apertura peatonal de 0,80 x 2,10 m.",7698108,0,"APROBADO","En Proceso","NO","NO","NO","","ROBERT"],
+  ["260829247","29/08/2026","BAHIA","AVIADORES","DESMONTAJE DE CENT.PINTURA DE PISO Y DESMONTAJE DE TECHITO",7953382,0,"ENVIADO","Pendiente","NO","NO","NO","","JOSE"]
+];
+
+const fromAgosto = (a, i) => ({
+  id: "ag" + i, nro: a[0], fecha: a[1], cliente: a[2], local: a[3], trabajo: a[4],
+  precio: String(a[5]), vendido: String(a[6]), alerta: a[7], avance: a[8],
+  os: a[9], informe: a[10], facturado: a[11], nroFactura: a[12], tecnico: a[13],
+  prioridad: "Normal", obs: ""
+});
+
+// Presupuestos elaborados en el sistema; se siembran una vez por número.
+const PRESUPUESTOS_SISTEMA = [{
+  id: "sys-p2026001", nro: "P-2026-001", fecha: "31/08/2026",
+  cliente: "Ykuakaranday", local: "Herrería Ykuakaranday",
+  trabajo: "Herrería: quincho, salón multiuso, gimnasio, sanitarios y caseta de guardia con acceso",
+  precio: "296304254", vendido: "", alerta: "ENVIADO", avance: "Pendiente",
+  os: "NO", informe: "NO", facturado: "NO", nroFactura: "", tecnico: "",
+  prioridad: "Normal", obs: "Elaborado en Costos y propuestas"
+}, {
+  id: "sys-p2026002", nro: "P-2026-002", fecha: "31/08/2026",
+  cliente: "Sr. propietario", local: "Luque, Central",
+  trabajo: "Instalaciones eléctricas y climatización — Luque, Central",
+  precio: "1247217792", vendido: "", alerta: "FALTA PRESUPUESTAR", avance: "Pendiente",
+  os: "NO", informe: "NO", facturado: "NO", nroFactura: "", tecnico: "",
+  prioridad: "Normal", obs: "Borrador en Costos y propuestas"
+}, {
+  id: "sys-p2026003", nro: "P-2026-003", fecha: "01/09/2026",
+  cliente: "MAO Shell Pai Puku", local: "Shell Pai Puku",
+  trabajo: "Reacondicionamiento del sistema de desagüe y mantenimiento general — Shell Pai Puku",
+  precio: "92815721", vendido: "", alerta: "FALTA PRESUPUESTAR", avance: "Pendiente",
+  os: "NO", informe: "NO", facturado: "NO", nroFactura: "", tecnico: "",
+  prioridad: "Normal", obs: "Borrador en Costos y propuestas"
+}, {
+  id: "sys-p2026004", nro: "P-2026-004", fecha: "01/09/2026",
+  cliente: "Shell Villeta", local: "Villeta, Central",
+  trabajo: "Instalación de sistema de tratamiento de aguas residuales — Shell Villeta",
+  precio: "75628893", vendido: "", alerta: "FALTA PRESUPUESTAR", avance: "Pendiente",
+  os: "NO", informe: "NO", facturado: "NO", nroFactura: "", tecnico: "",
+  prioridad: "Normal", obs: "Borrador en Costos y propuestas"
+}];
+
+const MESES = [["08", "Agosto"], ["09", "Septiembre"], ["10", "Octubre"], ["11", "Noviembre"], ["12", "Diciembre"]];
+
+class Component extends DCLogic {
+  state = {
+    tab: "dash", filtro: "", soloPend: false, mes: "08",
+    // Planificación: planilla propia, arranca vacía y se carga a mano.
+    tareas: [], planPer: "mes", planCli: "", planAnc: "", planCarp: "1",
+    planNombres: { "1": "Planificación 1", "2": "Planificación 2" },
+    meses: {
+      "08": AGOSTO.map(fromAgosto),
+      "09": arrastreSept(), "10": [], "11": [], "12": []
+    }
+  };
+
+  componentWillMount() {
+    this.setState(p => ({ meses: this.sincronizarPrecios(this.sembrar(p.meses)) }));
+  }
+
+  // Los presupuestos elaborados en el sistema toman del archivo de Costos y
+  // propuestas su precio, su cliente, su obra y su estado.
+  datosDelArchivo() {
+    const out = {};
+    try {
+      const raw = localStorage.getItem("twg-archivo-presupuestos-v1");
+      const data = raw ? JSON.parse(raw) : null;
+      ((data && data.items) || []).forEach(it => {
+        const nro = String(it.nro || "").trim();
+        if (!nro) return;
+        const d = it.datos || {};
+        const n = Number(String(it.total || "").replace(/[^0-9]/g, ""));
+        out[nro] = {
+          nro: nro,
+          total: n ? String(n) : "",
+          cliente: String(d.cliente || "").trim(),
+          obra: String(d.obra || "").trim(),
+          fecha: String(it.fecha || "").trim(),
+          estado: String(it.estado || "").trim().toUpperCase()
+        };
+      });
+    } catch (e) {}
+    return out;
+  }
+
+  // Estado del presupuesto tal como está en el archivo, llevado a las dos
+  // columnas del tablero: alerta comercial y avance de obra.
+  alertaDeEstado(estado) {
+    return {
+      "APROBADO": "APROBADO",
+      "FINALIZADO": "APROBADO",
+      "ENVIADO": "ENVIADO",
+      "EN VERIFICACION": "ENVIADO",
+      "EN VERIFICACIÓN": "ENVIADO",
+      "BORRADOR": "FALTA PRESUPUESTAR",
+      "FALTA PRESUPUESTAR": "FALTA PRESUPUESTAR",
+      "EN PRESUPUESTO": "FALTA PRESUPUESTAR",
+      "RECHAZADO": "DE BAJA",
+      "ANULADO": "DE BAJA",
+      "DE BAJA": "DE BAJA"
+    }[estado] || "";
+  }
+
+  mesDeFecha(fecha) {
+    const m = /^\s*\d{1,2}\s*[\/-]\s*(\d{1,2})\s*[\/-]\s*\d{2,4}/.exec(String(fecha || ""));
+    const k = m ? String(m[1]).padStart(2, "0") : "";
+    return ["08", "09", "10", "11", "12"].indexOf(k) >= 0 ? k : "09";
+  }
+
+  // El archivo puede aprobar y dar de baja, pero no revierte una aprobación
+  // hecha a mano en el tablero: eso se cambia desde el propio tablero.
+  fusionarArchivo(r, a) {
+    const out = Object.assign({}, r);
+    if (a.total) out.precio = a.total;
+    if (a.cliente) out.cliente = a.cliente;
+    if (a.obra) out.trabajo = a.obra;
+    if (a.fecha) out.fecha = a.fecha;
+    const nueva = this.alertaDeEstado(a.estado);
+    if (!nueva) return out;
+    const firme = r.alerta === "APROBADO" || r.alerta === "DE BAJA";
+    if (nueva === "APROBADO") {
+      out.alerta = "APROBADO";
+      if (a.total) out.vendido = a.total;
+      // FINALIZADO en el archivo cierra el avance de obra en el tablero.
+      if (a.estado === "FINALIZADO") out.avance = "Finalizado";
+      else if (!out.avance || out.avance === "Pendiente") out.avance = "En Proceso";
+    } else if (!firme) {
+      out.alerta = nueva;
+      out.vendido = "";
+      out.avance = "Pendiente";
+    }
+    return out;
+  }
+
+  filaArchivo(a, i) {
+    const nueva = this.alertaDeEstado(a.estado);
+    const aprob = nueva === "APROBADO";
+    return {
+      id: "arch-" + a.nro, nro: a.nro, fecha: a.fecha, cliente: a.cliente,
+      local: "", trabajo: a.obra, precio: a.total, vendido: aprob ? a.total : "",
+      alerta: nueva || "ENVIADO", avance: aprob ? "En Proceso" : "Pendiente",
+      os: "NO", informe: "NO", facturado: "NO", nroFactura: "", tecnico: "",
+      prioridad: "Normal", obs: "Elaborado en Costos y propuestas"
+    };
+  }
+
+  sincronizarPrecios(meses) {
+    const arch = this.datosDelArchivo();
+    const nros = Object.keys(arch);
+    if (!nros.length) return meses;
+    const vistos = {};
+    const salida = {};
+    Object.keys(meses).forEach(k => {
+      salida[k] = (meses[k] || [])
+        // Filas del archivo que quedaron guardadas en otro mes: vuelven al mes en curso.
+        .filter(r => k === "09" || !String(r.id || "").startsWith("arch-"))
+        .map(r => {
+          const a = arch[String(r.nro || "").trim()];
+          if (!a || r.arrastre) return r;
+          vistos[a.nro] = true;
+          return this.fusionarArchivo(r, a);
+        });
+    });
+    // Un solo criterio de mes: todo lo elaborado en el sistema entra en el mes
+    // en curso, como ya lo hacían los presupuestos sembrados.
+    const nuevas = nros.filter(n => !vistos[n]).map((n, i) => this.filaArchivo(arch[n], i));
+    if (nuevas.length) salida["09"] = (salida["09"] || []).concat(nuevas);
+    return salida;
+  }
+
+  sembrar(meses) {
+    const todos = new Set();
+    Object.keys(meses).forEach(k => (meses[k] || []).forEach(r => todos.add(String(r.nro || "").trim())));
+    const vacio = (r) => !String(r.cliente || "").trim() && !String(r.trabajo || "").trim();
+    const porNro = {};
+    Object.keys(meses).forEach(k => (meses[k] || []).forEach(r => { porNro[String(r.nro || "").trim()] = r; }));
+    const reemplazar = PRESUPUESTOS_SISTEMA.filter(p => porNro[p.nro] && vacio(porNro[p.nro]));
+    if (reemplazar.length) {
+      const mapa = {};
+      reemplazar.forEach(p => { mapa[p.nro] = p; });
+      meses = Object.assign({}, meses);
+      Object.keys(meses).forEach(k => {
+        meses[k] = (meses[k] || []).map(r => mapa[String(r.nro || "").trim()] || r);
+      });
+      todos.clear();
+      Object.keys(meses).forEach(k => (meses[k] || []).forEach(r => todos.add(String(r.nro || "").trim())));
+    }
+    const faltan = PRESUPUESTOS_SISTEMA.filter(p => !todos.has(p.nro));
+    if (!faltan.length) return meses;
+    return Object.assign({}, meses, { "09": (meses["09"] || []).concat(faltan) });
+  }
+
+  clave = (r) => ((r.nro || "").trim() || (r.trabajo || "").trim() + "|" + (r.cliente || "").trim()).toLowerCase();
+
+  migrar() { return null; }
+
+
+  setEstado(id, estado) {
+    const mapa = {
+      "FINALIZADO": { alerta: "APROBADO", avance: "Finalizado" },
+      "EN EJECUCION": { alerta: "APROBADO", avance: "En Proceso" },
+      "PENDIENTE APROBACION": { alerta: "ENVIADO", avance: "Pendiente" },
+      "EN PRESUPUESTO": { alerta: "FALTA PRESUPUESTAR", avance: "Pendiente" },
+      "PENDIENTE RELEVO": { alerta: "FALTA RELEVAR", avance: "Pendiente" },
+      "DE BAJA": { alerta: "DE BAJA", avance: "Pendiente" },
+      "SIN CARGAR": { alerta: "", avance: "Pendiente" }
+    }[estado];
+    if (!mapa) return;
+    this.setRows(rows => rows.map(r => r.id === id ? Object.assign({}, r, mapa) : r));
+  }
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && Array.isArray(data.tareas)) this.setState({
+          tareas: data.tareas.filter(x => !x.bajaNro).map(x => String(x.carp || "1") === "1" ? Object.assign({}, x, { carp: "2" }) : x)
+        });
+        if (data && data.planNombres) this.setState(p => ({ planNombres: Object.assign({}, p.planNombres, data.planNombres) }));
+        if (data && data.meses) this.setState(p => {
+          const base = Object.assign({}, p.meses, data.meses);
+          // La planilla de agosto se carga una sola vez; el resto de los meses queda intacto.
+          if (data.carga !== CARGA_AGOSTO) {
+            base["08"] = AGOSTO.map(fromAgosto);
+            const nros = new Set(AGOSTO.map(a => String(a[0]).trim()));
+            ["09", "10", "11", "12"].forEach(k => {
+              base[k] = (base[k] || []).filter(r => !nros.has(String(r.nro || "").trim()));
+            });
+            base["09"] = base["09"].concat(arrastreSept());
+            // P-2026-003 se unió a P-2026-002; su fila vieja se retira.
+            Object.keys(base).forEach(k => {
+              base[k] = (base[k] || []).filter(r => String(r.nro || "").trim() !== "P-2026-003");
+            });
+            let libre = 0;
+            Object.keys(base).forEach(k => (base[k] || []).forEach(r => {
+              const mm = /^P-2026-(\d+)$/.exec(String(r.nro || "").trim());
+              if (mm) libre = Math.max(libre, parseInt(mm[1], 10));
+            }));
+            Object.keys(base).forEach(k => {
+              base[k] = (base[k] || []).map(r => (!r.arrastre && !String(r.nro || "").trim())
+                ? Object.assign({}, r, { nro: "P-2026-" + String(++libre).padStart(3, "0") })
+                : r);
+            });
+          }
+          setTimeout(() => this.persistir(this.state), 0);
+          return { meses: this.sincronizarPrecios(this.sembrar(base)), mes: data.mes || p.mes };
+        });
+        else if (data && Array.isArray(data.rows) && data.rows.length) this.setState(p => {
+          const base = Object.assign({}, p.meses, { "08": data.rows, "09": [] });
+          return { meses: this.migrar(base) || base };
+        });
+      }
+    } catch (e) {}
+    // Red de seguridad: aunque el ciclo de actualización no dispare, los aprobados
+    // se revisan al abrir y cada pocos segundos.
+  }
+
+  hoyIso() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  // 29/08/2026 y 2026-08-29 son la misma fecha; el campo de la planilla usa la segunda forma.
+  aIso(v) {
+    const t = String(v || "").trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+    const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t);
+    return m ? m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2) : "";
+  }
+
+  componentWillUnmount() { if (this._planTimer) clearInterval(this._planTimer); }
+
+  // Un único camino de guardado: se calcula el parche, se aplica y se persiste
+  // con los valores ya resueltos (nunca dentro del updater de setState).
+  aplicar(fn) {
+    const p = this.state;
+    const parche = fn(p) || {};
+    const sig = Object.assign({}, p, parche);
+    this.setState(parche);
+    this.persistir(sig);
+  }
+
+  persistir(sig) {
+    this._lastMeses = sig.meses;
+    this._lastMes = sig.mes;
+    this._lastTareas = sig.tareas;
+    try {
+      const raw = localStorage.getItem(KEY);
+      const prev = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(KEY, JSON.stringify(Object.assign({}, prev, {
+        meses: sig.meses, mes: sig.mes,
+        tareas: sig.tareas || [], planNombres: sig.planNombres,
+        carga: CARGA_AGOSTO
+      })));
+    } catch (e) {}
+  }
+
+  guardar() { this.persistir(this.state); }
+
+  // Lista de presupuestos del mes a Excel, con los totales al pie.
+  exportarExcel() {
+    const s = this.state;
+    const todas = (s.meses || {})[s.mes] || [];
+    const q = String(s.filtro || "").trim().toLowerCase();
+    const rows = q ? todas.filter(r => (r.nro + " " + r.cliente + " " + r.local + " " + r.trabajo).toLowerCase().includes(q)) : todas;
+    const mes = (MESES.find(x => x[0] === s.mes) || ["", ""])[1] + " 2026";
+    const esc = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const td = (v, estilo, num) => '<td style="' + (estilo || "") + (num ? 'mso-number-format:\\#\\,\\#\\#0;' : '') + '">'
+      + (num ? Math.round(N(v)) : esc(v)) + "</td>";
+    const H = "font-weight:bold;background:#EFEDEA;border:0.5pt solid #B0ABA3;";
+    const out = [];
+    out.push("<tr>" + td("PRESUPUESTOS — " + mes.toUpperCase() + (q ? " · filtrado por \"" + s.filtro.trim() + "\"" : ""), "font-weight:bold;font-size:14pt;") + "</tr>");
+    out.push("<tr>" + td("The Wealt Group Export Import S.A.") + td("") + td("Generado " + new Date().toLocaleDateString("es-PY")) + "</tr>");
+    out.push("<tr>" + td("") + "</tr>");
+    const cab = ["N° presu", "Fecha", "Cliente", "Local", "Trabajo", "Precio de venta", "Vendido", "Alerta", "Avance", "O. serv.", "Informe", "Facturado", "N° factura", "Técnico"];
+    out.push("<tr>" + cab.map(c => td(c, H)).join("") + "</tr>");
+    let pres = 0, vend = 0;
+    rows.forEach(r => {
+      pres += N(r.precio); vend += N(r.vendido);
+      out.push("<tr>"
+        + td(r.nro) + td(r.fecha) + td(r.cliente) + td(r.local) + td(r.trabajo)
+        + td(r.precio, "", true) + td(r.vendido, "", true)
+        + td(r.alerta, r.alerta === "APROBADO" ? "font-weight:bold;color:#1F6B44;" : (r.alerta === "DE BAJA" ? "color:#A5453A;" : ""))
+        + td(r.avance) + td(r.os) + td(r.informe) + td(r.facturado) + td(r.nroFactura) + td(r.tecnico)
+        + "</tr>");
+    });
+    out.push("<tr>" + td("") + "</tr>");
+    const T = "font-weight:bold;font-size:12pt;background:#1B1A18;color:#FFFFFF;";
+    out.push("<tr>" + td("TOTAL · " + rows.length + " presupuestos", T) + td("", T) + td("", T) + td("", T) + td("", T)
+      + td(pres, T, true) + td(vend, T, true) + td("", T) + td("", T) + td("", T) + td("", T) + td("", T) + td("", T) + td("", T) + "</tr>");
+    // Dos definiciones distintas, cada una con su fórmula declarada: la del Excel
+    // (vendido sobre todo lo cotizado) y la del dashboard (aprobado sobre lo vivo).
+    const aprob = rows.filter(r => r.alerta === "APROBADO").reduce((a, r) => a + N(r.precio), 0);
+    const baja = rows.filter(r => r.alerta === "DE BAJA").reduce((a, r) => a + N(r.precio), 0);
+    const vivo = pres - baja;
+    const pc = (n, d) => (d > 0 ? (n / d * 100) : 0).toLocaleString("es-PY", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
+    const linea = (et, val, estilo) => out.push("<tr>" + td(et, estilo) + td("") + td("") + td("") + td("") + td(val, "font-weight:bold;") + "</tr>");
+    out.push("<tr>" + td("Cotizado sin los de baja") + td("") + td("") + td("") + td("") + td(vivo, "font-weight:bold;", true) + "</tr>");
+    out.push("<tr>" + td("Aprobado") + td("") + td("") + td("") + td("") + td(aprob, "font-weight:bold;", true) + "</tr>");
+    linea("Vendido / cotizado, incluye los de baja", pc(vend, pres));
+    linea("Tasa de cierre — aprobado / cotizado sin los de baja", pc(aprob, vivo));
+
+    const html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8" />'
+      + '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>'
+      + '<x:Name>' + mes + '</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>'
+      + '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->'
+      + '<style>td{font-family:Calibri,Arial,sans-serif;font-size:11pt;vertical-align:top;}</style></head><body>'
+      + '<table><colgroup><col style="width:110pt" /><col style="width:70pt" /><col style="width:120pt" /><col style="width:150pt" /><col style="width:260pt" /><col style="width:100pt" /><col style="width:100pt" /><col style="width:80pt" /><col style="width:80pt" /><col style="width:55pt" /><col style="width:55pt" /><col style="width:65pt" /><col style="width:120pt" /><col style="width:90pt" /></colgroup>'
+      + out.join("") + "</table></body></html>";
+
+    const blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Presupuestos " + mes + (q ? " - " + s.filtro.trim() : "") + ".xls";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 400);
+  }
+
+  // Siguiente número propio del sistema, mirando todos los meses.
+  siguienteNro() {
+    let max = 0;
+    Object.keys(this.state.meses || {}).forEach(k => (this.state.meses[k] || []).forEach(r => {
+      const m = /^P-2026-(\d+)$/.exec(String(r.nro || "").trim());
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    }));
+    return "P-2026-" + String(max + 1).padStart(3, "0");
+  }
+
+  setRows(fn) {
+    this.aplicar(p => ({ meses: Object.assign({}, p.meses, { [p.mes]: fn(p.meses[p.mes] || []) }) }));
+  }
+
+  abrirVecino(nombre) {
+    let base = "";
+    try { base = (window.top && window.top.location.href) || ""; } catch (e) { base = ""; }
+    if (!base) base = window.location.href;
+    const carpeta = base.split("#")[0].split("?")[0].replace(/[^\/]*$/, "");
+    const url = carpeta + encodeURIComponent(nombre);
+    const win = window.open(url, "_blank");
+    if (!win) window.location.href = url;
+  }
+
+  money = (n) => {
+    const sim = this.props.simboloMoneda ?? "Gs.";
+    return (n < 0 ? "-" : "") + sim + " " + Math.abs(Math.round(n)).toLocaleString("es-PY");
+  };
+
+  estadoDe(r) {
+    if (r.alerta === "DE BAJA") return "DE BAJA";
+    if (r.alerta === "APROBADO") return r.avance === "Finalizado" ? "FINALIZADO" : "EN EJECUCION";
+    if (r.alerta === "ENVIADO") return "PENDIENTE APROBACION";
+    if (r.alerta === "FALTA PRESUPUESTAR") return "EN PRESUPUESTO";
+    if (r.alerta === "FALTA RELEVAR") return "PENDIENTE RELEVO";
+    if (!r.alerta) return "SIN CARGAR";
+    return "EN REVISION";
+  }
+
+  chipDe(estado) {
+    const c = {
+      "FINALIZADO": ["oklch(0.42 0.09 150)", "oklch(0.95 0.03 150)", "oklch(0.86 0.05 150)"],
+      "EN EJECUCION": ["oklch(0.40 0.09 235)", "oklch(0.95 0.025 235)", "oklch(0.86 0.05 235)"],
+      "PENDIENTE APROBACION": ["oklch(0.45 0.10 70)", "oklch(0.96 0.035 80)", "oklch(0.88 0.06 80)"],
+      "EN PRESUPUESTO": ["oklch(0.50 0.21 27)", "oklch(0.96 0.05 27)", "oklch(0.86 0.10 27)"],
+      "PENDIENTE RELEVO": ["oklch(0.45 0.10 40)", "oklch(0.96 0.03 40)", "oklch(0.88 0.05 40)"],
+      "DE BAJA": ["#7c7770", "#f0eee9", "#dedbd5"],
+      "SIN CARGAR": ["#8f8a83", "#f7f6f3", "#e6e2da"],
+      "EN REVISION": ["#6f6b64", "#f0eee9", "#dedbd5"]
+    }[estado] || ["#6f6b64", "#f0eee9", "#dedbd5"];
+    return "display: inline-block; padding: 4px 9px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.05em; font-weight: 600; border-radius: 5px; color: " + c[0] + "; background: " + c[1] + "; border: 1px solid " + c[2] + ";";
+  }
+
+  ciclo(valor) { const i = CICLO.indexOf(valor); return CICLO[(i + 1) % CICLO.length]; }
+
+  flagStyle(v) {
+    const c = v === "SI" ? ["oklch(0.42 0.09 150)", "oklch(0.95 0.03 150)", "oklch(0.86 0.05 150)"]
+      : v === "NA" ? ["#8f8a83", "#f4f3f0", "#dedbd5"]
+      : ["oklch(0.48 0.12 30)", "oklch(0.96 0.03 30)", "oklch(0.89 0.05 30)"];
+    return "margin: 4px 6px; padding: 6px 0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 600; border-radius: 6px; cursor: pointer; color: " + c[0] + "; background: " + c[1] + "; border: 1px solid " + c[2] + ";";
+  }
+
+  patch(id, campo, valor) {
+    this.setRows(rows => rows.map(r => r.id === id ? Object.assign({}, r, { [campo]: valor }) : r));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const m = this.money;
+    const rows = s.meses[s.mes] || [];
+
+    const tab = (on) => "padding: 7px 14px; font-size: 12.5px; font-weight: 500; border: 0; border-radius: 6px; cursor: pointer; background: " + (on ? "#ffffff" : "transparent") + "; color: " + (on ? "#1b1a18" : "#7a756e") + "; box-shadow: " + (on ? "0 1px 3px rgba(0,0,0,0.10)" : "none") + ";";
+
+    const vivos = rows.filter(r => r.alerta !== "DE BAJA");
+    const aprobados = rows.filter(r => r.alerta === "APROBADO");
+    const cotizado = vivos.reduce((a, r) => a + N(r.precio), 0);
+    const presupuestado = rows.reduce((a, r) => a + N(r.precio), 0);
+    const vendido = rows.reduce((a, r) => a + N(r.vendido), 0);
+    const aprobado = aprobados.reduce((a, r) => a + N(r.precio), 0);
+    const facturadas = aprobados.filter(r => r.facturado === "SI");
+    const facturado = facturadas.reduce((a, r) => a + N(r.precio), 0);
+
+    const cuenta = (e) => rows.filter(r => this.estadoDe(r) === e).length;
+    const estados = ["PENDIENTE APROBACION", "EN EJECUCION", "FINALIZADO", "DE BAJA", "PENDIENTE RELEVO", "EN PRESUPUESTO", "SIN CARGAR"];
+    const conteos = estados.map(e => ({ label: e, n: cuenta(e) })).filter(x => x.n > 0);
+    const maxN = Math.max(1, ...conteos.map(x => x.n));
+    const bar = (frac, color) => "height: 100%; width: " + Math.max(2, Math.round(frac * 100)) + "%; background: " + color + "; border-radius: 5px;";
+
+    const colorEstado = {
+      "FINALIZADO": "oklch(0.62 0.11 150)", "EN EJECUCION": "oklch(0.58 0.11 235)",
+      "PENDIENTE APROBACION": "oklch(0.70 0.13 75)", "DE BAJA": "#b4aea5",
+      "PENDIENTE RELEVO": "oklch(0.66 0.12 40)", "EN PRESUPUESTO": "oklch(0.50 0.21 27)", "SIN CARGAR": "#cfcac2"
+    };
+
+    const cierre = [
+      { label: "Orden de servicio", n: aprobados.filter(r => r.os === "SI").length },
+      { label: "Informe al cliente", n: aprobados.filter(r => r.informe === "SI").length },
+      { label: "Facturado", n: facturadas.length }
+    ];
+
+    const porCliente = {};
+    aprobados.forEach(r => { const k = (r.cliente || "Sin cliente").trim(); porCliente[k] = (porCliente[k] || 0) + N(r.precio); });
+    const clientes = Object.keys(porCliente).map(k => ({ label: k, v: porCliente[k] })).sort((a, b) => b.v - a.v).slice(0, 6);
+    const maxCli = Math.max(1, ...clientes.map(x => x.v));
+
+    const q = s.filtro.trim().toLowerCase();
+    const enLista = q ? rows.filter(r => (r.nro + " " + r.cliente + " " + r.local + " " + r.trabajo).toLowerCase().includes(q)) : rows;
+    // Los traídos del mes anterior quedan al final, detrás de una raya.
+    const visibles = enLista.filter(r => !r.arrastre).concat(enLista.filter(r => r.arrastre));
+
+    const fila = (r) => {
+      const estado = this.estadoDe(r);
+      return {
+        nro: r.nro, fecha: r.fecha, cliente: r.cliente, local: r.local, trabajo: r.trabajo,
+        precio: r.precio, vendido: r.vendido || "", alerta: r.alerta, prioridad: r.prioridad || "Normal", tecnico: r.tecnico,
+        estado: estado, chip: this.chipDe(estado),
+        onEstado: (e) => this.setEstado(r.id, e.target.value),
+        onNro: (e) => this.patch(r.id, "nro", e.target.value),
+        onFecha: (e) => this.patch(r.id, "fecha", e.target.value),
+        onCliente: (e) => this.patch(r.id, "cliente", e.target.value),
+        onLocal: (e) => this.patch(r.id, "local", e.target.value),
+        onTrabajo: (e) => this.patch(r.id, "trabajo", e.target.value),
+        onPrecio: (e) => this.patch(r.id, "precio", e.target.value),
+        onVendido: (e) => this.patch(r.id, "vendido", e.target.value),
+        onAlerta: (e) => this.patch(r.id, "alerta", e.target.value),
+        onPrioridad: (e) => this.patch(r.id, "prioridad", e.target.value),
+        onTecnico: (e) => this.patch(r.id, "tecnico", e.target.value),
+        onDel: () => this.setRows(rows => rows.filter(x => x.id !== r.id))
+      };
+    };
+
+    // ——— Planificación: planilla independiente, filtrada por fecha y por cliente ———
+    // Planificación 1 es el espejo vivo de los presupuestos APROBADOS de todos los meses:
+    // al poner APROBADO la fila aparece sola, y lo que se edita acá se guarda en el presupuesto.
+    // Planificación 2 es una planilla propia para tareas cargadas a mano.
+    const carp = s.planCarp || "1";
+    const nombres = s.planNombres || { "1": "Planificación 1", "2": "Planificación 2" };
+    const espejo = carp === "1";
+    const aprobTodos = [];
+    Object.keys(s.meses || {}).forEach(k => (s.meses[k] || []).forEach(r => {
+      if (r.alerta === "APROBADO") aprobTodos.push(Object.assign({}, r, { mes: k, fecha: this.aIso(r.fecha) }));
+    }));
+    const tareas = espejo
+      ? aprobTodos
+      : (s.tareas || []).filter(t => !t.bajaNro && String(t.carp || "1") === carp);
+    // En el espejo se edita la fila del presupuesto, en su propio mes.
+    const patchEspejo = (id, mes, campo, valor) => this.aplicar(
+      p => ({ meses: Object.assign({}, p.meses, { [mes]: (p.meses[mes] || []).map(r => r.id === id ? Object.assign({}, r, { [campo]: valor }) : r) }) })
+    );
+    const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const hoyIso = iso(new Date());
+    const ancla = s.planAnc || hoyIso;
+    const dAnc = new Date(ancla + "T12:00:00");
+    const perPlan = s.planPer || "mes";
+    const rangoPlan = (() => {
+      if (perPlan === "todo") return null;
+      if (perPlan === "dia") return [ancla, ancla];
+      if (perPlan === "semana") {
+        const ini = new Date(dAnc); ini.setDate(ini.getDate() - ((ini.getDay() + 6) % 7));
+        const fin = new Date(ini); fin.setDate(fin.getDate() + 6);
+        return [iso(ini), iso(fin)];
+      }
+      if (perPlan === "anio") return [dAnc.getFullYear() + "-01-01", dAnc.getFullYear() + "-12-31"];
+      return [iso(new Date(dAnc.getFullYear(), dAnc.getMonth(), 1)), iso(new Date(dAnc.getFullYear(), dAnc.getMonth() + 1, 0))];
+    })();
+    const dentroPlan = (f) => {
+      if (!rangoPlan) return true;
+      const v = String(f || "").trim();
+      if (!v) return true; // una tarea sin fecha se ve en cualquier rango, no se pierde
+      return v >= rangoPlan[0] && v <= rangoPlan[1];
+    };
+    const clientesPlan = Array.from(new Set(tareas.map(t => String(t.cliente || "").trim()).filter(Boolean))).sort();
+    const planRows = tareas
+      .filter(t => dentroPlan(t.fecha))
+      .filter(t => !s.planCli || String(t.cliente || "").trim() === s.planCli)
+      .filter(t => !s.soloPend || t.avance !== "Finalizado")
+      .sort((a, b) => String(a.fecha || "").localeCompare(String(b.fecha || "")));
+    // Las tareas se guardan en el acto, sin depender del ciclo de actualización.
+    const setTareas = (fn) => this.aplicar(p => ({ tareas: fn(p.tareas || []) }));
+    const patchTarea = (id, campo, valor) => setTareas(arr => arr.map(t => t.id === id ? Object.assign({}, t, { [campo]: valor }) : t));
+    const MESL = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const etiquetaPlan = perPlan === "dia" ? ("Día " + dAnc.getDate() + " de " + MESL[dAnc.getMonth()] + " " + dAnc.getFullYear())
+      : perPlan === "semana" ? ("Semana del " + new Date(rangoPlan[0] + "T12:00:00").getDate() + " al " + new Date(rangoPlan[1] + "T12:00:00").getDate() + " de " + MESL[new Date(rangoPlan[1] + "T12:00:00").getMonth()])
+      : perPlan === "anio" ? ("Año " + dAnc.getFullYear())
+      : perPlan === "todo" ? "Todas las tareas cargadas"
+      : (MESL[dAnc.getMonth()].charAt(0).toUpperCase() + MESL[dAnc.getMonth()].slice(1) + " " + dAnc.getFullYear());
+
+    return {
+      empresa: this.props.empresa ?? "The Wealt Group Export Import S.A.",
+      periodo: this.props.periodo ?? "Agosto 2026",
+
+      esDash: s.tab === "dash", esLista: s.tab === "lista", esPlan: s.tab === "plan",
+      tabDash: tab(s.tab === "dash"), tabLista: tab(s.tab === "lista"), tabPlan: tab(s.tab === "plan"),
+      verDash: () => this.setState({ tab: "dash" }),
+      verLista: () => this.setState({ tab: "lista" }),
+      verPlan: () => this.setState({ tab: "plan" }),
+      irPropuesta: () => this.abrirVecino("Cielite - Costos y Propuesta.dc.html"),
+      irInforme: () => this.abrirVecino("Tablero de Control - Presupuestos-print.dc.html"),
+
+      nuevo: () => {
+        this.setState({ tab: "lista" });
+        this.setRows(rows => [{ id: "n" + Date.now(), nro: this.siguienteNro(), fecha: new Date().toLocaleDateString("es-PY"), cliente: "", local: "", trabajo: "", precio: "0", vendido: "", alerta: "FALTA PRESUPUESTAR", avance: "Pendiente", os: "NO", informe: "NO", facturado: "NO", nroFactura: "", tecnico: "", prioridad: "Normal", obs: "" }].concat(rows));
+      },
+
+      mesesTabs: MESES.map(([num, nombre]) => {
+        const lista = s.meses[num] || [];
+        const n = s.tab === "plan" ? lista.filter(r => r.alerta === "APROBADO").length : lista.length;
+        const on = s.mes === num;
+        return {
+          label: nombre + (n ? " · " + n : ""),
+          style: "padding: 7px 14px; font-size: 12.5px; font-weight: " + (on ? "600" : "500") + "; border-radius: 7px; cursor: pointer; white-space: nowrap; color: " + (on ? "#ffffff" : (n ? "#4a4741" : "#a09a92")) + "; background: " + (on ? "#1b1a18" : "#f0eee9") + "; border: 1px solid " + (on ? "#1b1a18" : "#dedbd5") + ";",
+          onSel: () => this.aplicar(() => ({ mes: num }))
+        };
+      }),
+      fileRef: this._file || (this._file = React.createRef()),
+      labelImportar: s.aviso || "Importar datos",
+      exportar: () => {
+        const payload = { app: "twg-tablero", version: 1, exportado: new Date().toISOString(), mes: s.mes, meses: s.meses };
+        const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "tablero-twg-" + new Date().toISOString().slice(0, 10) + ".json";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      },
+      importar: () => { if (this._file && this._file.current) this._file.current.click(); },
+      onArchivo: (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(String(reader.result));
+            if (!data || !data.meses) throw new Error("formato");
+            this.aplicar(p => ({ meses: Object.assign({}, p.meses, data.meses), mes: data.mes || p.mes, aviso: "Datos importados" }));
+          } catch (err) {
+            this.setState({ aviso: "Archivo no válido" });
+          }
+          setTimeout(() => this.setState({ aviso: "" }), 2500);
+        };
+        reader.readAsText(f);
+        e.target.value = "";
+      },
+      mesActual: (MESES.find(x => x[0] === s.mes) || ["", ""])[1] + " 2026",
+      exportarExcel: () => this.exportarExcel(),
+      imprimirPdf: () => setTimeout(() => window.print(), 150),
+      pasarPendientes: () => {
+        const orden = MESES.map(x => x[0]);
+        const i = orden.indexOf(s.mes);
+        if (i < 0 || i >= orden.length - 1) return;
+        const destino = orden[i + 1];
+        const mover = (s.meses[s.mes] || []).filter(r => r.alerta !== "APROBADO" && r.alerta !== "DE BAJA");
+        if (!mover.length) return;
+        const clave = this.clave;
+        this.aplicar(p => {
+          const existentes = p.meses[destino] || [];
+          const ya = new Set(existentes.map(clave));
+          const idsMovidos = new Set(mover.map(r => r.id));
+          const nuevos = mover.filter(r => !ya.has(clave(r))).map(r => Object.assign({}, r, { id: "m" + destino + "-" + r.id }));
+          return {
+            meses: Object.assign({}, p.meses, {
+              [p.mes]: (p.meses[p.mes] || []).filter(r => !idsMovidos.has(r.id)),
+              [destino]: existentes.concat(nuevos)
+            }),
+            mes: destino
+          };
+        });
+      },
+
+      filtro: s.filtro,
+      onFiltro: (e) => this.setState({ filtro: e.target.value }),
+      visibles: visibles.length + " de " + rows.length,
+      filas: visibles.map((r, i) => Object.assign(fila(r), {
+        sep: !!r.arrastre && (i === 0 || !visibles[i - 1].arrastre),
+        sepTexto: "Traídos de Agosto 2026 — mantienen su número original"
+      })),
+
+      sinPlan: planRows.length === 0,
+      esEspejo: espejo,
+      // El espejo conserva las columnas de cierre; la carpeta a mano no las usa.
+      planGrid: espejo
+        ? "122px 118px 150px minmax(170px, 1fr) 118px 146px 74px 60px 66px 66px 66px 130px minmax(140px, 0.8fr) 28px"
+        : "122px 118px 150px minmax(170px, 1fr) 118px 146px 74px 60px minmax(140px, 0.8fr) 28px",
+      planDias: planRows.reduce((a, r) => a + N(r.dias), 0) + " días",
+      planPct: (() => {
+        const con = planRows.filter(r => String(r.pct || "").trim() !== "");
+        if (!con.length) return "0 %";
+        return Math.round(con.reduce((a, r) => a + N(r.pct), 0) / con.length) + " %";
+      })(),
+      planCount: planRows.length + " de " + tareas.length + " tareas",
+      hayFuera: tareas.length > planRows.length,
+      fueraLabel: (tareas.length - planRows.length) + " tareas fuera de este filtro — ver todas",
+      verTodas: () => this.setState({ planPer: "todo", planCli: "" }),
+      planLabel: etiquetaPlan,
+      planPerBtns: [["dia", "Día"], ["semana", "Semana"], ["mes", "Mes"], ["anio", "Año"], ["todo", "Todo"]].map(([v, lbl]) => ({
+        label: lbl,
+        onSel: () => this.setState({ planPer: v }),
+        style: "padding: 6px 12px; font-size: 11.5px; font-weight: " + (perPlan === v ? "600" : "500") + "; border: 0; border-radius: 6px; cursor: pointer; white-space: nowrap; color: " + (perPlan === v ? "#1b1a18" : "#6f6b64") + "; background: " + (perPlan === v ? "#ffffff" : "transparent") + ";"
+      })),
+      planCarpBtns: ["1", "2"].map(v => ({
+        label: nombres[v] || ("Planificación " + v),
+        onSel: () => this.setState({ planCarp: v, planCli: "" }),
+        style: "padding: 6px 13px; font-size: 11.5px; font-weight: " + (carp === v ? "600" : "500") + "; border: 0; border-radius: 6px; cursor: pointer; white-space: nowrap; color: " + (carp === v ? "#1b1a18" : "#6f6b64") + "; background: " + (carp === v ? "#ffffff" : "transparent") + ";"
+      })),
+      planCarpLabel: nombres[carp] || ("Planificación " + carp),
+      onPlanCarpNombre: (e) => {
+        const v = e.target.value;
+        this.aplicar(p => ({ planNombres: Object.assign({}, p.planNombres, { [carp]: v }) }));
+      },
+      planAnc: ancla,
+      onPlanAnc: (e) => this.setState({ planAnc: e.target.value }),
+      planCli: s.planCli || "",
+      onPlanCli: (e) => this.setState({ planCli: e.target.value }),
+      planClientes: clientesPlan,
+      agregarTarea: () => setTareas(arr => arr.concat([{
+        id: "t" + Math.random().toString(36).slice(2, 9), carp: carp, fecha: ancla, nro: "", cliente: s.planCli || "", local: "",
+        trabajo: "", tecnico: "", avance: "Pendiente", os: "NO", informe: "NO", facturado: "NO", nroFactura: "", obs: ""
+      }])),
+      plan: planRows.map(r => {
+      const set = (campo, valor) => espejo ? patchEspejo(r.id, r.mes, campo, valor) : patchTarea(r.id, campo, valor);
+      return {
+        fecha: r.fecha || "",
+        nro: r.nro || "", cliente: r.cliente || "", local: r.local || "", trabajo: r.trabajo || "",
+        tecnico: r.tecnico || "", avance: r.avance || "Pendiente",
+        os: r.os || "NO", informe: r.informe || "NO", facturado: r.facturado || "NO", nroFactura: r.nroFactura || "", obs: r.obs || "",
+        osStyle: this.flagStyle(r.os || "NO"), infStyle: this.flagStyle(r.informe || "NO"), facStyle: this.flagStyle(r.facturado || "NO"),
+        onFecha: (e) => set("fecha", e.target.value),
+        onTecnico: (e) => set("tecnico", e.target.value),
+        onAvance: (e) => set("avance", e.target.value),
+        onOs: () => set("os", this.ciclo(r.os || "NO")),
+        onInf: () => set("informe", this.ciclo(r.informe || "NO")),
+        onFac: () => set("facturado", this.ciclo(r.facturado || "NO")),
+        onNroFactura: (e) => set("nroFactura", e.target.value),
+        onObs: (e) => set("obs", e.target.value),
+        onNro: (e) => set("nro", e.target.value),
+        onCliente: (e) => set("cliente", e.target.value),
+        onLocal: (e) => set("local", e.target.value),
+        onTrabajo: (e) => set("trabajo", e.target.value),
+        pct: r.pct || "", dias: r.dias || "",
+        onPct: (e) => set("pct", e.target.value),
+        onDias: (e) => set("dias", e.target.value),
+        // En el espejo, quitar la fila es sacarle el APROBADO al presupuesto.
+        onDel: () => espejo
+          ? patchEspejo(r.id, r.mes, "alerta", "ENVIADO")
+          : setTareas(arr => arr.filter(t => t.id !== r.id))
+      };
+      }),
+      imprimirPlan: () => { this.setState({ tab: "plan" }, () => setTimeout(() => window.print(), 250)); },
+      soloPend: s.soloPend,
+      togglePend: () => this.setState({ soloPend: !s.soloPend }),
+      labelPend: s.soloPend ? "Mostrando pendientes" : "Ver solo pendientes",
+      estiloPend: "padding: 7px 13px; font-size: 12px; font-weight: 500; border-radius: 7px; cursor: pointer; white-space: nowrap; color: " + (s.soloPend ? "#ffffff" : "#4a4741") + "; background: " + (s.soloPend ? "#1b1a18" : "#f0eee9") + "; border: 1px solid " + (s.soloPend ? "#1b1a18" : "#dedbd5") + ";",
+
+      barsEstado: conteos.map(x => ({ label: x.label, n: x.n, barStyle: bar(x.n / maxN, colorEstado[x.label] || "#b4aea5") })),
+      barsCierre: cierre.map(x => ({ label: x.label, n: x.n + " / " + aprobados.length, barStyle: bar(aprobados.length ? x.n / aprobados.length : 0, "oklch(0.58 0.11 235)") })),
+      barsCliente: clientes.map(x => ({ label: x.label, monto: m(x.v), barStyle: bar(x.v / maxCli, "oklch(0.55 0.10 220)") })),
+
+      k: {
+        total: rows.length,
+        pendientes: cuenta("PENDIENTE APROBACION"),
+        ejecucion: cuenta("EN EJECUCION"),
+        finalizados: cuenta("FINALIZADO"),
+        // Recoge todo lo que aún no está enviado ni resuelto, para que las
+        // tarjetas sumen exactamente los presupuestos cargados del mes.
+        sinPresupuestar: cuenta("EN PRESUPUESTO") + cuenta("PENDIENTE RELEVO") + cuenta("SIN CARGAR") + cuenta("EN REVISION"),
+        baja: cuenta("DE BAJA"),
+        cotizado: m(cotizado), aprobado: m(aprobado), facturado: m(facturado),
+        presupuestado: m(presupuestado), vendido: m(vendido),
+        porFacturar: m(aprobado - facturado),
+        factCount: facturadas.length,
+        aprobadosCount: aprobados.length,
+        tasaCierre: (cotizado > 0 ? (aprobado / cotizado * 100) : 0).toLocaleString("es-PY", { maximumFractionDigits: 1 }) + "%"
+      }
+    };
+  }
+}
+
+</script>
+</body></html>

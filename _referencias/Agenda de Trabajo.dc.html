@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  * { box-sizing: border-box; }
+  a { color: oklch(0.50 0.09 220); text-decoration: none; }
+  a:hover { color: oklch(0.40 0.09 220); }
+  input, textarea, button, select { font-family: inherit; color: inherit; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid oklch(0.50 0.11 240); outline-offset: -1px; }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    [data-noprint] { display: none !important; }
+    html, body { background: #fff !important; }
+    @page { size: A4 landscape; margin: 10mm; }
+  }
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18; background: #f4f3f0;">
+
+  <div data-noprint="1" style="position: sticky; top: 0; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; padding: 13px 26px; background: #ffffff; border-bottom: 1px solid #dedbd5;">
+    <div style="display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">Agenda de trabajo</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">{{ hoyLargo }}</div>
+    </div>
+    <div style="display: flex; gap: 4px; padding: 3px; background: #f0eee9; border-radius: 8px;">
+      <button onClick="{{ verDia }}" style="{{ tabDia }}">Día</button>
+      <button onClick="{{ verSemana }}" style="{{ tabSemana }}">Semana</button>
+      <button onClick="{{ verSemanas }}" style="{{ tabSemanas }}">Semanas del mes</button>
+      <button onClick="{{ verMes }}" style="{{ tabMes }}">Mes</button>
+      <button onClick="{{ verTigre }}" style="{{ tabTigre }}">Tigre</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <button onClick="{{ atras }}" title="Anterior" style="width: 30px; height: 30px; font-size: 15px; line-height: 1; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;" style-hover="background: #f0eee9">‹</button>
+      <button onClick="{{ irHoy }}" style="padding: 7px 13px; font-size: 12.5px; font-weight: 600; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;" style-hover="background: #f0eee9">Hoy</button>
+      <button onClick="{{ adelante }}" title="Siguiente" style="width: 30px; height: 30px; font-size: 15px; line-height: 1; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;" style-hover="background: #f0eee9">›</button>
+      <span style="margin-left: 6px; font-size: 14px; font-weight: 600; white-space: nowrap;">{{ periodo }}</span>
+    </div>
+    <div style="flex: 1;"></div>
+    <select value="{{ filtroResp }}" onChange="{{ onFiltroResp }}" style="padding: 8px 10px; font-size: 12.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;">
+      <option value="">Todo el equipo</option>
+      <sc-for list="{{ responsables }}" as="rp" hint-placeholder-count="0">
+        <option value="{{ rp.v }}">{{ rp.v }}</option>
+      </sc-for>
+    </select>
+    <button onClick="{{ togglePendientes }}" style="{{ btnPend }}">{{ labelPend }}</button>
+    <button onClick="{{ imprimir }}" style="padding: 9px 16px; font-size: 13px; font-weight: 600; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer;" style-hover="background: #33312e">Imprimir</button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 22px; align-items: start; padding: 22px 26px 60px; max-width: 1660px; margin: 0 auto;">
+
+    <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0;">
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+        <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Para hoy</div>
+          <div style="margin-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: -0.02em;">{{ k.hoy }}</div>
+        </div>
+        <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">En curso</div>
+          <div style="margin-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: oklch(0.55 0.14 70);">{{ k.curso }}</div>
+        </div>
+        <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Atrasadas</div>
+          <div style="margin-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: oklch(0.52 0.19 25);">{{ k.vencidas }}</div>
+        </div>
+        <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Cumplidas — {{ k.rango }}</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: oklch(0.50 0.13 150);">{{ k.hechas }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #86817b;">{{ k.avance }}</span>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ esTigre }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #dedbd5;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="font-size: 14px; font-weight: 600;">Trabajos de Tigre — {{ tigrePerLabel }}</div>
+            <div style="font-size: 12px; color: #86817b;">Pedido, fecha de pedido, fecha de ejecución y monto. El filtro toma la fecha de ejecución.</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div data-noprint="1" style="display: flex; gap: 3px; padding: 3px; background: #f0eee9; border-radius: 8px;">
+              <sc-for list="{{ tigrePerBtns }}" as="pb" hint-placeholder-count="4">
+                <button onClick="{{ pb.onSel }}" style="{{ pb.style }}">{{ pb.label }}</button>
+              </sc-for>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #86817b; white-space: nowrap;">{{ tigreCuenta }}</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(180px, 2.2fr) 112px 112px minmax(70px, 104px) minmax(126px, 152px) minmax(104px, 122px) minmax(104px, 122px) 22px; padding: 0 20px; background: #faf9f7; border-bottom: 1px solid #dedbd5; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">
+          <div style="padding: 9px 8px 9px 0;">Pedido</div>
+          <div style="padding: 9px 8px;">Fecha de pedido</div>
+          <div style="padding: 9px 8px;">Fecha de ejecución</div>
+          <div style="padding: 9px 0 9px 8px; text-align: right;">Monto</div>
+          <div style="padding: 9px 0 9px 10px; text-align: right;">Aprobado</div>
+          <div style="padding: 9px 8px; text-align: center;">Estado</div>
+          <div style="padding: 9px 8px; text-align: center;">Ejecución</div>
+          <div></div>
+        </div>
+        <sc-for list="{{ tigreFilas }}" as="g" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: minmax(180px, 2.2fr) 112px 112px minmax(70px, 104px) minmax(126px, 152px) minmax(104px, 122px) minmax(104px, 122px) 22px; align-items: center; padding: 0 20px; border-bottom: 1px solid #efedea;">
+            <textarea value="{{ g.pedido }}" onChange="{{ g.onPedido }}" onInput="{{ g.onPedidoInput }}" ref="{{ g.refPedido }}" rows="1" placeholder="Qué pidió Tigre" style="width: 100%; min-width: 0; padding: 10px 10px 10px 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; line-height: 1.45; background: transparent; border: 0; resize: none; overflow: hidden;"></textarea>
+            <input type="date" value="{{ g.fped }}" onChange="{{ g.onFped }}" style="width: 100%; min-width: 0; padding: 10px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: transparent; border: 0;" />
+            <input type="date" value="{{ g.fejec }}" onChange="{{ g.onFejec }}" style="width: 100%; min-width: 0; padding: 10px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: transparent; border: 0;" />
+            <input value="{{ g.monto }}" onChange="{{ g.onMonto }}" inputMode="decimal" placeholder="0" style="width: 100%; min-width: 0; padding: 10px 0 10px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; background: transparent; border: 0;" />
+            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 7px; min-width: 0; padding: 8px 0 8px 10px;">
+              <span style="min-width: 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: oklch(0.42 0.13 150); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ g.aprobMonto }}</span>
+              <button onClick="{{ g.onAprob }}" title="Marcar el pedido como aprobado" style="{{ g.aprobStyle }}">{{ g.aprobMark }}</button>
+            </div>
+            <div style="padding: 6px 8px; min-width: 0;">
+              <sc-raw-select value="{{ g.estado }}" onChange="{{ g.onEstado }}" style="{{ g.estadoStyle }}">
+                <option value="pendiente">Pendiente</option>
+                <option value="presupuestar">Falta presupuestar</option>
+                <option value="enviado">Enviado</option>
+                <option value="proceso">En proceso</option>
+                <option value="ejecutado">Ejecutado</option>
+                <option value="verificacion">En verificación</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="facturado">Facturado</option>
+              </sc-raw-select>
+            </div>
+            <div style="padding: 6px 8px; min-width: 0;">
+              <sc-raw-select value="{{ g.ejec }}" onChange="{{ g.onEjec }}" style="{{ g.ejecStyle }}">
+                <option value="no">No iniciado</option>
+                <option value="obra">En obra</option>
+                <option value="ejecutado">Ejecutado</option>
+                <option value="entregado">Entregado</option>
+                <option value="observado">Con observaciones</option>
+              </sc-raw-select>
+            </div>
+            <button data-noprint="1" onClick="{{ g.onDel }}" title="Quitar el pedido" style="justify-self: end; width: 18px; height: 18px; font-size: 13px; line-height: 1; color: #c9c4bc; background: transparent; border: 0; cursor: pointer;" style-hover="color: oklch(0.52 0.19 25)">×</button>
+          </div>
+        </sc-for>
+        <sc-for list="{{ tigreAprobados }}" as="ap" hint-placeholder-count="0">
+          <div style="display: grid; grid-template-columns: minmax(180px, 2.2fr) 112px 112px minmax(70px, 104px) minmax(126px, 152px) minmax(104px, 122px) minmax(104px, 122px) 22px; align-items: center; padding: 0 20px; border-bottom: 1px solid #efedea; background: oklch(0.985 0.012 150);">
+            <div style="padding: 10px 8px 10px 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis;">{{ ap.pedido }}</div>
+            <div style="padding: 10px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6f6b64;">{{ ap.fecha }}</div>
+            <div style="padding: 10px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #86817b; overflow: hidden; text-overflow: ellipsis;">{{ ap.nro }}</div>
+            <div style="padding: 10px 0 10px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: right; color: #a09a92;">del tablero</div>
+            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 7px; min-width: 0; padding: 10px 0 10px 10px;">
+              <span style="min-width: 0; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600; color: oklch(0.42 0.13 150); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ap.monto }}</span>
+              <span style="display: flex; align-items: center; justify-content: center; width: 17px; height: 17px; flex: none; font-size: 11px; line-height: 1; color: #ffffff; background: oklch(0.50 0.13 150); border-radius: 4px;">✓</span>
+            </div>
+            <div style="padding: 6px 8px; min-width: 0;">
+              <sc-raw-select value="{{ ap.estado }}" onChange="{{ ap.onEstado }}" style="{{ ap.estadoStyle }}">
+                <option value="pendiente">Pendiente</option>
+                <option value="presupuestar">Falta presupuestar</option>
+                <option value="enviado">Enviado</option>
+                <option value="proceso">En proceso</option>
+                <option value="ejecutado">Ejecutado</option>
+                <option value="verificacion">En verificación</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="facturado">Facturado</option>
+              </sc-raw-select>
+            </div>
+            <div style="padding: 6px 8px; min-width: 0;">
+              <sc-raw-select value="{{ ap.ejec }}" onChange="{{ ap.onEjec }}" style="{{ ap.ejecStyle }}">
+                <option value="no">No iniciado</option>
+                <option value="obra">En obra</option>
+                <option value="ejecutado">Ejecutado</option>
+                <option value="entregado">Entregado</option>
+                <option value="observado">Con observaciones</option>
+              </sc-raw-select>
+            </div>
+            <div></div>
+          </div>
+        </sc-for>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 20px; background: #faf9f7;">
+          <button data-noprint="1" onClick="{{ agregarTigre }}" style="padding: 7px 13px; font-size: 12px; font-weight: 600; color: oklch(0.42 0.09 220); background: oklch(0.96 0.014 220); border: 1px solid oklch(0.88 0.04 220); border-radius: 7px; cursor: pointer;" style-hover="background: oklch(0.92 0.03 220)">+ Agregar pedido</button>
+          <div style="display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap; justify-content: flex-end;">
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Total pedidos</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #6f6b64;">{{ tigreTotal }}</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Aprobado · {{ tigreAprobCuenta }}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 700; color: oklch(0.42 0.13 150);">{{ tigreAprobTotal }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ noTigre }}" hint-placeholder-val="{{ true }}">
+      <div data-noprint="1" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+        <input value="{{ rapida }}" onChange="{{ onRapida }}" onKeyDown="{{ onRapidaTecla }}" placeholder="Escribí una tarea y apretá Enter — ej. 9:00 Visita a Shell Caacupé" style="flex: 1; min-width: 0; padding: 9px 0; font-size: 13.5px; background: transparent; border: 0;" />
+        <button onClick="{{ agregarRapida }}" style="padding: 9px 15px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: oklch(0.50 0.11 240); border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: oklch(0.42 0.11 240)">Agregar</button>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ esDia }}" hint-placeholder-val="{{ true }}">
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #dedbd5;">
+          <div style="font-size: 14px; font-weight: 600;">{{ dia.titulo }}</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #86817b;">{{ dia.resumen }}</div>
+        </div>
+        <sc-if value="{{ dia.vacio }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 34px 20px; text-align: center; font-size: 13px; color: #86817b;">No hay tareas cargadas para este día.</div>
+        </sc-if>
+        <sc-for list="{{ dia.franjas }}" as="fr" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr); border-bottom: 1px solid #efedea;">
+            <div style="padding: 14px 8px 14px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #86817b; background: #faf9f7;">{{ fr.hora }}</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 20px;">
+              <sc-for list="{{ fr.tareas }}" as="t" hint-placeholder-count="2">
+                <div onClick="{{ t.onSel }}" style="{{ t.filaEstilo }}">
+                  <button onClick="{{ t.onToggle }}" title="Marcar como cumplida" style="{{ t.checkEstilo }}">{{ t.check }}</button>
+                  <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                    <div style="{{ t.tituloEstilo }}">{{ t.titulo }}</div>
+                    <div style="font-size: 11.5px; color: #86817b;">{{ t.meta }}</div>
+                  </div>
+                  <div style="{{ t.chipEstilo }}">{{ t.chip }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ esSemana }}" hint-placeholder-val="{{ false }}">
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px;">
+        <sc-for list="{{ semana }}" as="d" hint-placeholder-count="7">
+          <div style="{{ d.colEstilo }}">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding: 11px 12px; border-bottom: 1px solid #dedbd5;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">{{ d.nombre }}</span>
+              <span style="{{ d.numEstilo }}">{{ d.num }}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; min-height: 150px;">
+              <sc-for list="{{ d.tareas }}" as="t" hint-placeholder-count="2">
+                <div onClick="{{ t.onSel }}" style="{{ t.tarjetaEstilo }}">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <button onClick="{{ t.onToggle }}" style="{{ t.checkMini }}">{{ t.check }}</button>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #86817b;">{{ t.hora }}</span>
+                  </div>
+                  <div style="{{ t.tituloMini }}">{{ t.titulo }}</div>
+                  <div style="font-size: 10px; color: #86817b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.resp }}</div>
+                </div>
+              </sc-for>
+              <button data-noprint="1" onClick="{{ d.onAdd }}" style="padding: 6px; font-size: 11px; color: #86817b; background: transparent; border: 1px dashed #dedbd5; border-radius: 7px; cursor: pointer;" style-hover="color: #1b1a18; background: #faf9f7">+</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ esSemanas }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <sc-for list="{{ semanasMes }}" as="w" hint-placeholder-count="4">
+          <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+            <button onClick="{{ w.onToggle }}" style="{{ w.cabEstilo }}">
+              <span style="font-size: 12px; color: #6f6b64; width: 14px;">{{ w.flecha }}</span>
+              <span style="font-size: 14px; font-weight: 700; color: #1b1a18;">{{ w.titulo }}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #86817b;">{{ w.rango }}</span>
+              <span style="margin-left: auto; font-size: 11.5px; color: #6f6b64;">{{ w.resumen }}</span>
+            </button>
+            <sc-if value="{{ w.abierta }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ w.dias }}" as="d" hint-placeholder-count="7">
+                <div style="{{ d.filaEstilo }}">
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span onClick="{{ d.onAbrir }}" style="{{ d.nombreEstilo }}">{{ d.nombre }}</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #86817b;">{{ d.num }}</span>
+                    <span style="font-size: 10.5px; color: #a09a92;">{{ d.resumen }}</span>
+                  </div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start;">
+                    <sc-for list="{{ d.tareas }}" as="t" hint-placeholder-count="2">
+                      <div onClick="{{ t.onSel }}" style="{{ t.tarjetaEstilo }}">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <button onClick="{{ t.onToggle }}" style="{{ t.checkMini }}">{{ t.check }}</button>
+                          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #86817b;">{{ t.hora }}</span>
+                        </div>
+                        <div style="{{ t.tituloMini }}">{{ t.titulo }}</div>
+                        <div style="font-size: 10px; color: #86817b;">{{ t.resp }}</div>
+                      </div>
+                    </sc-for>
+                    <button data-noprint="1" onClick="{{ d.onAdd }}" style="padding: 5px 10px; font-size: 11px; color: #86817b; background: transparent; border: 1px dashed #dedbd5; border-radius: 7px; cursor: pointer; align-self: center;" style-hover="color: #1b1a18; background: #faf9f7">+</button>
+                  </div>
+                </div>
+              </sc-for>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ esMes }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: #faf9f7; border-bottom: 1px solid #dedbd5;">
+          <sc-for list="{{ diasSemana }}" as="ds" hint-placeholder-count="7">
+            <div style="padding: 10px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">{{ ds.v }}</div>
+          </sc-for>
+        </div>
+        <sc-for list="{{ mes }}" as="sem" hint-placeholder-count="5">
+          <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #efedea;">
+            <sc-for list="{{ sem.celdas }}" as="c" hint-placeholder-count="7">
+              <div onClick="{{ c.onAbrir }}" style="{{ c.celdaEstilo }}">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                  <span style="{{ c.numEstilo }}">{{ c.num }}</span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #86817b;">{{ c.cuenta }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 3px; margin-top: 6px;">
+                  <sc-for list="{{ c.tareas }}" as="t" hint-placeholder-count="0">
+                    <div style="{{ t.puntoEstilo }}">{{ t.titulo }}</div>
+                  </sc-for>
+                </div>
+                <div style="margin-top: 3px; font-size: 10px; color: #86817b;">{{ c.mas }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+    </div>
+
+    <sc-if value="{{ noTigre }}" hint-placeholder-val="{{ true }}">
+    <div data-noprint="1" style="position: sticky; top: 84px; width: 320px; display: flex; flex-direction: column; gap: 14px; padding: 18px; background: #1b1a18; color: #f4f3f0; border-radius: 12px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+        <div style="font-size: 13.5px; font-weight: 600;">{{ ed.titulo }}</div>
+        <button onClick="{{ nueva }}" style="padding: 5px 10px; font-size: 11px; font-weight: 600; color: #d8d4cd; background: #302e2a; border: 0; border-radius: 6px; cursor: pointer;" style-hover="background: #45423c">Nueva</button>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 5px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Tarea</span>
+        <input value="{{ f.titulo }}" onChange="{{ f.onTitulo }}" placeholder="Qué hay que hacer" style="width: 100%; padding: 9px 10px; font-size: 13px; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px;" />
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 5px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Obra o cliente</span>
+        <input value="{{ f.obra }}" onChange="{{ f.onObra }}" placeholder="—" style="width: 100%; padding: 9px 10px; font-size: 13px; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px;" />
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 5px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Responsable</span>
+        <input value="{{ f.resp }}" onChange="{{ f.onResp }}" placeholder="—" style="width: 100%; padding: 9px 10px; font-size: 13px; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px;" />
+      </label>
+      <div style="display: grid; grid-template-columns: 1fr 96px; gap: 10px;">
+        <label style="display: flex; flex-direction: column; gap: 5px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Fecha</span>
+          <input type="date" value="{{ f.fecha }}" onChange="{{ f.onFecha }}" style="width: 100%; padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px;" />
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 5px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Hora</span>
+          <input type="time" value="{{ f.hora }}" onChange="{{ f.onHora }}" style="width: 100%; padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px;" />
+        </label>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <label style="display: flex; flex-direction: column; gap: 5px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Prioridad</span>
+          <select value="{{ f.prio }}" onChange="{{ f.onPrio }}" style="width: 100%; padding: 9px 8px; font-size: 12.5px; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px; cursor: pointer;">
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 5px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Estado</span>
+          <select value="{{ f.estado }}" onChange="{{ f.onEstado }}" style="width: 100%; padding: 9px 8px; font-size: 12.5px; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px; cursor: pointer;">
+            <option value="pendiente">Pendiente</option>
+            <option value="curso">En curso</option>
+            <option value="hecha">Cumplida</option>
+          </select>
+        </label>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 5px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Nota</span>
+        <textarea value="{{ f.nota }}" onChange="{{ f.onNota }}" rows="3" placeholder="Detalle, materiales, quién avisa" style="width: 100%; padding: 9px 10px; font-size: 12.5px; line-height: 1.5; color: #f4f3f0; background: #302e2a; border: 1px solid #45423c; border-radius: 7px; resize: vertical;"></textarea>
+      </label>
+      <div style="display: flex; gap: 8px;">
+        <button onClick="{{ guardar }}" style="flex: 1; padding: 10px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: oklch(0.50 0.13 150); border: 0; border-radius: 7px; cursor: pointer;" style-hover="background: oklch(0.43 0.13 150)">{{ labelGuardar }}</button>
+        <sc-if value="{{ hayseleccion }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ eliminar }}" title="Eliminar tarea" style="padding: 10px 13px; font-size: 12.5px; font-weight: 600; color: #ffb4a8; background: #302e2a; border: 0; border-radius: 7px; cursor: pointer;" style-hover="color: #ffffff; background: #7a2f26">Eliminar</button>
+        </sc-if>
+      </div>
+      <div style="padding-top: 12px; border-top: 1px solid #302e2a; font-size: 10.5px; line-height: 1.55; color: #8f8a83;">Las tareas quedan guardadas en esta computadora. Tocá una tarea para editarla, o el círculo para marcarla cumplida.</div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const DIAS_C = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const deIso = (s) => { const p = String(s || "").split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); };
+const sumar = (s, n) => { const d = deIso(s); d.setDate(d.getDate() + n); return iso(d); };
+const COLOR = { alta: "oklch(0.52 0.19 25)", media: "oklch(0.60 0.14 70)", baja: "oklch(0.50 0.11 240)" };
+
+class Component extends DCLogic {
+  KEY = "twg-agenda-v1";
+
+  state = {
+    tareas: [],
+    vista: "dia",
+    ancla: iso(new Date()),
+    sel: null,
+    rapida: "",
+    filtroResp: "",
+    soloPendientes: false,
+    form: null,
+    tigre: null
+  };
+
+  semillaTigre() {
+    const p = (pedido, fp, fe, monto) => ({ id: "g" + Math.random().toString(36).slice(2, 9), pedido: pedido, fped: fp, fejec: fe, monto: monto, estado: "pendiente" });
+    return [
+      p("Tolva de descarga — chapa inoxidable 304 de 2 mm", "2026-08-18", "2026-09-10", "18500000"),
+      p("Cambio de rodillos de cinta transportadora", "2026-08-26", "2026-09-15", "6400000"),
+      p("Reparación de pasarela y baranda del sector de carga", "2026-09-01", "2026-09-22", "9200000")
+    ];
+  }
+
+  semilla() {
+    const h = iso(new Date());
+    const t = (dias, hora, titulo, obra, resp, prio, estado) => ({
+      id: "t" + Math.random().toString(36).slice(2, 9),
+      titulo: titulo, obra: obra, resp: resp, fecha: sumar(h, dias),
+      hora: hora, prio: prio, estado: estado || "pendiente", nota: ""
+    });
+    return [
+      t(0, "08:00", "Confirmar precio de chapa inoxidable 304 de 2 mm", "Tigre — tolva de descarga", "Compras", "alta", "curso"),
+      t(0, "10:30", "Llamar a proveedor de arena lavada en Itapúa", "Shell San Juan del Paraná", "Edgar", "alta"),
+      t(0, "15:00", "Enviar presupuesto P-2026-005 al cliente", "Shell Caacupé", "Edgar", "media"),
+      t(1, "07:30", "Cotizar camión cama baja Asunción – San Juan del Paraná", "Shell San Juan del Paraná", "Logística", "alta"),
+      t(2, "09:00", "Relevamiento en obra y fotos para informe técnico", "Shell Villeta", "Técnica", "media"),
+      t(4, "11:00", "Seguimiento de presupuestos de agosto sin respuesta", "Comercial", "Edgar", "baja")
+    ];
+  }
+
+  componentDidMount() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(this.KEY) || "null"); } catch (e) {}
+    const tg = (d && Array.isArray(d.tigre)) ? d.tigre : this.semillaTigre();
+    if (d && d.estAprob) this.setState({ estAprob: d.estAprob });
+    if (d && d.ejecAprob) this.setState({ ejecAprob: d.ejecAprob });
+    if (d && Array.isArray(d.tareas)) this.setState({ tareas: d.tareas, tigre: tg });
+    else { const s = this.semilla(); this.setState({ tareas: s, tigre: tg }); this.persistir(s, tg); }
+    if (!(d && Array.isArray(d.tigre))) this.persistir((d && d.tareas) || this.state.tareas, tg);
+  }
+
+  persistir(tareas, tigre, estAprob) {
+    try { localStorage.setItem(this.KEY, JSON.stringify({ tareas: tareas, tigre: tigre || this.state.tigre || [], estAprob: estAprob || this.state.estAprob || {} })); } catch (e) {}
+  }
+
+  // Estado elegido a mano para un pedido que llega aprobado del tablero.
+  setEstAprob(clave, valor) {
+    const m = Object.assign({}, this.state.estAprob || {}, { [clave]: valor });
+    this.setState({ estAprob: m });
+    this.persistir(this.state.tareas, this.state.tigre, m);
+  }
+
+  setTareas(tareas) { this.setState({ tareas: tareas }); this.persistir(tareas); }
+
+  setTigre(tigre) { this.setState({ tigre: tigre }); this.persistir(this.state.tareas, tigre); }
+
+  estiloEjec(v) {
+    const k = String(v || "no");
+    const c = k === "entregado" ? ["oklch(0.40 0.12 150)", "oklch(0.94 0.05 150)"]
+      : k === "ejecutado" ? ["oklch(0.43 0.13 175)", "oklch(0.95 0.04 175)"]
+      : k === "obra" ? ["oklch(0.45 0.14 70)", "oklch(0.95 0.05 80)"]
+      : k === "observado" ? ["oklch(0.48 0.16 25)", "oklch(0.95 0.045 30)"]
+      : ["#6f6b64", "#f0eee9"];
+    return "width: 100%; min-width: 0; padding: 5px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; white-space: nowrap; border: 0; border-radius: 20px; cursor: pointer; appearance: none; color: " + c[0] + "; background: " + c[1] + ";";
+  }
+
+  // Avance de obra guardado aparte del estado comercial.
+  setEjec(clave, valor) {
+    const m = Object.assign({}, this.state.ejecAprob || {}, { [clave]: valor });
+    this.setState({ ejecAprob: m });
+    try { localStorage.setItem(this.KEY, JSON.stringify(Object.assign(JSON.parse(localStorage.getItem(this.KEY) || "{}"), { ejecAprob: m }))); } catch (e) {}
+  }
+
+  claveEstado(txt) {
+    const v = String(txt || "").toLowerCase();
+    if (v.indexOf("finaliz") > -1) return "finalizado";
+    if (v.indexOf("factur") > -1) return "facturado";
+    if (v.indexOf("verific") > -1) return "verificacion";
+    if (v.indexOf("ejecutad") > -1) return "ejecutado";
+    if (v.indexOf("enviad") > -1) return "enviado";
+    if (v.indexOf("presupuest") > -1) return "presupuestar";
+    if (v.indexOf("proceso") > -1 || v.indexOf("curso") > -1) return "proceso";
+    return "pendiente";
+  }
+
+  // Presupuestos de TIGRE aprobados en el tablero de control.
+  aprobadosTigre() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem("twg-tablero-v1") || "null"); } catch (e) {}
+    const meses = (d && d.meses) || {};
+    const out = [];
+    const vistos = {};
+    Object.keys(meses).forEach(k => (meses[k] || []).forEach(r => {
+      const cli = String(r.cliente || "").toUpperCase();
+      if (cli.indexOf("TIGRE") === -1) return;
+      if (String(r.alerta || "").toUpperCase() !== "APROBADO") return;
+      const nro = String(r.nro || "").trim();
+      const clave = nro || String(r.trabajo || "");
+      if (vistos[clave]) return;
+      vistos[clave] = 1;
+      const num = (v) => parseFloat(String(v == null ? "" : v).replace(/[^0-9.-]/g, ""));
+      const nv = num(r.vendido), np = num(r.precio);
+      const monto = (isFinite(nv) && nv > 0) ? nv : (isFinite(np) ? np : 0);
+      out.push({
+        nro: nro, trabajo: r.trabajo || "Trabajo aprobado", local: r.local || "",
+        fecha: r.fecha || "", monto: monto, avance: r.avance || "Pendiente"
+      });
+    }));
+    return out;
+  }
+
+  visibles() {
+    const s = this.state;
+    return s.tareas.filter(t => {
+      if (s.filtroResp && String(t.resp || "") !== s.filtroResp) return false;
+      if (s.soloPendientes && t.estado === "hecha") return false;
+      return true;
+    });
+  }
+
+  ordenar(a) {
+    return a.slice().sort((x, y) => String(x.hora || "99:99").localeCompare(String(y.hora || "99:99")));
+  }
+
+  chipTarea(t) {
+    const hecha = t.estado === "hecha";
+    const c = COLOR[t.prio] || COLOR.media;
+    const partes = [t.hora || "", t.obra || "", t.resp || ""].filter(Boolean);
+    return {
+      id: t.id,
+      titulo: t.titulo || "Sin título",
+      hora: t.hora || "—",
+      resp: t.resp || "—",
+      meta: partes.join(" · ") || "—",
+      check: hecha ? "✓" : "",
+      chip: hecha ? "Cumplida" : (t.estado === "curso" ? "En curso" : "Pendiente"),
+      filaEstilo: "display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 9px; cursor: pointer; border-left: 3px solid " + c + "; background: " + (hecha ? "#f7f6f3" : "#faf9f7") + "; opacity: " + (hecha ? "0.62" : "1"),
+      checkEstilo: "width: 22px; height: 22px; font-size: 12px; line-height: 1; color: #ffffff; background: " + (hecha ? "oklch(0.50 0.13 150)" : "transparent") + "; border: 1.5px solid " + (hecha ? "oklch(0.50 0.13 150)" : "#c9c4bc") + "; border-radius: 50%; cursor: pointer;",
+      checkMini: "width: 16px; height: 16px; font-size: 9px; line-height: 1; color: #ffffff; background: " + (hecha ? "oklch(0.50 0.13 150)" : "transparent") + "; border: 1.5px solid " + (hecha ? "oklch(0.50 0.13 150)" : "#c9c4bc") + "; border-radius: 50%; cursor: pointer; flex: none;",
+      tituloEstilo: "font-size: 13px; font-weight: 500; text-decoration: " + (hecha ? "line-through" : "none"),
+      tituloMini: "font-size: 11.5px; font-weight: 500; line-height: 1.35; text-decoration: " + (hecha ? "line-through" : "none"),
+      chipEstilo: "padding: 4px 9px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; border-radius: 20px; color: " + (hecha ? "oklch(0.42 0.13 150)" : (t.estado === "curso" ? "oklch(0.45 0.14 70)" : "#6f6b64")) + "; background: " + (hecha ? "oklch(0.95 0.04 150)" : (t.estado === "curso" ? "oklch(0.95 0.05 80)" : "#f0eee9")),
+      tarjetaEstilo: "display: flex; flex-direction: column; gap: 3px; padding: 8px 9px; border-radius: 8px; cursor: pointer; border-left: 3px solid " + c + "; background: " + (hecha ? "#f4f3f0" : "#faf9f7") + "; opacity: " + (hecha ? "0.62" : "1"),
+      puntoEstilo: "overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 5px; font-size: 10px; border-radius: 4px; color: " + (hecha ? "#86817b" : "#33312e") + "; background: #f4f3f0; border-left: 2px solid " + c,
+      onSel: () => this.abrir(t.id),
+      onToggle: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.toggle(t.id); }
+    };
+  }
+
+  toggle(id) {
+    this.setTareas(this.state.tareas.map(t => t.id === id ? Object.assign({}, t, { estado: t.estado === "hecha" ? "pendiente" : "hecha" }) : t));
+  }
+
+  abrir(id) {
+    const t = this.state.tareas.find(x => x.id === id);
+    if (t) this.setState({ sel: id, form: Object.assign({}, t) });
+  }
+
+  vacio(fecha) {
+    return { id: null, titulo: "", obra: "", resp: "", fecha: fecha || this.state.ancla, hora: "", prio: "media", estado: "pendiente", nota: "" };
+  }
+
+  guardarForm() {
+    const f = this.state.form || this.vacio();
+    if (!String(f.titulo || "").trim()) return;
+    let arr = this.state.tareas.slice();
+    if (f.id) arr = arr.map(t => t.id === f.id ? Object.assign({}, t, f) : t);
+    else arr = arr.concat([Object.assign({}, f, { id: "t" + Math.random().toString(36).slice(2, 9) })]);
+    this.setTareas(arr);
+    this.setState({ sel: null, form: this.vacio(f.fecha) });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const hoy = iso(new Date());
+    const anc = s.ancla;
+    const vis = this.visibles();
+    const form = s.form || this.vacio();
+
+    const inicioSemana = (() => { const d = deIso(anc); d.setDate(d.getDate() - d.getDay()); return iso(d); })();
+    const finSemana = sumar(inicioSemana, 6);
+    const enRango = (f, a, b) => f >= a && f <= b;
+
+    let rango = [anc, anc], etiquetaRango = "hoy";
+    if (s.vista === "semana") { rango = [inicioSemana, finSemana]; etiquetaRango = "semana"; }
+    if (s.vista === "mes" || s.vista === "semanas") {
+      const d = deIso(anc);
+      rango = [iso(new Date(d.getFullYear(), d.getMonth(), 1)), iso(new Date(d.getFullYear(), d.getMonth() + 1, 0))];
+      etiquetaRango = "mes";
+    }
+    const delPeriodo = vis.filter(t => enRango(t.fecha, rango[0], rango[1]));
+    const hechasP = delPeriodo.filter(t => t.estado === "hecha").length;
+
+    const dPeriodo = deIso(anc);
+    let periodo = DIAS[dPeriodo.getDay()] + " " + dPeriodo.getDate() + " de " + MESES[dPeriodo.getMonth()];
+    if (s.vista === "semana") {
+      const a = deIso(inicioSemana), b = deIso(finSemana);
+      periodo = a.getDate() + " " + MESES[a.getMonth()].slice(0, 3) + " — " + b.getDate() + " " + MESES[b.getMonth()].slice(0, 3) + " " + b.getFullYear();
+    }
+    if (s.vista === "mes" || s.vista === "semanas") periodo = MESES[dPeriodo.getMonth()] + " " + dPeriodo.getFullYear();
+
+    // Día
+    const delDia = this.ordenar(vis.filter(t => t.fecha === anc));
+    const FR = [
+      { hora: "Mañana", desde: "00:00", hasta: "11:59" },
+      { hora: "Mediodía", desde: "12:00", hasta: "14:59" },
+      { hora: "Tarde", desde: "15:00", hasta: "18:59" },
+      { hora: "Sin horario", desde: "", hasta: "" }
+    ];
+    const franjas = FR.map(fr => ({
+      hora: fr.hora,
+      tareas: delDia.filter(t => fr.desde ? (t.hora && t.hora >= fr.desde && t.hora <= fr.hasta) : !t.hora).map(t => this.chipTarea(t))
+    })).filter(fr => fr.tareas.length);
+
+    // Semana
+    const semana = [];
+    for (let i = 0; i < 7; i++) {
+      const f = sumar(inicioSemana, i);
+      const d = deIso(f);
+      const esHoy = f === hoy;
+      semana.push({
+        nombre: DIAS_C[d.getDay()],
+        num: d.getDate(),
+        colEstilo: "background: #ffffff; border: 1px solid " + (esHoy ? "oklch(0.50 0.11 240)" : "#dedbd5") + "; border-radius: 11px; overflow: hidden;",
+        numEstilo: "font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; " + (esHoy ? "color: #ffffff; background: oklch(0.50 0.11 240); border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;" : ""),
+        tareas: this.ordenar(vis.filter(t => t.fecha === f)).map(t => this.chipTarea(t)),
+        onAdd: () => this.setState({ sel: null, form: this.vacio(f) })
+      });
+    }
+
+    // Mes
+    const dm = deIso(anc);
+    const primero = new Date(dm.getFullYear(), dm.getMonth(), 1);
+    const arranque = new Date(primero); arranque.setDate(1 - primero.getDay());
+    const mes = [];
+    for (let w = 0; w < 6; w++) {
+      const celdas = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(arranque); d.setDate(arranque.getDate() + w * 7 + i);
+        const f = iso(d);
+        const dentro = d.getMonth() === dm.getMonth();
+        const esHoy = f === hoy;
+        const tt = this.ordenar(vis.filter(x => x.fecha === f));
+        celdas.push({
+          num: d.getDate(),
+          cuenta: tt.length ? String(tt.length) : "",
+          mas: tt.length > 3 ? "+" + (tt.length - 3) + " más" : "",
+          tareas: tt.slice(0, 3).map(t => this.chipTarea(t)),
+          celdaEstilo: "min-height: 104px; padding: 9px 10px; cursor: pointer; border-right: 1px solid #efedea; background: " + (esHoy ? "oklch(0.97 0.02 240)" : (dentro ? "#ffffff" : "#faf9f7")) + "; opacity: " + (dentro ? "1" : "0.55"),
+          numEstilo: "font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; " + (esHoy ? "color: oklch(0.42 0.11 240)" : "color: #33312e"),
+          onAbrir: () => this.setState({ vista: "dia", ancla: f })
+        });
+      }
+      if (celdas.some(c => c.tareas.length) || w < 5) mes.push({ celdas: celdas });
+    }
+
+    // Semanas del mes: acordeón Semana 1..5 con los 7 días de cada una dentro.
+    const abiertas = s.semAbiertas || {};
+    const dsm = deIso(anc);
+    const pri = new Date(dsm.getFullYear(), dsm.getMonth(), 1);
+    const ult = new Date(dsm.getFullYear(), dsm.getMonth() + 1, 0);
+    const arr0 = new Date(pri); arr0.setDate(1 - pri.getDay());
+    const semanasMes = [];
+    for (let w = 0; w < 6; w++) {
+      const ini = new Date(arr0); ini.setDate(arr0.getDate() + w * 7);
+      if (ini > ult) break;
+      const fin = new Date(ini); fin.setDate(ini.getDate() + 6);
+      const clave = "w" + (w + 1);
+      const dias = [];
+      let cuenta = 0, hechas = 0;
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(ini); d.setDate(ini.getDate() + i);
+        const f = iso(d);
+        const dentro = d.getMonth() === dsm.getMonth();
+        const tt = this.ordenar(vis.filter(x => x.fecha === f));
+        cuenta += tt.length;
+        hechas += tt.filter(x => x.estado === "hecha").length;
+        dias.push({
+          fecha: f,
+          nombre: DIAS[d.getDay()],
+          num: d.getDate() + " " + MESES[d.getMonth()].slice(0, 3),
+          resumen: tt.length ? (tt.filter(x => x.estado === "hecha").length + " de " + tt.length + " cumplidas") : "sin tareas",
+          filaEstilo: "display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 12px; padding: 10px 14px; border-top: 1px solid #efedea; background: " + (f === hoy ? "oklch(0.975 0.018 240)" : "#ffffff") + "; opacity: " + (dentro ? "1" : "0.5") + ";",
+          nombreEstilo: "font-size: 12px; font-weight: " + (f === hoy ? "700" : "600") + "; color: " + (f === hoy ? "oklch(0.42 0.11 240)" : "#33312e") + "; cursor: pointer;",
+          tareas: tt.map(t => this.chipTarea(t)),
+          onAdd: () => this.setState({ sel: null, form: this.vacio(f) }),
+          onAbrir: () => this.setState({ vista: "dia", ancla: f })
+        });
+      }
+      const ab = abiertas[clave] !== false && (abiertas[clave] === true || (anc >= iso(ini) && anc <= iso(fin)));
+      semanasMes.push({
+        titulo: "Semana " + (w + 1),
+        rango: ini.getDate() + " " + MESES[ini.getMonth()].slice(0, 3) + " — " + fin.getDate() + " " + MESES[fin.getMonth()].slice(0, 3),
+        resumen: cuenta ? (hechas + " de " + cuenta + " cumplidas") : "sin tareas",
+        abierta: ab,
+        flecha: ab ? "▾" : "▸",
+        cabEstilo: "display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left; border: 0; cursor: pointer; background: " + (ab ? "#f0eee9" : "#faf9f7") + ";",
+        onToggle: () => this.setState({ semAbiertas: Object.assign({}, this.state.semAbiertas || {}, { [clave]: !ab }) }),
+        dias: dias
+      });
+    }
+
+    const resp = Array.from(new Set(s.tareas.map(t => String(t.resp || "").trim()).filter(Boolean))).sort().map(v => ({ v: v }));
+    const paso = (s.vista === "mes" || s.vista === "semanas") ? "mes" : (s.vista === "semana" ? 7 : 1);
+    const mover = (dir) => {
+      if (paso === "mes") { const d = deIso(anc); d.setMonth(d.getMonth() + dir); this.setState({ ancla: iso(d) }); }
+      else this.setState({ ancla: sumar(anc, dir * paso) });
+    };
+    const campo = (k) => (e) => this.setState({ form: Object.assign({}, this.state.form || this.vacio(), { [k]: e.target.value }) });
+    const tab = (on) => "padding: 7px 15px; font-size: 12.5px; font-weight: " + (on ? "600" : "500") + "; border: 0; border-radius: 6px; cursor: pointer; color: " + (on ? "#1b1a18" : "#6f6b64") + "; background: " + (on ? "#ffffff" : "transparent");
+
+    // Filtro de la carpeta de Tigre: semana, mes o todo, según la fecha de ejecución.
+    const per = s.tigrePer || "mes";
+    const mesIni = (() => { const d = deIso(anc); return iso(new Date(d.getFullYear(), d.getMonth(), 1)); })();
+    const mesFin = (() => { const d = deIso(anc); return iso(new Date(d.getFullYear(), d.getMonth() + 1, 0)); })();
+    const anioIni = (() => { const d = deIso(anc); return iso(new Date(d.getFullYear(), 0, 1)); })();
+    const anioFin = (() => { const d = deIso(anc); return iso(new Date(d.getFullYear(), 11, 31)); })();
+    const rangoTigre = per === "semana" ? [inicioSemana, finSemana]
+      : (per === "mes" ? [mesIni, mesFin]
+      : (per === "anio" ? [anioIni, anioFin] : null));
+    const aIso = (v) => {
+      const t = String(v || "").trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+      const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t);
+      if (m) return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+      return "";
+    };
+    const dentroTigre = (f) => {
+      if (!rangoTigre) return true;
+      const v = aIso(f);
+      if (!v) return false;
+      return v >= rangoTigre[0] && v <= rangoTigre[1];
+    };
+    const filasTigre = (s.tigre || []).filter(g => dentroTigre(g.fejec || g.fped));
+    const aprobTigre = this.aprobadosTigre().filter(a => dentroTigre(a.fecha));
+    const etiquetaTigre = per === "semana"
+      ? ("Semana del " + deIso(inicioSemana).getDate() + " al " + deIso(finSemana).getDate() + " de " + MESES[deIso(finSemana).getMonth()])
+      : (per === "mes" ? (MESES[deIso(anc).getMonth()] + " " + deIso(anc).getFullYear())
+      : (per === "anio" ? ("Año " + deIso(anc).getFullYear()) : "Todos los pedidos cargados"));
+
+    const dh = new Date();
+    return {
+      hoyLargo: DIAS[dh.getDay()] + " " + dh.getDate() + " de " + MESES[dh.getMonth()] + " de " + dh.getFullYear(),
+      periodo: periodo,
+      esDia: s.vista === "dia", esSemana: s.vista === "semana", esMes: s.vista === "mes",
+      tabDia: tab(s.vista === "dia"), tabSemana: tab(s.vista === "semana"), tabMes: tab(s.vista === "mes"),
+      esSemanas: s.vista === "semanas", tabSemanas: tab(s.vista === "semanas"),
+      verSemanas: () => this.setState({ vista: "semanas" }),
+      semanasMes: semanasMes,
+      verDia: () => this.setState({ vista: "dia" }),
+      verSemana: () => this.setState({ vista: "semana" }),
+      verMes: () => this.setState({ vista: "mes" }),
+      esTigre: s.vista === "tigre",
+      noTigre: s.vista !== "tigre",
+      tabTigre: tab(s.vista === "tigre"),
+      verTigre: () => this.setState({ vista: "tigre" }),
+      tigrePerLabel: etiquetaTigre,
+      tigrePerBtns: [["semana", "Semana"], ["mes", "Mes"], ["anio", "Año"], ["todo", "Todo"]].map(([v, lbl]) => ({
+        label: lbl,
+        onSel: () => this.setState({ tigrePer: v }),
+        style: "padding: 6px 12px; font-size: 11.5px; font-weight: " + (per === v ? "600" : "500") + "; border: 0; border-radius: 6px; cursor: pointer; color: " + (per === v ? "#1b1a18" : "#6f6b64") + "; background: " + (per === v ? "#ffffff" : "transparent") + ";"
+      })),
+      tigreAprobados: aprobTigre.map(a => {
+        const clave = String(a.nro || a.trabajo || "").trim();
+        const propio = (s.estAprob || {})[clave];
+        const crudo = propio != null ? propio : this.claveEstado(a.avance);
+        return {
+        pedido: a.trabajo + (a.local ? " · " + a.local : ""),
+        nro: a.nro || "—",
+        fecha: a.fecha || "—",
+        monto: "Gs. " + a.monto.toLocaleString("es-PY", { maximumFractionDigits: 0 }),
+        estado: crudo,
+        onEstado: (e) => this.setEstAprob(clave, e.target.value),
+        ejec: (s.ejecAprob || {})[clave] || "no",
+        onEjec: (e) => this.setEjec(clave, e.target.value),
+        ejecStyle: this.estiloEjec((s.ejecAprob || {})[clave] || "no"),
+        estadoStyle: (() => {
+          const v = String(crudo || "").toLowerCase();
+          const c = v.indexOf("finaliz") === 0 ? ["oklch(0.40 0.12 150)", "oklch(0.94 0.05 150)"]
+            : v.indexOf("presupuest") > -1 ? ["oklch(0.48 0.16 25)", "oklch(0.95 0.045 30)"]
+            : v.indexOf("ejecutad") > -1 ? ["oklch(0.43 0.13 175)", "oklch(0.95 0.04 175)"]
+            : v.indexOf("enviad") > -1 ? ["oklch(0.44 0.12 265)", "oklch(0.95 0.035 265)"]
+            : (v.indexOf("proceso") > -1 || v.indexOf("curso") > -1) ? ["oklch(0.45 0.14 70)", "oklch(0.95 0.05 80)"]
+            : ["#6f6b64", "#f0eee9"];
+          return "width: 100%; min-width: 0; padding: 5px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; white-space: nowrap; border: 0; border-radius: 20px; cursor: pointer; appearance: none; color: " + c[0] + "; background: " + c[1] + ";";
+        })()
+        };
+      }),
+      tigreAprobTotal: (() => {
+        const propios = filasTigre.filter(g => g.aprob).reduce((acc, g) => {
+          const n = parseFloat(String(g.monto || "").replace(/[^0-9.-]/g, ""));
+          return acc + (isFinite(n) ? n : 0);
+        }, 0);
+        const t = aprobTigre.reduce((acc, a) => acc + a.monto, 0) + propios;
+        return "Gs. " + t.toLocaleString("es-PY", { maximumFractionDigits: 0 });
+      })(),
+      tigreAprobCuenta: (aprobTigre.length + filasTigre.filter(g => g.aprob).length) + " aprobados",
+      tigreFilas: (s.tigre || []).map((g, i) => ({ g: g, i: i })).filter(o => dentroTigre(o.g.fejec || o.g.fped)).map(({ g, i }) => {
+        const setG = (k) => (e) => {
+          const v = e.target.value;
+          this.setTigre((this.state.tigre || []).map((x, j) => j === i ? Object.assign({}, x, { [k]: v }) : x));
+        };
+        const n = parseFloat(String(g.monto || "").replace(/[^0-9.-]/g, ""));
+        return {
+          pedido: g.pedido || "", fped: g.fped || "", fejec: g.fejec || "", monto: g.monto || "",
+          ejec: g.ejec || "no", onEjec: setG("ejec"), ejecStyle: this.estiloEjec(g.ejec),
+          montoFmt: isFinite(n) && n ? "Gs. " + n.toLocaleString("es-PY", { maximumFractionDigits: 0 }) : "—",
+          aprobMark: g.aprob ? "✓" : "",
+          aprobMonto: g.aprob ? (isFinite(n) && n ? "Gs. " + n.toLocaleString("es-PY", { maximumFractionDigits: 0 }) : "—") : "",
+          aprobStyle: "display: flex; align-items: center; justify-content: center; width: 17px; height: 17px; flex: none; padding: 0; font-size: 11px; line-height: 1; border-radius: 4px; cursor: pointer; color: "
+            + (g.aprob ? "#ffffff" : "#b4aea5") + "; background: " + (g.aprob ? "oklch(0.50 0.13 150)" : "#ffffff")
+            + "; border: 1px solid " + (g.aprob ? "oklch(0.50 0.13 150)" : "#cfc9c0") + ";",
+          onAprob: () => this.setTigre((this.state.tigre || []).map((x, j) => j === i ? Object.assign({}, x, { aprob: !x.aprob }) : x)),
+          estado: g.estado || "pendiente",
+          onEstado: setG("estado"),
+          estadoStyle: (() => {
+            const v = g.estado || "pendiente";
+            const c = v === "finalizado" ? ["oklch(0.40 0.12 150)", "oklch(0.94 0.05 150)"]
+              : v === "ejecutado" ? ["oklch(0.43 0.13 175)", "oklch(0.95 0.04 175)"]
+              : v === "verificacion" ? ["oklch(0.45 0.13 310)", "oklch(0.95 0.04 310)"]
+              : v === "enviado" ? ["oklch(0.44 0.12 265)", "oklch(0.95 0.035 265)"]
+              : v === "proceso" ? ["oklch(0.45 0.14 70)", "oklch(0.95 0.05 80)"]
+              : v === "presupuestar" ? ["oklch(0.50 0.21 27)", "oklch(0.96 0.05 27)"]
+              : v === "facturado" ? ["oklch(0.42 0.11 240)", "oklch(0.95 0.03 240)"]
+              : ["#6f6b64", "#f0eee9"];
+            return "width: 100%; padding: 5px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; border: 0; border-radius: 20px; cursor: pointer; appearance: none; color: " + c[0] + "; background: " + c[1] + ";";
+          })(),
+          onPedido: setG("pedido"), onFped: setG("fped"), onFejec: setG("fejec"), onMonto: setG("monto"),
+          // El texto del pedido se ve completo: el alto sigue al contenido.
+          refPedido: (el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } },
+          onPedidoInput: (e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; },
+          onDel: () => this.setTigre((this.state.tigre || []).filter((x, j) => j !== i))
+        };
+      }),
+      tigreTotal: (() => {
+        const t = filasTigre.reduce((a, g) => {
+          const n = parseFloat(String(g.monto || "").replace(/[^0-9.-]/g, ""));
+          return a + (isFinite(n) ? n : 0);
+        }, 0);
+        return "Gs. " + t.toLocaleString("es-PY", { maximumFractionDigits: 0 });
+      })(),
+      tigreCuenta: (filasTigre.length + aprobTigre.length) + " pedidos",
+      agregarTigre: () => this.setTigre((this.state.tigre || []).concat([{ id: "g" + Math.random().toString(36).slice(2, 9), pedido: "", fped: hoy, fejec: "", monto: "", estado: "pendiente" }])),
+      atras: () => mover(-1), adelante: () => mover(1),
+      irHoy: () => this.setState({ ancla: hoy }),
+      imprimir: () => window.print(),
+      responsables: resp,
+      filtroResp: s.filtroResp,
+      onFiltroResp: (e) => this.setState({ filtroResp: e.target.value }),
+      soloPendientes: s.soloPendientes,
+      togglePendientes: () => this.setState({ soloPendientes: !s.soloPendientes }),
+      labelPend: s.soloPendientes ? "Viendo pendientes" : "Ver solo pendientes",
+      btnPend: "padding: 8px 13px; font-size: 12.5px; font-weight: 600; border-radius: 7px; cursor: pointer; white-space: nowrap; " + (s.soloPendientes ? "color: #ffffff; background: oklch(0.50 0.11 240); border: 1px solid oklch(0.50 0.11 240);" : "color: #6f6b64; background: #ffffff; border: 1px solid #dedbd5;"),
+      k: {
+        hoy: vis.filter(t => t.fecha === hoy && t.estado !== "hecha").length,
+        curso: vis.filter(t => t.estado === "curso").length,
+        vencidas: vis.filter(t => t.estado !== "hecha" && t.fecha < hoy).length,
+        hechas: hechasP,
+        rango: etiquetaRango,
+        avance: delPeriodo.length ? "de " + delPeriodo.length + " · " + Math.round(hechasP / delPeriodo.length * 100) + "%" : "sin tareas"
+      },
+      dia: {
+        titulo: periodo,
+        resumen: delDia.length ? delDia.filter(t => t.estado === "hecha").length + " de " + delDia.length + " cumplidas" : "",
+        vacio: delDia.length === 0,
+        franjas: franjas
+      },
+      semana: semana,
+      mes: mes,
+      diasSemana: DIAS_C.map(v => ({ v: v })),
+      rapida: s.rapida,
+      onRapida: (e) => this.setState({ rapida: e.target.value }),
+      onRapidaTecla: (e) => { if (e.key === "Enter") { e.preventDefault(); this.agregarRapida(); } },
+      agregarRapida: () => this.agregarRapida(),
+      ed: { titulo: s.sel ? "Editar tarea" : "Nueva tarea" },
+      hayseleccion: !!s.sel,
+      labelGuardar: s.sel ? "Guardar cambios" : "Agregar tarea",
+      nueva: () => this.setState({ sel: null, form: this.vacio() }),
+      guardar: () => this.guardarForm(),
+      eliminar: () => { this.setTareas(s.tareas.filter(t => t.id !== s.sel)); this.setState({ sel: null, form: this.vacio() }); },
+      f: {
+        titulo: form.titulo, obra: form.obra, resp: form.resp, fecha: form.fecha,
+        hora: form.hora, prio: form.prio, estado: form.estado, nota: form.nota,
+        onTitulo: campo("titulo"), onObra: campo("obra"), onResp: campo("resp"),
+        onFecha: campo("fecha"), onHora: campo("hora"), onPrio: campo("prio"),
+        onEstado: campo("estado"), onNota: campo("nota")
+      }
+    };
+  }
+
+  agregarRapida() {
+    const txt = String(this.state.rapida || "").trim();
+    if (!txt) return;
+    const m = txt.match(/^(\d{1,2})[:.](\d{2})\s+(.*)$/);
+    const hora = m ? String(m[1]).padStart(2, "0") + ":" + m[2] : "";
+    const titulo = m ? m[3] : txt;
+    const t = Object.assign(this.vacio(this.state.ancla), { id: "t" + Math.random().toString(36).slice(2, 9), titulo: titulo, hora: hora });
+    this.setTareas(this.state.tareas.concat([t]));
+    this.setState({ rapida: "" });
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  * { box-sizing: border-box; }
+  a { color: oklch(0.50 0.09 220); text-decoration: none; }
+  a:hover { color: oklch(0.40 0.09 220); }
+  input, textarea, button { font-family: inherit; color: inherit; }
+  input:focus, textarea:focus { outline: 2px solid oklch(0.50 0.09 220); outline-offset: -1px; }
+  @media (max-width: 1320px) {
+    [data-wrap] { grid-template-columns: minmax(0, 1fr) !important; }
+    [data-sum] { position: static !important; }
+  }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    [data-noprint] { display: none !important; }
+    html, body { background: #fff !important; }
+    [data-sheet] { box-shadow: none !important; border: 0 !important; margin: 0 !important; width: 100% !important; padding: 0 !important; }
+    [data-wrap] { padding: 0 !important; }
+    tr { break-inside: avoid; }
+  }
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18; min-height: 100vh; background: #f4f3f0;">
+
+  <div data-noprint="1" style="position: sticky; top: 0; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; padding: 13px 26px; background: #ffffff; border-bottom: 1px solid #dedbd5;">
+    <div style="display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">Instalación eléctrica — Luque</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Análisis de costos y propuesta comercial</div>
+    </div>
+    <div style="display: flex; gap: 4px; padding: 3px; background: #f0eee9; border-radius: 8px;">
+      <button onClick="{{ verCostos }}" style="{{ tabA }}">Análisis de costos</button>
+      <button onClick="{{ verPropuesta }}" style="{{ tabB }}">Propuesta al cliente</button>
+      <button onClick="{{ verCompras }}" style="{{ tabC }}">Lista de compras</button>
+    </div>
+    <div style="flex: 1;"></div>
+    <div style="display: flex; align-items: baseline; gap: 10px; padding: 7px 14px; background: #f0eee9; border-radius: 8px;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Inversión total</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap;">{{ g.total }}</span>
+    </div>
+    <button onClick="{{ imprimir }}" style="padding: 9px 16px; font-size: 13px; font-weight: 500; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer;" style-hover="background: oklch(0.50 0.09 220)">Imprimir</button>
+  </div>
+
+  <sc-if value="{{ esCostos }}" hint-placeholder-val="{{ true }}">
+  <div data-wrap="1" style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; align-items: start; padding: 26px; max-width: 1620px; margin: 0 auto;">
+    <div style="display: flex; flex-direction: column; gap: 22px; min-width: 0;">
+
+      <div style="background: oklch(0.97 0.02 80); border: 1px solid oklch(0.85 0.06 80); border-radius: 12px; padding: 16px 20px;">
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">Precios de referencia — plaza paraguaya, agosto 2026</div>
+        <div style="font-size: 12px; line-height: 1.65; color: #4a4741;">Mano de obra eléctrica tomada de la tarifa gremial por boca vigente en Paraguay: 85.000 Gs. por boca simple sin IVA, con recargo en bocas especiales, tableros y trabajos de acometida. Equipos de climatización según lista de plaza (Porter, Visuar, Electroban) a precio contado. Verificá con tu proveedor antes de firmar: los valores de equipos se mueven con el dólar.</div>
+      </div>
+
+      <sc-for list="{{ grupos }}" as="gr" hint-placeholder-count="2">
+        <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #dedbd5;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 14px; font-weight: 600;">{{ gr.titulo }}</div>
+              <div style="font-size: 12px; color: #86817b;">{{ gr.nota }}</div>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Venta</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; white-space: nowrap;">{{ gr.venta }}</span>
+            </div>
+          </div>
+          <div style="overflow-x: auto;">
+          <div style="min-width: 720px;">
+          <div style="display: grid; grid-template-columns: 54px minmax(110px, 1fr) 52px 58px 116px 124px 54px 128px; padding: 0 20px; background: #faf9f7; border-bottom: 1px solid #dedbd5; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.07em; text-transform: uppercase; color: #86817b;">
+            <div style="padding: 9px 6px 9px 0;">Ítem</div>
+            <div style="padding: 9px 6px;">Descripción</div>
+            <div style="padding: 9px 4px; text-align: center;">Un.</div>
+            <div style="padding: 9px 6px; text-align: right;">Cant.</div>
+            <div style="padding: 9px 6px; text-align: right;">Costo unit.</div>
+            <div style="padding: 9px 6px; text-align: right;">Costo total</div>
+            <div style="padding: 9px 4px; text-align: right; color: oklch(0.50 0.09 220);">Marg.%</div>
+            <div style="padding: 9px 0 9px 6px; text-align: right;">Precio venta</div>
+          </div>
+          <sc-for list="{{ gr.filas }}" as="r" hint-placeholder-count="6">
+            <div style="display: grid; grid-template-columns: 54px minmax(110px, 1fr) 52px 58px 116px 124px 54px 128px; align-items: center; padding: 0 20px; border-bottom: 1px solid #efedea;">
+              <div style="padding: 9px 6px 9px 0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #86817b;">{{ r.cod }}</div>
+              <div style="padding: 9px 6px; font-size: 12.5px; line-height: 1.4;">{{ r.desc }}</div>
+              <div style="padding: 9px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: center; color: #6f6b64;">{{ r.un }}</div>
+              <input value="{{ r.cant }}" onChange="{{ r.onCant }}" inputMode="decimal" style="width: 100%; padding: 9px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; background: transparent; border: 0;" />
+              <input value="{{ r.costo }}" onChange="{{ r.onCosto }}" inputMode="decimal" style="width: 100%; padding: 9px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; background: transparent; border: 0;" />
+              <div style="padding: 9px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-align: right; color: #6f6b64; white-space: nowrap;">{{ r.costoTotal }}</div>
+              <input value="{{ r.marg }}" onChange="{{ r.onMarg }}" inputMode="decimal" style="width: 100%; padding: 9px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; text-align: right; color: oklch(0.45 0.09 220); background: oklch(0.97 0.012 220); border: 0;" />
+              <div style="padding: 9px 0 9px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; text-align: right; white-space: nowrap;">{{ r.precio }}</div>
+            </div>
+          </sc-for>
+          </div>
+          </div>
+        </div>
+      </sc-for>
+
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 20px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 3px;">Ajustes generales</div>
+        <div style="font-size: 12px; color: #86817b; margin-bottom: 16px;">Los indirectos cubren supervisión, herramientas, traslados a Luque y seguros.</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+          <label style="display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 10px; font-size: 13px;">
+            <span>Costos indirectos %</span>
+            <input value="{{ overhead }}" onChange="{{ onOverhead }}" inputMode="decimal" style="width: 100%; padding: 8px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-align: right; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;" />
+          </label>
+          <label style="display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 10px; font-size: 13px;">
+            <span>Descuento %</span>
+            <input value="{{ descuento }}" onChange="{{ onDescuento }}" inputMode="decimal" style="width: 100%; padding: 8px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-align: right; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;" />
+          </label>
+          <label style="display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 10px; font-size: 13px;">
+            <span>IVA %</span>
+            <input value="{{ iva }}" onChange="{{ onIva }}" inputMode="decimal" style="width: 100%; padding: 8px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-align: right; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;" />
+          </label>
+        </div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 20px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 3px;">Datos de la obra</div>
+        <div style="font-size: 12px; color: #86817b; margin-bottom: 16px;">Van a la propuesta del cliente.</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+          <label style="display: flex; flex-direction: column; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">
+            <span>Cliente</span>
+            <input value="{{ cliente }}" onChange="{{ onCliente }}" style="width: 100%; padding: 9px 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; letter-spacing: 0; text-transform: none; color: #1b1a18; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">
+            <span>Obra</span>
+            <input value="{{ obra }}" onChange="{{ onObra }}" style="width: 100%; padding: 9px 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; letter-spacing: 0; text-transform: none; color: #1b1a18; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">
+            <span>N° de presupuesto</span>
+            <input value="{{ nro }}" onChange="{{ onNro }}" style="width: 100%; padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0; text-transform: none; color: #1b1a18; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">
+            <span>Plazo de ejecución</span>
+            <input value="{{ plazo }}" onChange="{{ onPlazo }}" style="width: 100%; padding: 9px 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; letter-spacing: 0; text-transform: none; color: #1b1a18; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div data-sum="1" style="position: sticky; top: 84px; display: flex; flex-direction: column; background: #1b1a18; border-radius: 12px; padding: 22px; color: #f4f3f0;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.11em; text-transform: uppercase; color: #8f8a83; margin-bottom: 14px;">Estructura del negocio</div>
+      <sc-for list="{{ resumenGrupos }}" as="rg" hint-placeholder-count="2">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 12.5px;">
+          <span style="color: #b8b3ac;">{{ rg.nombre }}</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ rg.venta }}</span>
+        </div>
+      </sc-for>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 11px 0; margin-top: 5px; border-top: 1px solid #3a3833; font-size: 12.5px; font-weight: 600;">
+        <span>Costo directo</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.costoDirecto }}</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 12.5px;">
+        <span style="color: #b8b3ac;">Indirectos {{ g.pctOverhead }}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.montoOverhead }}</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 12.5px;">
+        <span style="color: #b8b3ac;">Margen {{ g.pctMargen }}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; color: oklch(0.78 0.11 200); white-space: nowrap;">{{ g.montoMargen }}</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid #3a3833; font-size: 12.5px; font-weight: 600;">
+        <span>Subtotal</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.subtotal }}</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 12.5px;">
+        <span style="color: #b8b3ac;">Descuento {{ g.pctDescuento }}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.montoDescuento }}</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 12.5px;">
+        <span style="color: #b8b3ac;">IVA {{ g.pctIva }}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.montoIva }}</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px; padding: 15px 0 3px; margin-top: 7px; border-top: 2px solid #f4f3f0;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.11em; text-transform: uppercase; color: #8f8a83;">Inversión del cliente</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 25px; font-weight: 600; letter-spacing: -0.02em;">{{ g.total }}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid #3a3833;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Ganancia neta</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 600;">{{ g.ganancia }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Margen real</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 600;">{{ g.margenReal }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Bocas totales</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 600;">{{ g.bocas }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8f8a83;">Venta por boca</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 600;">{{ g.porBoca }}</span>
+        </div>
+      </div>
+      <button onClick="{{ verPropuesta }}" style="margin-top: 20px; padding: 11px; font-size: 13px; font-weight: 500; color: #1b1a18; background: #f4f3f0; border: 0; border-radius: 7px; cursor: pointer;" style-hover="background: oklch(0.78 0.11 200)">Ver propuesta al cliente →</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ esCompras }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width: 1620px; margin: 0 auto; padding: 26px; display: flex; flex-direction: column; gap: 22px;">
+
+    <div data-noprint="1" style="background: oklch(0.97 0.02 80); border: 1px solid oklch(0.85 0.06 80); border-radius: 12px; padding: 16px 20px;">
+      <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">Cómputo de materiales — cantidades y precios de referencia</div>
+      <div style="font-size: 12px; line-height: 1.65; color: #4a4741;">Las cantidades salen del cómputo de 90 bocas, 18 ml de alimentador y los equipos de la planilla, con 10% de previsión por desperdicio y empalmes. Los precios son de referencia de plaza a agosto de 2026 y los proveedores están ordenados por conveniencia según rubro. Pedí cotización formal a dos de cada rubro antes de comprar: en cables y tableros la diferencia entre casas llega al 15%.</div>
+    </div>
+
+    <sc-for list="{{ compras }}" as="cg" hint-placeholder-count="4">
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 20px; border-bottom: 1px solid #dedbd5;">
+          <div style="font-size: 14px; font-weight: 600;">{{ cg.titulo }}</div>
+          <div style="display: flex; align-items: baseline; gap: 10px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Subtotal</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; white-space: nowrap;">{{ cg.subtotal }}</span>
+          </div>
+        </div>
+        <div style="overflow-x: auto;">
+        <div style="min-width: 900px;">
+          <div style="display: grid; grid-template-columns: minmax(150px, 1fr) 52px 58px 120px 128px minmax(170px, 0.9fr); padding: 0 20px; background: #faf9f7; border-bottom: 1px solid #dedbd5; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.07em; text-transform: uppercase; color: #86817b;">
+            <div style="padding: 9px 6px 9px 0;">Material</div>
+            <div style="padding: 9px 4px; text-align: center;">Un.</div>
+            <div style="padding: 9px 6px; text-align: right;">Cant.</div>
+            <div style="padding: 9px 6px; text-align: right;">P. unitario</div>
+            <div style="padding: 9px 6px; text-align: right;">Total</div>
+            <div style="padding: 9px 0 9px 8px;">Dónde comprarlo</div>
+          </div>
+          <sc-for list="{{ cg.filas }}" as="r" hint-placeholder-count="5">
+            <div style="display: grid; grid-template-columns: minmax(150px, 1fr) 52px 58px 120px 128px minmax(170px, 0.9fr); align-items: center; padding: 0 20px; border-bottom: 1px solid #efedea;">
+              <div style="padding: 9px 6px 9px 0; font-size: 12.5px; line-height: 1.4;">{{ r.desc }}</div>
+              <div style="padding: 9px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: center; color: #6f6b64;">{{ r.un }}</div>
+              <input value="{{ r.cant }}" onChange="{{ r.onCant }}" inputMode="decimal" style="width: 100%; padding: 9px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; background: transparent; border: 0;" />
+              <input value="{{ r.precio }}" onChange="{{ r.onPrecio }}" inputMode="decimal" style="width: 100%; padding: 9px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; background: transparent; border: 0;" />
+              <div style="padding: 9px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; text-align: right; white-space: nowrap;">{{ r.total }}</div>
+              <div style="padding: 9px 0 9px 8px; font-size: 11.5px; line-height: 1.45; color: #6f6b64;">{{ r.prov }}</div>
+            </div>
+          </sc-for>
+        </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; align-items: start;">
+      <div style="background: #1b1a18; border-radius: 12px; padding: 22px; color: #f4f3f0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.11em; text-transform: uppercase; color: #8f8a83; margin-bottom: 14px;">Compra por rubro</div>
+        <sc-for list="{{ resumenCompras }}" as="rc" hint-placeholder-count="4">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 12.5px;">
+            <span style="color: #b8b3ac;">{{ rc.nombre }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ rc.subtotal }}</span>
+          </div>
+        </sc-for>
+        <div style="display: flex; flex-direction: column; gap: 3px; padding: 15px 0 3px; margin-top: 9px; border-top: 2px solid #f4f3f0;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.11em; text-transform: uppercase; color: #8f8a83;">Total de la compra</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; letter-spacing: -0.02em;">{{ c.total }}</span>
+        </div>
+        <div style="font-size: 11.5px; line-height: 1.6; color: #b8b3ac; margin-top: 12px;">Los precios de plaza suelen publicarse con IVA incluido. Pedí factura a nombre de la empresa para descontar el crédito fiscal.</div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; padding: 20px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Proveedores de referencia</div>
+        <div style="display: flex; flex-direction: column; gap: 11px;">
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">Electropar · Comagro · SAS Paraguay</div>
+            <div style="font-size: 11.5px; line-height: 1.5; color: #6f6b64;">Casas mayoristas de materiales eléctricos: cables, tableros metálicos y plásticos, protecciones, puesta a tierra. Conviene abrir cuenta y pedir lista por volumen.</div>
+          </div>
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">Luminotecnia · CCP</div>
+            <div style="font-size: 11.5px; line-height: 1.5; color: #6f6b64;">Iluminación LED, luminarias, cajas de conexión, placas e interruptores armados, canalizaciones. Trabajan marcas Condel y Conduspar en cable.</div>
+          </div>
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">Porter · Visuar · Electroban · Olier</div>
+            <div style="font-size: 11.5px; line-height: 1.5; color: #6f6b64;">Equipos de climatización y ventiladores, con entrega a todo el país. Compará precio contado contra el financiado: la diferencia es grande.</div>
+          </div>
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">Construex Paraguay</div>
+            <div style="font-size: 11.5px; line-height: 1.5; color: #6f6b64;">Portal de la construcción: sirve para comparar caños corrugados, cajas y llaves termomagnéticas entre varias casas de Asunción y Central antes de decidir.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ esPropuesta }}" hint-placeholder-val="{{ false }}">
+  <div data-wrap="1" style="padding: 30px 26px 60px;">
+    <div data-sheet="1" style="width: 820px; max-width: 100%; margin: 0 auto; padding: 52px 58px 46px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 4px; box-shadow: 0 2px 20px rgba(0,0,0,0.05);">
+
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; padding-bottom: 20px; border-bottom: 2px solid #1b1a18;">
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div style="font-size: 23px; font-weight: 700; letter-spacing: -0.02em;">{{ empresa }}</div>
+          <div style="font-size: 11.5px; line-height: 1.55; color: #33312e; white-space: pre-wrap;">{{ bajada }}</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; line-height: 1.6; color: #6f6b64;">{{ contacto }}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px; text-align: right;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.11em; text-transform: uppercase; color: #86817b;">Propuesta</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600;">{{ nro }}</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6f6b64; white-space: nowrap;">{{ fechaHoy }}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 32px; padding: 22px 0; border-bottom: 1px solid #e6e2da;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Cliente</div>
+          <div style="font-size: 14px; font-weight: 600;">{{ cliente }}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Obra</div>
+          <div style="font-size: 14px; font-weight: 600;">{{ obra }}</div>
+        </div>
+      </div>
+
+      <div style="padding: 24px 0 0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; margin-bottom: 10px;">Alcance de la propuesta</div>
+        <div style="font-size: 13px; line-height: 1.7; color: #33312e; text-wrap: pretty;">Instalación eléctrica completa de la vivienda, con provisión de artefactos de iluminación, ejecución de {{ g.bocas }} bocas entre iluminación, tomas comunes y circuitos dedicados para electrodomésticos, tableros de distribución en planta baja y planta alta, alimentador principal, preparación de acometida y medidor, y puesta a tierra. Se incluye además la provisión, conexión y montaje del sistema de climatización y los ventiladores de techo.</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 22px 0 0;">
+        <div style="background: #faf9f7; border: 1px solid #e6e2da; border-radius: 8px; padding: 12px 14px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Bocas ejecutadas</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 600; margin-top: 4px;">{{ g.bocas }}</div>
+        </div>
+        <div style="background: #faf9f7; border: 1px solid #e6e2da; border-radius: 8px; padding: 12px 14px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Equipos de clima</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 600; margin-top: 4px;">{{ g.equipos }}</div>
+        </div>
+        <div style="background: #faf9f7; border: 1px solid #e6e2da; border-radius: 8px; padding: 12px 14px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Plazo</div>
+          <div style="font-size: 13px; font-weight: 600; margin-top: 6px; line-height: 1.3;">{{ plazo }}</div>
+        </div>
+      </div>
+
+      <div style="padding: 26px 0 0;">
+        <sc-for list="{{ bloques }}" as="b" hint-placeholder-count="2">
+          <div style="padding-bottom: 20px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding: 0 0 8px; border-bottom: 1px solid #1b1a18;">
+              <div style="display: flex; align-items: baseline; gap: 10px;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #86817b;">{{ b.n }}</span>
+                <span style="font-size: 14px; font-weight: 600;">{{ b.titulo }}</span>
+              </div>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Importe</span>
+            </div>
+            <sc-for list="{{ b.lineas }}" as="l" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 140px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid #efedea;">
+                <div style="display: flex; flex-direction: column; gap: 2px; padding-right: 18px;">
+                  <div style="font-size: 12.5px; font-weight: 500; line-height: 1.4;">{{ l.titulo }}</div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #86817b;">{{ l.detalle }}</div>
+                </div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; white-space: nowrap;">{{ l.importe }}</div>
+              </div>
+            </sc-for>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 140px; align-items: baseline; padding: 10px 0 0;">
+              <div style="font-size: 12.5px; font-weight: 600; text-align: right; padding-right: 18px;">Subtotal {{ b.titulo }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 600; text-align: right; white-space: nowrap;">{{ b.subtotal }}</div>
+            </div>
+          </div>
+        </sc-for>
+
+        <div style="display: flex; justify-content: flex-end; padding-top: 8px;">
+          <div style="width: 330px; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 6px 0; font-size: 12.5px; border-top: 1px solid #e6e2da;">
+              <span style="color: #6f6b64;">Subtotal general</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.subtotal }}</span>
+            </div>
+            <sc-if value="{{ hayDescuento }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 6px 0; font-size: 12.5px;">
+              <span style="color: #6f6b64;">Descuento por contratación completa {{ g.pctDescuento }}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.montoDescuentoNeg }}</span>
+            </div>
+            </sc-if>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 6px 0; font-size: 12.5px; border-top: 1px solid #e6e2da;">
+              <span style="color: #6f6b64;">Neto</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.neto }}</span>
+            </div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 6px 0; font-size: 12.5px;">
+              <span style="color: #6f6b64;">IVA {{ g.pctIva }}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ g.montoIva }}</span>
+            </div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 13px 0 4px; margin-top: 6px; border-top: 2px solid #1b1a18;">
+              <span style="font-size: 13px; font-weight: 600;">Inversión total</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap;">{{ g.total }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 28px 0 0; margin-top: 22px; border-top: 1px solid #e6e2da;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; margin-bottom: 12px;">Formas de pago</div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+          <sc-for list="{{ pagos }}" as="p" hint-placeholder-count="3">
+            <div style="{{ p.style }}">
+              <div style="font-size: 12.5px; font-weight: 600;">{{ p.titulo }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; margin: 7px 0 5px; white-space: nowrap;">{{ p.monto }}</div>
+              <div style="font-size: 11px; line-height: 1.5; color: #6f6b64;">{{ p.detalle }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; padding: 26px 0 0;">
+        <div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; margin-bottom: 8px;">Qué incluye</div>
+          <div style="font-size: 11.5px; line-height: 1.7; color: #33312e;">Materiales de canalización, cableado y cajas. Mano de obra especializada y supervisión técnica. Tableros con llaves termomagnéticas. Pruebas de continuidad y medición de puesta a tierra con informe. Limpieza final y retiro de sobrantes. Garantía de {{ garantia }} sobre la mano de obra.</div>
+        </div>
+        <div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; margin-bottom: 8px;">No incluye</div>
+          <div style="font-size: 11.5px; line-height: 1.7; color: #33312e;">Aranceles y gestiones ante la ANDE. Trabajos de albañilería para cerrado de canaletas y revoque. Artefactos de iluminación no listados. Obra civil, pintura y cielorraso. Tareas fuera del alcance descripto, que se cotizan por separado y por escrito.</div>
+        </div>
+      </div>
+
+      <div style="padding: 24px 0 0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; margin-bottom: 8px;">Condiciones</div>
+        <div style="font-size: 11px; line-height: 1.7; color: #6f6b64; text-wrap: pretty;">Oferta válida por {{ validez }}. Los precios de equipos de climatización están sujetos a la cotización del dólar y a disponibilidad de stock al momento de la aceptación. La ejecución se coordina por etapas según el avance de la obra civil. Los trabajos se entregan probados y con informe de mediciones.</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px; padding-top: 56px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="border-top: 1px solid #1b1a18;"></div>
+          <div style="font-size: 12.5px; font-weight: 600; padding-top: 2px;">{{ firmaNombre }}</div>
+          <div style="font-size: 11.5px; color: #6f6b64;">{{ firmaCargo }}</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b; padding-top: 2px;">Por {{ empresa }}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="border-top: 1px solid #1b1a18;"></div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;">Conformidad del cliente</div>
+        </div>
+      </div>
+    </div>
+
+    <div data-noprint="1" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 22px auto 0; max-width: 820px; font-size: 12px; color: #86817b;">
+      <span>Los importes salen del análisis de costos.</span>
+      <a href="#" onClick="{{ verCostos }}">Volver al análisis</a>
+    </div>
+  </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;empresa&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;The Wealt Group Export Import S.A.&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos de la empresa&quot;},&quot;bajada&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Propuesta Técnica Comercial de TWG S.A.\nFull Service&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos de la empresa&quot;},&quot;contacto&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;WhatsApp 595971235799 · contacto@fullservice.com.py&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Datos de la empresa&quot;},&quot;firmaNombre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Ing. Edgar Mendez&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Firma&quot;},&quot;firmaCargo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Ejecutivo Comercial&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Firma&quot;},&quot;garantia&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Condiciones&quot;},&quot;validez&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;15 días&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Condiciones&quot;},&quot;simboloMoneda&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Gs.&quot;,&quot;₲&quot;,&quot;PYG&quot;,&quot;US$&quot;],&quot;default&quot;:&quot;Gs.&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Moneda&quot;}}">
+const N = (v) => { const n = parseFloat(String(v ?? "").replace(/\./g, "").replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
+
+// cod, desc, unidad, cantidad, costo unitario de referencia (Gs.), margen %, cuenta como boca
+const ILUM = [
+  ["9.1.1", "Artefacto de iluminación de adosar LED circular Ø285 h28 24W luz fría", "uni.", 34, 95000, 30, 0],
+  ["9.1.2", "Artefacto de adosar techo dicroica GU10 circular fijo negro (Dion / Zaga)", "uni.", 6, 88000, 30, 0]
+];
+
+const MO = [
+  ["9.2.1", "Boca en luminaria interna", "unid", 34, 85000, 35, 1],
+  ["9.2.2", "Boca en luminaria exterior", "unid", 6, 95000, 35, 1],
+  ["9.2.3", "Boca en tomacorriente común", "unid", 40, 85000, 35, 1],
+  ["9.2.4", "Boca en toma para horno eléctrico (circuito dedicado)", "unid", 1, 130000, 35, 1],
+  ["9.2.5", "Boca en toma para microondas", "unid", 1, 110000, 35, 1],
+  ["9.2.6", "Boca en toma para heladera", "unid", 1, 110000, 35, 1],
+  ["9.2.7", "Boca en toma para cocina anafe", "unid", 1, 130000, 35, 1],
+  ["9.2.8", "Boca en toma para lavarropas", "unid", 1, 110000, 35, 1],
+  ["9.2.9", "Boca en toma para secarropas", "unid", 1, 110000, 35, 1],
+  ["9.2.10", "Boca en toma sobre mesada", "unid", 2, 95000, 35, 1],
+  ["9.2.11", "Boca en extractor de aire de cocina", "unid", 1, 95000, 35, 1],
+  ["9.2.12", "Boca en toma para plancha", "unid", 1, 85000, 35, 1],
+  ["9.2.13", "Boca en alimentación para aire acondicionado monofásico", "unid", 6, 150000, 35, 1],
+  ["9.2.14", "Boca en alimentación para termocalefón", "unid", 2, 150000, 35, 1],
+  ["9.2.15", "Boca en ventilador de techo", "unid", 4, 120000, 35, 1],
+  ["9.2.16", "Provisión y colocación de tablero de 24 módulos, planta alta", "unid", 2, 850000, 28, 0],
+  ["9.2.17", "Boca en tablero: colocación y conexión de llave termomagnética (PB y PA)", "unid", 25, 95000, 35, 0],
+  ["9.2.18", "Cableado de alimentador principal a tablero planta baja 4x16 mm²", "ml", 18, 120000, 30, 0],
+  ["9.2.19", "Colocación y conexión de artefactos normales", "unid", 58, 55000, 35, 0],
+  ["9.2.20", "Ducteado para TV cable", "unid", 5, 85000, 35, 0],
+  ["9.2.21", "Ducteado para internet", "unid", 1, 85000, 35, 0],
+  ["9.2.22", "Colocación de caja para central de señales débiles", "unid", 1, 180000, 32, 0],
+  ["9.2.23", "Alimentación de motobomba de agua", "unid", 1, 350000, 32, 0],
+  ["9.2.24", "Preparación con cableado para medidor y acometida", "gl", 1, 1200000, 28, 0],
+  ["9.2.25", "Preparación de puesta a tierra para los tableros, con medición e informe", "gl", 1, 950000, 30, 0]
+];
+
+const CLIMA = [
+  ["11.1", "Provisión de aire acondicionado split 12.000 BTU/h frío-calor", "uni.", 3, 2650000, 22, 0],
+  ["11.2", "Conexión de aire acondicionado 12.000 BTU/h, por metro lineal", "mts.", 36, 120000, 32, 0],
+  ["11.3", "Montaje de aire acondicionado 12.000 BTU/h", "uni.", 3, 450000, 35, 0],
+  ["11.4", "Provisión de aire acondicionado split 18.000 BTU/h frío-calor", "uni.", 3, 4350000, 20, 0],
+  ["11.5", "Conexión de aire acondicionado 18.000 BTU/h, por metro lineal", "mts.", 36, 145000, 32, 0],
+  ["11.6", "Montaje de aire acondicionado 18.000 BTU/h", "uni.", 3, 550000, 35, 0],
+  ["11.7", "Provisión y montaje de ventilador de techo 56\"", "uni.", 4, 750000, 28, 0]
+];
+
+const fila = (a) => ({ cod: a[0], desc: a[1], un: a[2], cant: String(a[3]), costo: String(a[4]), marg: String(a[5]), boca: a[6] });
+
+// desc, unidad, cantidad, precio unitario de plaza (Gs.), proveedores sugeridos
+const COMPRAS = [
+  ["Canalización, cajas y fijación", [
+    ["Caño corrugado PVC Ø3/4\" — rollo de 50 m", "rollo", 14, 95000, "Luminotecnia · Electropar · Construex"],
+    ["Caño corrugado PVC Ø1\" — rollo de 50 m", "rollo", 4, 145000, "Luminotecnia · Electropar"],
+    ["Caja octogonal PVC para luminaria", "uni.", 40, 8500, "Luminotecnia · CCP"],
+    ["Caja rectangular PVC 4x2 para toma e interruptor", "uni.", 65, 7500, "Luminotecnia · CCP"],
+    ["Caja de paso 10x10 con tapa", "uni.", 8, 22000, "Electropar · Comagro"],
+    ["Grampas, precintos, tarugos y cinta aisladora", "gl", 1, 250000, "Electropar · Construex"]
+  ]],
+  ["Conductores", [
+    ["Cable unipolar 1,5 mm² — rollo 100 m (Condel)", "rollo", 8, 260000, "Luminotecnia · Electropar · Comagro"],
+    ["Cable unipolar 2,5 mm² — rollo 100 m (Condel)", "rollo", 10, 420000, "Luminotecnia · Electropar · Comagro"],
+    ["Cable unipolar 4 mm² — rollo 100 m", "rollo", 4, 650000, "Electropar · SAS Paraguay"],
+    ["Cable unipolar 6 mm² — rollo 100 m", "rollo", 2, 950000, "Electropar · SAS Paraguay"],
+    ["Cable unipolar 16 mm² para alimentador — por metro", "mts", 76, 42000, "SAS Paraguay · Electropar"],
+    ["Cable de tierra 6 mm² verde-amarillo — rollo 100 m", "rollo", 1, 950000, "Electropar · Comagro"]
+  ]],
+  ["Tomas, interruptores y placas", [
+    ["Módulo tomacorriente 2P+T 10/20A (Sica)", "uni.", 56, 22000, "Luminotecnia · CCP · Porter"],
+    ["Módulo interruptor simple", "uni.", 34, 18000, "Luminotecnia · CCP"],
+    ["Módulo interruptor de combinación", "uni.", 6, 26000, "Luminotecnia · CCP"],
+    ["Placa autoportante 3 módulos con bastidor", "uni.", 50, 25000, "Luminotecnia · Porter"]
+  ]],
+  ["Tableros y protecciones", [
+    ["Tablero para embutir 24 módulos con puerta", "uni.", 2, 780000, "Electropar · Comagro · SAS Paraguay"],
+    ["Llave termomagnética unipolar 10/16/20A", "uni.", 20, 55000, "Electropar · Comagro"],
+    ["Llave termomagnética bipolar 25/32A", "uni.", 5, 145000, "Electropar · Comagro"],
+    ["Interruptor diferencial 2x40A 30 mA", "uni.", 2, 420000, "SAS Paraguay · Electropar"],
+    ["Riel DIN, borneras, peine de distribución y rotulado", "gl", 1, 350000, "Electropar · Comagro"]
+  ]],
+  ["Puesta a tierra", [
+    ["Jabalina de cobre 5/8\" x 2 m", "uni.", 2, 165000, "SAS Paraguay · Electropar"],
+    ["Grampa tomacable para jabalina", "uni.", 2, 45000, "SAS Paraguay · Electropar"],
+    ["Caja de inspección de tierra con tapa", "uni.", 2, 95000, "Electropar · Construex"]
+  ]],
+  ["Iluminación", [
+    ["Artefacto LED circular de adosar Ø285 24W luz fría", "uni.", 34, 95000, "Luminotecnia · CCP"],
+    ["Artefacto de adosar dicroica GU10 circular negro", "uni.", 6, 88000, "Luminotecnia · CCP"],
+    ["Lámpara dicroica LED GU10 6W", "uni.", 6, 35000, "Luminotecnia · Porter"]
+  ]],
+  ["Climatización y ventilación", [
+    ["Aire acondicionado split 12.000 BTU/h frío-calor", "uni.", 3, 2650000, "Porter · Visuar · Electroban · Olier"],
+    ["Aire acondicionado split 18.000 BTU/h frío-calor", "uni.", 3, 4350000, "Porter · Visuar · Electroban · Olier"],
+    ["Cañería frigorífica aislada 1/4\" + 3/8\" — por metro", "mts", 36, 85000, "Comagro · Electropar"],
+    ["Cañería frigorífica aislada 1/4\" + 1/2\" — por metro", "mts", 36, 105000, "Comagro · Electropar"],
+    ["Ventilador de techo 56\" con control", "uni.", 4, 620000, "Porter · Electroban · Olier"],
+    ["Soportes, bandeja de drenaje y accesorios de montaje", "gl", 6, 180000, "Comagro · Construex"]
+  ]],
+  ["Señales débiles", [
+    ["Cable coaxial RG6 — rollo 100 m", "rollo", 1, 320000, "Electropar · CCP"],
+    ["Cable UTP categoría 6 — rollo 100 m", "rollo", 1, 480000, "Electropar · CCP"],
+    ["Caja para central de señales débiles", "uni.", 1, 180000, "Electropar · Comagro"]
+  ]]
+];
+
+const filaCompra = (a) => ({ desc: a[0], un: a[1], cant: String(a[2]), precio: String(a[3]), prov: a[4] });
+
+class Component extends DCLogic {
+  state = {
+    tab: "costos",
+    grupos: [
+      { key: "ilum", titulo: "1 · Iluminación — provisión de artefactos", nota: "Artefactos LED de adosar. Precio de plaza, sujeto a stock.", filas: ILUM.map(fila) },
+      { key: "mo", titulo: "2 · Instalación eléctrica — ejecución", nota: "Tarifa gremial paraguaya por boca: 85.000 Gs. la boca simple, con recargo en circuitos dedicados.", filas: MO.map(fila) },
+      { key: "clima", titulo: "3 · Climatización y ventilación", nota: "Equipos, cañería frigorífica por metro y montaje.", filas: CLIMA.map(fila) }
+    ],
+    compras: COMPRAS.map(g => ({ titulo: g[0], filas: g[1].map(filaCompra) })),
+    overhead: "12", descuento: "3", iva: "10",
+    cliente: "Sr. propietario", obra: "Vivienda unifamiliar — Luque",
+    nro: "P-2026-LUQ-01",
+    plazo: "35 días hábiles, por etapas"
+  };
+
+  set = (k) => (e) => this.setState({ [k]: e.target.value });
+
+  money = (n) => (n < 0 ? "-" : "") + (this.props.simboloMoneda ?? "Gs.") + " " + Math.abs(Math.round(n)).toLocaleString("es-PY");
+  pct = (v) => N(v).toLocaleString("es-PY", { maximumFractionDigits: 2 }) + "%";
+
+  costoDe = (r) => N(r.cant) * N(r.costo);
+  precioDe = (r) => this.costoDe(r) * (1 + N(this.state.overhead) / 100) * (1 + N(r.marg) / 100);
+
+  edit(gi, fi, campo, valor) {
+    this.setState(p => {
+      const gs = p.grupos.slice();
+      const fs = gs[gi].filas.slice();
+      fs[fi] = Object.assign({}, fs[fi], { [campo]: valor });
+      gs[gi] = Object.assign({}, gs[gi], { filas: fs });
+      return { grupos: gs };
+    });
+  }
+
+  editCompra(gi, fi, campo, valor) {
+    this.setState(p => {
+      const gs = p.compras.slice();
+      const fs = gs[gi].filas.slice();
+      fs[fi] = Object.assign({}, fs[fi], { [campo]: valor });
+      gs[gi] = Object.assign({}, gs[gi], { filas: fs });
+      return { compras: gs };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const m = this.money;
+    const tab = (on) => "padding: 7px 14px; font-size: 12.5px; font-weight: 500; border: 0; border-radius: 6px; cursor: pointer; background: " + (on ? "#ffffff" : "transparent") + "; color: " + (on ? "#1b1a18" : "#7a756e") + "; box-shadow: " + (on ? "0 1px 3px rgba(0,0,0,0.10)" : "none") + ";";
+
+    const porGrupo = s.grupos.map(gr => ({
+      costo: gr.filas.reduce((a, r) => a + this.costoDe(r), 0),
+      venta: gr.filas.reduce((a, r) => a + this.precioDe(r), 0)
+    }));
+
+    const costoDirecto = porGrupo.reduce((a, x) => a + x.costo, 0);
+    const montoOverhead = costoDirecto * N(s.overhead) / 100;
+    const costoTotal = costoDirecto + montoOverhead;
+    const subtotal = porGrupo.reduce((a, x) => a + x.venta, 0);
+    const montoMargen = subtotal - costoTotal;
+    const montoDescuento = subtotal * N(s.descuento) / 100;
+    const neto = subtotal - montoDescuento;
+    const montoIva = neto * N(s.iva) / 100;
+    const total = neto + montoIva;
+    const ganancia = neto - costoTotal;
+
+    const bocas = s.grupos.reduce((a, gr) => a + gr.filas.reduce((b, r) => b + (r.boca ? N(r.cant) : 0), 0), 0);
+    const equipos = s.grupos[2].filas.filter(r => /Provisión de aire/.test(r.desc)).reduce((a, r) => a + N(r.cant), 0);
+
+    const bloque = (gi, n, titulo, lineas) => ({ n: n, titulo: titulo, subtotal: m(porGrupo[gi].venta), lineas: lineas });
+
+    const cajaPago = (destacada) => "border: 1px solid " + (destacada ? "#1b1a18" : "#e6e2da") + "; background: " + (destacada ? "#faf9f7" : "#ffffff") + "; border-radius: 8px; padding: 13px 14px;";
+
+    return {
+      empresa: this.props.empresa ?? "The Wealt Group Export Import S.A.",
+      bajada: this.props.bajada ?? "Propuesta Técnica Comercial de TWG S.A.\nFull Service",
+      contacto: this.props.contacto ?? "WhatsApp 595971235799 · contacto@fullservice.com.py",
+      firmaNombre: this.props.firmaNombre ?? "Ing. Edgar Mendez",
+      firmaCargo: this.props.firmaCargo ?? "Ejecutivo Comercial",
+      garantia: this.props.garantia ?? "12 meses",
+      validez: this.props.validez ?? "15 días",
+      fechaHoy: new Date().toLocaleDateString("es-PY", { day: "2-digit", month: "long", year: "numeric" }),
+
+      esCostos: s.tab === "costos",
+      esPropuesta: s.tab === "propuesta",
+      esCompras: s.tab === "compras",
+      tabA: tab(s.tab === "costos"),
+      tabB: tab(s.tab === "propuesta"),
+      tabC: tab(s.tab === "compras"),
+      verCompras: () => this.setState({ tab: "compras" }),
+      compras: s.compras.map((cg, gi) => ({
+        titulo: cg.titulo,
+        subtotal: m(cg.filas.reduce((a, r) => a + N(r.cant) * N(r.precio), 0)),
+        filas: cg.filas.map((r, fi) => ({
+          desc: r.desc, un: r.un, cant: r.cant, precio: r.precio, prov: r.prov,
+          total: m(N(r.cant) * N(r.precio)),
+          onCant: (e) => this.editCompra(gi, fi, "cant", e.target.value),
+          onPrecio: (e) => this.editCompra(gi, fi, "precio", e.target.value)
+        }))
+      })),
+      resumenCompras: s.compras.map(cg => ({
+        nombre: cg.titulo,
+        subtotal: m(cg.filas.reduce((a, r) => a + N(r.cant) * N(r.precio), 0))
+      })),
+      c: { total: m(s.compras.reduce((a, cg) => a + cg.filas.reduce((b, r) => b + N(r.cant) * N(r.precio), 0), 0)) },
+      verCostos: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ tab: "costos" }); },
+      verPropuesta: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ tab: "propuesta" }); },
+      imprimir: () => window.print(),
+
+      grupos: s.grupos.map((gr, gi) => ({
+        titulo: gr.titulo, nota: gr.nota, venta: m(porGrupo[gi].venta),
+        filas: gr.filas.map((r, fi) => ({
+          cod: r.cod, desc: r.desc, un: r.un, cant: r.cant, costo: r.costo, marg: r.marg,
+          costoTotal: m(this.costoDe(r)), precio: m(this.precioDe(r)),
+          onCant: (e) => this.edit(gi, fi, "cant", e.target.value),
+          onCosto: (e) => this.edit(gi, fi, "costo", e.target.value),
+          onMarg: (e) => this.edit(gi, fi, "marg", e.target.value)
+        }))
+      })),
+      resumenGrupos: s.grupos.map((gr, gi) => ({ nombre: gr.titulo.replace(/^\d+ · /, ""), venta: m(porGrupo[gi].venta) })),
+
+      overhead: s.overhead, descuento: s.descuento, iva: s.iva,
+      onOverhead: this.set("overhead"), onDescuento: this.set("descuento"), onIva: this.set("iva"),
+      cliente: s.cliente, obra: s.obra, nro: s.nro, plazo: s.plazo,
+      onCliente: this.set("cliente"), onObra: this.set("obra"), onNro: this.set("nro"), onPlazo: this.set("plazo"),
+
+      hayDescuento: N(s.descuento) > 0,
+      bloques: [
+        bloque(0, "01", "Iluminación", [
+          { titulo: "Artefactos LED circulares de adosar 24W luz fría", detalle: "34 unidades", importe: m(this.precioDe(s.grupos[0].filas[0])) },
+          { titulo: "Artefactos dicroicos de adosar GU10, terminación negra", detalle: "6 unidades", importe: m(this.precioDe(s.grupos[0].filas[1])) }
+        ]),
+        bloque(1, "02", "Instalación eléctrica", [
+          { titulo: "Bocas de iluminación interior y exterior", detalle: "40 bocas", importe: m(this.precioDe(s.grupos[1].filas[0]) + this.precioDe(s.grupos[1].filas[1])) },
+          { titulo: "Bocas de tomacorriente comunes", detalle: "40 bocas", importe: m(this.precioDe(s.grupos[1].filas[2])) },
+          { titulo: "Circuitos dedicados para electrodomésticos", detalle: "Horno, anafe, microondas, heladera, lavarropas, secarropas, mesada, extractor, plancha — 10 bocas", importe: m([3,4,5,6,7,8,9,10,11].reduce((a, i) => a + this.precioDe(s.grupos[1].filas[i]), 0)) },
+          { titulo: "Alimentaciones para clima, termocalefones y ventiladores", detalle: "12 bocas", importe: m([12,13,14].reduce((a, i) => a + this.precioDe(s.grupos[1].filas[i]), 0)) },
+          { titulo: "Tableros de distribución y llaves termomagnéticas", detalle: "2 tableros de 24 módulos, 25 llaves", importe: m([15,16].reduce((a, i) => a + this.precioDe(s.grupos[1].filas[i]), 0)) },
+          { titulo: "Alimentador principal, acometida y puesta a tierra", detalle: "18 ml de 4x16 mm², preparación de medidor, tierra con informe de medición", importe: m([17,23,24].reduce((a, i) => a + this.precioDe(s.grupos[1].filas[i]), 0)) },
+          { titulo: "Colocación de artefactos y señales débiles", detalle: "58 artefactos, ducteado de TV e internet, caja de central", importe: m([18,19,20,21,22].reduce((a, i) => a + this.precioDe(s.grupos[1].filas[i]), 0)) }
+        ]),
+        bloque(2, "03", "Climatización y ventilación", [
+          { titulo: "Aires acondicionados split 12.000 BTU/h con montaje y conexión", detalle: "3 equipos, 36 ml de cañería", importe: m([0,1,2].reduce((a, i) => a + this.precioDe(s.grupos[2].filas[i]), 0)) },
+          { titulo: "Aires acondicionados split 18.000 BTU/h con montaje y conexión", detalle: "3 equipos, 36 ml de cañería", importe: m([3,4,5].reduce((a, i) => a + this.precioDe(s.grupos[2].filas[i]), 0)) },
+          { titulo: "Ventiladores de techo 56\" con provisión y montaje", detalle: "4 unidades", importe: m(this.precioDe(s.grupos[2].filas[6])) }
+        ])
+      ],
+
+      pagos: [
+        { titulo: "Contado", monto: m(total * 0.95), detalle: "5% de descuento adicional pagando el total al firmar la orden.", style: cajaPago(false) },
+        { titulo: "Por etapas", monto: m(total), detalle: "40% de anticipo, 40% contra avance del cableado, 20% a la entrega con informe de mediciones.", style: cajaPago(true) },
+        { titulo: "En cuotas", monto: m(total * 0.70 / 6) + " × 6", detalle: "Anticipo de " + m(total * 0.30) + " y seis cuotas mensuales iguales sobre el saldo. Total " + m(total) + ".", style: cajaPago(false) }
+      ],
+
+      g: {
+        costoDirecto: m(costoDirecto), montoOverhead: m(montoOverhead),
+        montoMargen: m(montoMargen), subtotal: m(subtotal),
+        montoDescuento: m(montoDescuento), montoDescuentoNeg: m(-montoDescuento),
+        neto: m(neto), montoIva: m(montoIva), total: m(total), ganancia: m(ganancia),
+        margenReal: (neto > 0 ? (ganancia / neto * 100) : 0).toLocaleString("es-PY", { maximumFractionDigits: 1 }) + "%",
+        pctOverhead: this.pct(s.overhead), pctDescuento: this.pct(s.descuento), pctIva: this.pct(s.iva),
+        pctMargen: (costoTotal > 0 ? (montoMargen / costoTotal * 100) : 0).toLocaleString("es-PY", { maximumFractionDigits: 1 }) + "%",
+        bocas: bocas, equipos: equipos,
+        porBoca: bocas > 0 ? m(neto / bocas) : "—"
+      }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

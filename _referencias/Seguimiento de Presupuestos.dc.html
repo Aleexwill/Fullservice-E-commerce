@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  * { box-sizing: border-box; }
+  a { color: oklch(0.50 0.09 220); text-decoration: none; }
+  a:hover { color: oklch(0.40 0.09 220); }
+  input, textarea, button, select { font-family: inherit; color: inherit; }
+  input:focus, select:focus { outline: 2px solid oklch(0.52 0.19 25); outline-offset: -1px; }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    [data-noprint] { display: none !important; }
+    html, body { background: #fff !important; }
+    @page { size: A4 landscape; margin: 10mm; }
+  }
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18; background: #f4f3f0;">
+
+  <div data-noprint="1" style="position: sticky; top: 0; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; padding: 13px 26px; background: #ffffff; border-bottom: 1px solid #dedbd5;">
+    <div style="display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">Seguimiento de presupuestos</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Método 1 · 2 · 3 · 5 · 7 — {{ hoyLargo }}</div>
+    </div>
+    <div style="flex: 1;"></div>
+    <button onClick="{{ toggleCerrados }}" style="{{ btnCerrados }}">{{ labelCerrados }}</button>
+    <button onClick="{{ imprimir }}" style="padding: 9px 16px; font-size: 13px; font-weight: 600; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer;" style-hover="background: #33312e">Imprimir</button>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 18px; padding: 22px 26px 60px; max-width: 1660px; margin: 0 auto;">
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+      <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Toca hoy</div>
+        <div style="margin-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: oklch(0.50 0.11 240);">{{ k.hoy }}</div>
+      </div>
+      <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Atrasados</div>
+        <div style="margin-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: oklch(0.52 0.19 25);">{{ k.atrasados }}</div>
+      </div>
+      <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">En seguimiento</div>
+        <div style="margin-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: -0.02em;">{{ k.activos }}</div>
+      </div>
+      <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 11px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Monto en juego</div>
+        <div style="margin-top: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: oklch(0.42 0.13 150);">{{ k.monto }}</div>
+      </div>
+    </div>
+
+    <div style="background: #1b1a18; color: #f4f3f0; border-radius: 12px; overflow: hidden;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #302e2a;">
+        <div style="font-size: 14px; font-weight: 600;">Lo que hay que hacer hoy</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8f8a83;">{{ agendaResumen }}</div>
+      </div>
+      <sc-if value="{{ sinPendientes }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 30px 20px; text-align: center; font-size: 13px; color: #8f8a83;">Nada pendiente para hoy. Todo el seguimiento está al día.</div>
+      </sc-if>
+      <sc-for list="{{ pendientes }}" as="p" hint-placeholder-count="3">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 190px auto; align-items: center; gap: 14px; padding: 13px 20px; border-bottom: 1px solid #302e2a;">
+          <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+            <div style="font-size: 13.5px; font-weight: 600;">{{ p.cliente }}</div>
+            <div style="font-size: 11.5px; color: #8f8a83; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.detalle }}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="{{ p.accionEstilo }}">{{ p.accion }}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8f8a83;">{{ p.cuando }}</div>
+          </div>
+          <div data-noprint="1" style="display: flex; gap: 7px;">
+            <button onClick="{{ p.onHecho }}" style="padding: 8px 13px; font-size: 12px; font-weight: 600; color: #ffffff; background: oklch(0.50 0.13 150); border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: oklch(0.43 0.13 150)">Hecho</button>
+            <button onClick="{{ p.onAgendar }}" title="Crear la tarea en la agenda de trabajo" style="padding: 8px 13px; font-size: 12px; font-weight: 600; color: #d8d4cd; background: #302e2a; border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: #45423c">Agendar</button>
+            <button onClick="{{ p.onPosponer }}" title="Posponer un día" style="padding: 8px 11px; font-size: 12px; font-weight: 600; color: #d8d4cd; background: #302e2a; border: 0; border-radius: 7px; cursor: pointer;" style-hover="background: #45423c">+1 día</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; overflow-x: auto;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #dedbd5; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 14px; font-weight: 600;">Presupuestos en seguimiento</div>
+          <div style="font-size: 12px; color: #86817b;">Día 1 enviar · día 2 sondeo · día 3 sondear · día 5 sondear · día 7 llamar. Tocá cada paso para marcarlo.</div>
+        </div>
+        <div data-noprint="1" style="display: flex; align-items: center; gap: 8px;">
+          <select value="{{ nuevoId }}" onChange="{{ onNuevoId }}" style="padding: 8px 10px; font-size: 12.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer; max-width: 300px;">
+            <option value="">Sumar un presupuesto del archivo…</option>
+            <sc-for list="{{ disponibles }}" as="d" hint-placeholder-count="0">
+              <option value="{{ d.id }}">{{ d.etiqueta }}</option>
+            </sc-for>
+          </select>
+          <button onClick="{{ sumar }}" style="padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: oklch(0.52 0.19 25); border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;" style-hover="background: oklch(0.45 0.19 25)">Sumar</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(140px, 1.3fr) minmax(0, 88px) minmax(0, 118px) minmax(0, 96px) minmax(0, 200px) minmax(0, 130px) minmax(0, 116px); min-width: 900px; padding: 0 20px; background: #faf9f7; border-bottom: 1px solid #dedbd5; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">
+        <div style="padding: 9px 8px 9px 0;">Cliente y obra</div>
+        <div style="padding: 9px 8px;">N°</div>
+        <div style="padding: 9px 8px; text-align: right;">Monto</div>
+        <div style="padding: 9px 8px;">Envío</div>
+        <div style="padding: 9px 8px;">1 · 2 · 3 · 5 · 7</div>
+        <div style="padding: 9px 8px;">Próximo paso</div>
+        <div style="padding: 9px 0 9px 8px;">Cierre</div>
+      </div>
+
+      <sc-if value="{{ sinFilas }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 34px 20px; text-align: center; font-size: 13px; color: #86817b;">Todavía no hay presupuestos en seguimiento. Sumá uno desde el archivo.</div>
+      </sc-if>
+
+      <sc-for list="{{ filas }}" as="r" hint-placeholder-count="4">
+        <div style="{{ r.filaEstilo }}">
+          <div style="display: flex; flex-direction: column; gap: 2px; padding: 12px 8px 12px 0; min-width: 0;">
+            <span style="font-size: 13px; font-weight: 600;">{{ r.cliente }}</span>
+            <span style="font-size: 11.5px; color: #86817b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.obra }}</span>
+          </div>
+          <div style="padding: 12px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6f6b64;">{{ r.nro }}</div>
+          <div style="padding: 12px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; text-align: right; white-space: nowrap;">{{ r.monto }}</div>
+          <input type="date" value="{{ r.envio }}" onChange="{{ r.onEnvio }}" style="width: 100%; margin: 8px 4px; padding: 6px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: transparent; border: 1px solid #efedea; border-radius: 6px;" />
+          <div style="display: flex; align-items: center; gap: 4px; padding: 10px 8px;">
+            <sc-for list="{{ r.pasos }}" as="s" hint-placeholder-count="5">
+              <button onClick="{{ s.onToggle }}" title="{{ s.titulo }}" style="{{ s.estilo }}">{{ s.etiqueta }}</button>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; padding: 12px 8px;">
+            <span style="{{ r.proxEstilo }}">{{ r.prox }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #86817b;">{{ r.proxCuando }}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px; padding: 10px 0 10px 8px;">
+            <select value="{{ r.cerrado }}" onChange="{{ r.onCerrado }}" style="flex: 1; min-width: 0; padding: 6px 4px; font-size: 11.5px; background: transparent; border: 1px solid #efedea; border-radius: 6px; cursor: pointer;">
+              <option value="">Abierto</option>
+              <option value="aprobado">Aprobado</option>
+              <option value="perdido">Perdido</option>
+              <option value="pausado">En pausa</option>
+            </select>
+            <button data-noprint="1" onClick="{{ r.onQuitar }}" title="Quitar del seguimiento" style="width: 22px; height: 22px; font-size: 15px; line-height: 1; color: #b4aea5; background: transparent; border: 0; border-radius: 5px; cursor: pointer;" style-hover="color: #ffffff; background: #a5453a">×</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; padding: 16px 20px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; font-size: 11.5px; line-height: 1.55; color: #6f6b64;">
+      <div style="flex: 1; min-width: 230px;"><span style="font-weight: 600; color: #33312e;">Cómo se cuenta.</span> El día 1 es el día en que enviás el presupuesto. Los demás pasos se calculan solos desde esa fecha: sondeo al día siguiente, sondeo al tercer día, al quinto y llamada al séptimo.</div>
+      <div style="flex: 1; min-width: 230px;"><span style="font-weight: 600; color: #33312e;">Colores.</span> Verde: paso cumplido. Azul: toca hoy. Rojo: vencido. Gris: todavía no corresponde.</div>
+      <div style="flex: 1; min-width: 230px;"><span style="font-weight: 600; color: #33312e;">Recordatorio.</span> El botón Agendar crea la tarea en la agenda de trabajo con la fecha del paso, para que aparezca en tu día.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const deIso = (s) => { const p = String(s || "").split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); };
+const sumar = (s, n) => { const d = deIso(s); d.setDate(d.getDate() + n); return iso(d); };
+const dif = (a, b) => Math.round((deIso(a) - deIso(b)) / 86400000);
+const PASOS = [
+  { n: 1, off: 0, label: "Enviar el presupuesto" },
+  { n: 2, off: 1, label: "Enviar sondeo" },
+  { n: 3, off: 2, label: "Sondear" },
+  { n: 5, off: 4, label: "Sondear" },
+  { n: 7, off: 6, label: "Llamar" }
+];
+
+class Component extends DCLogic {
+  KEY = "twg-seguimiento-v1";
+  ARCH_KEY = "twg-archivo-presupuestos-v1";
+  AGENDA_KEY = "twg-agenda-v1";
+
+  state = { seg: [], archivo: [], nuevoId: "", verCerrados: false, aviso: "" };
+
+  componentDidMount() {
+    let arch = [];
+    try {
+      const d = JSON.parse(localStorage.getItem(this.ARCH_KEY) || "null");
+      if (d && Array.isArray(d.items)) arch = d.items;
+    } catch (e) {}
+    let seg = [];
+    try {
+      const d = JSON.parse(localStorage.getItem(this.KEY) || "null");
+      if (d && Array.isArray(d.seg)) seg = d.seg;
+    } catch (e) {}
+    if (!seg.length && arch.length) {
+      const hoy = iso(new Date());
+      seg = arch.slice(-4).map((it, k) => ({
+        id: it.id, envio: sumar(hoy, -(k * 2)), hechos: {}, cerrado: "", pospuesto: 0
+      }));
+    }
+    this.setState({ archivo: arch, seg: seg });
+    this.persistir(seg);
+  }
+
+  persistir(seg) {
+    try { localStorage.setItem(this.KEY, JSON.stringify({ seg: seg })); } catch (e) {}
+  }
+
+  setSeg(seg) { this.setState({ seg: seg }); this.persistir(seg); }
+
+  parche(id, campos) {
+    this.setSeg(this.state.seg.map(s => s.id === id ? Object.assign({}, s, campos) : s));
+  }
+
+  marcar(id, n) {
+    const s = this.state.seg.find(x => x.id === id);
+    if (!s) return;
+    const h = Object.assign({}, s.hechos || {});
+    if (h[n]) delete h[n]; else h[n] = iso(new Date());
+    this.parche(id, { hechos: h });
+  }
+
+  agendar(reg, info) {
+    let d = { tareas: [] };
+    try { d = JSON.parse(localStorage.getItem(this.AGENDA_KEY) || "null") || { tareas: [] }; } catch (e) {}
+    if (!Array.isArray(d.tareas)) d.tareas = [];
+    d.tareas.push({
+      id: "t" + Math.random().toString(36).slice(2, 9),
+      titulo: info.accion + " — " + info.cliente,
+      obra: info.obra, resp: "", fecha: info.fecha, hora: "09:00",
+      prio: info.vencido ? "alta" : "media", estado: "pendiente",
+      nota: "Seguimiento 1·2·3·5·7 del presupuesto " + info.nro
+    });
+    try { localStorage.setItem(this.AGENDA_KEY, JSON.stringify(d)); } catch (e) {}
+    this.setState({ aviso: "Agendado: " + info.accion + " — " + info.cliente });
+  }
+
+  datos(id) {
+    const it = (this.state.archivo || []).find(x => String(x.id) === String(id));
+    const d = (it && it.datos) || {};
+    return {
+      nro: (it && it.nro) || "—",
+      cliente: d.cliente || "Sin cliente",
+      obra: d.obra || "—",
+      monto: (it && it.total) || "—",
+      montoNum: parseFloat(String((it && it.total) || "").replace(/[^\d]/g, "")) || 0
+    };
+  }
+
+  proximo(s, hoy) {
+    for (let i = 0; i < PASOS.length; i++) {
+      const p = PASOS[i];
+      if ((s.hechos || {})[p.n]) continue;
+      const fecha = sumar(s.envio, p.off + (s.pospuesto || 0));
+      return { paso: p, fecha: fecha, atraso: dif(hoy, fecha) };
+    }
+    return null;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const hoy = iso(new Date());
+    const dh = new Date();
+    const usados = new Set(s.seg.map(x => String(x.id)));
+    const activos = s.seg.filter(x => !x.cerrado);
+
+    const pendientes = [];
+    activos.forEach(reg => {
+      const px = this.proximo(reg, hoy);
+      if (!px || px.atraso < 0) return;
+      const info = this.datos(reg.id);
+      const vencido = px.atraso > 0;
+      pendientes.push({
+        cliente: info.cliente,
+        detalle: info.nro + " · " + info.obra + " · " + info.monto,
+        accion: "Día " + px.paso.n + " — " + px.paso.label,
+        cuando: vencido ? ("Vencido hace " + px.atraso + (px.atraso === 1 ? " día" : " días")) : "Corresponde hoy",
+        accionEstilo: "font-size: 12.5px; font-weight: 600; color: " + (vencido ? "#ffb4a8" : "#ffffff"),
+        onHecho: () => this.marcar(reg.id, px.paso.n),
+        onPosponer: () => this.parche(reg.id, { pospuesto: (reg.pospuesto || 0) + 1 }),
+        onAgendar: () => this.agendar(reg, {
+          accion: px.paso.label, cliente: info.cliente, obra: info.obra,
+          nro: info.nro, fecha: hoy, vencido: vencido
+        })
+      });
+    });
+
+    const filas = s.seg.filter(x => s.verCerrados || !x.cerrado).map(reg => {
+      const info = this.datos(reg.id);
+      const px = this.proximo(reg, hoy);
+      const pasos = PASOS.map(p => {
+        const hecho = !!(reg.hechos || {})[p.n];
+        const fecha = sumar(reg.envio, p.off + (reg.pospuesto || 0));
+        const d = dif(hoy, fecha);
+        let bg = "#f0eee9", col = "#86817b", bd = "#dedbd5";
+        if (hecho) { bg = "oklch(0.50 0.13 150)"; col = "#ffffff"; bd = "oklch(0.50 0.13 150)"; }
+        else if (reg.cerrado) { bg = "#f4f3f0"; col = "#b4aea5"; bd = "#efedea"; }
+        else if (d === 0) { bg = "oklch(0.50 0.11 240)"; col = "#ffffff"; bd = "oklch(0.50 0.11 240)"; }
+        else if (d > 0) { bg = "oklch(0.95 0.05 25)"; col = "oklch(0.48 0.19 25)"; bd = "oklch(0.80 0.10 25)"; }
+        const dd = deIso(fecha);
+        return {
+          etiqueta: String(p.n),
+          titulo: "Día " + p.n + " — " + p.label + " · " + dd.getDate() + "/" + (dd.getMonth() + 1) + (hecho ? " · cumplido" : ""),
+          estilo: "width: 26px; height: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; color: " + col + "; background: " + bg + "; border: 1px solid " + bd + ";",
+          onToggle: () => this.marcar(reg.id, p.n)
+        };
+      });
+      let prox = "Ciclo completo", proxCuando = "Sin pasos pendientes", proxEstilo = "font-size: 12px; font-weight: 600; color: #86817b;";
+      if (reg.cerrado) {
+        prox = reg.cerrado === "aprobado" ? "Aprobado" : (reg.cerrado === "perdido" ? "Perdido" : "En pausa");
+        proxCuando = "Fuera del ciclo";
+        proxEstilo = "font-size: 12px; font-weight: 600; color: " + (reg.cerrado === "aprobado" ? "oklch(0.42 0.13 150)" : "#86817b");
+      } else if (px) {
+        const dd = deIso(px.fecha);
+        prox = "Día " + px.paso.n + " — " + px.paso.label;
+        proxCuando = px.atraso > 0 ? ("Vencido hace " + px.atraso + " d") : (px.atraso === 0 ? "Hoy" : ("El " + dd.getDate() + "/" + (dd.getMonth() + 1)));
+        proxEstilo = "font-size: 12px; font-weight: 600; color: " + (px.atraso > 0 ? "oklch(0.48 0.19 25)" : (px.atraso === 0 ? "oklch(0.42 0.11 240)" : "#33312e"));
+      }
+      const alerta = !reg.cerrado && px && px.atraso > 0;
+      return {
+        cliente: info.cliente, obra: info.obra, nro: info.nro, monto: info.monto,
+        envio: reg.envio, pasos: pasos, prox: prox, proxCuando: proxCuando, proxEstilo: proxEstilo,
+        cerrado: reg.cerrado || "",
+        filaEstilo: "display: grid; grid-template-columns: minmax(140px, 1.3fr) minmax(0, 88px) minmax(0, 118px) minmax(0, 96px) minmax(0, 200px) minmax(0, 130px) minmax(0, 116px); align-items: center; min-width: 900px; padding: 0 20px; border-bottom: 1px solid #efedea; background: " + (alerta ? "oklch(0.985 0.012 25)" : "#ffffff"),
+        onEnvio: (e) => this.parche(reg.id, { envio: e.target.value }),
+        onCerrado: (e) => this.parche(reg.id, { cerrado: e.target.value }),
+        onQuitar: () => this.setSeg(s.seg.filter(x => x.id !== reg.id))
+      };
+    });
+
+    const disponibles = (s.archivo || []).filter(x => !usados.has(String(x.id))).map(x => ({
+      id: x.id,
+      etiqueta: (x.nro || "") + " · " + ((x.datos && x.datos.cliente) || "Sin cliente")
+    }));
+
+    const monto = activos.reduce((a, x) => a + this.datos(x.id).montoNum, 0);
+
+    return {
+      hoyLargo: DIAS[dh.getDay()] + " " + dh.getDate() + " de " + MESES[dh.getMonth()],
+      k: {
+        hoy: pendientes.filter(p => p.cuando === "Corresponde hoy").length,
+        atrasados: pendientes.length - pendientes.filter(p => p.cuando === "Corresponde hoy").length,
+        activos: activos.length,
+        monto: "Gs. " + monto.toLocaleString("es-PY")
+      },
+      pendientes: pendientes,
+      sinPendientes: pendientes.length === 0,
+      agendaResumen: s.aviso || (pendientes.length ? pendientes.length + " acciones" : "Al día"),
+      filas: filas,
+      sinFilas: filas.length === 0,
+      disponibles: disponibles,
+      nuevoId: s.nuevoId,
+      onNuevoId: (e) => this.setState({ nuevoId: e.target.value }),
+      sumar: () => {
+        if (!s.nuevoId) return;
+        this.setSeg(s.seg.concat([{ id: s.nuevoId, envio: hoy, hechos: {}, cerrado: "", pospuesto: 0 }]));
+        this.setState({ nuevoId: "" });
+      },
+      verCerrados: s.verCerrados,
+      toggleCerrados: () => this.setState({ verCerrados: !s.verCerrados }),
+      labelCerrados: s.verCerrados ? "Ocultar cerrados" : "Ver también cerrados",
+      btnCerrados: "padding: 8px 13px; font-size: 12.5px; font-weight: 600; border-radius: 7px; cursor: pointer; white-space: nowrap; " + (s.verCerrados ? "color: #ffffff; background: #1b1a18; border: 1px solid #1b1a18;" : "color: #6f6b64; background: #ffffff; border: 1px solid #dedbd5;"),
+      imprimir: () => window.print()
+    };
+  }
+}
+</script>
+</body>
+</html>

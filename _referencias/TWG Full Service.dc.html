@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<title>TWG Full Service — Presupuestos</title>
+<template id="__bundler_thumbnail">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1b1a18"/><text x="50" y="52" font-family="Helvetica, Arial, sans-serif" font-size="23" font-weight="700" fill="#f4f3f0" text-anchor="middle">TWG</text><text x="50" y="66" font-family="Helvetica, Arial, sans-serif" font-size="6" letter-spacing="1.4" fill="#8f8a83" text-anchor="middle">FULL SERVICE</text><rect x="34" y="74" width="14" height="4" rx="2" fill="#b8452f"/><rect x="52" y="74" width="14" height="4" rx="2" fill="#3d8f5c"/></svg>
+</template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  * { box-sizing: border-box; }
+  a { color: oklch(0.50 0.09 220); text-decoration: none; }
+  a:hover { color: oklch(0.40 0.09 220); }
+  @media print { [data-appnav] { display: none !important; } html, body { background: #fff !important; } [data-mod][data-activo="0"] { display: none !important; } }
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; min-height: 100vh; background: #f4f3f0;">
+  <div data-appnav="1" style="{{ barraStyle }}">
+    <div style="{{ marcaStyle }}">TWG Full Service</div>
+    <button onClick="{{ verTablero }}" style="{{ btnTablero }}">Tablero de control</button>
+    <button onClick="{{ verPropuesta }}" style="{{ btnPropuesta }}">Costos y propuestas</button>
+    <button onClick="{{ verInforme }}" style="{{ btnInforme }}">Informes técnicos</button>
+    <button onClick="{{ verAgenda }}" style="{{ btnAgenda }}">Agenda de trabajo</button>
+    <button onClick="{{ verSeguimiento }}" style="{{ btnSeguimiento }}">Seguimiento 1·2·3·5·7</button>
+    <a href="Bocetos 3D.html" target="_blank" style="{{ btnBocetos }}">Bocetos 3D</a>
+  </div><div data-mod="propuesta" data-activo="{{ modPropuesta }}"><dc-import name="Cielite - Costos y Propuesta" embebido="{{ true }}" hint-size="100%,900px"></dc-import></div>
+  <sc-if value="{{ esTablero }}" hint-placeholder-val="{{ true }}">
+    <div data-mod="tablero" data-activo="{{ modTablero }}"><dc-import name="Tablero de Control - Presupuestos" embebido="{{ true }}" hint-size="100%,900px"></dc-import></div>
+  </sc-if>
+  <sc-if value="{{ esPropuesta }}" hint-placeholder-val="{{ false }}">
+    
+  </sc-if>
+  <sc-if value="{{ esInforme }}" hint-placeholder-val="{{ false }}">
+    <dc-import name="Informe Tecnico" embebido="{{ true }}" hint-size="100%,900px"></dc-import>
+  </sc-if>
+  <sc-if value="{{ esAgenda }}" hint-placeholder-val="{{ false }}">
+    <dc-import name="Agenda de Trabajo" embebido="{{ true }}" hint-size="100%,900px"></dc-import>
+  </sc-if>
+  <sc-if value="{{ esSeguimiento }}" hint-placeholder-val="{{ false }}">
+    <dc-import name="Seguimiento de Presupuestos" embebido="{{ true }}" hint-size="100%,900px"></dc-import>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;barra&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;oscura&quot;,&quot;clara&quot;,&quot;acero&quot;],&quot;default&quot;:&quot;oscura&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Barra de módulos&quot;},&quot;forma&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;pastilla&quot;,&quot;contorno&quot;,&quot;subrayado&quot;],&quot;default&quot;:&quot;pastilla&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Barra de módulos&quot;},&quot;inicio&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;tablero&quot;,&quot;propuesta&quot;,&quot;informe&quot;,&quot;agenda&quot;,&quot;seguimiento&quot;],&quot;default&quot;:&quot;tablero&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Barra de módulos&quot;}}">
+class Component extends DCLogic {
+  state = { vista: "" };
+
+  // La barra cambia de piel: los tres tonos comparten la misma estructura.
+  piel() {
+    const t = this.props.barra || "oscura";
+    if (t === "clara") return { fondo: "#ffffff", borde: "1px solid #dedbd5", marca: "#8f8a83", inactivoTexto: "#3a3833", inactivoFondo: "#f0eee9" };
+    if (t === "acero") return { fondo: "#2a3138", borde: "0", marca: "#9aa7b2", inactivoTexto: "#e6e9ec", inactivoFondo: "#3b444d" };
+    return { fondo: "#1b1a18", borde: "0", marca: "#8f8a83", inactivoTexto: "#ffffff", inactivoFondo: "#3a3833" };
+  }
+
+  btn = (on, color) => {
+    const p = this.piel();
+    const forma = this.props.forma || "pastilla";
+    const base = "font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .12s, color .12s;";
+    if (forma === "contorno") {
+      return base + "padding: 8px 16px; border-radius: 7px; background: " + (on ? color : "transparent")
+        + "; color: " + (on ? "#ffffff" : p.inactivoTexto)
+        + "; border: 1.5px solid " + (on ? color : (this.props.barra === "clara" ? "#dedbd5" : "rgba(255,255,255,0.22)")) + ";";
+    }
+    if (forma === "subrayado") {
+      return base + "padding: 9px 10px; border: 0; border-radius: 0; background: transparent; border-bottom: 2.5px solid "
+        + (on ? color : "transparent") + "; color: " + (on ? (this.props.barra === "clara" ? "#1b1a18" : "#ffffff") : p.inactivoTexto)
+        + "; opacity: " + (on ? "1" : "0.7") + ";";
+    }
+    return base + "padding: 9px 17px; border: 0; border-radius: 7px; color: " + (on ? "#ffffff" : p.inactivoTexto)
+      + "; background: " + (on ? color : p.inactivoFondo) + "; opacity: " + (on ? "1" : "0.8") + ";";
+  };
+
+  renderVals() {
+    const p = this.piel();
+    const v = this.state.vista || this.props.inicio || "tablero";
+    return {
+      barraStyle: "display: flex; align-items: center; flex-wrap: wrap; row-gap: 8px; gap: " + (this.props.forma === "subrayado" ? "6px" : "12px")
+        + "; padding: 10px 26px; background: " + p.fondo + "; border-bottom: " + p.borde + ";",
+      marcaStyle: "font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 6px; color: " + p.marca + ";",
+      esTablero: v === "tablero",
+      esPropuesta: v === "propuesta",
+      // Al imprimir sale solo el módulo que se está viendo.
+      modPropuesta: v === "propuesta" ? "1" : "0",
+      modTablero: v === "tablero" ? "1" : "0",
+      esInforme: v === "informe",
+      esAgenda: v === "agenda",
+      esSeguimiento: v === "seguimiento",
+      btnTablero: this.btn(v === "tablero", "oklch(0.52 0.19 25)"),
+      btnPropuesta: this.btn(v === "propuesta", "oklch(0.50 0.13 150)"),
+      btnInforme: this.btn(v === "informe", "oklch(0.50 0.11 240)"),
+      btnAgenda: this.btn(v === "agenda", "oklch(0.55 0.13 300)"),
+      btnSeguimiento: this.btn(v === "seguimiento", "oklch(0.55 0.15 55)"),
+      btnBocetos: this.btn(false, "oklch(0.50 0.13 300)") + "text-decoration: none; display: inline-block;",
+      verTablero: () => this.setState({ vista: "tablero" }),
+      verPropuesta: () => this.setState({ vista: "propuesta" }),
+      verInforme: () => this.setState({ vista: "informe" }),
+      verAgenda: () => this.setState({ vista: "agenda" }),
+      verSeguimiento: () => this.setState({ vista: "seguimiento" })
+    };
+  }
+}
+
+</script>
+</body>
+</html>
