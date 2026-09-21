@@ -73,7 +73,7 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
           </span>
           <h2 className="mt-2 font-display text-xl font-bold text-white md:text-2xl">{project.title}</h2>
           {project.description && (
-            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-white/60">{project.description}</p>
+            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-white/90">{project.description}</p>
           )}
         </div>
         <button onClick={onClose} className="rounded-xl bg-white/10 p-2.5 text-white/70 hover:bg-white/20 hover:text-white">
