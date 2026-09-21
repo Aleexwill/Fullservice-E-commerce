@@ -84,8 +84,7 @@ function LoginForm() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const botRef = useRef<any>(null);
+  const botRef = useRef<{ loading: () => void; success: (u: string) => void; error: (m: string) => void; reset: () => void } | null>(null);
   const scriptLoaded = useRef(false);
 
   useEffect(() => {
@@ -94,8 +93,7 @@ function LoginForm() {
     const script = document.createElement('script');
     script.src = '/fsc-login-bot.js';
     script.onload = () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const w = window as any;
+      const w = window as Window & { FSCLoginBot?: { mount: (el: string, opts: object) => typeof botRef.current } };
       if (w.FSCLoginBot) {
         botRef.current = w.FSCLoginBot.mount('#fsc-robot', {
           username: '#fsc-user',
