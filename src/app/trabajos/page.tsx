@@ -127,7 +127,7 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
       )}
 
       {/* Details panel */}
-      <div className="border-t border-white/10 bg-white/[0.03] px-4 py-4 md:px-6" onClick={(e) => e.stopPropagation()}>
+      <div className="border-t border-white/10 bg-[#0B1120] px-4 py-4 md:px-6" onClick={(e) => e.stopPropagation()}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <div className="flex flex-wrap gap-4 text-xs text-white/50">
