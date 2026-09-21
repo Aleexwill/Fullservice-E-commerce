@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuth, requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { parseBody, CreateMaterialSchema } from '@/lib/schemas';
 
 
 export async function GET(request: Request) {
@@ -40,18 +41,10 @@ export async function POST(request: Request) {
   if (auth instanceof NextResponse) return auth;
   try {
     
-    const body = await request.json();
-    const material = await prisma.material.create({
-      data: {
-        description: body.description,
-        unit: body.unit || 'un',
-        unitPrice: body.unitPrice,
-        provider: body.provider || '',
-        category: body.category || 'general',
-        code: body.code || '',
-        notes: body.notes || '',
-      },
-    });
+    const parsed = await parseBody(request, CreateMaterialSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
+    const material = await prisma.material.create({ data: body });
     return NextResponse.json(material, { status: 201 });
   } catch (error) {
     console.error('Error en POST /api/materiales:', error);

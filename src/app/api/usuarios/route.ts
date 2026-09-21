@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { verifySessionToken, SESSION_COOKIE } from '@/lib/auth';
 import { can } from '@/lib/roles';
-import type { Role } from '@/lib/roles';
+import { parseBody, CreateUserSchema } from '@/lib/schemas';
 
 async function requireAdmin(request: NextRequest) {
   const auth = await requireAuth();
@@ -40,20 +40,9 @@ export async function POST(request: NextRequest) {
   const session = await requireAdmin(request);
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
-  const { email, name, role, password } = await request.json();
-
-  if (!email || !name || !role || !password) {
-    return NextResponse.json({ error: 'Todos los campos son obligatorios' }, { status: 400 });
-  }
-
-  const validRoles: Role[] = ['admin', 'vendedor', 'tecnico'];
-  if (!validRoles.includes(role)) {
-    return NextResponse.json({ error: 'Rol inválido' }, { status: 400 });
-  }
-
-  if (password.length < 6) {
-    return NextResponse.json({ error: 'La contraseña temporal debe tener al menos 6 caracteres' }, { status: 400 });
-  }
+  const parsed = await parseBody(request, CreateUserSchema);
+  if (parsed.error) return parsed.error;
+  const { email, name, role, password } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
   if (existing) return NextResponse.json({ error: 'Ya existe un usuario con ese email' }, { status: 409 });
