@@ -211,11 +211,24 @@ async function cargarDesdeAPI(){
 }
 
 // ─── patchAPI ───────────────────────────────────────
+function alertaToStatus(alerta,avance){
+  const a=alerta||'';
+  if(a==='DE BAJA')return 'de_baja';
+  if(a==='APROBADO')return avance==='Finalizado'?'finalizado':'en_ejecucion';
+  if(a==='ENVIADO')return 'cotizado';
+  if(a==='FALTA VISTO BUENO')return 'en_revision';
+  if(a==='FALTA PRESUPUESTAR')return 'nuevo';
+  if(a==='FALTA RELEVAR')return 'nuevo';
+  return null; // no change
+}
 async function patchAPI(itemId,seguimientoData){
   try{
     const r=S.rows.find(x=>x._id===itemId||x.id===itemId);
     if(!r)return;
-    const r2=await fetch(`/api/presupuestos/${itemId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({seguimientoData})});
+    const body={seguimientoData};
+    const st=alertaToStatus(seguimientoData.alerta,seguimientoData.avance);
+    if(st)body.status=st;
+    const r2=await fetch(`/api/presupuestos/${itemId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r2.ok)console.warn('patchAPI error',r2.status,itemId);
   }catch(e){console.warn('patchAPI failed',e);}
 }

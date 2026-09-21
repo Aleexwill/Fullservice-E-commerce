@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import type { Presupuesto as PrismaPresupuesto } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 
-export type PresupuestoStatus = 'nuevo' | 'en_revision' | 'cotizado' | 'aprobado' | 'en_ejecucion' | 'completado' | 'rechazado';
+export type PresupuestoStatus = 'nuevo' | 'en_revision' | 'cotizado' | 'aprobado' | 'en_ejecucion' | 'finalizado' | 'completado' | 'rechazado' | 'de_baja' | 'falta_presupuestar' | 'pendiente_relevo';
 export type ServiceType = 'mantenimiento' | 'civil' | 'metalurgica' | 'otro';
 
 export interface PresupuestoNote {
