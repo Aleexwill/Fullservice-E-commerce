@@ -39,7 +39,7 @@ interface Presupuesto {
   customer: { name: string; email: string; phone: string; company: string; address: string };
   description: string; details: string; estimatedValue: number | null; finalValue: number | null;
   estimatedDuration: string; priority: string; source: string; assignedTo: string;
-  scheduledDate: string; calculationData: CalculationData | null; createdBy: string;
+  scheduledDate: string; calculationData: CalculationData | null; costosData?: any | null; createdBy: string;
   notes: { id: string; text: string; createdAt: string }[];
   createdAt: string; updatedAt: string;
   seguimientoData?: SeguimientoData;
@@ -772,6 +772,11 @@ function PresupuestoRow({ item, onOpen, onDelete, onStatusChange, hideWebBadge }
         <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-blue-bright hover:bg-blue-muted transition-colors">
           <Calculator className="h-3 w-3" /> Planilla
         </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); imprimirPresupuesto({ code: item.code, serviceTitle: item.serviceTitle, serviceType: item.serviceType, description: item.description, scheduledDate: item.scheduledDate, estimatedDuration: item.estimatedDuration, assignedTo: item.assignedTo, customer: item.customer, calculationData: item.calculationData, costosData: item.costosData ?? null, createdAt: item.createdAt }); }}
+          aria-label="Imprimir presupuesto"
+          className="rounded p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"
+        ><Printer className="h-4 w-4" /></button>
         <button onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label="Eliminar" className="rounded p-1.5 text-steel-500 hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
       </div>
     </div>
