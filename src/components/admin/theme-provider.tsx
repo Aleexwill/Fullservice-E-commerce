@@ -73,6 +73,9 @@ const LIGHT_CSS = `
 .admin-shell[data-theme="light"] .text-steel-700{color:#475569!important}
 .admin-shell[data-theme="light"] .text-blue-bright{color:#1a5d9a!important}
 .admin-shell[data-theme="light"] .text-yellow-bright{color:#854d0e!important}
+.admin-shell[data-theme="light"] .text-success-bright{color:#1a6640!important}
+.admin-shell[data-theme="light"] .text-danger-bright{color:#b91c1c!important}
+.admin-shell[data-theme="light"] .text-orange-bright{color:#92400e!important}
 
 /* Hover states */
 .admin-shell[data-theme="light"] [class*="hover:bg-steel-900"]:hover{background-color:#e8ecf2!important}

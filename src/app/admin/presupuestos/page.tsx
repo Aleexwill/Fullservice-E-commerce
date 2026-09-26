@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -87,7 +87,7 @@ const formatScheduledDate = (d: string) => {
 
 type Tab = 'archivo' | 'planificacion' | 'aprobacion';
 
-export default function AdminPresupuestosPage() {
+function AdminPresupuestosPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Presupuesto[]>([]);
@@ -307,6 +307,14 @@ export default function AdminPresupuestosPage() {
         </button>
       )}
     </div>
+  );
+}
+
+export default function AdminPresupuestosPage() {
+  return (
+    <Suspense>
+      <AdminPresupuestosPageInner />
+    </Suspense>
   );
 }
 

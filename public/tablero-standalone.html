@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero de Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18; }
+  * { box-sizing: border-box; }
+  a { color: oklch(0.50 0.09 220); text-decoration: none; }
+  input, textarea, button, select { font-family: inherit; color: inherit; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid oklch(0.50 0.09 220); outline-offset: -1px; }
+  button { cursor: pointer; }
+  @media print {
+    [data-noprint] { display: none !important; }
+    html, body { background: #fff !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    @page { size: A4 landscape; margin: 8mm; }
+  }
+  .tab-btn { padding: 7px 14px; font-size: 12.5px; font-weight: 500; border: 0; border-radius: 6px; background: transparent; color: #7a756e; }
+  .tab-btn.active { background: #ffffff; color: #1b1a18; box-shadow: 0 1px 3px rgba(0,0,0,0.10); font-weight: 600; }
+  .mes-btn { padding: 7px 14px; font-size: 12.5px; font-weight: 500; border-radius: 7px; border: 1px solid #dedbd5; background: #f0eee9; color: #4a4741; white-space: nowrap; }
+  .mes-btn.active { background: #1b1a18; color: #ffffff; border-color: #1b1a18; font-weight: 600; }
+  .card { background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; }
+  .card-dark { background: #1b1a18; border-radius: 12px; color: #f4f3f0; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .label-xs { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; }
+  .num-xl { font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; }
+  .num-lg { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; white-space: nowrap; }
+  .bar-track { height: 10px; background: #f0eee9; border-radius: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 5px; }
+  #view-dash, #view-lista, #view-plan, #view-seg { display: none; }
+  #view-dash.visible, #view-lista.visible, #view-plan.visible, #view-seg.visible { display: block; }
+
+  /* ---- table scroll wrappers ---- */
+  .tbl-wrap { overflow-x: auto; }
+  .tbl-inner { min-width: 1560px; }
+  .tbl-head { display: grid; background: #faf9f7; border-bottom: 1px solid #dedbd5; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b; }
+  .tbl-row { display: grid; align-items: center; border-bottom: 1px solid #efedea; }
+  .tbl-cell { padding: 10px 8px; }
+  .grid-lista { grid-template-columns: 132px 92px 150px 150px minmax(180px, 1fr) 140px 140px 170px 96px 130px 36px; }
+  .grid-plan  { grid-template-columns: 122px 118px 150px minmax(170px,1fr) 118px 146px 74px 60px 66px 66px 66px 130px minmax(140px,0.8fr) 28px; }
+  .grid-plan2 { grid-template-columns: 122px 118px 150px minmax(170px,1fr) 118px 146px 74px 60px minmax(140px,0.8fr) 28px; }
+  .grid-seg   { grid-template-columns: minmax(140px,1.3fr) minmax(0,88px) minmax(0,118px) minmax(0,96px) minmax(0,200px) minmax(0,130px) minmax(0,116px); }
+  .cell-input { width: 100%; padding: 10px 8px; background: transparent; border: 0; font-size: 12.5px; }
+  .cell-select { width: 100%; padding: 6px 7px; font-size: 11.5px; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px; }
+  .flag-btn { padding: 6px 0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 600; border-radius: 6px; border: 1px solid; width: 100%; }
+  .btn-del { justify-self: center; width: 24px; height: 24px; font-size: 16px; line-height: 1; color: #b4aea5; background: transparent; border: 0; border-radius: 5px; }
+  .btn-del:hover { color: #1b1a18; background: #f0eee9; }
+  .footer-totals { display: flex; align-items: baseline; justify-content: flex-end; gap: 14px; padding: 14px 20px; background: #faf9f7; flex-wrap: wrap; }
+  .seg-step { width: 26px; height: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<div id="app-header" data-noprint="1" style="position: sticky; top: 0; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; padding: 13px 26px; background: #ffffff; border-bottom: 1px solid #dedbd5;">
+  <div style="display: flex; flex-direction: column; gap: 1px; flex: 0 1 auto; min-width: 150px; max-width: 260px; overflow: hidden;">
+    <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="hdr-empresa">The Wealt Group Export Import S.A.</div>
+    <div class="mono" style="font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Tablero de control · <span id="hdr-mes">Agosto 2026</span></div>
+  </div>
+  <div style="display: flex; gap: 4px; padding: 3px; background: #f0eee9; border-radius: 8px;">
+    <button class="tab-btn active" onclick="setTab('dash')" id="tbtn-dash">Dashboard</button>
+    <button class="tab-btn" onclick="setTab('lista')" id="tbtn-lista">Presupuestos</button>
+    <button class="tab-btn" onclick="setTab('plan')" id="tbtn-plan">Planificación</button>
+    <button class="tab-btn" onclick="setTab('seg')" id="tbtn-seg">Seguimiento</button>
+  </div>
+  <div id="mes-tabs" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;"></div>
+  <div style="flex: 1;"></div>
+  <div style="display: flex; align-items: baseline; gap: 10px; padding: 7px 14px; background: #f0eee9; border-radius: 8px;">
+    <span class="mono" style="font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Aprobado</span>
+    <span class="mono" style="font-size: 17px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap;" id="hdr-aprobado">—</span>
+  </div>
+  <span style="padding: 9px 16px; font-size: 13px; font-weight: 600; color: #ffffff; background: oklch(0.52 0.19 25); border-radius: 7px; white-space: nowrap;">Tablero de control</span>
+  <button onclick="window.print()" style="padding: 9px 14px; font-size: 12.5px; font-weight: 500; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; white-space: nowrap;">Imprimir PDF</button>
+  <button onclick="exportarExcel()" style="padding: 9px 14px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: oklch(0.48 0.12 155); border: 0; border-radius: 7px; white-space: nowrap;">Descargar Excel</button>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="view-dash" class="visible">
+  <div style="max-width: 1520px; margin: 0 auto; padding: 26px; display: flex; flex-direction: column; gap: 22px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;" id="kpi-cards"></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;" id="valor-cards"></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 22px;" id="chart-cards"></div>
+  </div>
+</div>
+
+<!-- ==================== LISTA ==================== -->
+<div id="view-lista">
+  <div style="max-width: 1720px; margin: 0 auto; padding: 26px;">
+    <div class="card" style="overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #dedbd5; flex-wrap: wrap;">
+        <div>
+          <div style="font-size: 14px; font-weight: 600;">Panel de control — <span id="lista-mes-label">Agosto 2026</span></div>
+          <div style="font-size: 12px; color: #86817b; margin-top: 2px;">Estado EN EJECUCION o FINALIZADO mueve el trabajo a Planificación.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button onclick="pasarPendientes()" style="padding: 8px 13px; font-size: 12px; font-weight: 500; color: oklch(0.42 0.09 220); background: oklch(0.96 0.014 220); border: 1px solid oklch(0.86 0.03 220); border-radius: 6px; white-space: nowrap;">Pasar no aprobados al siguiente mes</button>
+          <input id="lista-filtro" oninput="renderLista()" placeholder="Buscar cliente, local, trabajo o N°" style="width: 260px; padding: 8px 11px; font-size: 12.5px; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 6px;">
+          <span class="mono" style="font-size: 11px; color: #86817b;" id="lista-count"></span>
+          <button onclick="nuevoPresupuesto()" style="padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: #ffffff; background: oklch(0.52 0.19 25); border: 0; border-radius: 7px; white-space: nowrap;">+ Nuevo</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-inner">
+          <div class="tbl-head grid-lista">
+            <div class="tbl-cell">N° presu</div>
+            <div class="tbl-cell">Fecha</div>
+            <div class="tbl-cell">Cliente</div>
+            <div class="tbl-cell">Local</div>
+            <div class="tbl-cell">Trabajo</div>
+            <div class="tbl-cell" style="text-align:right">Precio venta</div>
+            <div class="tbl-cell" style="text-align:right">Vendido</div>
+            <div class="tbl-cell">Estado</div>
+            <div class="tbl-cell">Prioridad</div>
+            <div class="tbl-cell">Técnico</div>
+            <div></div>
+          </div>
+          <div id="lista-body"></div>
+        </div>
+      </div>
+      <div class="footer-totals" id="lista-footer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PLANIFICACIÓN ==================== -->
+<div id="view-plan">
+  <div style="max-width: 1720px; margin: 0 auto; padding: 26px;">
+    <div class="card" style="overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #dedbd5; flex-wrap: wrap;">
+        <div>
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Planificación de trabajos — <span id="plan-label">Agosto 2026</span></div>
+          <div style="font-size: 12px; color: #86817b;">Trabajos aprobados. Editá técnico, avance, órdenes y facturación.</div>
+          <div style="display: flex; gap: 3px; margin-top: 6px; padding: 3px; background: #f0eee9; border-radius: 8px; align-self: flex-start;" id="plan-carp-btns"></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 3px; padding: 3px; background: #f0eee9; border-radius: 8px;" id="plan-per-btns"></div>
+          <input type="date" id="plan-anc" onchange="renderPlan()" style="padding: 6px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px;">
+          <select id="plan-cli" onchange="renderPlan()" style="padding: 6px 8px; font-size: 11.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px;"><option value="">Todos los clientes</option></select>
+          <button onclick="agregarTarea()" style="padding: 7px 13px; font-size: 12px; font-weight: 600; color: oklch(0.42 0.09 220); background: oklch(0.96 0.014 220); border: 1px solid oklch(0.88 0.04 220); border-radius: 7px; white-space: nowrap;">+ Agregar tarea</button>
+          <button id="plan-pend-btn" onclick="togglePend()" style="padding: 7px 13px; font-size: 12px; font-weight: 500; border-radius: 7px; border: 1px solid #dedbd5; background: #f0eee9; color: #4a4741; white-space: nowrap;">Ver solo pendientes</button>
+          <span class="mono" style="font-size: 11px; color: #86817b;" id="plan-count"></span>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-inner" id="plan-inner">
+          <div id="plan-head" class="tbl-head"></div>
+          <div id="plan-body"></div>
+        </div>
+      </div>
+      <div id="plan-empty" style="display:none; padding: 34px 20px; text-align: center; font-size: 12.5px; color: #a09a92;">No hay tareas para este filtro.</div>
+      <div class="footer-totals" id="plan-footer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SEGUIMIENTO ==================== -->
+<div id="view-seg">
+  <div style="display: flex; flex-direction: column; gap: 18px; padding: 22px 26px 60px; max-width: 1660px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;" id="seg-kpis"></div>
+    <div class="card-dark" style="overflow: hidden;" id="seg-hoy-card"></div>
+    <div class="card" style="overflow-x: auto;" id="seg-tabla-card"></div>
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; padding: 16px 20px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 12px; font-size: 11.5px; line-height: 1.55; color: #6f6b64;">
+      <div style="flex: 1; min-width: 230px;"><span style="font-weight: 600; color: #33312e;">Cómo se cuenta.</span> El día 1 es el día en que enviás el presupuesto. Los demás pasos se calculan solos: sondeo al día siguiente, al tercer día, al quinto y llamada al séptimo.</div>
+      <div style="flex: 1; min-width: 230px;"><span style="font-weight: 600; color: #33312e;">Colores.</span> Verde: paso cumplido. Azul: toca hoy. Rojo: vencido. Gris: todavía no corresponde.</div>
+      <div style="flex: 1; min-width: 230px;"><span style="font-weight: 600; color: #33312e;">Cierre.</span> Cambiá el selector de Cierre a Aprobado o Perdido para retirar el presupuesto del seguimiento activo.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  DATOS Y ESTADO
+// ============================================================
+const KEY_TABLERO   = "twg-tablero-v1";
+const KEY_SEG       = "twg-seguimiento-v1";
+const CARGA_AGOSTO  = "planilla-agosto-2026-v8";
+const EMPRESA       = "The Wealt Group Export Import S.A.";
+const SIM           = "Gs.";
+
+const MESES_ARR = [["08","Agosto"],["09","Septiembre"],["10","Octubre"],["11","Noviembre"],["12","Diciembre"]];
+const MESES_NOM = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DIAS_NOM  = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const MESES_LARGO = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+const PASOS_SEG = [{n:1,off:0,label:"Enviar el presupuesto"},{n:2,off:1,label:"Enviar sondeo"},{n:3,off:2,label:"Sondear"},{n:5,off:4,label:"Sondear"},{n:7,off:6,label:"Llamar"}];
+const CICLO = ["NO","SI","NA"];
+
+const N = (v) => { const n = parseFloat(String(v??'').replace(/\./g,'').replace(/\s/g,'').replace(',','.')); return isFinite(n)?n:0; };
+const money = (n) => (n<0?'-':'')+SIM+' '+Math.abs(Math.round(n)).toLocaleString('es-PY');
+const isoDate = (d) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const deIso = (s) => { const p=String(s||'').split('-'); return new Date(+p[0],+p[1]-1,+p[2]); };
+const sumarDias = (s,n) => { const d=deIso(s); d.setDate(d.getDate()+n); return isoDate(d); };
+const difDias = (a,b) => Math.round((deIso(a)-deIso(b))/86400000);
+const esc = (v) => String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ---- Planilla agosto (datos reales) ----
+// [nro,fecha,cliente,local,trabajo,precio,vendido,alerta,avance,os,informe,facturado,nroFactura,tecnico]
+const AGOSTO_RAW = [
+  ["260807200","07/08/2026","BAHIA","SHELL ÑEMBY 2","CIELORRASO PVC REPARACION",1700000,1700000,"APROBADO","Finalizado","SI","SI","SI","001-001-0003816","OSCAR"],
+  ["260809XXX","07/07/2026","LA ADMINITRADORA","DI CARLO","2 A Y TERRAZA",5222175,5222175,"APROBADO","En Proceso","SI","SI","NO","","EMANUEL"],
+  ["260610127REV.3","","","SHELL CAACUPE","ACONDICIONAMIENTO DE CAMARA SEPTICA",11474377,11474377,"APROBADO","En Proceso","SI","SI","SI","001-001-0003818","WILFRIDO"],
+  ["260610127REV.2","","","SHELL CAACUPE","TAPA POZO CIEGO",4075205,4072205,"APROBADO","En Proceso","SI","SI","SI","001-001-0003817","WILFRIDO"],
+  ["260730201","05/08/2026","BAHIA","SHELL LOMA PYTA","REP. DE PISO DE HORMIGON",14154030,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260730202","30/07/2026","BAHIA","SHELL BAHIA YPACARAI","SUMINISTRO DE CERRADURA",2432520,0,"DE BAJA","Pendiente","NO","NO","NO","","WILFRIDO"],
+  ["260730203","30/07/2026","MAO","SHELL CHACO BOREAL","ESCUELA EN EESS CHACO BOREAL",14217927,0,"ENVIADO","Pendiente","NO","NO","NO","","LUCAS"],
+  ["260803204","03/08/2026","JORGE MARTINEZ","AMPLIACION","AMPLIACION",18968765,0,"DE BAJA","Pendiente","NO","NO","NO","",""],
+  ["260804205","03/08/2026","BAHIA","SHELL AVIADORES","Pinturas varias",24030028,24030028,"APROBADO","Finalizado","SI","SI","SI","001-001-0003822","7"],
+  ["260804206","03/08/2026","BAHIA","SHELL SANTA NI","REFUERZO DE ESTRUCTURA DE TECHO",73277360,0,"ENVIADO","Pendiente","NO","NO","NO","","ALDO"],
+  ["260804208","05/08/2026","MAO","MAO","PROVISION DE SILLAS",1233818,1233818,"APROBADO","Finalizado","NO","NO","NO","","FATIMA"],
+  ["260804209","05/08/2026","BAHIA","SHELL YVAPOVO","REPOSICION DE GOMA DE PISO",1330625,1330625,"APROBADO","En Proceso","SI","SI","SI","001-001-0003820","OSCAR"],
+  ["260807210","07/08/2026","MAO","SHELL CAACUPE","CAMBIO DE POLIGAL",3298867,3298867,"APROBADO","Finalizado","SI","SI","SI","001-001-0003815","WILFRIDO"],
+  ["260807211","07/08/2026","TIGRE","LOGISTICA","FABRICACION Y PROVISION DE PORTA PALET",2471433,2471433,"APROBADO","En Proceso","NA","NA","NA","",""],
+  ["260807212","07/08/2026","LA ADMINISTRADORA","EDIF.LOOK","PINTURA E IMPERMEABILIZACION",12573554,0,"ENVIADO","Pendiente","NO","NO","NO","","RODRIGO"],
+  ["260807213","07/08/2026","BAHIA","SHELL AUTOPISTA","IMPERMEABILIZACION Y REPARACION DE LUCES",7578340,0,"ENVIADO","Pendiente","NO","NO","NO","","FATIMA"],
+  ["260807214","07/08/2026","BAHIA","PETROPAR MRA","TRABAJOS VARIOS",0,0,"DE BAJA","Pendiente","NO","NO","NO","","MAIRA"],
+  ["260807215","07/08/2026","LA ADMINISTRADORA","EDIF. PLATINIUM","REVOQUE Y PINTURA",37303860,0,"DE BAJA","Pendiente","NO","NO","NO","","RODRIGO"],
+  ["260807216REV1","07/08/2026","BAHIA","SHELL LIMPIO 1","REPOSICION DE H°A°",3753048,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260807217","07/08/2026","MAO","SHELL VLLA ELISA","REPARACIONES VARIAS",6990229,0,"DE BAJA","Pendiente","NO","NO","NO","","OSCAR"],
+  ["260804206 REV1","07/08/2026","MAO","SHELL VLLA ELISA","Reposicion de ACM",2218920,2218920,"APROBADO","Finalizado","SI","SI","SI","001-001-0003831","OSCAR"],
+  ["260807218","07/08/2026","BAHIA","SHELL BOTANICO","REPARACION DE CIELORRASO",2088949,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260715156","16/07/2026","MAO","SHELL FIC","TAPAS H°A° POZO Y CAMARA SEPTICA",9052429,9052429,"APROBADO","Finalizado","SI","SI","SI","001-001-0003812","PAULA"],
+  ["260804206REV2","03/08/2026","BAHIA","SHELL BOTANICO","REPARACION DE PARED DURLOCK",2278767,2278767,"APROBADO","Finalizado","SI","SI","SI","001-001-0003828","ABEL"],
+  ["260728188","28/07/2026","MAO","SHELL YPACARAI","MANTENIMIENTOS VARIOS",4054600,4054600,"APROBADO","Finalizado","SI","SI","SI","001-001-0003819","WILFRIDO"],
+  ["260715158","17/07/2026","MAO","SHELL BOTANICO SACRAMENTO","SONDEO Y REPARACION",4215545,4215545,"APROBADO","Finalizado","SI","SI","SI","001-001-0003823","ABEL"],
+  ["260809219","09/08/2026","DR. SANTACRUZ","CASA DE DR","PINTURAS",2000000,0,"APROBADO","Finalizado","NA","SI","SI","001-001-0003844","XIMENA"],
+  ["2608092XX","09/08/2026","DOMINGO SAVIO","AMPLIACION","PROPUESTAS POR HONORARIOS",0,0,"ENVIADO","En Proceso","SI","SI","NO","","GUIDO"],
+  ["260730198","09/08/2026","LA ADMINISTRADORA","DI CARLO","PINTURA E IMPERMEABILIZACION",916364,0,"DE BAJA","En Proceso","NO","NO","NO","","RODRIGO"],
+  ["260811220","10/08/2026","BAHIA","SHELL ÑEMBY 2","REP. DE PUERTA METALICA",1080453,1080453,"APROBADO","En Proceso","SI","SI","SI","001-001-0003830","PAULA"],
+  ["260811221","10/08/2026","CESAR PEREIRA","CESAR PEREIRA","FILTRACION",32623173,0,"ENVIADO","Pendiente","NO","NO","NO","","CESAR PREIRA"],
+  ["260811222","10/08/2026","LA ADMINISTRADORA","EDIF.RIVIERA","PINTURA ESTACIONAMIENTO SUBSUELO",46675649,0,"ENVIADO","Pendiente","NO","NO","NO","","EMANUEL"],
+  ["260811223","11/08/2026","TIGRE","EDIF.LOGISTICA","PINTURA EDIFICIO LOGISTICA",16901830,0,"ENVIADO","Pendiente","NO","NO","NO","",""],
+  ["260812224","12/08/2026","SENA INGENIERIA","VILLETA SENA","REP.MEDIA SOMBRA Y MODIF DE CONTENEDOR",12441660,0,"ENVIADO","Pendiente","NO","NO","NO","","ROSALINO"],
+  ["260813225","13/08/2026","BAHIA","PETROPAR SALTO DEL GUAIRA","DESAGOTE DE POZO CIEGO",5500128,0,"ENVIADO","Pendiente","NO","NO","NO","","MAIRA"],
+  ["260814226","14/08/2026","TIGRE","PLANTA","REPOSICION DE PISO DE H°A°",4423080,4423080,"APROBADO","Finalizado","NA","SI","NO","","ALEXIS"],
+  ["260814227","14/08/2026","BAHIA","SHELL J.A.SALDIVAR","REDIRECCIONAMIENTO DE CAÑERIA",20420989,0,"ENVIADO","Pendiente","NO","NO","NO","","WILFRIDO"],
+  ["260814228","14/08/2026","BAHIA","SHELL PAI PUKU","ASISTENCIA Y DESAGOTE",5154221,5154221,"APROBADO","Finalizado","SI","SI","SI","001-001-0003829","ABEL"],
+  ["260817187REV 2","17/08/2026","TIGRE","LOGISTICA","INSTALACION DE DOS BIODIGESTORES",19664640,19664640,"APROBADO","En Proceso","SI","SI","NO","","ROBERT"],
+  ["260817229","17/08/2026","MAO","MAO","PROVISION DE MATERIALES",2782560,0,"ENVIADO","Pendiente","NO","NO","NO","","CARLOS"],
+  ["260817230","17/08/2026","MAO","SHELL CHACO BOREAL","ASISTENCIA PLOMERIA",352000,352000,"APROBADO","Finalizado","SI","SI","SI","001-001-0003833","ABEL"],
+  ["260817231","17/08/2026","MAO","SHELL BRASILIA","ASISTENCIA MANTENIMINTO DE CANALETA",478500,478500,"APROBADO","Finalizado","SI","SI","SI","001-001-0003832","ABEL"],
+  ["260817232","17/08/2026","BAHIA","SHELL BAHIA ACCESO II","TAPA DE REGISTRO METALICO",1917828,0,"ENVIADO","Pendiente","NO","NO","NO","","OSCAR"],
+  ["260818233","18/08/2026","BAIA","SHELL AVIADORES","LIMPIEZA INTEGRAL RED PLUVIAL",25993077,0,"ENVIADO","Pendiente","NO","NO","NO","","LUCAS"],
+  ["260819234","19/08/2026","BAHIA","SHELL CHACO BOREAL","REPARACION CENTINELA",12355474,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260819235","19/08/2026","BAHIA","SHELL AVIADORES","FILTRACIONES Y RETOQUE DE PINTURA",2500000,2500000,"APROBADO","En Proceso","SI","NO","NO","","LUCAS"],
+  ["260819236","19/08/2026","LA ADMINISTRADORA","RESIDENCIAL DEL CARMEN","FILTRACIONES",4871130,0,"ENVIADO","Pendiente","NO","NO","NO","","EMANUEL"],
+  ["260819234REV2","20/08/2026","BAHIA","SHELL CHACO BOREAL","CAMBIO DE CENTINELAS Y PISO DEP",8713980,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260820237","20/08/2026","BAHIA","SHELL PAI PUKU","ASISTENCIA Y DESAGOTE",2545455,2545455,"APROBADO","En Proceso","SI","SI","SI","","ABEL"],
+  ["260821238","21/08/2026","BAHIA","SHELL PAI PUKU","REACONDICIONAMIENTO DE SISTEMA DE DESAGUE",0,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260824239","24/08/2026","TIGRE","PLANTA","FABRICACION DE PALET",2471433,2471433,"APROBADO","En Proceso","NA","NA","NA","","ALEXIS"],
+  ["260827240","24/08/2026","TIGRE","TIGRE URUGUAY","INSTALACIONES TRATAMIENTO DE AGUA",0,0,"ENVIADO","Pendiente","NO","NO","NO","","Robert"],
+  ["260825241","24/08/2026","BAHIA","SHELL PAI PUKU","REPARACION DE CISTERNAS",4379734,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260825242","25/08/2026","MAO","SHELL BRASILIA","REP. DE PISO H°A° Y TAPAS VARIAS",9103520,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260827243","27/08/2026","MANGURUJU","MANGURUJU SAMBER","REP. DE MADERAS EN GENERAL",0,0,"ENVIADO","Pendiente","NO","NO","NO","","ALEX"],
+  ["260827244","27/08/2026","TIGRE","LOGISTICA","Poda, destronque de palmera y reparación de tubería",7192812,0,"ENVIADO","Pendiente","NO","NO","NO","","ALEXIS"],
+  ["260827245","27/08/2026","BAHIA","SHELL CHACO BOREAL","SERVICIO DE CAMBIO DE CANILLA",650000,0,"ENVIADO","Pendiente","NO","NO","NO","","ABEL"],
+  ["260828246","28/08/2026","TIGRE","PLANTA","Adaptación de portón existente",7698108,0,"APROBADO","En Proceso","NO","NO","NO","","ROBERT"],
+  ["260829247","29/08/2026","BAHIA","AVIADORES","DESMONTAJE Y PINTURA DE PISO",7953382,0,"ENVIADO","Pendiente","NO","NO","NO","","JOSE"]
+];
+
+const fromAgosto = (a,i) => ({
+  id:"ag"+i, nro:a[0], fecha:a[1], cliente:a[2], local:a[3], trabajo:a[4],
+  precio:String(a[5]), vendido:String(a[6]), alerta:a[7], avance:a[8],
+  os:a[9], informe:a[10], facturado:a[11], nroFactura:a[12], tecnico:a[13],
+  prioridad:"Normal", obs:"", pct:"", dias:""
+});
+
+// Arrastre sept: no aprobados ni de baja
+const arrastreSept = () => AGOSTO_RAW
+  .map(fromAgosto)
+  .filter(r => r.alerta !== "APROBADO" && r.alerta !== "DE BAJA")
+  .map((r,i) => Object.assign({},r,{id:"ag09-"+i, arrastre:"08", avance:"Pendiente"}));
+
+// ---- Estado de la aplicación ----
+let state = {
+  tab: "dash",
+  mes: "08",
+  filtro: "",
+  soloPend: false,
+  planPer: "mes",
+  planCli: "",
+  planAnc: isoDate(new Date()),
+  planCarp: "1",
+  planNombres: {"1":"Planificación 1","2":"Planificación 2"},
+  tareas: [],
+  meses: {
+    "08": AGOSTO_RAW.map(fromAgosto),
+    "09": arrastreSept(),
+    "10": [], "11": [], "12": []
+  },
+  seg: []
+};
+
+// ---- Carga desde localStorage ----
+function cargarEstado() {
+  try {
+    const raw = localStorage.getItem(KEY_TABLERO);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.meses) {
+        // Si la planilla agosto no fue cargada en esta versión, la recargamos
+        if (data.carga !== CARGA_AGOSTO) {
+          data.meses["08"] = AGOSTO_RAW.map(fromAgosto);
+          data.meses["09"] = arrastreSept();
+        }
+        state.meses = Object.assign({}, state.meses, data.meses);
+      }
+      if (Array.isArray(data.tareas)) state.tareas = data.tareas;
+      if (data.planNombres) state.planNombres = Object.assign({}, state.planNombres, data.planNombres);
+      if (data.mes) state.mes = data.mes;
+    }
+  } catch(e) {}
+  try {
+    const raw = localStorage.getItem(KEY_SEG);
+    if (raw) { const d = JSON.parse(raw); if (d && Array.isArray(d.seg)) state.seg = d.seg; }
+  } catch(e) {}
+}
+
+function guardarEstado() {
+  try {
+    localStorage.setItem(KEY_TABLERO, JSON.stringify({
+      meses: state.meses, mes: state.mes,
+      tareas: state.tareas, planNombres: state.planNombres,
+      carga: CARGA_AGOSTO
+    }));
+  } catch(e) {}
+  try {
+    localStorage.setItem(KEY_SEG, JSON.stringify({seg: state.seg}));
+  } catch(e) {}
+}
+
+// ============================================================
+//  LÓGICA DE ESTADOS
+// ============================================================
+const ESTADO_DE = (r) => {
+  if (r.alerta==="DE BAJA") return "DE BAJA";
+  if (r.alerta==="APROBADO") return r.avance==="Finalizado" ? "FINALIZADO" : "EN EJECUCION";
+  if (r.alerta==="ENVIADO") return "PENDIENTE APROBACION";
+  if (r.alerta==="FALTA PRESUPUESTAR") return "EN PRESUPUESTO";
+  if (r.alerta==="FALTA RELEVAR") return "PENDIENTE RELEVO";
+  if (!r.alerta) return "SIN CARGAR";
+  return "EN REVISION";
+};
+
+const COLOR_ESTADO = {
+  "FINALIZADO": "oklch(0.62 0.11 150)",
+  "EN EJECUCION": "oklch(0.58 0.11 235)",
+  "PENDIENTE APROBACION": "oklch(0.70 0.13 75)",
+  "DE BAJA": "#b4aea5",
+  "PENDIENTE RELEVO": "oklch(0.66 0.12 40)",
+  "EN PRESUPUESTO": "oklch(0.50 0.21 27)",
+  "SIN CARGAR": "#cfcac2",
+  "EN REVISION": "#b4aea5"
+};
+
+const CHIP_COLORS = {
+  "FINALIZADO": ["oklch(0.42 0.09 150)","oklch(0.95 0.03 150)","oklch(0.86 0.05 150)"],
+  "EN EJECUCION": ["oklch(0.40 0.09 235)","oklch(0.95 0.025 235)","oklch(0.86 0.05 235)"],
+  "PENDIENTE APROBACION": ["oklch(0.45 0.10 70)","oklch(0.96 0.035 80)","oklch(0.88 0.06 80)"],
+  "EN PRESUPUESTO": ["oklch(0.50 0.21 27)","oklch(0.96 0.05 27)","oklch(0.86 0.10 27)"],
+  "PENDIENTE RELEVO": ["oklch(0.45 0.10 40)","oklch(0.96 0.03 40)","oklch(0.88 0.05 40)"],
+  "DE BAJA": ["#7c7770","#f0eee9","#dedbd5"],
+  "SIN CARGAR": ["#8f8a83","#f7f6f3","#e6e2da"],
+  "EN REVISION": ["#6f6b64","#f0eee9","#dedbd5"]
+};
+
+const chipStyle = (estado) => {
+  const c = CHIP_COLORS[estado] || CHIP_COLORS["EN REVISION"];
+  return `display:inline-block;padding:4px 9px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.05em;font-weight:600;border-radius:5px;color:${c[0]};background:${c[1]};border:1px solid ${c[2]};`;
+};
+
+const flagStyle = (v) => {
+  const c = v==="SI" ? ["oklch(0.42 0.09 150)","oklch(0.95 0.03 150)","oklch(0.86 0.05 150)"]
+    : v==="NA" ? ["#8f8a83","#f4f3f0","#dedbd5"]
+    : ["oklch(0.48 0.12 30)","oklch(0.96 0.03 30)","oklch(0.89 0.05 30)"];
+  return `padding:6px 0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;border-radius:6px;cursor:pointer;color:${c[0]};background:${c[1]};border:1px solid ${c[2]};width:100%;`;
+};
+
+const ciclo = (v) => { const i=CICLO.indexOf(v); return CICLO[(i+1)%CICLO.length]; };
+
+const ESTADO_MAP = {
+  "FINALIZADO":          {alerta:"APROBADO",  avance:"Finalizado"},
+  "EN EJECUCION":        {alerta:"APROBADO",  avance:"En Proceso"},
+  "PENDIENTE APROBACION":{alerta:"ENVIADO",   avance:"Pendiente"},
+  "EN PRESUPUESTO":      {alerta:"FALTA PRESUPUESTAR",avance:"Pendiente"},
+  "PENDIENTE RELEVO":    {alerta:"FALTA RELEVAR",avance:"Pendiente"},
+  "DE BAJA":             {alerta:"DE BAJA",   avance:"Pendiente"},
+  "SIN CARGAR":          {alerta:"",          avance:"Pendiente"}
+};
+
+// ============================================================
+//  HELPERS DE MUTACIÓN
+// ============================================================
+function rowsMes() { return state.meses[state.mes] || []; }
+
+function patchRow(id, campos) {
+  state.meses = {...state.meses, [state.mes]: rowsMes().map(r => r.id===id ? {...r,...campos} : r)};
+  guardarEstado();
+}
+
+function patchRowAllMes(id, mes, campos) {
+  const rows = state.meses[mes] || [];
+  state.meses = {...state.meses, [mes]: rows.map(r => r.id===id ? {...r,...campos} : r)};
+  guardarEstado();
+}
+
+function patchTarea(id, campos) {
+  state.tareas = state.tareas.map(t => t.id===id ? {...t,...campos} : t);
+  guardarEstado();
+}
+
+function siguienteNro() {
+  let max = 0;
+  Object.keys(state.meses).forEach(k => (state.meses[k]||[]).forEach(r => {
+    const m = /^P-2026-(\d+)$/.exec(String(r.nro||'').trim());
+    if (m) max = Math.max(max, parseInt(m[1],10));
+  }));
+  return "P-2026-"+String(max+1).padStart(3,'0');
+}
+
+// ============================================================
+//  NAVEGACIÓN / TABS
+// ============================================================
+function setTab(t) {
+  state.tab = t;
+  ['dash','lista','plan','seg'].forEach(k => {
+    document.getElementById('view-'+k).classList.toggle('visible', k===t);
+    document.getElementById('tbtn-'+k).classList.toggle('active', k===t);
+  });
+  render();
+}
+
+function setMes(m) {
+  state.mes = m;
+  guardarEstado();
+  render();
+}
+
+// ============================================================
+//  RENDER PRINCIPAL
+// ============================================================
+function render() {
+  renderMesTabs();
+  if (state.tab==='dash')   renderDash();
+  if (state.tab==='lista')  renderLista();
+  if (state.tab==='plan')   renderPlan();
+  if (state.tab==='seg')    renderSeg();
+  document.getElementById('hdr-mes').textContent = (MESES_ARR.find(x=>x[0]===state.mes)||['',''])[1]+' 2026';
+}
+
+function renderMesTabs() {
+  const c = document.getElementById('mes-tabs');
+  c.innerHTML = '';
+  MESES_ARR.forEach(([num,nom]) => {
+    const rows = state.meses[num] || [];
+    const n = state.tab==='plan' ? rows.filter(r=>r.alerta==='APROBADO').length : rows.length;
+    const btn = document.createElement('button');
+    btn.className = 'mes-btn' + (state.mes===num ? ' active' : '');
+    btn.textContent = nom + (n ? ' · '+n : '');
+    btn.onclick = () => setMes(num);
+    c.appendChild(btn);
+  });
+}
+
+// ============================================================
+//  DASHBOARD
+// ============================================================
+function renderDash() {
+  const rows = rowsMes();
+  const cuenta = (e) => rows.filter(r=>ESTADO_DE(r)===e).length;
+  const vivos = rows.filter(r=>r.alerta!=='DE BAJA');
+  const aprobados = rows.filter(r=>r.alerta==='APROBADO');
+  const cotizado = vivos.reduce((a,r)=>a+N(r.precio),0);
+  const aprobado = aprobados.reduce((a,r)=>a+N(r.precio),0);
+  const facturadas = aprobados.filter(r=>r.facturado==='SI');
+  const facturado = facturadas.reduce((a,r)=>a+N(r.precio),0);
+  const sinPresupuestar = cuenta("EN PRESUPUESTO")+cuenta("PENDIENTE RELEVO")+cuenta("SIN CARGAR")+cuenta("EN REVISION");
+
+  // KPI cards
+  const kpis = [
+    {label:"Presupuestos cargados", val:rows.length, color:"#1b1a18"},
+    {label:"Pendiente aprobación", val:cuenta("PENDIENTE APROBACION"), color:"oklch(0.62 0.13 70)"},
+    {label:"En ejecución", val:cuenta("EN EJECUCION"), color:"oklch(0.52 0.11 220)"},
+    {label:"Finalizados", val:cuenta("FINALIZADO"), color:"oklch(0.55 0.11 150)"},
+    {label:"Sin presupuestar", val:sinPresupuestar, color:"oklch(0.58 0.10 300)"},
+    {label:"De baja", val:cuenta("DE BAJA"), color:"#a09a92"}
+  ];
+  document.getElementById('kpi-cards').innerHTML = kpis.map(k=>`
+    <div class="card" style="padding:18px 20px;">
+      <div class="label-xs">${esc(k.label)}</div>
+      <div class="num-xl" style="color:${k.color}">${k.val}</div>
+    </div>`).join('');
+
+  // Valor cards
+  const tasaCierre = cotizado>0 ? (aprobado/cotizado*100).toLocaleString('es-PY',{maximumFractionDigits:1})+'%' : '0%';
+  const valores = [
+    {label:"Total cotizado",   val:money(cotizado),           sub:"Sin contar los de baja",              color:"#f4f3f0"},
+    {label:"Aprobado / vendido",val:money(aprobado),          sub:"Tasa de cierre "+tasaCierre,           color:"oklch(0.80 0.11 200)"},
+    {label:"Facturado",        val:money(facturado),          sub:facturadas.length+" trabajos facturados",color:"#f4f3f0"},
+    {label:"Por facturar",     val:money(aprobado-facturado), sub:"Aprobado que aún no se facturó",       color:"oklch(0.78 0.13 70)"}
+  ];
+  document.getElementById('hdr-aprobado').textContent = money(aprobado);
+  document.getElementById('valor-cards').innerHTML = valores.map(v=>`
+    <div class="card-dark" style="padding:20px;">
+      <div class="label-xs" style="color:#8f8a83">${esc(v.label)}</div>
+      <div class="num-lg" style="color:${v.color}">${esc(v.val)}</div>
+      <div style="font-size:11.5px;color:#b8b3ac;margin-top:6px;">${esc(v.sub)}</div>
+    </div>`).join('');
+
+  // Chart cards
+  const estados = ["PENDIENTE APROBACION","EN EJECUCION","FINALIZADO","DE BAJA","PENDIENTE RELEVO","EN PRESUPUESTO","SIN CARGAR"];
+  const conteos = estados.map(e=>({label:e,n:cuenta(e)})).filter(x=>x.n>0);
+  const maxN = Math.max(1,...conteos.map(x=>x.n));
+  const bar = (frac,color) => `<div class="bar-fill" style="width:${Math.max(2,Math.round(frac*100))}%;background:${color}"></div>`;
+
+  const cierre = [
+    {label:"Orden de servicio",n:aprobados.filter(r=>r.os==='SI').length},
+    {label:"Informe al cliente",n:aprobados.filter(r=>r.informe==='SI').length},
+    {label:"Facturado",n:facturadas.length}
+  ];
+
+  const porCliente = {};
+  aprobados.forEach(r=>{ const k=(r.cliente||'Sin cliente').trim(); porCliente[k]=(porCliente[k]||0)+N(r.precio); });
+  const clientes = Object.keys(porCliente).map(k=>({label:k,v:porCliente[k]})).sort((a,b)=>b.v-a.v).slice(0,6);
+  const maxCli = Math.max(1,...clientes.map(x=>x.v));
+
+  document.getElementById('chart-cards').innerHTML = `
+    <div class="card" style="padding:20px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px;">Estado de los presupuestos</div>
+      ${conteos.map(b=>`
+        <div style="display:grid;grid-template-columns:160px minmax(0,1fr) 42px;align-items:center;gap:12px;padding:6px 0;">
+          <div style="font-size:12px;color:#4a4741;">${esc(b.label)}</div>
+          <div class="bar-track">${bar(b.n/maxN,COLOR_ESTADO[b.label]||'#b4aea5')}</div>
+          <div class="mono" style="font-size:12.5px;font-weight:600;text-align:right;">${b.n}</div>
+        </div>`).join('')}
+    </div>
+    <div class="card" style="padding:20px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:3px;">Cierre administrativo</div>
+      <div style="font-size:12px;color:#86817b;margin-bottom:16px;">Sobre ${aprobados.length} trabajos aprobados.</div>
+      ${cierre.map(b=>`
+        <div style="display:grid;grid-template-columns:160px minmax(0,1fr) 60px;align-items:center;gap:12px;padding:6px 0;">
+          <div style="font-size:12px;color:#4a4741;">${esc(b.label)}</div>
+          <div class="bar-track">${bar(aprobados.length?b.n/aprobados.length:0,'oklch(0.58 0.11 235)')}</div>
+          <div class="mono" style="font-size:12.5px;font-weight:600;text-align:right;">${b.n} / ${aprobados.length}</div>
+        </div>`).join('')}
+    </div>
+    <div class="card" style="padding:20px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px;">Monto aprobado por cliente</div>
+      ${clientes.map(b=>`
+        <div style="display:grid;grid-template-columns:150px minmax(0,1fr) 130px;align-items:center;gap:12px;padding:6px 0;">
+          <div style="font-size:12px;color:#4a4741;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(b.label)}</div>
+          <div class="bar-track">${bar(b.v/maxCli,'oklch(0.55 0.10 220)')}</div>
+          <div class="mono" style="font-size:12px;font-weight:600;text-align:right;white-space:nowrap;">${money(b.v)}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ============================================================
+//  LISTA
+// ============================================================
+function renderLista() {
+  const rows = rowsMes();
+  const q = (document.getElementById('lista-filtro')||{value:''}).value.trim().toLowerCase();
+  const filtrados = q ? rows.filter(r=>(r.nro+' '+r.cliente+' '+r.local+' '+r.trabajo).toLowerCase().includes(q)) : rows;
+  const visibles = filtrados.filter(r=>!r.arrastre).concat(filtrados.filter(r=>r.arrastre));
+
+  document.getElementById('lista-mes-label').textContent = (MESES_ARR.find(x=>x[0]===state.mes)||['',''])[1]+' 2026';
+  document.getElementById('lista-count').textContent = visibles.length+' de '+rows.length;
+
+  let prevArrastre = false;
+  const html = visibles.map(r => {
+    const estado = ESTADO_DE(r);
+    let sep = '';
+    if (r.arrastre && !prevArrastre) {
+      sep = `<div style="display:flex;align-items:center;gap:12px;padding:14px 8px 10px;border-top:2px solid #1b1a18;">
+        <span class="mono" style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#6f6b64;">Traídos de Agosto 2026</span></div>`;
+    }
+    prevArrastre = !!r.arrastre;
+    return sep+`
+    <div class="tbl-row grid-lista" style="background:${r.arrastre?'#faf9f7':'#ffffff'}">
+      <input class="cell-input mono" style="font-size:12px;" value="${esc(r.nro)}" oninput="patchRow('${r.id}','nro',this.value)">
+      <input class="cell-input mono" style="font-size:11.5px;color:#6f6b64;" value="${esc(r.fecha)}" oninput="patchRow('${r.id}','fecha',this.value)">
+      <input class="cell-input" value="${esc(r.cliente)}" oninput="patchRow('${r.id}','cliente',this.value)">
+      <input class="cell-input" style="color:#6f6b64;" value="${esc(r.local)}" oninput="patchRow('${r.id}','local',this.value)">
+      <input class="cell-input" value="${esc(r.trabajo)}" oninput="patchRow('${r.id}','trabajo',this.value)">
+      <input class="cell-input mono" style="font-size:12.5px;font-weight:600;text-align:right;" value="${esc(r.precio)}" oninput="patchRow('${r.id}','precio',this.value)">
+      <input class="cell-input mono" style="font-size:12.5px;color:oklch(0.45 0.11 150);text-align:right;" placeholder="—" value="${esc(r.vendido||'')}" oninput="patchRow('${r.id}','vendido',this.value)">
+      <div style="padding:6px 8px;">
+        <select class="cell-select" style="${chipStyle(estado)}appearance:none;text-align:center;cursor:pointer;" onchange="setEstado('${r.id}',this.value)">
+          ${['FINALIZADO','EN EJECUCION','PENDIENTE APROBACION','EN PRESUPUESTO','PENDIENTE RELEVO','DE BAJA','SIN CARGAR'].map(e=>`<option value="${e}"${estado===e?' selected':''}>${e}</option>`).join('')}
+        </select>
+      </div>
+      <div style="padding:6px 8px;">
+        <select class="cell-select" onchange="patchRow('${r.id}','prioridad',this.value)">
+          ${['Normal','Alta','Urgente'].map(p=>`<option${r.prioridad===p?' selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <input class="cell-input" style="font-size:12px;color:#6f6b64;" placeholder="—" value="${esc(r.tecnico||'')}" oninput="patchRow('${r.id}','tecnico',this.value)">
+      <button class="btn-del" onclick="delRow('${r.id}')">×</button>
+    </div>`;
+  }).join('');
+
+  document.getElementById('lista-body').innerHTML = html || '<div style="padding:34px 20px;text-align:center;font-size:13px;color:#86817b;">Sin presupuestos para este mes.</div>';
+
+  const presupuestado = rows.reduce((a,r)=>a+N(r.precio),0);
+  const cotizado = rows.filter(r=>r.alerta!=='DE BAJA').reduce((a,r)=>a+N(r.precio),0);
+  const aprobado = rows.filter(r=>r.alerta==='APROBADO').reduce((a,r)=>a+N(r.precio),0);
+  const vendido = rows.reduce((a,r)=>a+N(r.vendido),0);
+  document.getElementById('lista-footer').innerHTML = `
+    <span style="font-size:12px;color:#6f6b64;">Presupuestado</span>
+    <span class="mono" style="font-size:13.5px;color:#6f6b64;white-space:nowrap;">${money(presupuestado)}</span>
+    <span style="font-size:12px;color:#6f6b64;margin-left:10px;">Cotizado vivo</span>
+    <span class="mono" style="font-size:13.5px;color:#6f6b64;white-space:nowrap;">${money(cotizado)}</span>
+    <span style="font-size:12px;color:#6f6b64;margin-left:10px;">Aprobado</span>
+    <span class="mono" style="font-size:13.5px;color:#6f6b64;white-space:nowrap;">${money(aprobado)}</span>
+    <span style="font-size:12px;color:#6f6b64;margin-left:10px;">Vendido</span>
+    <span class="mono" style="font-size:15px;font-weight:600;color:oklch(0.45 0.11 150);white-space:nowrap;">${money(vendido)}</span>`;
+}
+
+function setEstado(id, estado) {
+  const m = ESTADO_MAP[estado];
+  if (!m) return;
+  patchRow(id, m);
+  renderLista();
+  renderDash();
+}
+
+function delRow(id) {
+  if (!confirm('¿Eliminar este presupuesto?')) return;
+  state.meses = {...state.meses, [state.mes]: rowsMes().filter(r=>r.id!==id)};
+  guardarEstado(); renderLista(); renderDash();
+}
+
+function nuevoPresupuesto() {
+  const nro = siguienteNro();
+  const nueva = {id:"n"+Date.now(), nro, fecha:new Date().toLocaleDateString('es-PY'),
+    cliente:"", local:"", trabajo:"", precio:"0", vendido:"",
+    alerta:"FALTA PRESUPUESTAR", avance:"Pendiente",
+    os:"NO", informe:"NO", facturado:"NO", nroFactura:"", tecnico:"",
+    prioridad:"Normal", obs:"", pct:"", dias:""};
+  state.meses = {...state.meses, [state.mes]: [nueva, ...rowsMes()]};
+  guardarEstado(); renderLista();
+}
+
+function pasarPendientes() {
+  const orden = MESES_ARR.map(x=>x[0]);
+  const i = orden.indexOf(state.mes);
+  if (i<0 || i>=orden.length-1) return;
+  const dest = orden[i+1];
+  const mover = rowsMes().filter(r=>r.alerta!=='APROBADO' && r.alerta!=='DE BAJA');
+  if (!mover.length) { alert('No hay presupuestos para mover.'); return; }
+  const ya = new Set((state.meses[dest]||[]).map(r=>(r.nro||'').trim().toLowerCase()));
+  const nuevos = mover.filter(r=>!ya.has((r.nro||'').trim().toLowerCase())).map(r=>({...r,id:"m"+dest+"-"+r.id}));
+  const idsMovidos = new Set(mover.map(r=>r.id));
+  state.meses = {...state.meses,
+    [state.mes]: rowsMes().filter(r=>!idsMovidos.has(r.id)),
+    [dest]: (state.meses[dest]||[]).concat(nuevos)
+  };
+  state.mes = dest;
+  guardarEstado(); render();
+}
+
+// ============================================================
+//  PLANIFICACIÓN
+// ============================================================
+function renderPlan() {
+  const carp = state.planCarp || "1";
+  const nombres = state.planNombres || {"1":"Planificación 1","2":"Planificación 2"};
+  const espejo = carp === "1";
+  const hoy = isoDate(new Date());
+  const ancla = state.planAnc || hoy;
+
+  // Fuente de datos: espejo = aprobados de todos los meses; carp 2 = tareas manuales
+  let tareas;
+  if (espejo) {
+    tareas = [];
+    Object.keys(state.meses).forEach(k => (state.meses[k]||[]).forEach(r => {
+      if (r.alerta==='APROBADO') tareas.push({...r, _mes:k, fecha: aIso(r.fecha)});
+    }));
+  } else {
+    tareas = (state.tareas||[]).filter(t=>!t.bajaNro && String(t.carp||'1')===carp);
+  }
+
+  // Filtro de fecha
+  const dAnc = new Date(ancla+'T12:00:00');
+  const per = state.planPer || 'mes';
+  let rango;
+  if (per==='todo') rango=null;
+  else if (per==='dia') rango=[ancla,ancla];
+  else if (per==='semana') {
+    const ini=new Date(dAnc); ini.setDate(ini.getDate()-((ini.getDay()+6)%7));
+    const fin=new Date(ini); fin.setDate(fin.getDate()+6);
+    rango=[isoDate(ini),isoDate(fin)];
+  } else if (per==='anio') rango=[dAnc.getFullYear()+'-01-01',dAnc.getFullYear()+'-12-31'];
+  else rango=[isoDate(new Date(dAnc.getFullYear(),dAnc.getMonth(),1)),isoDate(new Date(dAnc.getFullYear(),dAnc.getMonth()+1,0))];
+
+  const dentro = (f) => !rango || !String(f||'').trim() || (String(f)>=rango[0]&&String(f)<=rango[1]);
+
+  let planRows = tareas
+    .filter(t=>dentro(t.fecha))
+    .filter(t=>!state.planCli||String(t.cliente||'').trim()===state.planCli)
+    .filter(t=>!state.soloPend||t.avance!=='Finalizado')
+    .sort((a,b)=>String(a.fecha||'').localeCompare(String(b.fecha||'')));
+
+  // Carpeta btns
+  document.getElementById('plan-carp-btns').innerHTML = ['1','2'].map(v=>`
+    <button onclick="setPlanCarp('${v}')" style="padding:6px 13px;font-size:11.5px;font-weight:${carp===v?'600':'500'};border:0;border-radius:6px;cursor:pointer;color:${carp===v?'#1b1a18':'#6f6b64'};background:${carp===v?'#ffffff':'transparent'};">${esc(nombres[v]||'Planificación '+v)}</button>`).join('');
+
+  // Período btns
+  document.getElementById('plan-per-btns').innerHTML = [['dia','Día'],['semana','Semana'],['mes','Mes'],['anio','Año'],['todo','Todo']].map(([v,lbl])=>`
+    <button onclick="setPlanPer('${v}')" style="padding:6px 12px;font-size:11.5px;font-weight:${per===v?'600':'500'};border:0;border-radius:6px;cursor:pointer;color:${per===v?'#1b1a18':'#6f6b64'};background:${per===v?'#ffffff':'transparent'};">${lbl}</button>`).join('');
+
+  // Cliente select
+  const cliSel = document.getElementById('plan-cli');
+  const cliActual = state.planCli||'';
+  const clientes = Array.from(new Set(tareas.map(t=>String(t.cliente||'').trim()).filter(Boolean))).sort();
+  cliSel.innerHTML = '<option value="">Todos los clientes</option>'+clientes.map(c=>`<option${c===cliActual?' selected':''}>${esc(c)}</option>`).join('');
+
+  // Etiqueta
+  const MESL = MESES_NOM;
+  const etq = per==='dia' ? `Día ${dAnc.getDate()} de ${MESL[dAnc.getMonth()]} ${dAnc.getFullYear()}`
+    : per==='semana' && rango ? `Semana del ${new Date(rango[0]+'T12:00:00').getDate()} al ${new Date(rango[1]+'T12:00:00').getDate()} de ${MESL[new Date(rango[1]+'T12:00:00').getMonth()]}`
+    : per==='anio' ? `Año ${dAnc.getFullYear()}`
+    : per==='todo' ? 'Todas las tareas'
+    : MESES_LARGO[dAnc.getMonth()]+' '+dAnc.getFullYear();
+  document.getElementById('plan-label').textContent = etq;
+  document.getElementById('plan-count').textContent = planRows.length+' de '+tareas.length+' tareas';
+
+  const pBtnEl = document.getElementById('plan-pend-btn');
+  if (pBtnEl) { pBtnEl.textContent = state.soloPend?'Mostrando pendientes':'Ver solo pendientes'; pBtnEl.style.cssText = `padding:7px 13px;font-size:12px;font-weight:500;border-radius:7px;cursor:pointer;white-space:nowrap;color:${state.soloPend?'#ffffff':'#4a4741'};background:${state.soloPend?'#1b1a18':'#f0eee9'};border:1px solid ${state.soloPend?'#1b1a18':'#dedbd5'};`; }
+
+  // Head
+  const gridEspejo = '122px 118px 150px minmax(170px,1fr) 118px 146px 74px 60px 66px 66px 66px 130px minmax(140px,0.8fr) 28px';
+  const gridManual = '122px 118px 150px minmax(170px,1fr) 118px 146px 74px 60px minmax(140px,0.8fr) 28px';
+  const grid = espejo ? gridEspejo : gridManual;
+  document.getElementById('plan-inner').style.minWidth = '1500px';
+  document.getElementById('plan-head').style.gridTemplateColumns = grid;
+  document.getElementById('plan-head').innerHTML = `
+    <div class="tbl-cell">Fecha</div><div class="tbl-cell">N° presu</div>
+    <div class="tbl-cell">Cliente / local</div><div class="tbl-cell">Trabajo</div>
+    <div class="tbl-cell">Técnico</div><div class="tbl-cell">Avance</div>
+    <div class="tbl-cell" style="text-align:right">% avance</div><div class="tbl-cell" style="text-align:right">Días</div>
+    ${espejo?'<div class="tbl-cell" style="text-align:center">O. serv.</div><div class="tbl-cell" style="text-align:center">Informe</div><div class="tbl-cell" style="text-align:center">Fact.</div><div class="tbl-cell">N° factura</div>':''}
+    <div class="tbl-cell">Observaciones</div><div></div>`;
+
+  const set = (r, campo, valor) => {
+    if (espejo) patchRowAllMes(r.id, r._mes, campo, valor);
+    else patchTarea(r.id, campo, valor);
+    renderPlan(); renderDash();
+  };
+
+  document.getElementById('plan-empty').style.display = planRows.length?'none':'block';
+  document.getElementById('plan-body').innerHTML = planRows.map(r => `
+    <div class="tbl-row" style="grid-template-columns:${grid};">
+      <input type="date" class="cell-input mono" style="font-size:11.5px;" value="${esc(r.fecha||'')}" onchange="setPlanField('${r.id}','${r._mes||''}','fecha',this.value,${espejo})">
+      <input class="cell-input mono" style="font-size:12px;" placeholder="—" value="${esc(r.nro||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','nro',this.value,${espejo})">
+      <div style="display:flex;flex-direction:column;gap:0;padding:4px 0;">
+        <input class="cell-input" style="padding:4px 8px;font-size:12.5px;font-weight:500;" placeholder="Cliente" value="${esc(r.cliente||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','cliente',this.value,${espejo})">
+        <input class="cell-input" style="padding:4px 8px;font-size:11px;color:#86817b;" placeholder="Local" value="${esc(r.local||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','local',this.value,${espejo})">
+      </div>
+      <input class="cell-input" placeholder="Trabajo" value="${esc(r.trabajo||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','trabajo',this.value,${espejo})">
+      <input class="cell-input" style="font-size:12px;" placeholder="Asignar" value="${esc(r.tecnico||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','tecnico',this.value,${espejo})">
+      <div style="padding:6px 8px;">
+        <select class="cell-select" onchange="setPlanField('${r.id}','${r._mes||''}','avance',this.value,${espejo})">
+          ${['Pendiente','En Proceso','En Espera / Bloqueado','Finalizado'].map(a=>`<option${r.avance===a?' selected':''}>${a}</option>`).join('')}
+        </select>
+      </div>
+      <input class="cell-input mono" style="font-size:12px;font-weight:600;text-align:right;" placeholder="0" value="${esc(r.pct||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','pct',this.value,${espejo})">
+      <input class="cell-input mono" style="font-size:12px;text-align:right;" placeholder="0" value="${esc(r.dias||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','dias',this.value,${espejo})">
+      ${espejo?`
+        <button class="flag-btn" style="${flagStyle(r.os||'NO')}" onclick="setPlanField('${r.id}','${r._mes||''}','os','${ciclo(r.os||'NO')}',${espejo})">${r.os||'NO'}</button>
+        <button class="flag-btn" style="${flagStyle(r.informe||'NO')}" onclick="setPlanField('${r.id}','${r._mes||''}','informe','${ciclo(r.informe||'NO')}',${espejo})">${r.informe||'NO'}</button>
+        <button class="flag-btn" style="${flagStyle(r.facturado||'NO')}" onclick="setPlanField('${r.id}','${r._mes||''}','facturado','${ciclo(r.facturado||'NO')}',${espejo})">${r.facturado||'NO'}</button>
+        <input class="cell-input mono" style="font-size:11.5px;" placeholder="—" value="${esc(r.nroFactura||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','nroFactura',this.value,${espejo})">
+      `:''}
+      <input class="cell-input" style="font-size:12px;color:#6f6b64;" placeholder="—" value="${esc(r.obs||'')}" oninput="setPlanField('${r.id}','${r._mes||''}','obs',this.value,${espejo})">
+      <button class="btn-del" onclick="delPlanRow('${r.id}','${r._mes||''}',${espejo})">×</button>
+    </div>`).join('');
+
+  const dias = planRows.reduce((a,r)=>a+N(r.dias),0);
+  const con = planRows.filter(r=>String(r.pct||'').trim()!=='');
+  const pct = con.length ? Math.round(con.reduce((a,r)=>a+N(r.pct),0)/con.length)+'%' : '0%';
+  const facTotal = espejo ? planRows.filter(r=>r.facturado==='SI').reduce((a,r)=>a+N(r.precio),0) : 0;
+  const porFac = espejo ? planRows.filter(r=>r.facturado!=='SI').reduce((a,r)=>a+N(r.precio),0) : 0;
+  document.getElementById('plan-footer').innerHTML = `
+    <span style="font-size:12px;color:#6f6b64;">Días</span>
+    <span class="mono" style="font-size:13.5px;color:#6f6b64;white-space:nowrap;">${dias} días</span>
+    <span style="font-size:12px;color:#6f6b64;margin-left:10px;">Avance total</span>
+    <span class="mono" style="font-size:15px;font-weight:600;white-space:nowrap;">${pct}</span>
+    ${espejo?`
+      <span style="font-size:12px;color:#6f6b64;margin-left:10px;">Facturado</span>
+      <span class="mono" style="font-size:13.5px;color:#6f6b64;white-space:nowrap;">${money(facTotal)}</span>
+      <span style="font-size:12px;color:#6f6b64;margin-left:10px;">Por facturar</span>
+      <span class="mono" style="font-size:15px;font-weight:600;white-space:nowrap;">${money(porFac)}</span>
+    `:''}`;
+}
+
+function aIso(v) {
+  const t = String(v||'').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t);
+  return m ? m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2) : '';
+}
+
+function setPlanField(id, mes, campo, valor, espejo) {
+  if (espejo && mes) patchRowAllMes(id, mes, campo, valor);
+  else patchTarea(id, campo, valor);
+  renderPlan(); renderDash();
+}
+
+function delPlanRow(id, mes, espejo) {
+  if (espejo && mes) {
+    patchRowAllMes(id, mes, 'alerta', 'ENVIADO');
+  } else {
+    state.tareas = state.tareas.filter(t=>t.id!==id);
+    guardarEstado();
+  }
+  renderPlan(); renderDash();
+}
+
+function setPlanCarp(v) { state.planCarp=v; state.planCli=''; renderPlan(); }
+function setPlanPer(v) { state.planPer=v; renderPlan(); }
+function togglePend() { state.soloPend=!state.soloPend; renderPlan(); }
+
+function agregarTarea() {
+  const carp = state.planCarp||'1';
+  const nueva = {id:"t"+Math.random().toString(36).slice(2,9), carp,
+    fecha:state.planAnc||isoDate(new Date()), nro:'', cliente:state.planCli||'', local:'',
+    trabajo:'', tecnico:'', avance:'Pendiente',
+    os:'NO', informe:'NO', facturado:'NO', nroFactura:'', obs:'', pct:'', dias:''};
+  state.tareas = (state.tareas||[]).concat([nueva]);
+  guardarEstado(); renderPlan();
+}
+
+// ============================================================
+//  SEGUIMIENTO
+// ============================================================
+function renderSeg() {
+  const hoy = isoDate(new Date());
+  const dh = new Date();
+  const archivo = rowsMes();
+  const usados = new Set(state.seg.map(x=>String(x.id)));
+  const activos = state.seg.filter(x=>!x.cerrado);
+
+  // Pendientes de hoy
+  const pendientes = [];
+  activos.forEach(reg => {
+    const px = proximoSeg(reg, hoy);
+    if (!px || px.atraso < 0) return;
+    const info = datosArch(reg.id);
+    const vencido = px.atraso > 0;
+    pendientes.push({reg, px, info, vencido});
+  });
+
+  // KPIs
+  const montoActivos = activos.reduce((a,x)=>a+datosArch(x.id).montoNum,0);
+  document.getElementById('seg-kpis').innerHTML = [
+    {label:"Toca hoy", val:pendientes.filter(p=>!p.vencido).length, color:"oklch(0.50 0.11 240)"},
+    {label:"Atrasados", val:pendientes.filter(p=>p.vencido).length, color:"oklch(0.52 0.19 25)"},
+    {label:"En seguimiento", val:activos.length, color:"#1b1a18"},
+    {label:"Monto en juego", val:money(montoActivos), color:"oklch(0.42 0.13 150)", small:true}
+  ].map(k=>`
+    <div class="card" style="padding:14px 16px;">
+      <div class="label-xs">${esc(k.label)}</div>
+      <div class="mono" style="margin-top:5px;font-size:${k.small?'20':'24'}px;font-weight:600;letter-spacing:-0.02em;color:${k.color}">${k.val}</div>
+    </div>`).join('');
+
+  // Panel de hoy
+  const hoyHtml = pendientes.length===0
+    ? '<div style="padding:30px 20px;text-align:center;font-size:13px;color:#8f8a83;">Nada pendiente para hoy. Todo el seguimiento está al día.</div>'
+    : pendientes.map(({reg,px,info,vencido})=>`
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 190px auto;align-items:center;gap:14px;padding:13px 20px;border-bottom:1px solid #302e2a;">
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+          <div style="font-size:13.5px;font-weight:600;">${esc(info.cliente)}</div>
+          <div style="font-size:11.5px;color:#8f8a83;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(info.nro+' · '+info.obra+' · '+info.monto)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="font-size:12.5px;font-weight:600;color:${vencido?'#ffb4a8':'#ffffff'}">Día ${px.paso.n} — ${esc(px.paso.label)}</div>
+          <div class="mono" style="font-size:10.5px;color:#8f8a83;">${vencido?'Vencido hace '+px.atraso+(px.atraso===1?' día':' días'):'Corresponde hoy'}</div>
+        </div>
+        <div data-noprint="1" style="display:flex;gap:7px;">
+          <button onclick="marcarSeg('${reg.id}',${px.paso.n})" style="padding:8px 13px;font-size:12px;font-weight:600;color:#ffffff;background:oklch(0.50 0.13 150);border:0;border-radius:7px;white-space:nowrap;">Hecho</button>
+          <button onclick="posponerSeg('${reg.id}')" style="padding:8px 11px;font-size:12px;font-weight:600;color:#d8d4cd;background:#302e2a;border:0;border-radius:7px;">+1 día</button>
+        </div>
+      </div>`).join('');
+
+  document.getElementById('seg-hoy-card').innerHTML = `
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 20px;border-bottom:1px solid #302e2a;">
+      <div style="font-size:14px;font-weight:600;">Lo que hay que hacer hoy</div>
+      <div class="mono" style="font-size:11px;color:#8f8a83;">${pendientes.length?pendientes.length+' acciones':'Al día'}</div>
+    </div>
+    ${hoyHtml}`;
+
+  // Tabla seguimiento
+  const disponibles = Object.values(Object.fromEntries(
+    (rowsMes()).filter(r=>!usados.has(String(r.id))).map(r=>[r.id,r])
+  )).map(r=>({id:r.id, etiqueta:(r.nro||'')+'  ·  '+(r.cliente||'Sin cliente')}));
+
+  const filas = state.seg.map(reg => {
+    const info = datosArch(reg.id);
+    const px = proximoSeg(reg, hoy);
+    const pasos = PASOS_SEG.map(p => {
+      const hecho = !!(reg.hechos||{})[p.n];
+      const fecha = sumarDias(reg.envio, p.off+(reg.pospuesto||0));
+      const d = difDias(hoy, fecha);
+      let bg='#f0eee9',col='#86817b',bd='#dedbd5';
+      if (hecho) { bg='oklch(0.50 0.13 150)'; col='#ffffff'; bd='oklch(0.50 0.13 150)'; }
+      else if (reg.cerrado) { bg='#f4f3f0'; col='#b4aea5'; bd='#efedea'; }
+      else if (d===0) { bg='oklch(0.50 0.11 240)'; col='#ffffff'; bd='oklch(0.50 0.11 240)'; }
+      else if (d>0) { bg='oklch(0.95 0.05 25)'; col='oklch(0.48 0.19 25)'; bd='oklch(0.80 0.10 25)'; }
+      const dd = deIso(fecha);
+      return {p, bg, col, bd, hecho, titulo:`Día ${p.n} — ${p.label} · ${dd.getDate()}/${dd.getMonth()+1}`};
+    });
+    let prox='Ciclo completo', proxCuando='Sin pasos pendientes', proxColor='#86817b';
+    if (reg.cerrado) {
+      prox = reg.cerrado==='aprobado'?'Aprobado':(reg.cerrado==='perdido'?'Perdido':'En pausa');
+      proxCuando = 'Fuera del ciclo';
+      proxColor = reg.cerrado==='aprobado'?'oklch(0.42 0.13 150)':'#86817b';
+    } else if (px) {
+      const dd=deIso(px.fecha);
+      prox=`Día ${px.paso.n} — ${px.paso.label}`;
+      proxCuando=px.atraso>0?`Vencido hace ${px.atraso} d`:(px.atraso===0?'Hoy':`El ${dd.getDate()}/${dd.getMonth()+1}`);
+      proxColor=px.atraso>0?'oklch(0.48 0.19 25)':(px.atraso===0?'oklch(0.42 0.11 240)':'#33312e');
+    }
+    const alerta = !reg.cerrado && px && px.atraso>0;
+    return {reg, info, pasos, prox, proxCuando, proxColor, alerta};
+  });
+
+  const tablaHtml = filas.length===0
+    ? '<div style="padding:34px 20px;text-align:center;font-size:13px;color:#86817b;">No hay presupuestos en seguimiento. Sumá uno desde el selector.</div>'
+    : filas.map(({reg,info,pasos,prox,proxCuando,proxColor,alerta})=>`
+      <div class="tbl-row grid-seg" style="min-width:900px;padding:0 20px;background:${alerta?'oklch(0.985 0.012 25)':'#ffffff'}">
+        <div style="display:flex;flex-direction:column;gap:2px;padding:12px 8px 12px 0;min-width:0;">
+          <span style="font-size:13px;font-weight:600;">${esc(info.cliente)}</span>
+          <span style="font-size:11.5px;color:#86817b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(info.obra)}</span>
+        </div>
+        <div class="mono" style="padding:12px 8px;font-size:12px;color:#6f6b64;">${esc(info.nro)}</div>
+        <div class="mono" style="padding:12px 8px;font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap;">${esc(info.monto)}</div>
+        <input type="date" value="${esc(reg.envio||hoy)}" onchange="patchSegField('${reg.id}','envio',this.value)" style="width:100%;margin:8px 4px;padding:6px 4px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:1px solid #efedea;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:4px;padding:10px 8px;">
+          ${pasos.map(({p,bg,col,bd,titulo})=>`<button class="seg-step" title="${esc(titulo)}" onclick="marcarSeg('${reg.id}',${p.n})" style="color:${col};background:${bg};border:1px solid ${bd};">${p.n}</button>`).join('')}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;padding:12px 8px;">
+          <span style="font-size:12px;font-weight:600;color:${proxColor}">${esc(prox)}</span>
+          <span class="mono" style="font-size:10.5px;color:#86817b;">${esc(proxCuando)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;padding:10px 0 10px 8px;">
+          <select onchange="patchSegField('${reg.id}','cerrado',this.value)" style="flex:1;min-width:0;padding:6px 4px;font-size:11.5px;background:transparent;border:1px solid #efedea;border-radius:6px;cursor:pointer;">
+            <option value=""${!reg.cerrado?' selected':''}>Abierto</option>
+            <option value="aprobado"${reg.cerrado==='aprobado'?' selected':''}>Aprobado</option>
+            <option value="perdido"${reg.cerrado==='perdido'?' selected':''}>Perdido</option>
+            <option value="pausado"${reg.cerrado==='pausado'?' selected':''}>En pausa</option>
+          </select>
+          <button onclick="quitarSeg('${reg.id}')" title="Quitar del seguimiento" style="width:22px;height:22px;font-size:15px;line-height:1;color:#b4aea5;background:transparent;border:0;border-radius:5px;cursor:pointer;">×</button>
+        </div>
+      </div>`).join('');
+
+  document.getElementById('seg-tabla-card').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 20px;border-bottom:1px solid #dedbd5;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:14px;font-weight:600;">Presupuestos en seguimiento</div>
+        <div style="font-size:12px;color:#86817b;">Día 1 enviar · día 2 sondeo · día 3 sondear · día 5 sondear · día 7 llamar. Tocá cada paso para marcarlo.</div>
+      </div>
+      <div data-noprint="1" style="display:flex;align-items:center;gap:8px;">
+        <select id="seg-nuevo-id" style="padding:8px 10px;font-size:12.5px;background:#ffffff;border:1px solid #dedbd5;border-radius:7px;cursor:pointer;max-width:300px;">
+          <option value="">Sumar un presupuesto…</option>
+          ${disponibles.map(d=>`<option value="${esc(d.id)}">${esc(d.etiqueta)}</option>`).join('')}
+        </select>
+        <button onclick="sumarSeg()" style="padding:8px 14px;font-size:12.5px;font-weight:600;color:#ffffff;background:oklch(0.52 0.19 25);border:0;border-radius:7px;white-space:nowrap;">Sumar</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(140px,1.3fr) minmax(0,88px) minmax(0,118px) minmax(0,96px) minmax(0,200px) minmax(0,130px) minmax(0,116px);min-width:900px;padding:0 20px;background:#faf9f7;border-bottom:1px solid #dedbd5;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:#86817b;">
+      <div style="padding:9px 8px 9px 0">Cliente y obra</div><div style="padding:9px 8px">N°</div>
+      <div style="padding:9px 8px;text-align:right">Monto</div><div style="padding:9px 8px">Envío</div>
+      <div style="padding:9px 8px">1 · 2 · 3 · 5 · 7</div><div style="padding:9px 8px">Próximo paso</div>
+      <div style="padding:9px 0 9px 8px">Cierre</div>
+    </div>
+    ${tablaHtml}`;
+}
+
+function datosArch(id) {
+  const all = [];
+  Object.values(state.meses).forEach(rows => rows.forEach(r => all.push(r)));
+  const it = all.find(r=>String(r.id)===String(id));
+  if (!it) return {nro:'—', cliente:'Sin cliente', obra:'—', monto:'—', montoNum:0};
+  return {
+    nro: it.nro||'—', cliente: it.cliente||'Sin cliente',
+    obra: it.local||it.trabajo||'—',
+    monto: money(N(it.precio)), montoNum: N(it.precio)
+  };
+}
+
+function proximoSeg(reg, hoy) {
+  for (const p of PASOS_SEG) {
+    if ((reg.hechos||{})[p.n]) continue;
+    const fecha = sumarDias(reg.envio, p.off+(reg.pospuesto||0));
+    return {paso:p, fecha, atraso:difDias(hoy,fecha)};
+  }
+  return null;
+}
+
+function patchSegField(id, campo, valor) {
+  state.seg = state.seg.map(s=>s.id===id?{...s,[campo]:valor}:s);
+  guardarEstado(); renderSeg();
+}
+
+function marcarSeg(id, n) {
+  const s = state.seg.find(x=>x.id===id);
+  if (!s) return;
+  const h = {...(s.hechos||{})};
+  if (h[n]) delete h[n]; else h[n]=isoDate(new Date());
+  state.seg = state.seg.map(x=>x.id===id?{...x,hechos:h}:x);
+  guardarEstado(); renderSeg();
+}
+
+function posponerSeg(id) {
+  state.seg = state.seg.map(s=>s.id===id?{...s,pospuesto:(s.pospuesto||0)+1}:s);
+  guardarEstado(); renderSeg();
+}
+
+function quitarSeg(id) {
+  state.seg = state.seg.filter(s=>s.id!==id);
+  guardarEstado(); renderSeg();
+}
+
+function sumarSeg() {
+  const sel = document.getElementById('seg-nuevo-id');
+  if (!sel || !sel.value) return;
+  const id = sel.value;
+  if (state.seg.find(s=>String(s.id)===String(id))) return;
+  state.seg = state.seg.concat([{id, envio:isoDate(new Date()), hechos:{}, cerrado:"", pospuesto:0}]);
+  guardarEstado(); renderSeg();
+}
+
+// ============================================================
+//  EXCEL EXPORT
+// ============================================================
+function exportarExcel() {
+  const rows = rowsMes();
+  const mes = (MESES_ARR.find(x=>x[0]===state.mes)||['',''])[1]+' 2026';
+  const td = (v,s,num) => '<td style="'+(s||'')+(num?'mso-number-format:\\#\\,\\#\\#0;':'')+'>'+(num?Math.round(N(v)):esc(String(v??'')))+'</td>';
+  const H = "font-weight:bold;background:#EFEDEA;border:0.5pt solid #B0ABA3;";
+  const out = [];
+  out.push('<tr>'+td('PRESUPUESTOS — '+mes.toUpperCase(),'font-weight:bold;font-size:14pt;')+'</tr>');
+  out.push('<tr>'+td(EMPRESA)+td('')+td('Generado '+new Date().toLocaleDateString('es-PY'))+'</tr><tr><td></td></tr>');
+  out.push('<tr>'+['N° presu','Fecha','Cliente','Local','Trabajo','Precio de venta','Vendido','Estado','Avance','O. serv.','Informe','Fact.','N° factura','Técnico'].map(c=>td(c,H)).join('')+'</tr>');
+  let pres=0, vend=0;
+  rows.forEach(r => {
+    pres+=N(r.precio); vend+=N(r.vendido);
+    out.push('<tr>'+td(r.nro)+td(r.fecha)+td(r.cliente)+td(r.local)+td(r.trabajo)
+      +td(r.precio,'',true)+td(r.vendido,'',true)
+      +td(ESTADO_DE(r))+td(r.avance)+td(r.os)+td(r.informe)+td(r.facturado)+td(r.nroFactura)+td(r.tecnico)+'</tr>');
+  });
+  out.push('<tr><td></td></tr>');
+  const T='font-weight:bold;font-size:12pt;background:#1B1A18;color:#FFFFFF;';
+  out.push('<tr>'+td('TOTAL · '+rows.length+' presupuestos',T)+td('',T)+td('',T)+td('',T)+td('',T)+td(pres,T,true)+td(vend,T,true)+td('',T)+td('',T)+td('',T)+td('',T)+td('',T)+td('',T)+td('',T)+'</tr>');
+
+  const html='<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"/>'
+    +'<style>td{font-family:Calibri,Arial,sans-serif;font-size:11pt;vertical-align:top;}</style></head><body>'
+    +'<table>'+out.join('')+'</table></body></html>';
+  const blob=new Blob(['﻿'+html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download='Presupuestos '+mes+'.xls';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },400);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+cargarEstado();
+// Sincronizar ancla de planificación con input
+document.getElementById('plan-anc').value = state.planAnc || isoDate(new Date());
+document.getElementById('plan-anc').addEventListener('change', e => { state.planAnc=e.target.value; renderPlan(); });
+document.getElementById('plan-cli').addEventListener('change', e => { state.planCli=e.target.value; renderPlan(); });
+document.getElementById('lista-filtro').addEventListener('input', () => renderLista());
+
+render();
+</script>
+</body>
+</html>
