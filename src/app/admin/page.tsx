@@ -33,7 +33,8 @@ export default function AdminDashboard() {
       fetchJsonWithStatus<LeadStats>('/api/leads/stats'),
       fetchJsonWithStatus<AnalyticsData>('/api/analytics'),
     ]).then(([p, o, pr, l, a]) => {
-      if (!p.ok || !o.ok || !pr.ok || !l.ok || !a.ok) setFetchError(true);
+      // Solo mostrar error si fallan las APIs críticas (presupuestos o leads)
+      if (!pr.ok || !l.ok) setFetchError(true);
       setProducts(p.data); setOrders(o.data); setPresupuestos(pr.data);
       setLeads(l.data); setAnalytics(a.data); setLoading(false);
     }).catch(() => { setFetchError(true); setLoading(false); });
