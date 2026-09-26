@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, ArrowRight, MessageCircle, Phone, ChevronRight } from 'lucide-react';
@@ -42,7 +42,7 @@ const defaultServices = [
 {id:'6',icon:Factory,title:'Herrería y soldadura',description:'Portones, rejas, escaleras, barandas y trabajos a medida.',category:'metalurgica' as ServiceCategory,features:['Portones automáticos','Rejas de seguridad','Escaleras']},
 ];
 
-export default function ServiciosPage(){
+function ServiciosPageInner(){
  const searchParams = useSearchParams();
  const initialCategory = (searchParams.get('categoria') as ServiceCategory) || 'todos';
  const [activeCategory,setActiveCategory]=useState<ServiceCategory>(initialCategory); const [services,setServices]=useState(defaultServices);
@@ -75,4 +75,8 @@ export default function ServiciosPage(){
   <section className="section bg-[#F4F7FB]"><div className="container-main"><div className="mb-7 flex items-center justify-between"><span className="overline">Servicios profesionales</span><span className="font-body text-body-sm text-[#8094B4]">{filtered.length} servicio{filtered.length!==1?'s':''}</span></div><div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{filtered.map((service:any)=>{const Icon=service.icon;const wa=formatWhatsAppUrl(siteConfig.whatsapp,`Hola, quiero solicitar información sobre ${service.title}.`);const hasImg=!!service.image;const titleCls=hasImg?'mt-6 font-display text-h3 leading-tight text-white group-hover:text-[#7CC4EF]':'mt-6 font-display text-h3 leading-tight text-[#0B1120] group-hover:text-[#2D8FCC]';const descCls=hasImg?'mt-2 font-body text-body-sm leading-relaxed text-white/80':'mt-2 font-body text-body-sm leading-relaxed text-[#4A5E80]';const featCls=hasImg?'flex items-center gap-2 font-body text-caption text-white/75':'flex items-center gap-2 font-body text-caption text-[#4A5E80]';const dotCls=hasImg?'h-1.5 w-1.5 shrink-0 rounded-full bg-[#7CC4EF]':'h-1.5 w-1.5 shrink-0 rounded-full bg-[#2D8FCC]';const iconBoxCls=hasImg?'flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-sm':'flex h-12 w-12 items-center justify-center rounded-xl bg-[#EBF5FB] text-[#2D8FCC]';return <article key={service.id} className={`card-interactive group relative flex flex-col overflow-hidden ${hasImg?'':'p-6'}`}>{hasImg&&<><img src={service.image} alt={service.title} className="absolute inset-0 h-full w-full object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-70"/><div className="absolute inset-0 bg-gradient-to-b from-[#0B1120]/50 via-[#0B1120]/40 to-[#0B1120]/65 pointer-events-none"/></>}<div className={`relative z-10 flex flex-1 flex-col ${hasImg?'p-6':''}`}><div className="flex items-start justify-between gap-4"><div className={iconBoxCls}><Icon className="h-5 w-5"/></div><span className={hasImg?'inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 font-body text-[0.65rem] font-semibold text-white backdrop-blur-sm':'badge-blue'}>{service.category==='civil'?'Civil':service.category==='metalurgica'?'Metalúrgica':'Mantenimiento'}</span></div><h2 className={titleCls}>{service.title}</h2><p className={descCls}>{service.description}</p><ul className="mt-5 space-y-2">{service.features?.map((f:string)=><li key={f} className={featCls}><span className={dotCls}/>{f}</li>)}</ul><div className="mt-auto flex gap-2 pt-6"><Link href={`/contacto?tipo=presupuesto&servicio=${encodeURIComponent(service.title)}&categoria=${encodeURIComponent(service.category)}`} className="btn-primary flex-1">Cotizar <ArrowRight className="h-4 w-4"/></Link><a href={wa} target="_blank" rel="noopener noreferrer" aria-label={`Consultar ${service.title} por WhatsApp`} className="btn-whatsapp px-3"><MessageCircle className="h-4 w-4"/></a></div></div></article>})}</div></div></section>
   <section className="border-t border-gray-200 bg-white py-16"><div className="container-main text-center"><span className="overline">¿Necesitás algo más?</span><h2 className="mt-2 font-display text-h2 text-[#0B1120]">Hablemos de tu proyecto</h2><p className="mx-auto mt-3 max-w-md font-body text-body text-[#4A5E80]">Contanos qué necesitás y te ayudamos a encontrar la solución ideal.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-whatsapp"><MessageCircle className="h-4 w-4"/> WhatsApp</a><Link href="/contacto" className="btn-secondary"><Phone className="h-4 w-4"/> Contactar</Link></div></div></section>
  </>;
+}
+
+export default function ServiciosPage() {
+  return <Suspense fallback={null}><ServiciosPageInner /></Suspense>;
 }
