@@ -293,17 +293,22 @@ function AdminPresupuestosPageInner() {
         />
       )}
 
-      {/* FAB — Asistente IA */}
+      {/* FAB — Asistente IA (Don Ferretex) */}
       {!showAsistente && (
         <button
           onClick={() => setShowAsistente(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-blue-600 px-4 py-3 font-body text-body-sm font-semibold text-white shadow-[0_4px_20px_rgba(37,99,235,0.5)] transition-transform hover:scale-105 hover:bg-blue-700 hover:shadow-[0_6px_24px_rgba(37,99,235,0.65)]"
+          className="fixed bottom-4 right-4 z-40 flex flex-col items-center gap-0 transition-transform hover:scale-105 active:scale-95"
           title="Asistente IA de presupuestos"
+          aria-label="Abrir asistente IA"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
-          </svg>
-          Asistente IA
+          <img
+            src="/boty-avatar.png"
+            alt="Don Ferretex"
+            className="h-20 w-20 drop-shadow-[0_6px_18px_rgba(45,143,204,0.7)]"
+          />
+          <span className="rounded-full bg-blue-600 px-3 py-1 font-body text-[0.65rem] font-bold text-white shadow-md">
+            Asistente IA
+          </span>
         </button>
       )}
     </div>
