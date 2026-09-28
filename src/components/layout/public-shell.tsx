@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { Navbar } from './navbar';
 import { Footer } from './footer';
-import { WhatsAppButton } from './whatsapp-button';
+import { BotyAssistant } from './boty-assistant';
 import type { SiteSettings } from '@/lib/settings-store';
 
 export function PublicShell({ settings, children }: { settings: SiteSettings; children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export function PublicShell({ settings, children }: { settings: SiteSettings; ch
       <Navbar settings={settings} />
       <main className="min-h-screen">{children}</main>
       <Footer settings={settings} showStore={settings.sections?.showStore !== false} />
-      <WhatsAppButton settings={settings} />
+      <BotyAssistant />
     </div>
   );
 }
