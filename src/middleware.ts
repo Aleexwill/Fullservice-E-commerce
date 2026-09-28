@@ -63,6 +63,10 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
+    if (session.mustChangePassword && pathname !== '/admin/cambiar-password') {
+      return NextResponse.redirect(new URL('/admin/cambiar-password', request.url));
+    }
+
     // Role-based route enforcement
     const restricted = RESTRICTED_ROUTES.find(r => pathname.startsWith(r.path));
     if (restricted && !can(session.role, restricted.requiredPermission)) {
