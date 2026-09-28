@@ -86,3 +86,76 @@ export async function sendInvitationEmail({
     html,
   });
 }
+
+export async function sendOrderConfirmationEmail({
+  to,
+  customerName,
+  orderNumber,
+  items,
+  total,
+}: {
+  to: string;
+  customerName: string;
+  orderNumber: string;
+  items: { productName: string; quantity: number; unitPrice: number; total: number }[];
+  total: number;
+}) {
+  if (!to) return;
+  const itemRows = items.map(i => `
+    <tr>
+      <td style="padding:10px 0;font-size:14px;color:#C0CEDF;border-bottom:1px solid #1A2640;">${i.productName}</td>
+      <td style="padding:10px 0;font-size:14px;color:#C0CEDF;border-bottom:1px solid #1A2640;text-align:center;">${i.quantity}</td>
+      <td style="padding:10px 0;font-size:14px;color:#F4F7FB;border-bottom:1px solid #1A2640;text-align:right;">Gs. ${i.total.toLocaleString('es-PY')}</td>
+    </tr>`).join('');
+
+  const html = `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Confirmación de pedido — Full Service & Clean</title></head>
+<body style="margin:0;padding:0;background:#0B1120;font-family:'IBM Plex Sans',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0B1120;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#131B2E;border-radius:8px;border:1px solid #1A2640;overflow:hidden;">
+        <tr>
+          <td style="background:#1A2640;padding:24px 32px;">
+            <p style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#4A5E80;">Full Service & Clean</p>
+            <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#F4F7FB;">Confirmación de pedido</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <p style="margin:0 0 16px;font-size:15px;color:#C0CEDF;line-height:1.6;">Hola <strong style="color:#F4F7FB;">${customerName}</strong>,</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#C0CEDF;line-height:1.6;">Recibimos tu pedido <strong style="color:#3CAAE0;">#${orderNumber}</strong>. Nuestro equipo lo revisará y se pondrá en contacto contigo para coordinar el pago y la entrega.</p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <th style="padding:8px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#4A5E80;text-align:left;border-bottom:1px solid #1A2640;">Producto</th>
+                <th style="padding:8px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#4A5E80;text-align:center;border-bottom:1px solid #1A2640;">Cant.</th>
+                <th style="padding:8px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#4A5E80;text-align:right;border-bottom:1px solid #1A2640;">Total</th>
+              </tr>
+              ${itemRows}
+              <tr>
+                <td colspan="2" style="padding:14px 0 0;font-size:15px;font-weight:700;color:#F4F7FB;">Total</td>
+                <td style="padding:14px 0 0;font-size:15px;font-weight:700;color:#3CAAE0;text-align:right;">Gs. ${total.toLocaleString('es-PY')}</td>
+              </tr>
+            </table>
+            <p style="margin:0;font-size:13px;color:#4A5E80;line-height:1.6;">¿Tenés alguna pregunta? Respondé este email o escribinos al WhatsApp.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#0B1120;padding:16px 32px;border-top:1px solid #1A2640;">
+            <p style="margin:0;font-size:11px;color:#2A3A5C;">Full Service & Clean · ${SITE_URL}</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: `Pedido #${orderNumber} recibido — Full Service & Clean`,
+    html,
+  });
+}
