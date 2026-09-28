@@ -7,6 +7,7 @@ import type { OrderStatus, PaymentStatus } from '@/lib/orders-store';
 import { getEffectivePrice } from '@/lib/products-store';
 import { prisma } from '@/lib/prisma';
 import { parseBody, CreatePedidoSchema } from '@/lib/schemas';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 export async function GET(request: NextRequest) {
   const auth = await requireRole('canManageOrders');
@@ -109,6 +110,16 @@ export async function POST(request: NextRequest) {
       paymentMethod: body.paymentMethod ?? 'pending',
       adminNotes: body.adminNotes ?? '',
     });
+
+    if (order.customer.email) {
+      sendOrderConfirmationEmail({
+        to: order.customer.email,
+        customerName: order.customer.name,
+        orderNumber: order.orderNumber,
+        items: order.items,
+        total: order.total,
+      }).catch(() => null);
+    }
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
