@@ -1,7 +1,6 @@
 import { MetadataRoute } from 'next';
 import { siteConfig } from '@/config/site';
-import { getAllServices } from '@/lib/services-store';
-import { getAllProjects } from '@/lib/portfolio-store';
+import { getAllProducts } from '@/lib/products-store';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.url;
@@ -18,18 +17,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/terminos`, lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
   ];
 
-  let projectRoutes: MetadataRoute.Sitemap = [];
+  let productRoutes: MetadataRoute.Sitemap = [];
   try {
-    const projects = await getAllProjects();
-    projectRoutes = projects
+    const products = await getAllProducts();
+    productRoutes = products
       .filter((p) => p.isActive)
       .map((p) => ({
-        url: `${base}/trabajos/${p.id}`,
+        url: `${base}/tienda/${p.slug}`,
         lastModified: now,
-        changeFrequency: 'monthly' as const,
-        priority: 0.6,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
       }));
   } catch {}
 
-  return [...staticRoutes, ...projectRoutes];
+  return [...staticRoutes, ...productRoutes];
 }

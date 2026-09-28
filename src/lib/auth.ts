@@ -28,10 +28,11 @@ export interface SessionPayload {
   username: string;
   userId?: string;
   role: Role;
+  mustChangePassword?: boolean;
 }
 
-export async function createSessionToken(username: string, role: Role = 'admin', userId?: string): Promise<string> {
-  const payload = JSON.stringify({ u: username, r: role, uid: userId, exp: Date.now() + SESSION_TTL_MS });
+export async function createSessionToken(username: string, role: Role = 'admin', userId?: string, mustChangePassword?: boolean): Promise<string> {
+  const payload = JSON.stringify({ u: username, r: role, uid: userId, mcp: mustChangePassword ?? false, exp: Date.now() + SESSION_TTL_MS });
   const payloadB64 = Buffer.from(payload).toString('base64url');
   const sig = await hmac(payloadB64);
   return `${payloadB64}.${sig}`;
@@ -84,7 +85,7 @@ export async function verifySessionToken(token: string | undefined | null): Prom
   try {
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf-8'));
     if (typeof payload.exp !== 'number' || Date.now() > payload.exp) return null;
-    return { username: payload.u, role: payload.r ?? 'admin', userId: payload.uid };
+    return { username: payload.u, role: payload.r ?? 'admin', userId: payload.uid, mustChangePassword: payload.mcp ?? false };
   } catch {
     return null;
   }
