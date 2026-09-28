@@ -14,6 +14,7 @@ import { NotificationBell } from '@/components/admin/notification-bell';
 import { AdminThemeProvider, AdminShell } from '@/components/admin/theme-provider';
 import { ThemeToggle } from '@/components/admin/theme-toggle';
 import { ToastProvider } from '@/components/admin/toast';
+import { BotyAssistant } from '@/components/admin/boty-assistant';
 
 interface NavGroup {
   label: string;
@@ -134,6 +135,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {children}
       </main>
     </div>
+    <BotyAssistant />
     </ToastProvider>
     </AdminShell>
     </AdminThemeProvider>

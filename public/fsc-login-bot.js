@@ -1,4 +1,3 @@
-
 /*!
  * FSC Login Bot — Boty animado para pantallas de login (Full Service & Clean)
  * Un solo archivo, sin dependencias ni framework. El robot va incluido (3 capas WebP en base64) y se anima en SVG
@@ -18,11 +17,12 @@
  *   <\/script>
  *
  * QUÉ HACE SOLO
- *   · La cabeza y el emblema de la llave siguen el cursor; al escribir el usuario, siguen el cursor de texto.
+ *   · El "ojo" del robot es un visor con código cayendo, escáner y anillos HUD, y alterna entre la llave de la marca y </>.
+ *     Ojo y cabeza siguen el cursor; al escribir el usuario, siguen el cursor de texto y el código se enciende con cada tecla.
  *   · En la contraseña el emblema cambia a un candado y agacha la cabeza (NO lee lo que escribís).
  *     Si mostrás la contraseña, mira para otro lado.
  *   · Avisa si está activado Bloq Mayús. Flota, mueve el brazo y pulsa con cada tecla.
- *   · Cargando: anillo giratorio · Éxito: check verde + pulgar arriba · Error: X roja, sacudida y brazo caído.
+ *   · Cargando: código acelerado + anillo giratorio · Éxito: código verde + check + pulgar arriba · Error: código rojo con glitch, X y brazo caído.
  *
  * OPCIONES: username, password, toggle (elemento o selector) · caption ('' = sin texto bajo el robot) · messages (textos propios)
  * API:      bot.say(texto, ms) · bot.wave() · bot.loading() · bot.success(nombre) · bot.error(texto) · bot.reset() · bot.destroy()
@@ -58,7 +58,7 @@ const CSS = `
 :host { display: block; }
 *, *::before, *::after { box-sizing: border-box; }
 .wrap {
-    --ring: #37b8ff; --glyph: #ffb347; --glow: #ff7a00;
+    --ring: #37b8ff; --glyph: #ffb347; --glow: #ff7a00; --k: 1;
     position: relative; width: 100%; max-width: 340px; margin: 0 auto;
     display: flex; flex-direction: column; align-items: center;
     font: 500 14px/1.3 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #f1f5ff;
@@ -105,7 +105,17 @@ const CSS = `
 .core-use { fill: var(--glyph); stroke: var(--glyph); }
 .glyph { opacity: 0; transition: opacity .18s ease, transform .25s ease; transform-box: fill-box; transform-origin: center; }
 .gl-wrench { opacity: 1; }
+.wrap[data-face="code"] .gl-wrench { opacity: 0; }
+.wrap[data-face="code"] .gl-code { opacity: 1; }
+.wrap.blink[data-face="code"] .gl-code { opacity: .2; }
 .wrap.blink .gl-wrench { opacity: .2; }
+.rain { opacity: .55; transition: opacity .15s ease; }
+.rain text { fill: var(--ring); font: 700 9px ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace; text-anchor: middle; transition: fill .2s; }
+.rain-col { animation: rainFall linear infinite; animation-duration: calc(var(--d) * var(--k)); }
+.wrap.tick .rain { opacity: 1; }
+.scan { fill: var(--ring); opacity: .55; animation: scan 3.2s ease-in-out infinite; }
+.hud-a { fill: none; stroke: var(--ring); stroke-width: 3; stroke-dasharray: 1.6 9; opacity: .75; transform-box: fill-box; transform-origin: center; animation: spin 26s linear infinite; transition: stroke .2s; }
+.emb-ring2 { stroke-dasharray: 14 6; transform-box: fill-box; transform-origin: center; animation: spin 16s linear infinite reverse; }
 .spin-arc { fill: none; stroke: var(--ring); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 60 300; opacity: 0; transform-box: fill-box; transform-origin: center; transition: opacity .2s; }
 
 /* Modos */
@@ -115,6 +125,10 @@ const CSS = `
 .wrap[data-mode="error"]   .gl-cross { opacity: 1; }
 .wrap[data-mode="private"] .g-bow { transform: rotate(-4deg) translateY(6px); }
 .wrap[data-mode="private"] .emb-glow { opacity: .12; }
+.wrap[data-mode="private"] .rain, .wrap[data-mode="private"] .scan { opacity: .06; }
+.wrap[data-mode="loading"] { --k: .4; }
+.wrap[data-mode="success"] .rain { opacity: .7; }
+.wrap[data-mode="error"] .rain { animation: glitch .45s steps(2) 2; }
 
 .wrap[data-mode="loading"] .spin-arc { opacity: 1; animation: spin .9s linear infinite; }
 .wrap[data-mode="loading"] .gl-wrench { animation: pulse .55s ease-in-out infinite alternate; }
@@ -134,6 +148,9 @@ const CSS = `
 @keyframes armSway { 0%, 100% { transform: rotate(-1.4deg); } 50% { transform: rotate(1.8deg); } }
 @keyframes armWave { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-16deg); } 45% { transform: rotate(10deg); } 70% { transform: rotate(-14deg); } 90% { transform: rotate(6deg); } }
 @keyframes thumbs { 0% { transform: rotate(0); } 30% { transform: rotate(-16deg); } 60% { transform: rotate(7deg); } 80% { transform: rotate(-6deg); } 100% { transform: rotate(0); } }
+@keyframes rainFall { from { transform: translateY(-160px); } to { transform: translateY(0); } }
+@keyframes scan { 0% { transform: translateY(-46px); opacity: 0; } 15%, 85% { opacity: .6; } 100% { transform: translateY(46px); opacity: 0; } }
+@keyframes glitch { 0% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 100% { transform: translateX(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { from { opacity: 1; } to { opacity: .35; } }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-14px); } 60% { transform: translateY(0); } 80% { transform: translateY(-5px); } }
@@ -147,12 +164,26 @@ const CSS = `
 /* =====================================================================
    SVG del robot: capas de imagen + emblema vectorial (sus ids se hacen únicos por instancia)
    ===================================================================== */
+/* Columnas de código cayendo dentro del ojo (cada una se repite dos veces para que el bucle no tenga corte) */
+const rainMarkup = () => {
+    const chars = '01<>/{}();=+*#$[]&|', ent = c => (c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '&' ? '&amp;' : c), xs = [-32, -19, -6.5, 6.5, 19, 32];
+    return xs.map((x, i) => {
+        let col = '';
+        for (let r = 0; r < 16; r++) col += '<tspan x="' + x + '" dy="' + (r ? 10 : 0) + '">' + ent(chars[Math.floor(Math.random() * chars.length)]) + '</tspan>';
+        const d = (2.6 + (i * 0.37) % 1.9).toFixed(2), delay = (-(i * 0.9) % 3).toFixed(2);
+        return '<g class="rain-col" style="--d:' + d + 's;animation-delay:' + delay + 's"><text y="-44">' + col + '</text><text y="116">' + col + '</text></g>';
+    }).join('');
+};
+
 const svgMarkup = () => `
 <svg class="bot" viewBox="18 6 416 516" aria-hidden="true" focusable="false">
   <defs>
     <filter id="BLUR" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4"/></filter>
     <filter id="BLUR2" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12"/></filter>
     <radialGradient id="DISC" cx="0.4" cy="0.32" r="0.85"><stop offset="0" stop-color="#2b71a6"/><stop offset=".6" stop-color="#173f6b"/><stop offset="1" stop-color="#0d2748"/></radialGradient>
+    <clipPath id="CLIPEYE"><circle r="44"/></clipPath>
+    <radialGradient id="VIGN"><stop offset=".5" stop-color="#0b2242" stop-opacity="0"/><stop offset="1" stop-color="#0b2242" stop-opacity=".95"/></radialGradient>
+    <g id="GCODE"><path fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M-9 -13 L-23 0 L-9 13 M9 -13 L23 0 L9 13 M4 -17 L-4 17"/></g>
     <g id="GWRENCH"><g transform="translate(-30 -30) scale(2.5)"><path stroke-width="1.6" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></g></g>
     <g id="GLOCK"><rect x="-19" y="-3" width="38" height="28" rx="7" stroke-width="3"/><path fill="none" stroke-width="6" stroke-linecap="round" d="M-11 -5 V-14 a11 11 0 0 1 22 0 V-5"/><circle cx="0" cy="10" r="3.5" stroke-width="2"/></g>
     <g id="GCHECK"><path fill="none" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="M-20 1 L-6 15 L21 -14"/></g>
@@ -167,10 +198,15 @@ const svgMarkup = () => `
       <g transform="translate(205 116)"><g class="g-eyes">
         <circle class="emb-glow" r="56" filter="url(#BLUR2)"/>
         <circle r="49" fill="url(#DISC)"/>
+        <g clip-path="url(#CLIPEYE)"><g class="rain">${rainMarkup()}</g><rect class="scan" x="-44" y="-1.5" width="88" height="3"/></g>
+        <circle r="44" fill="url(#VIGN)"/>
+        <circle r="27" fill="#0a1f3d" opacity=".6" filter="url(#BLUR)"/>
         <circle class="emb-ring" r="47"/>
         <circle class="emb-ring2" r="39"/>
+        <circle class="hud-a" r="53.5"/>
         <circle class="spin-arc" r="56"/>
         <g class="glyph gl-wrench"><use class="halo-use" href="#GWRENCH" filter="url(#BLUR)"/><use class="core-use" href="#GWRENCH"/></g>
+        <g class="glyph gl-code"><use class="halo-use" href="#GCODE" filter="url(#BLUR)"/><use class="core-use" href="#GCODE"/></g>
         <g class="glyph gl-lock"><use class="halo-use" href="#GLOCK" filter="url(#BLUR)"/><use class="core-use" href="#GLOCK"/></g>
         <g class="glyph gl-check"><use class="halo-use" href="#GCHECK" filter="url(#BLUR)"/><use class="core-use" href="#GCHECK"/></g>
         <g class="glyph gl-cross"><use class="halo-use" href="#GCROSS" filter="url(#BLUR)"/><use class="core-use" href="#GCROSS"/></g>
@@ -215,6 +251,7 @@ function mount(container, opts) {
     let caps = false;
     let pointer = null;
     let curMode = '', shownText = '';
+    let faceCode = false, faceTimer = 0;
     let msgTimer = 0, overrideTimer = 0, lockTimer = 0, renderTimer = 0, blinkTimer = 0, tickTimer = 0, waveTimer = 0, welcomeTimer = 0;
     const cleanups = [];
     const on = (t, ev, fn, o) => { if (!t) return; t.addEventListener(ev, fn, o); cleanups.push(() => t.removeEventListener(ev, fn, o)); };
@@ -272,10 +309,18 @@ function mount(container, opts) {
     }
     function kick() { if (!raf) raf = requestAnimationFrame(tick); }
 
+    /* ---- Cara del ojo: llave de la marca <-> </> (solo en estados tranquilos; al escribir el usuario muestra el código) ---- */
+    function applyFace() {
+        const calm = curMode === 'idle' || curMode === 'watch' || curMode === 'away';
+        const f = calm && (curMode === 'watch' || faceCode) ? 'code' : 'wrench';
+        if (wrap.getAttribute('data-face') !== f) wrap.setAttribute('data-face', f);
+    }
+
     /* ---- Render ---- */
     function render() {
         const m = mode();
         if (m !== curMode) { curMode = m; wrap.setAttribute('data-mode', m); }
+        applyFace();
         setMessage(override || (caps && focus === 'pass' && !lock ? msg.caps : msg[m]));
         retarget();
     }
@@ -340,6 +385,7 @@ function mount(container, opts) {
     if (document.activeElement === passEl) focus = 'pass';
     render();
     blinkLoop();
+    if (!reduced) faceTimer = setInterval(() => { faceCode = !faceCode; applyFace(); }, 3600);
     welcomeTimer = setTimeout(wave, 700);              // saludo inicial con el brazo
 
     /* ---- API pública ---- */
@@ -365,11 +411,10 @@ function mount(container, opts) {
         get mode() { return curMode; },
         destroy() {
             [blinkTimer, msgTimer, overrideTimer, lockTimer, renderTimer, tickTimer, waveTimer, welcomeTimer].forEach(clearTimeout);
-            cancelAnimationFrame(raf); cleanups.forEach(fn => fn()); host.remove();
+            clearInterval(faceTimer); cancelAnimationFrame(raf); cleanups.forEach(fn => fn()); host.remove();
         }
     };
 }
 
 window.FSCLoginBot = { mount };
 })();
-
