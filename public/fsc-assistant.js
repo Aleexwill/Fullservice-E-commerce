@@ -50,27 +50,29 @@ const DEFAULTS = {
 /* ⚠ PRECIOS Y TIEMPOS DE EJEMPLO: reemplazar por los valores reales del taller.
    `re` se prueba contra el texto del usuario (minúsculas, sin tildes). `pri` desempata. */
 const SERVICES = [
-    { id: 'aceite',     group: 'mant', short: 'Cambio de aceite',  name: 'Cambio de aceite y filtros',       from: 'Gs. 250.000', time: '45 min', re: /aceite|filtro|lubric/ },
-    { id: 'frenos',     group: 'mant', short: 'Frenos',            name: 'Revisión y cambio de frenos',      from: 'Gs. 350.000', time: '2 h',    re: /freno|pastilla/ },
-    { id: 'motor',      group: 'mant', short: 'Diagnóstico motor', name: 'Diagnóstico de motor (scanner)',   from: 'Gs. 180.000', time: '1 h',    re: /diagnost|scanner|escaner|check engine|motor/ },
-    { id: 'alineacion', group: 'mant', short: 'Alineación',        name: 'Alineación y balanceo',            from: 'Gs. 200.000', time: '1 h',    re: /alinea|balanceo|neumatic|cubierta|goma/ },
-    { id: 'lavado',     group: 'det',  short: 'Lavado VIP',        name: 'Lavado VIP completo',              from: 'Gs. 120.000', time: '1 h 30', re: /\bvip\b|lavado|lavar/ },
-    { id: 'pulido',     group: 'det',  short: 'Pulido y encerado', name: 'Pulido y encerado',                from: 'Gs. 450.000', time: '4 h',    re: /pulid|encer|cera|ceramic/, pri: 1 },
-    { id: 'interior',   group: 'det',  short: 'Interior',          name: 'Limpieza de tapizados e interior', from: 'Gs. 300.000', time: '3 h',    re: /interior|tapiz|asiento/, pri: 1 },
-    { id: 'chasis',     group: 'det',  short: 'Lavado de chasis',  name: 'Lavado de chasis y motor',         from: 'Gs. 150.000', time: '1 h',    re: /chasis/, pri: 2 }
+    { id: 'mant_gral',  group: 'mant', short: 'Mantenimiento',       name: 'Mantenimiento general de instalaciones', from: 'A consultar', time: 'Según alcance', re: /mantenim|instalacion|edific|plomeria|electri|pintura|cerrajeria|piso/, pri: 1 },
+    { id: 'limp_ind',   group: 'limp', short: 'Limpieza industrial',  name: 'Limpieza industrial y de obra',          from: 'A consultar', time: 'Según alcance', re: /limp.*ind|obra|fabrica|galpón|galpon|almacen/ },
+    { id: 'limp_prof',  group: 'limp', short: 'Limpieza profesional', name: 'Limpieza profesional de espacios',       from: 'A consultar', time: 'Según alcance', re: /limp|aseo|higien|desinfec|sanitiz|vidrio|ventana/, pri: 2 },
+    { id: 'civil',      group: 'obra', short: 'Obras civiles',        name: 'Construcción y obras civiles',           from: 'A consultar', time: 'Según proyecto', re: /civil|construcc|obra|refaccion|ampliacion|revoque|mamposteria/ },
+    { id: 'metal',      group: 'obra', short: 'Metalúrgica',          name: 'Trabajos de metalurgia y estructuras',   from: 'A consultar', time: 'Según proyecto', re: /metal|herreria|soldad|estructura|reja|porton|chapa/ },
+    { id: 'tienda',     group: 'shop', short: 'Ver tienda',           name: 'Tienda online de productos',             from: '',            time: '',              re: /tienda|producto|comprar|catalogo|herramienta|material/ }
 ];
 
-const STATUS_STEPS = ['Recibido', 'Diagnóstico', 'En proceso', 'Control de calidad', 'Listo para retirar'];
+const STATUS_STEPS = ['Recibido', 'En evaluación', 'Presupuestado', 'En ejecución', 'Finalizado'];
 
-/* Órdenes de demostración. En producción reemplaza `lookupOrder` por una llamada a tu API/ERP. */
-const DEMO_ORDERS = {
-    ABC123: { vehicle: 'Toyota Hilux 2019', service: 'Cambio de aceite y frenos', step: 2, eta: 'Hoy, 16:30' },
-    XYZ789: { vehicle: 'Kia Sportage 2021', service: 'Lavado VIP completo',      step: 4, eta: 'Ya puedes retirarlo' }
+const PAGE_LINKS = {
+    servicios:    '/servicios',
+    tienda:       '/tienda',
+    trabajos:     '/trabajos',
+    contacto:     '/contacto',
+    presupuesto:  '/contacto?tipo=presupuesto',
+    nosotros:     '/nosotros',
 };
-function lookupOrder(plate) { return DEMO_ORDERS[plate] || null; }
 
-const MENU = ['🔧 Agendar cita', '🧼 Lavado & Detailing', '📋 Estado de mi auto', '💲 Precios', '🕒 Horarios'];
-const WAVE_LINES = ['¡Hola! 👋', '¿Necesitas ayuda?', '¡A tu servicio! 🔧'];
+function lookupOrder() { return null; }
+
+const MENU = ['🔧 Nuestros servicios', '🏪 Ver tienda', '📋 Solicitar presupuesto', '🕒 Horarios', '📍 Ubicación'];
+const WAVE_LINES = ['¡Hola! 👋', '¿En qué te ayudamos?', '¡A tu servicio! 🔧'];
 
 /* Lee opciones desde los atributos data-* del <script> */
 function readScriptOptions() {
@@ -596,7 +598,7 @@ function submitUser(text, chipEl) {
     enqueue(() => respond(text));
 }
 function showWelcome() {
-    addBot('¡Hola! 🛠️ Soy <b>' + esc(CONFIG.botName) + '</b>, el asistente de <b>' + esc(CONFIG.businessName) + '</b>. ¿En qué puedo ayudarte hoy? Elige una opción o escríbeme.', MENU);
+    addBot('¡Hola! 🛠️ Soy <b>' + esc(CONFIG.botName) + '</b>, el asistente de <b>' + esc(CONFIG.businessName) + '</b>. Te ayudo con servicios, presupuestos y más. ¿En qué puedo ayudarte?', MENU);
 }
 function clearChat() {
     poke(); epoch++; flow = null;
@@ -609,10 +611,12 @@ function clearChat() {
    INTENCIONES Y FLUJOS
    ===================================================================== */
 const RX = {
-    status:  /(estado|seguimiento|como va|placa|esta listo|ya esta listo)/,
-    price:   /(precio|costo|cuesta|cuanto|cotiz|tarifa|valor|presupuesto)/,
-    booking: /(agend|turno|cita|reserv|mantenim|aceite|freno|motor|alinea|balanceo|revision|diagnost|mecanic)/,
-    detail:  /(lavad|detail|limpi|pulid|encer|tapiz|interior|chasis|vip)/,
+    status:  /(estado|seguimiento|como va|esta listo|ya esta listo|mi pedido|mi presupuesto)/,
+    price:   /(precio|costo|cuesta|cuanto|cotiz|tarifa|valor)/,
+    presup:  /(presupuesto|cotizacion|solicitar|pedir|necesito|quiero contratar)/,
+    booking: /(agend|turno|cita|reserv|servicio|limpieza|mantenimi|obra|construcc|metal|herreria)/,
+    tienda:  /(tienda|producto|comprar|catalogo|herramienta|material|articulo)/,
+    trabajos:/(trabajo|proyecto|portafolio|referencia|ejemplo|cliente|hicieron)/,
     hours:   /(horario|a que hora|abren|abierto|cierran|atienden)/,
     place:   /(ubicacion|direccion|donde|mapa|llegar|quedan)/,
     contact: /(contacto|whatsapp|telefono|llamar|asesor|humano|persona|hablar)/,
@@ -638,51 +642,74 @@ async function respond(raw) {
 
 async function handleIntent(raw, t) {
     if (RX.status.test(t)) return beginStatus();
-    if (RX.price.test(t)) return showPrices();
-    if (RX.booking.test(t)) return beginBooking(t);
-    if (RX.detail.test(t)) return showDetailing();
+    if (RX.presup.test(t)) return showPresupuesto();
+    if (RX.tienda.test(t)) return showTienda();
+    if (RX.trabajos.test(t)) return showTrabajos();
+    if (RX.booking.test(t)) return showServicios(t);
+    if (RX.price.test(t)) return showPresupuesto();
     if (RX.hours.test(t)) {
-        return bot('Nuestro horario de atención es:<br><b>' + esc(CONFIG.hours) + '</b>' + demoNote('Horario de ejemplo: edita "hours".'),
-            { chips: ['🔧 Agendar cita', 'Menú principal'], say: 'Este es nuestro horario 🕒' });
+        return bot('Nuestro horario de atención es:<br><b>' + esc(CONFIG.hours) + '</b>',
+            { chips: ['📋 Solicitar presupuesto', 'Menú principal'], say: 'Este es nuestro horario 🕒' });
     }
     if (RX.place.test(t)) {
         return bot(CONFIG.address
-            ? 'Nos encuentras en:<br><b>' + esc(CONFIG.address) + '</b>'
-            : 'Escríbenos o llámanos y te compartimos la ubicación exacta del taller. 📍' + demoNote('Configura "address" para mostrar la dirección.'),
-            { chips: ['Hablar con un asesor', 'Menú principal'], say: 'Nuestra ubicación 📍' });
+            ? 'Nos encontrás en:<br><b>' + esc(CONFIG.address) + '</b>'
+            : 'Operamos en <b>Asunción y Gran Asunción</b>. Escribinos y coordinamos una visita. 📍',
+            { chips: ['📋 Solicitar presupuesto', 'Hablar con un asesor'], say: 'Nuestra ubicación 📍' });
     }
     if (RX.contact.test(t)) {
         const wa = waNumber();
         const link = wa
             ? '<a class="wa-btn" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">' + icon('chat') + ' Abrir WhatsApp</a>'
-            : demoNote('Configura "whatsapp" para mostrar el enlace directo.');
-        return bot('Con gusto te conecto con un asesor del taller. 🙋' + link, { chips: ['Menú principal'], say: 'Te paso con un asesor' });
+            : '';
+        return bot('Con gusto te conecto con un asesor. 🙋' + link, { chips: ['Menú principal'], say: 'Te paso con un asesor' });
     }
-    if (RX.thanks.test(t)) return bot('¡Un placer ayudarte! 🔧 Si necesitas algo más, aquí estaré.', { mood: 'thumbs', chips: MENU });
+    if (RX.thanks.test(t)) return bot('¡Un placer! 🔧 Si necesitás algo más, aquí estoy.', { mood: 'thumbs', chips: MENU });
     if (RX.hello.test(t)) {
-        return bot('¡Hola! 😊 Soy <b>' + esc(CONFIG.botName) + '</b>, el asistente de <b>' + esc(CONFIG.businessName) + '</b>. Puedo agendar tu cita, cotizar un lavado o consultar el estado de tu vehículo. ¿Qué necesitas?',
+        return bot('¡Hola! 😊 Soy <b>' + esc(CONFIG.botName) + '</b>, el asistente de <b>' + esc(CONFIG.businessName) + '</b>. Te ayudo con información sobre nuestros servicios, presupuestos y tienda. ¿Qué necesitás?',
             { chips: MENU, mood: 'wave', say: '¡Hola! ¿En qué te ayudo?' });
     }
-    if (RX.help.test(t)) return sayMenu('Esto es lo que puedo hacer por ti:');
-    return bot('Mmm, no logré entender eso 🤔. Prueba con una de estas opciones o cuéntame con otras palabras qué necesitas.',
+    if (RX.help.test(t)) return sayMenu('Esto es lo que puedo hacer por vos:');
+    return bot('Mmm, no logré entender eso 🤔. Probá con una de estas opciones o contame con otras palabras qué necesitás.',
         { chips: MENU, say: 'No te entendí, ¿probamos otra vez?' });
 }
 
-/* ---------- Precios y detailing ---------- */
-const priceRows = group => list(group).map(s => '<div class="prow"><span>' + esc(s.name) + '</span><em>' + esc(s.from) + '</em></div>').join('');
-function showPrices() {
-    return bot('Estos son nuestros <b>precios de referencia</b> (desde):' +
-        '<div class="sec">🔧 Mantenimiento</div>' + priceRows('mant') +
-        '<div class="sec">🧼 Detailing &amp; Clean</div>' + priceRows('det') +
-        '<div class="mut" style="margin-top:8px">El valor final depende del vehículo y se confirma en el taller.</div>' +
-        demoNote('Precios de ejemplo: edita SERVICES.'),
-        { chips: ['🔧 Agendar cita', 'Menú principal'], say: 'Precios de referencia 💲' });
+/* ---------- Servicios ---------- */
+function showServicios(t) {
+    const svc = matchService(t);
+    const svcs = SERVICES.filter(s => s.group !== 'shop');
+    const intro = svc
+        ? 'Brindamos <b>' + esc(svc.name) + '</b> y mucho más. Estos son todos nuestros servicios:'
+        : 'En <b>Full Service & Clean</b> cubrimos:';
+    return bot(intro +
+        '<ul class="list">' + svcs.map(s => '<li>• <b>' + esc(s.name) + '</b></li>').join('') + '</ul>' +
+        'Trabajamos para empresas, industrias y hogares en Asunción y Gran Asunción.',
+        { chips: ['📋 Solicitar presupuesto', '🏪 Ver tienda', 'Hablar con un asesor'], say: 'Nuestros servicios 🔧' });
 }
-function showDetailing() {
-    const det = list('det');
-    return bot('Nuestro servicio de <b>Detailing &amp; Clean</b> deja tu vehículo como nuevo. ✨ Opciones:' +
-        '<ul class="list">' + det.map(s => '<li>• <b>' + esc(s.name) + '</b> <span class="mut">(~' + esc(s.time) + ')</span></li>').join('') + '</ul>',
-        { chips: det.map(s => 'Agendar ' + s.short).concat('💲 Precios'), say: 'Detailing & Clean ✨' });
+
+/* ---------- Presupuesto ---------- */
+function showPresupuesto() {
+    const wa = waNumber();
+    const waLink = wa ? '<a class="wa-btn" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">' + icon('chat') + ' WhatsApp</a>' : '';
+    return bot('Podés pedir tu presupuesto sin costo por dos vías:<br>' +
+        '• <a href="' + PAGE_LINKS.presupuesto + '" style="color:#6FC3F5;text-decoration:underline">Formulario en línea</a><br>' +
+        '• Por WhatsApp directamente' + waLink +
+        '<div class="mut" style="margin-top:6px">Respondemos en menos de 24 h hábiles.</div>',
+        { chips: ['🔧 Nuestros servicios', 'Menú principal'], say: 'Solicitar presupuesto 📋' });
+}
+
+/* ---------- Tienda ---------- */
+function showTienda() {
+    return bot('En nuestra <b>tienda online</b> encontrás herramientas y materiales de las mejores marcas, con envío a domicilio. 🛒' +
+        '<br><a href="' + PAGE_LINKS.tienda + '" style="color:#6FC3F5;text-decoration:underline">Ver toda la tienda →</a>',
+        { chips: ['📋 Solicitar presupuesto', 'Menú principal'], say: 'Tienda online 🏪' });
+}
+
+/* ---------- Trabajos ---------- */
+function showTrabajos() {
+    return bot('Tenemos un portfolio de trabajos realizados para empresas e industrias de la región. 🏗️' +
+        '<br><a href="' + PAGE_LINKS.trabajos + '" style="color:#6FC3F5;text-decoration:underline">Ver trabajos destacados →</a>',
+        { chips: ['📋 Solicitar presupuesto', 'Menú principal'], say: 'Trabajos destacados 🏗️' });
 }
 
 /* ---------- Agendar cita ---------- */
@@ -700,14 +727,7 @@ function dayChips() {
 const SLOTS = ['Mañana (08:00–12:00)', 'Tarde (14:00–17:00)', 'Lo antes posible'];
 
 function beginBooking(t) {
-    flow = { type: 'booking', step: 'service', data: {}, tries: 0 };
-    const svc = matchService(t);
-    if (svc) {
-        flow.data.service = svc; flow.step = 'vehicle';
-        return bot('¡Perfecto! <b>' + esc(svc.name) + '</b>. 🚗 ¿Qué vehículo es? (marca, modelo y año)', { say: '¿Qué vehículo es?' });
-    }
-    const group = RX.detail.test(t) ? 'det' : /mantenim/.test(t) ? 'mant' : null;
-    return bot('¡Con gusto! ¿Qué servicio necesitas?', { chips: list(group).map(s => s.short), say: '¿Qué servicio necesitas?' });
+    return showServicios(t);
 }
 function bookingSummary(d) {
     return '<div class="summary">' +
