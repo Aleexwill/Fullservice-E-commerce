@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Package, ShoppingCart, Users, FileText, Settings, LogOut,
+  LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
-  TrendingUp, Calculator, Layers, Megaphone, Menu, X,
+  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Inbox,
+  Image as ImageIcon, Tag, Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
@@ -15,41 +16,40 @@ import { AdminThemeProvider, AdminShell } from '@/components/admin/theme-provide
 import { ThemeToggle } from '@/components/admin/theme-toggle';
 import { ToastProvider } from '@/components/admin/toast';
 
-interface NavGroup {
-  label: string;
-  items: { href: string; label: string; icon: any; exact?: boolean }[];
-}
+interface NavItem { href: string; label: string; icon: any; exact?: boolean; badge?: number }
+interface NavGroup { label: string; items: NavItem[] }
 
 const navGroups: NavGroup[] = [
   { label: '', items: [{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true }] },
   { label: 'E-Commerce', items: [
     { href: '/admin/productos', label: 'Productos', icon: Package },
     { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
-    { href: '/admin/reportes/ecommerce', label: 'Reporte E-com', icon: TrendingUp },
+    { href: '/admin/promos', label: 'Promociones', icon: Tag },
+    { href: '/admin/reportes/ecommerce', label: 'Reporte ventas', icon: TrendingUp },
   ]},
   { label: 'Servicios', items: [
     { href: '/admin/presupuestos', label: 'Presupuestos', icon: Calculator },
-    { href: '/admin/presupuestos/solicitudes', label: 'Solicitudes web', icon: FileText },
-    { href: '/admin/inventario', label: 'Lista de Precio', icon: ClipboardList },
-    { href: '/admin/reportes/servicios', label: 'Reporte Serv.', icon: ClipboardList },
+    { href: '/admin/presupuestos/solicitudes', label: 'Solicitudes web', icon: Inbox },
+    { href: '/admin/inventario', label: 'Lista de precios', icon: ClipboardList },
+    { href: '/admin/reportes/servicios', label: 'Reporte servicios', icon: BarChart3 },
   ]},
   { label: 'Sitio Web', items: [
     { href: '/admin/contenido', label: 'Contenido', icon: PenSquare },
     { href: '/admin/servicios', label: 'Servicios', icon: Wrench },
-    { href: '/admin/trabajos', label: 'Trabajos destacados', icon: FolderOpen },
-    { href: '/admin/clientes-logo', label: 'Clientes', icon: Users },
-    { href: '/admin/carousel', label: 'Carrusel hero', icon: Layers },
-    { href: '/admin/promos', label: 'Banners / Promos', icon: Megaphone },
+    { href: '/admin/trabajos', label: 'Portfolio', icon: FolderOpen },
+    { href: '/admin/carousel', label: 'Carrusel hero', icon: ImageIcon },
+    { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers },
+    { href: '/admin/banners', label: 'Banners', icon: Megaphone },
   ]},
-  { label: 'Marketing', items: [
-    { href: '/admin/clientes', label: 'Clientes', icon: Users },
-    { href: '/admin/leads', label: 'Leads', icon: Users },
+  { label: 'Clientes & CRM', items: [
+    { href: '/admin/clientes', label: 'Clientes', icon: UserCheck },
+    { href: '/admin/leads', label: 'Leads', icon: Inbox },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   ]},
   { label: 'Sistema', items: [
-    { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
-    { href: '/admin/reportes', label: 'Reporte General', icon: FileText, exact: true },
-    { href: '/admin/config', label: 'Configuracion', icon: Settings },
+    { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog },
+    { href: '/admin/reportes', label: 'Reporte general', icon: FileText, exact: true },
+    { href: '/admin/config', label: 'Configuración', icon: Settings },
   ]},
 ];
 
@@ -67,33 +67,71 @@ function getPageLabel(pathname: string): string {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingReceipts, setPendingReceipts] = useState(0);
   const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
   const pageLabel = getPageLabel(pathname);
 
+  // Count orders with receipt_submitted for badge on Pedidos
+  useEffect(() => {
+    fetch('/api/pedidos?status=pending')
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (!d?.orders) return;
+        const count = d.orders.filter((o: any) => o.paymentStatus === 'receipt_submitted').length;
+        setPendingReceipts(count);
+      })
+      .catch(() => {});
+  }, [pathname]);
+
   if (pathname === '/admin/login') return <>{children}</>;
+
+  // Inject badge into Pedidos nav item
+  const navGroupsWithBadges = navGroups.map((g) => ({
+    ...g,
+    items: g.items.map((item) =>
+      item.href === '/admin/pedidos' ? { ...item, badge: pendingReceipts } : item
+    ),
+  }));
 
   const SidebarContent = () => (
     <>
       <div className="flex h-[60px] items-center justify-between border-b border-steel-900/40 px-4">
-        <Image src="/logo.png" alt="Full Service & Clean" width={140} height={44} className="object-contain" />
-        <span className="badge-blue text-[0.6rem] font-bold">Admin</span>
+        <Image src="/logo.png" alt="Full Service & Clean" width={130} height={44} className="object-contain" />
+        <span className="badge-blue text-[0.6rem] font-bold tracking-widest">ADMIN</span>
       </div>
-      <nav className="flex-1 overflow-y-auto p-3" aria-label="Navegación principal">
-        {navGroups.map((group, gi) => (
-          <div key={gi} className={gi > 0 ? 'mt-1 border-t border-steel-900/30 pt-3' : ''}>
-            {group.label && <p className="mb-1.5 px-3 font-body text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-steel-500">{group.label}</p>}
-            <div className="space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Navegación principal">
+        {navGroupsWithBadges.map((group, gi) => (
+          <div key={gi} className={gi > 0 ? 'mt-2 border-t border-steel-900/30 pt-2' : ''}>
+            {group.label && (
+              <p className="mb-1 px-3 pt-1 font-body text-[0.6rem] font-bold uppercase tracking-[0.12em] text-steel-600">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-px">
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href, item.exact);
                 return (
-                  <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)} className={cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2.5 font-body text-body-sm transition-all',
-                    active ? 'bg-blue-muted text-blue-bright font-medium' : 'text-steel-300 hover:bg-steel-900 hover:text-arctic'
-                  )}>
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {item.label}
-                    {active && <ChevronRight className="ml-auto h-3 w-3" />}
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      'group flex items-center gap-2.5 rounded-lg px-3 py-2 font-body text-[0.8rem] transition-all duration-150',
+                      active
+                        ? 'bg-blue-muted/70 text-blue-bright font-semibold shadow-[inset_0_0_0_1px_rgba(45,143,204,.18)]'
+                        : 'text-steel-400 hover:bg-steel-900/60 hover:text-arctic'
+                    )}
+                  >
+                    <Icon className={cn('h-[15px] w-[15px] shrink-0 transition-colors', active ? 'text-blue-bright' : 'text-steel-500 group-hover:text-arctic')} />
+                    <span className="flex-1 leading-none">{item.label}</span>
+                    {item.badge && item.badge > 0 ? (
+                      <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E65C4F] px-1 text-[0.6rem] font-bold text-white">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    ) : active ? (
+                      <ChevronRight className="ml-auto h-3 w-3 opacity-60" />
+                    ) : null}
                   </Link>
                 );
               })}
@@ -101,11 +139,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         ))}
       </nav>
-      <div className="border-t border-steel-900/40 p-3">
-        <div className="mb-2 rounded-md bg-steel-900/50 px-3 py-2"><p className="font-body text-caption font-medium text-arctic">Administrador</p></div>
-        <div className="flex gap-1">
-          <Link href="/" className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 font-body text-caption text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"><Eye className="h-3.5 w-3.5" />Ver sitio</Link>
-          <button type="button" onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); window.location.href = '/admin/login'; }} className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 font-body text-caption text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"><LogOut className="h-3.5 w-3.5" />Salir</button>
+      <div className="border-t border-steel-900/40 p-2.5">
+        <div className="mb-2 flex items-center gap-2 rounded-lg bg-steel-900/40 px-3 py-2.5">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-muted text-blue-bright">
+            <UserCog className="h-3.5 w-3.5" />
+          </div>
+          <p className="font-body text-caption font-medium text-arctic">Administrador</p>
+        </div>
+        <div className="grid grid-cols-2 gap-1">
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-body text-[0.72rem] text-steel-500 transition-colors hover:bg-steel-900 hover:text-arctic"
+          >
+            <Eye className="h-3.5 w-3.5" />Ver sitio
+          </Link>
+          <button
+            type="button"
+            onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); window.location.href = '/admin/login'; }}
+            className="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-body text-[0.72rem] text-steel-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+          >
+            <LogOut className="h-3.5 w-3.5" />Salir
+          </button>
         </div>
       </div>
     </>
@@ -116,20 +170,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <AdminShell>
     <ToastProvider>
     <div className="flex min-h-screen bg-carbon">
-{sidebarOpen && <div className="fixed inset-0 z-40 bg-carbon/70 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
-      <aside className={cn('fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200', 'lg:translate-x-0', sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}>
-        <button onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú" className="absolute right-3 top-3 rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic lg:hidden"><X className="h-4 w-4" /></button>
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-carbon/70 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <aside className={cn(
+        'fixed left-0 top-0 z-50 flex h-full w-[220px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200',
+        'lg:translate-x-0',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      )}>
+        <button
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Cerrar menú"
+          className="absolute right-2 top-2.5 rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic lg:hidden"
+        >
+          <X className="h-4 w-4" />
+        </button>
         <SidebarContent />
       </aside>
-      <main className="min-h-screen flex-1 lg:ml-[240px]">
-        <div className="sticky top-0 z-40 flex h-[52px] items-center gap-3 border-b border-steel-900/40 bg-carbon-light px-4">
-          <button onClick={() => setSidebarOpen(true)} aria-label="Abrir menú" className="rounded-md p-2 text-steel-400 hover:bg-steel-900 hover:text-arctic lg:hidden"><Menu className="h-5 w-5" /></button>
+      <main className="min-h-screen flex-1 lg:ml-[220px]">
+        <div className="sticky top-0 z-40 flex h-[52px] items-center gap-3 border-b border-steel-900/40 bg-carbon-light/95 px-4 backdrop-blur-sm">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menú"
+            className="rounded-md p-2 text-steel-400 hover:bg-steel-900 hover:text-arctic lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
           {pageLabel && (
-            <span className="font-body text-body-sm font-medium text-steel-400 lg:block hidden">
+            <span className="hidden font-body text-body-sm font-medium text-steel-400 lg:block">
               {pageLabel}
             </span>
           )}
-          <div className="ml-auto flex items-center gap-1"><ThemeToggle /><NotificationBell /></div>
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
+            <NotificationBell />
+          </div>
         </div>
         {children}
       </main>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { fetchJson } from '@/lib/utils';
 import { useToast } from '@/components/admin/toast';
+import NextImage from 'next/image';
 import {
   Search,
   RefreshCw,
@@ -25,6 +26,9 @@ import {
   Loader2,
   ShoppingCart,
   Trash2,
+  Upload,
+  BadgeCheck,
+  Receipt,
 } from 'lucide-react';
 
 interface Order {
@@ -40,6 +44,11 @@ interface Order {
   total: number;
   paymentMethod: string;
   adminNotes: string;
+  transferReceiptUrl?: string;
+  transferReceiptAt?: string;
+  paymentConfirmedAt?: string;
+  paymentConfirmedBy?: string;
+  adminReceiptUrl?: string;
   createdAt: string;
 }
 
@@ -54,6 +63,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; b
 
 const PAYMENT_CONFIG: Record<string, { label: string; badge: string }> = {
   pending: { label: 'Pendiente', badge: 'badge-yellow' },
+  receipt_submitted: { label: 'Comprobante enviado', badge: 'badge-blue' },
   paid: { label: 'Pagado', badge: 'badge-green' },
   refunded: { label: 'Reembolsado', badge: 'badge-neutral' },
   failed: { label: 'Fallido', badge: 'badge-red' },
@@ -71,6 +81,9 @@ export default function AdminPedidosPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [total, setTotal] = useState(0);
+  const [adminReceiptUrl, setAdminReceiptUrl] = useState('');
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const [savingReceipt, setSavingReceipt] = useState(false);
 
   const fetchOrders = useCallback(() => {
     setLoading(true);
@@ -108,6 +121,37 @@ export default function AdminPedidosPage() {
       fetchOrders();
       if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, paymentStatus });
     } catch { showToast('Error de conexión', 'error'); }
+  };
+
+  const confirmPayment = async (id: string) => {
+    setConfirmingPayment(true);
+    try {
+      const res = await fetch(`/api/pedidos/${id}/confirm-payment`, { method: 'POST' });
+      if (!res.ok) { showToast('Error al confirmar pago', 'error'); return; }
+      const data = await res.json();
+      showToast('Pago confirmado', 'success');
+      fetchOrders();
+      if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, paymentStatus: data.paymentStatus, status: data.status, paymentConfirmedAt: new Date().toISOString() });
+    } catch { showToast('Error de conexión', 'error'); }
+    finally { setConfirmingPayment(false); }
+  };
+
+  const saveAdminReceipt = async (id: string) => {
+    if (!adminReceiptUrl.trim()) return;
+    setSavingReceipt(true);
+    try {
+      const res = await fetch(`/api/pedidos/${id}/admin-receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiptUrl: adminReceiptUrl.trim() }),
+      });
+      if (!res.ok) { showToast('Error al guardar comprobante', 'error'); return; }
+      showToast('Comprobante guardado', 'success');
+      setAdminReceiptUrl('');
+      fetchOrders();
+      if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, adminReceiptUrl: adminReceiptUrl.trim() });
+    } catch { showToast('Error de conexión', 'error'); }
+    finally { setSavingReceipt(false); }
   };
 
   const deleteOrder = async (id: string) => {
@@ -185,7 +229,7 @@ export default function AdminPedidosPage() {
                     <td className="px-4 py-3 font-body text-caption text-steel-500">{formatDate(o.createdAt)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <button onClick={() => setSelectedOrder(o)} className="rounded p-1.5 text-steel-500 hover:bg-blue-muted hover:text-blue-bright" title="Ver detalle"><Eye className="h-4 w-4" /></button>
+                        <button onClick={() => { setSelectedOrder(o); setAdminReceiptUrl(''); }} className="rounded p-1.5 text-steel-500 hover:bg-blue-muted hover:text-blue-bright" title="Ver detalle"><Eye className="h-4 w-4" /></button>
                         <button onClick={() => deleteOrder(o.id)} className="rounded p-1.5 text-steel-500 hover:bg-red-500/10 hover:text-red-400" title="Eliminar"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </td>
@@ -207,7 +251,7 @@ export default function AdminPedidosPage() {
                 <h2 className="font-display text-h2 text-arctic">{selectedOrder.orderNumber}</h2>
                 <p className="font-body text-caption text-steel-500">{formatDate(selectedOrder.createdAt)}</p>
               </div>
-              <button onClick={() => setSelectedOrder(null)} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"><X className="h-5 w-5" /></button>
+              <button onClick={() => { setSelectedOrder(null); setAdminReceiptUrl(''); }} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"><X className="h-5 w-5" /></button>
             </div>
             <div className="space-y-5 p-6">
               {/* Status controls */}
@@ -261,6 +305,86 @@ export default function AdminPedidosPage() {
                   <div className="flex justify-between"><span className="text-steel-300">Envio</span><span className="font-mono text-arctic">{formatGs(selectedOrder.shipping)}</span></div>
                   {selectedOrder.discount > 0 && <div className="flex justify-between"><span className="text-steel-300">Descuento</span><span className="font-mono text-success-bright">-{formatGs(selectedOrder.discount)}</span></div>}
                   <div className="flex justify-between border-t border-steel-900/40 pt-2"><span className="font-display text-h4 text-arctic">Total</span><span className="font-display text-h3 text-arctic">{formatGs(selectedOrder.total)}</span></div>
+                </div>
+              </div>
+
+              {/* Comprobante del cliente */}
+              {selectedOrder.paymentMethod === 'transferencia' && (
+                <div className="card p-4 space-y-3">
+                  <h3 className="flex items-center gap-2 font-display text-h4 text-arctic">
+                    <Receipt className="h-4 w-4 text-blue-bright" /> Comprobante del cliente
+                  </h3>
+                  {selectedOrder.transferReceiptUrl ? (
+                    <div className="space-y-2">
+                      <a href={selectedOrder.transferReceiptUrl} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg border border-steel-900/40 hover:border-blue-bright/40 transition-colors">
+                        <NextImage
+                          src={selectedOrder.transferReceiptUrl}
+                          alt="Comprobante de transferencia"
+                          width={600}
+                          height={400}
+                          className="max-h-56 w-full object-contain bg-carbon"
+                          unoptimized
+                        />
+                      </a>
+                      {selectedOrder.transferReceiptAt && (
+                        <p className="font-body text-caption text-steel-500">Recibido: {formatDate(selectedOrder.transferReceiptAt)}</p>
+                      )}
+                      {selectedOrder.paymentStatus !== 'paid' && !selectedOrder.paymentConfirmedAt && (
+                        <button
+                          onClick={() => confirmPayment(selectedOrder.id)}
+                          disabled={confirmingPayment}
+                          className="btn-primary w-full justify-center gap-2"
+                        >
+                          {confirmingPayment ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+                          Confirmar pago recibido
+                        </button>
+                      )}
+                      {selectedOrder.paymentConfirmedAt && (
+                        <div className="flex items-center gap-2 rounded-md bg-success-light px-3 py-2 text-success-bright">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span className="font-body text-caption font-medium">Pago confirmado {selectedOrder.paymentConfirmedBy ? `por ${selectedOrder.paymentConfirmedBy}` : ''}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="font-body text-caption text-steel-500">El cliente aún no envió el comprobante.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Comprobante del admin */}
+              <div className="card p-4 space-y-3">
+                <h3 className="flex items-center gap-2 font-display text-h4 text-arctic">
+                  <Upload className="h-4 w-4 text-blue-bright" /> Comprobante del vendedor
+                </h3>
+                {selectedOrder.adminReceiptUrl && (
+                  <a href={selectedOrder.adminReceiptUrl} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg border border-steel-900/40 hover:border-blue-bright/40 transition-colors">
+                    <NextImage
+                      src={selectedOrder.adminReceiptUrl}
+                      alt="Comprobante vendedor"
+                      width={600}
+                      height={400}
+                      className="max-h-48 w-full object-contain bg-carbon"
+                      unoptimized
+                    />
+                  </a>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    className="input min-w-0 flex-1"
+                    placeholder="URL del comprobante (imagen)"
+                    value={adminReceiptUrl}
+                    onChange={(e) => setAdminReceiptUrl(e.target.value)}
+                  />
+                  <button
+                    onClick={() => saveAdminReceipt(selectedOrder.id)}
+                    disabled={savingReceipt || !adminReceiptUrl.trim()}
+                    className="btn-secondary shrink-0 gap-1.5"
+                  >
+                    {savingReceipt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    Guardar
+                  </button>
                 </div>
               </div>
             </div>

@@ -117,11 +117,17 @@ export default function CheckoutPage() {
           )}
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
-              Enviar comprobante por WhatsApp
-            </a>
-            <Link href="/tienda" className="btn-secondary">Seguir comprando</Link>
+            {confirmedOrder.paymentMethod === 'transferencia' && (
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                Enviar comprobante por WhatsApp
+              </a>
+            )}
+            <Link href="/cuenta" className="btn-secondary">Ver mis pedidos</Link>
+            <Link href="/tienda" className="btn-ghost">Seguir comprando</Link>
           </div>
+          <p className="mt-4 font-body text-caption text-[#8094B4]">
+            Te llegará un email para activar tu cuenta y adjuntar el comprobante desde el portal.
+          </p>
         </div>
       </section>
     );
