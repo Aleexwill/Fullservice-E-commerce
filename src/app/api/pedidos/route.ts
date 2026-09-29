@@ -8,6 +8,7 @@ import { getEffectivePrice } from '@/lib/products-store';
 import { prisma } from '@/lib/prisma';
 import { parseBody, CreatePedidoSchema } from '@/lib/schemas';
 import { sendOrderConfirmationEmail } from '@/lib/email';
+import { findOrCreateCustomerByEmail } from '@/lib/customer-auth';
 
 export async function GET(request: NextRequest) {
   const auth = await requireRole('canManageOrders');
@@ -91,6 +92,16 @@ export async function POST(request: NextRequest) {
 
     const shipping = body.shipping ?? 0;
     const discount = body.discount ?? 0;
+    // Crear/recuperar cuenta de cliente automáticamente por email
+    let customerAccountId: string | undefined;
+    if (body.customer.email) {
+      customerAccountId = await findOrCreateCustomerByEmail(
+        body.customer.email,
+        body.customer.name,
+        body.customer.phone ?? '',
+      ).catch(() => undefined);
+    }
+
     const order = await createOrder({
       status: (body.status ?? 'pending') as OrderStatus,
       paymentStatus: (body.paymentStatus ?? 'pending') as PaymentStatus,
@@ -109,6 +120,7 @@ export async function POST(request: NextRequest) {
       total: subtotal + shipping - discount,
       paymentMethod: body.paymentMethod ?? 'pending',
       adminNotes: body.adminNotes ?? '',
+      customerAccountId,
     });
 
     if (order.customer.email) {
