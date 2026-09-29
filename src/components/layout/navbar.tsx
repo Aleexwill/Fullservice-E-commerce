@@ -52,7 +52,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
           </div>
 
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
-            <Link href="/contacto?tipo=presupuesto" className="btn-primary ml-1 hidden gap-2 xl:inline-flex">Presupuesto <ArrowRight className="h-3.5 w-3.5" /></Link>
+            <Link href="/tienda" className="btn-primary ml-1 hidden gap-2 xl:inline-flex">Tienda <ArrowRight className="h-3.5 w-3.5" /></Link>
             <button onClick={() => setIsOpen(!isOpen)} className="rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white lg:hidden" aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={isOpen} aria-controls="mobile-navigation">
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -68,7 +68,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
             <div className="grid gap-1 sm:grid-cols-2">
               {navLinks.map((link) => <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)} className="rounded-xl px-4 py-3.5 font-body text-sm font-semibold uppercase tracking-[.05em] text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white">{link.label}</Link>)}
             </div>
-            <Link href="/contacto?tipo=presupuesto" onClick={() => setIsOpen(false)} className="btn-primary mt-3 w-full justify-center">Pedir presupuesto <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/tienda" onClick={() => setIsOpen(false)} className="btn-primary mt-3 w-full justify-center">Ver tienda <ArrowRight className="h-4 w-4" /></Link>
           </div>
         </div>
       </nav>

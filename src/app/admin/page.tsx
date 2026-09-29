@@ -10,7 +10,7 @@ import { fetchJsonWithStatus } from '@/lib/utils';
 
 interface ProductStats { total: number; active: number; totalStock: number; totalValue: number; outOfStock: number; featured: number; categoriesCount: number; brandsCount: number; }
 interface OrderStats { total: number; byStatus: Record<string, number>; totalRevenue: number; activeRevenue: number; paidRevenue: number; }
-interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; approvedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; byStatus: Record<string, number>; }
+interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; approvedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; totalAprobado: number; totalFacturado: number; byStatus: Record<string, number>; }
 interface LeadStats { total: number; newLeads: number; converted: number; conversionRate: number; totalEstimated: number; }
 interface AnalyticsData { totalViews: number; todayViews: number; weekViews: number; }
 
@@ -33,8 +33,7 @@ export default function AdminDashboard() {
       fetchJsonWithStatus<LeadStats>('/api/leads/stats'),
       fetchJsonWithStatus<AnalyticsData>('/api/analytics'),
     ]).then(([p, o, pr, l, a]) => {
-      // Solo mostrar error si fallan las APIs críticas (presupuestos o leads)
-      if (!pr.ok || !l.ok) setFetchError(true);
+      if (!p.ok || !o.ok || !pr.ok || !l.ok || !a.ok) setFetchError(true);
       setProducts(p.data); setOrders(o.data); setPresupuestos(pr.data);
       setLeads(l.data); setAnalytics(a.data); setLoading(false);
     }).catch(() => { setFetchError(true); setLoading(false); });
@@ -148,9 +147,9 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: 'Estimado total', value: formatGs(presupuestos?.totalEstimated || 0), icon: DollarSign, color: 'text-yellow-bright', bg: 'bg-yellow-muted' },
-              { label: 'Facturado', value: formatGs(presupuestos?.totalFinal || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
+              { label: 'Finalizado', value: formatGs(presupuestos?.totalFacturado || 0), icon: CheckCircle2, color: 'text-success-bright', bg: 'bg-success-light' },
               { label: 'Nuevos', value: (presupuestos?.nuevos || 0).toString(), icon: FileText, color: 'text-blue-bright', bg: 'bg-blue-muted' },
-              { label: 'Tasa aprobacion', value: `${presupuestos?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light' },
+              { label: 'Tasa conversion', value: `${presupuestos?.conversionRate || 0}%`, icon: TrendingUp, color: 'text-success-bright', bg: 'bg-success-light' },
             ].map((k) => { const Icon = k.icon; return (
               <div key={k.label} className="card p-3">
                 <div className="flex items-center gap-1.5"><Icon className={`h-3.5 w-3.5 ${k.color}`} /><span className="font-body text-caption text-steel-500">{k.label}</span></div>
@@ -237,7 +236,7 @@ export default function AdminDashboard() {
             <div className="card p-3">
               <div className="flex items-center justify-between">
                 <div><p className="font-body text-caption text-steel-500">Estimado total</p><p className="font-display text-h3 text-arctic">{formatGs(presupuestos?.totalEstimated || 0)}</p></div>
-                <div className="text-right"><p className="font-body text-caption text-steel-500">Facturado</p><p className="font-display text-h3 text-success-bright">{formatGs(presupuestos?.totalFinal || 0)}</p></div>
+                <div className="text-right"><p className="font-body text-caption text-steel-500">Finalizado</p><p className="font-display text-h3 text-success-bright">{formatGs(presupuestos?.totalFacturado || 0)}</p></div>
               </div>
             </div>
           </div>
