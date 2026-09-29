@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  a { color: oklch(0.40 0.09 150); }
+  a:hover { color: oklch(0.30 0.09 150); }
+  input, select, button, textarea { font: inherit; }
+  @page { size: A4 portrait; margin: 10mm; }
+  @media print { html, body { background: #fff !important; } [data-noprint] { display: none !important; } [data-hoja] { border: 0 !important; box-shadow: none !important; padding: 0 !important; max-width: none !important; break-after: page; } [data-hoja]:last-child { break-after: auto; } [data-keep] { break-inside: avoid; } }
+</style>
+<script>
+  // Escape vuelve a la página anterior, salvo mientras se escribe en un campo.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || e.defaultPrevented || window.__escBack === false || document.querySelector("image-slot[data-reframe]")) return;
+    var t = e.target, tag = t && t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) { t.blur(); return; }
+    if (history.length > 1) history.back();
+  });
+</script>
+</helmet>
+
+<div style="min-height: 100vh; font-family: 'IBM Plex Sans', sans-serif; color: #1b1a18; display: flex; flex-direction: column;">
+
+  <div data-noprint="1" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 24px; background: #1b1a18; color: #f4f3f0;">
+    <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+      <div style="font-size: 17px; font-weight: 700;">Biodigestores</div>
+      <div style="font-size: 12.5px; color: #c9c5bd;">Proyectos con tres opciones · precios maestros compartidos</div>
+    </div>
+    <div style="display: flex; gap: 4px; background: #33312e; padding: 3px; border-radius: 6px;">
+      <button onClick="{{ onTabProy }}" style="border: 0; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; background: {{ tabProyBg }}; color: {{ tabProyFg }};">Proyectos</button>
+      <button onClick="{{ onTabPrecios }}" style="border: 0; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; background: {{ tabPreciosBg }}; color: {{ tabPreciosFg }};">Precios maestros</button>
+      <button onClick="{{ onTabArch }}" style="border: 0; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; background: {{ tabArchBg }}; color: {{ tabArchFg }};">Archivo</button>
+      <button onClick="{{ onTabProp }}" style="border: 0; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; background: {{ tabPropBg }}; color: {{ tabPropFg }};">Propuesta al cliente</button>
+      <button onClick="{{ onTabLista }}" style="border: 0; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; background: {{ tabListaBg }}; color: {{ tabListaFg }};">Lista de materiales</button>
+    </div>
+  </div>
+
+  <sc-if value="{{ enProy }}" hint-placeholder-val="{{ true }}">
+    <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch;">
+
+      <div style="flex: 1 1 220px; max-width: 100%; box-sizing: border-box; background: #fff; border-right: 1px solid #dedad3; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px;">
+        <button onClick="{{ onNuevo }}" style="border: 0; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; background: oklch(0.42 0.09 150); color: #fff;">+ Nuevo proyecto</button>
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6f6b64; margin-top: 6px;">Proyectos</div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <sc-for list="{{ lista }}" as="p" hint-placeholder-count="2">
+            <button onClick="{{ p.onSel }}" style="text-align: left; border: 1px solid {{ p.borde }}; background: {{ p.bg }}; border-radius: 6px; padding: 9px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 13px; font-weight: 600; color: #1b1a18;">{{ p.cliente }}</span>
+              <span style="font-size: 11.5px; color: #6f6b64;">{{ p.detalle }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex: 999 1 880px; box-sizing: border-box; padding: 20px 24px 40px; display: flex; flex-direction: column; gap: 18px; min-width: 0;">
+
+        <div style="background: #fff; border: 1px solid #dedad3; border-radius: 8px; padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; align-items: end;">
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Cliente
+            <input value="{{ cliente }}" onChange="{{ onCliente }}" style="padding: 8px 10px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 14px; font-weight: 500; color: #1b1a18;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Obra / ubicación
+            <input value="{{ obra }}" onChange="{{ onObra }}" style="padding: 8px 10px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 14px; color: #1b1a18;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Margen comercial %
+            <input value="{{ margen }}" onChange="{{ onMargen }}" inputMode="decimal" style="padding: 8px 10px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 14px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; color: #1b1a18;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Ciudad de la obra
+            <input value="{{ ciudad }}" onChange="{{ onCiudad }}" list="ciudades-bio" placeholder="Escribí la ciudad" style="padding: 8px 10px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 14px; color: #1b1a18;" />
+            <datalist id="ciudades-bio"><sc-for list="{{ ciudades }}" as="c"><option value="{{ c }}"></option></sc-for></datalist>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Distancia desde la base (km, ida)
+            <input value="{{ km }}" onChange="{{ onKm }}" inputMode="decimal" style="padding: 8px 10px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 14px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; color: #1b1a18;" />
+          </label>
+          <div style="grid-column: 1 / -1; font-size: 12px; color: #6f6b64;">{{ kmNota }}</div>
+          <div style="grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap;">
+            <button onClick="{{ onTabProp }}" style="border: 0; background: oklch(0.42 0.09 150); color: #fff; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12.5px; font-weight: 600;">Ver propuesta para el cliente</button>
+            <button onClick="{{ onDuplicar }}" style="border: 1px solid #c9c5bd; background: #fff; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 12.5px;">Duplicar</button>
+            <button onClick="{{ onRestablecer }}" style="border: 1px solid #c9c5bd; background: #fff; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 12.5px;">Volver a plantilla</button>
+            <button onClick="{{ onEliminar }}" style="border: 1px solid oklch(0.80 0.06 25); background: #fff; color: oklch(0.45 0.14 25); padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 12.5px;">Eliminar</button>
+          </div>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #dedad3; border-radius: 8px; overflow-x: auto;">
+          <div style="padding: 12px 16px; font-size: 13px; font-weight: 700; border-bottom: 1px solid #dedad3;">Resumen y margen</div>
+          <div style="min-width: 760px;">
+            <div style="display: grid; grid-template-columns: minmax(130px, 1.2fr) repeat(5, minmax(110px, 1fr)); gap: 8px; padding: 8px 16px; font-size: 11px; font-weight: 600; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.03em;">
+              <span>Propuesta</span><span style="text-align: right;">Materiales</span><span style="text-align: right;">Operativo</span><span style="text-align: right;">Costo directo</span><span style="text-align: right;">Margen</span><span style="text-align: right;">Precio venta</span>
+            </div>
+            <sc-for list="{{ resumen }}" as="r" hint-placeholder-count="3">
+              <div onClick="{{ r.onAbrir }}" style="display: grid; grid-template-columns: minmax(130px, 1.2fr) repeat(5, minmax(110px, 1fr)); gap: 8px; padding: 10px 16px; border-top: 1px solid #eeebe6; cursor: pointer; background: {{ r.bg }}; font-size: 13px; align-items: center;">
+                <span style="font-weight: 600;">{{ r.nombre }}</span>
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ r.mat }}</span>
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ r.op }}</span>
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ r.dir }}</span>
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ r.marg }}</span>
+                <span style="text-align: right; display: flex; flex-direction: column;">
+                  <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 700;">{{ r.venta }}</span>
+                  <span style="font-size: 11px; color: #6f6b64;">con IVA {{ r.conIva }}</span>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <sc-for list="{{ resumen }}" as="r" hint-placeholder-count="3">
+            <button onClick="{{ r.onAbrir }}" style="border: 1px solid {{ r.tabBorde }}; background: {{ r.tabBg }}; color: {{ r.tabFg }}; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">{{ r.nombre }}</button>
+          </sc-for>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #dedad3; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <input value="{{ opNombre }}" onChange="{{ onOpNombre }}" style="flex: 1; min-width: 220px; border: 0; border-bottom: 1px dashed #c9c5bd; padding: 4px 0; font-size: 16px; font-weight: 700; color: #1b1a18; background: transparent;" />
+          </div>
+
+          <sc-if value="{{ dimVisible }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: oklch(0.97 0.025 150); border: 1px solid oklch(0.86 0.05 150); border-radius: 7px;">
+            <div style="font-size: 12.5px; font-weight: 700; color: oklch(0.36 0.08 150);">Calcular biodigestores por cantidad de personas · tabla de capacidad TWG Ecológico (ABNT NBR 17076)</div>
+            <div style="display: grid; grid-template-columns: minmax(200px, 2fr) minmax(120px, 1fr) auto; gap: 10px; align-items: end;">
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Tipo de establecimiento
+                <select value="{{ dimTipo }}" onChange="{{ onDimTipo }}" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13.5px; background: #fff;">
+                  <sc-for list="{{ dimTipos }}" as="t" hint-placeholder-count="9"><option value="{{ t.k }}">{{ t.label }}</option></sc-for>
+                </select>
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Personas atendidas
+                <input value="{{ dimUsuarios }}" onChange="{{ onDimUsuarios }}" inputMode="numeric" placeholder="0" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13.5px; background: #fff; font-family: 'IBM Plex Mono', monospace;" />
+              </label>
+              <button onClick="{{ onAutoReset }}" title="Borra los cambios hechos a mano y vuelve a las cantidades calculadas" style="border: 1px solid oklch(0.78 0.07 150); background: #fff; color: oklch(0.36 0.08 150); padding: 9px 14px; border-radius: 5px; cursor: pointer; font-size: 12.5px; font-weight: 600; white-space: nowrap;">Volver a lo calculado</button>
+            </div>
+            <div style="font-size: 12px; line-height: 1.5; color: #33312e; text-wrap: pretty;">{{ dimResultado }}</div>
+            <sc-if value="{{ dimHay }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; background: #fff; border: 1px solid oklch(0.88 0.04 150); border-radius: 6px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
+                  <sc-for list="{{ dimDatos }}" as="d" hint-placeholder-count="4">
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                      <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6f6b64;">{{ d.k }}</span>
+                      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; color: oklch(0.36 0.08 150); white-space: nowrap;">{{ d.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="font-size: 12.5px; line-height: 1.6; color: #1b1a18; text-wrap: pretty; white-space: pre-line;">{{ dimTexto }}</div>
+              </div>
+            </sc-if>
+          </div>
+          </sc-if>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Personas (cuadrilla)
+              <input value="{{ pers }}" onChange="{{ onPers }}" inputMode="decimal" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 13.5px;" />
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Días de trabajo
+              <input value="{{ dias }}" onChange="{{ onDias }}" inputMode="decimal" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 13.5px;" />
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Viajes de traslado
+              <input value="{{ viajes }}" onChange="{{ onViajes }}" inputMode="decimal" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 13.5px;" />
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #6f6b64;">Multiplicar cantidades ×
+              <div style="display: flex; gap: 6px;">
+                <input value="{{ factor }}" onChange="{{ onFactor }}" inputMode="decimal" style="flex: 1; min-width: 0; padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 13.5px;" />
+                <button onClick="{{ onAplicarFactor }}" style="border: 0; background: #1b1a18; color: #fff; padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;">Aplicar</button>
+              </div>
+            </label>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <div style="min-width: 720px;">
+              <div style="display: grid; grid-template-columns: 26px 90px minmax(0, 1fr) 60px 80px 120px 130px 30px; gap: 8px; padding: 6px 0; font-size: 11px; font-weight: 600; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #dedad3;">
+                <span title="Incluir en el cálculo">✓</span><span>Código</span><span>Insumo</span><span>Unidad</span><span style="text-align: right;">Cantidad</span><span style="text-align: right;">P. unitario</span><span style="text-align: right;">Total</span><span></span>
+              </div>
+              <sc-for list="{{ items }}" as="it" hint-placeholder-count="8">
+                <div style="display: grid; grid-template-columns: 26px 90px minmax(0, 1fr) 60px 80px 120px 130px 30px; gap: 8px; padding: 5px 0; border-bottom: 1px solid #eeebe6; align-items: center; font-size: 13px; opacity: {{ it.opac }};">
+                  <input type="checkbox" checked="{{ it.activo }}" onChange="{{ it.onActivo }}" title="Incluir o anular este material" style="width: 17px; height: 17px; margin: 0; cursor: pointer; accent-color: oklch(0.42 0.09 150);" />
+                  <select value="{{ it.code }}" onChange="{{ it.onCode }}" style="padding: 5px 4px; border: 1px solid #c9c5bd; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 12px; background: #fff;">
+                    <sc-for list="{{ codigos }}" as="c"><option value="{{ c }}">{{ c }}</option></sc-for>
+                  </select>
+                  <span>{{ it.desc }}</span>
+                  <span style="color: #6f6b64;">{{ it.unit }}</span>
+                  <input value="{{ it.qty }}" onChange="{{ it.onQty }}" inputMode="decimal" style="text-align: right; padding: 5px 6px; border: 1px solid #c9c5bd; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 12.5px; min-width: 0;" />
+                  <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; color: #33312e;">{{ it.pu }}</span>
+                  <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 600; text-decoration: {{ it.tachado }};">{{ it.total }}</span>
+                  <button onClick="{{ it.onDel }}" title="Quitar" style="border: 0; background: transparent; color: #9a958c; cursor: pointer; font-size: 15px;">×</button>
+                </div>
+              </sc-for>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; gap: 10px;">
+                <button onClick="{{ onAddItem }}" style="border: 1px dashed #9a958c; background: transparent; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12.5px;">+ Agregar material</button>
+                <span style="font-size: 13px; font-weight: 700;">Costo total de materiales <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; margin-left: 10px;">{{ matTotal }}</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 6px; border-top: 1px solid #dedad3;">
+            <div style="overflow-x: auto;"><div style="min-width: 620px;">
+              <div style="display: grid; grid-template-columns: 26px minmax(0, 1fr) 90px 90px 120px 130px; gap: 8px; padding: 6px 0; font-size: 11px; font-weight: 600; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #dedad3; align-items: end;">
+                <span>✓</span><span>Mano de obra, viáticos y traslado</span><span style="text-align: right;">Cant.</span><span style="text-align: right;">Personas</span><span style="text-align: right;">P. unitario</span><span style="text-align: right;">P. total</span>
+              </div>
+              <sc-for list="{{ opRows }}" as="o" hint-placeholder-count="4">
+                <div style="display: grid; grid-template-columns: 26px minmax(0, 1fr) 90px 90px 120px 130px; gap: 8px; padding: 5px 0; border-bottom: 1px solid #eeebe6; align-items: center; font-size: 13px; opacity: {{ o.opac }};">
+                  <input type="checkbox" checked="{{ o.activo }}" onChange="{{ o.onActivo }}" style="width: 17px; height: 17px; margin: 0; cursor: pointer; accent-color: oklch(0.42 0.09 150);" />
+                  <span style="display: flex; flex-direction: column; gap: 1px;"><span>{{ o.nombre }}</span><span style="font-size: 11px; color: #6f6b64;">{{ o.unidad }}</span></span>
+                  <input value="{{ o.cant }}" onChange="{{ o.onCant }}" inputMode="decimal" style="text-align: right; padding: 5px 6px; border: 1px solid #c9c5bd; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; min-width: 0; background: {{ o.cantBg }};" />
+                  <input value="{{ o.pers }}" onChange="{{ o.onPersR }}" inputMode="decimal" style="text-align: right; padding: 5px 6px; border: 1px solid #c9c5bd; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; min-width: 0; background: {{ o.persBg }};" />
+                  <input value="{{ o.pu }}" onChange="{{ o.onPu }}" inputMode="decimal" style="text-align: right; padding: 5px 6px; border: 1px solid #c9c5bd; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; min-width: 0; background: {{ o.puBg }};" />
+                  <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 600; text-decoration: {{ o.tachado }};">{{ o.total }}</span>
+                </div>
+              </sc-for>
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0 0;">
+                <button onClick="{{ onRecalcOps }}" title="Vuelve a calcular cantidades y precios desde personas, días, km y precios maestros" style="border: 1px dashed #9a958c; background: transparent; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12.5px;">Recalcular automático</button>
+                <span style="font-size: 11.5px; color: #6f6b64;">{{ opNota }}</span>
+              </div>
+            </div></div>
+            <div style="display: flex; justify-content: flex-end; font-size: 13px; font-weight: 700; padding: 4px 0;">Costo total operativo <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; margin-left: 10px;">{{ opTotal }}</span></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; background: #f4f3f0; border-radius: 6px; padding: 12px 14px;">
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: #6f6b64;">Costo directo</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 600;">{{ dir }}</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: #6f6b64;">Margen {{ margen }}%</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 600;">{{ marg }}</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: #6f6b64;">Precio venta</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 700; font-size: 15px; color: oklch(0.36 0.09 150);">{{ venta }}</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: #6f6b64;">Con IVA 10%</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 600;">{{ conIva }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ enArch }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 20px 24px 40px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-size: 18px; font-weight: 700;">Archivo de presupuestos de biodigestores</div>
+          <div style="font-size: 12.5px; color: #6f6b64;">{{ archCount }} · Total aprobado {{ archAprobado }}</div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <input value="{{ archFiltro }}" onChange="{{ onArchFiltro }}" placeholder="Buscar cliente, obra, ciudad o N°" style="width: 260px; padding: 8px 11px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13px; background: #fff;" />
+          <select value="{{ archEstadoF }}" onChange="{{ onArchEstadoF }}" style="padding: 8px 10px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13px; background: #fff;">
+            <option value="">Todos los estados</option>
+            <sc-for list="{{ estados }}" as="e" hint-placeholder-count="5"><option value="{{ e }}">{{ e }}</option></sc-for>
+          </select>
+        </div>
+      </div>
+      <div style="background: #fff; border: 1px solid #dedad3; border-radius: 8px;">
+        <div>
+          <sc-for list="{{ archivo }}" as="a" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-top: 1px solid #eeebe6; font-size: 13px;">
+              <div style="display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap;">
+                <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 12px; font-weight: 600;">{{ a.nro }}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 12px; color: #6f6b64;">{{ a.fecha }}</span>
+                <span style="font-weight: 700; font-size: 14px; overflow-wrap: anywhere;">{{ a.cliente }}</span>
+                <span style="color: #55524d; overflow-wrap: anywhere;">{{ a.obra }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap;">
+                <select value="{{ a.opSel }}" onChange="{{ a.onOpSel }}" title="Opción elegida" style="padding: 6px 8px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 12px; background: #fff; max-width: 100%;">
+                  <sc-for list="{{ a.ops }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
+                <span style="display: flex; align-items: baseline; gap: 6px;"><span style="font-size: 11px; color: #6f6b64;">con IVA</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-weight: 700;">{{ a.total }}</span></span>
+                <select value="{{ a.estado }}" onChange="{{ a.onEstado }}" title="Estado" style="padding: 6px 8px; border: 1px solid {{ a.estBorde }}; border-radius: 5px; font-size: 12px; font-weight: 600; background: {{ a.estBg }}; color: {{ a.estFg }};">
+                  <sc-for list="{{ estados }}" as="e" hint-placeholder-count="5"><option value="{{ e }}">{{ e }}</option></sc-for>
+                </select>
+                <div style="display: flex; gap: 6px; margin-left: auto;">
+                  <button onClick="{{ a.onAbrir }}" style="border: 1px solid #c9c5bd; background: #fff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Abrir</button>
+                  <button onClick="{{ a.onProp }}" style="border: 0; background: oklch(0.42 0.09 150); color: #fff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;">Propuesta</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ archVacio }}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 22px 16px; font-size: 13px; color: #6f6b64;">No hay presupuestos que coincidan con la búsqueda.</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ enPrecios }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 20px 24px 40px; max-width: 980px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-size: 13px; color: #33312e; text-wrap: pretty;">Costos reales en guaraníes. Cualquier cambio acá recalcula todos los proyectos de biodigestores. M16 es el jornal y M17 el viático por persona y día. M19 es el costo por km recorrido y M20 el alojamiento por persona y noche, que se suma solo cuando la obra está a más de 150 km.</div>
+      <div style="background: #fff; border: 1px solid #dedad3; border-radius: 8px; padding: 6px 16px 12px; overflow-x: auto;">
+        <div style="min-width: 620px;">
+          <div style="display: grid; grid-template-columns: 70px minmax(0, 1fr) 80px 150px 30px; gap: 8px; padding: 8px 0; font-size: 11px; font-weight: 600; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #dedad3;">
+            <span>Código</span><span>Descripción</span><span>Unidad</span><span style="text-align: right;">Costo unitario</span><span></span>
+          </div>
+          <sc-for list="{{ catalogo }}" as="c" hint-placeholder-count="18">
+            <div style="display: grid; grid-template-columns: 70px minmax(0, 1fr) 80px 150px 30px; gap: 8px; padding: 5px 0; border-bottom: 1px solid #eeebe6; align-items: center;">
+              <span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 12.5px; font-weight: 600;">{{ c.code }}</span>
+              <input value="{{ c.desc }}" onChange="{{ c.onDesc }}" style="padding: 5px 7px; border: 1px solid #dedad3; border-radius: 4px; font-size: 13px; min-width: 0;" />
+              <input value="{{ c.unit }}" onChange="{{ c.onUnit }}" style="padding: 5px 7px; border: 1px solid #dedad3; border-radius: 4px; font-size: 13px; min-width: 0;" />
+              <input value="{{ c.cost }}" onChange="{{ c.onCost }}" inputMode="decimal" style="text-align: right; padding: 5px 7px; border: 1px solid #c9c5bd; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; font-size: 13px; min-width: 0;" />
+              <button onClick="{{ c.onDel }}" title="Quitar" style="border: 0; background: transparent; color: #9a958c; cursor: pointer; font-size: 15px;">×</button>
+            </div>
+          </sc-for>
+          <div style="padding-top: 10px;"><button onClick="{{ onAddCat }}" style="border: 1px dashed #9a958c; background: transparent; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12.5px;">+ Agregar insumo</button></div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+<sc-if value="{{ enLista }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 20px 16px 48px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <div data-noprint="1" style="width: 100%; max-width: 760px; box-sizing: border-box; background: #fff; border: 1px solid #dedad3; border-radius: 8px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;">
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #6f6b64;">Opción
+          <select value="{{ lsOp }}" onChange="{{ onLsOp }}" style="padding: 6px 8px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13px; background: #fff;">
+            <sc-for list="{{ lsOps }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+          </select>
+        </label>
+        <label style="display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #33312e; cursor: pointer;"><input type="checkbox" checked="{{ lsPrecios }}" onChange="{{ onLsPrecios }}" style="width: 16px; height: 16px; margin: 0; accent-color: oklch(0.42 0.09 150);" />Mostrar precios</label>
+        <button onClick="{{ onImprimir }}" style="margin-left: auto; border: 0; background: #1b1a18; color: #fff; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600;">Imprimir lista</button>
+      </div>
+      <div data-hoja="1" style="width: 100%; max-width: 760px; box-sizing: border-box; background: #fff; border: 1px solid #dedad3; box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 36px 40px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 12px; border-bottom: 1.5px solid #1b1a18;">
+          <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #6f6b64;">Lista de materiales</div>
+            <div style="font-size: 18px; font-weight: 700; line-height: 1.25;">{{ lsCliente }}</div>
+            <div style="font-size: 12.5px; color: #33312e;">{{ lsTitulo }}</div>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 1.5; text-align: right; color: #33312e; white-space: nowrap;">{{ lsFecha }}<br />{{ lsCiudad }}</div>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          <sc-if value="{{ lsPrecios }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: 28px 52px minmax(0, 1fr) 54px 64px 110px 120px; gap: 8px; padding: 6px 0; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6b64;"><span>N°</span><span>Cód.</span><span>Descripción</span><span>Unid.</span><span style="text-align: right;">Cant.</span><span style="text-align: right;">P. unit.</span><span style="text-align: right;">Total</span></div>
+            <sc-for list="{{ lsItems }}" as="it" hint-placeholder-count="10">
+              <div style="display: grid; grid-template-columns: 28px 52px minmax(0, 1fr) 54px 64px 110px 120px; gap: 8px; padding: 7px 0; border-bottom: 1px solid #ece9e4; font-size: 12.5px; break-inside: avoid;"><span style="font-family: 'IBM Plex Mono', monospace; color: #86817b;">{{ it.n }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6f6b64;">{{ it.code }}</span><span>{{ it.desc }}</span><span style="color: #6f6b64;">{{ it.unit }}</span><span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">{{ it.qty }}</span><span style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ it.pu }}</span><span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">{{ it.total }}</span></div>
+            </sc-for>
+            <div style="display: flex; justify-content: flex-end; gap: 16px; padding: 10px 0 0; font-size: 13px;"><span style="color: #6f6b64;">Total materiales</span><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 700;">{{ lsTotal }}</span></div>
+          </sc-if>
+          <sc-if value="{{ lsSinPrecios }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; grid-template-columns: 28px 52px minmax(0, 1fr) 70px 80px 34px; gap: 8px; padding: 6px 0; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6b64;"><span>N°</span><span>Cód.</span><span>Descripción</span><span>Unid.</span><span style="text-align: right;">Cant.</span><span style="text-align: center;">✓</span></div>
+            <sc-for list="{{ lsItems }}" as="it" hint-placeholder-count="10">
+              <div style="display: grid; grid-template-columns: 28px 52px minmax(0, 1fr) 70px 80px 34px; gap: 8px; padding: 8px 0; border-bottom: 1px solid #ece9e4; font-size: 13px; align-items: center; break-inside: avoid;"><span style="font-family: 'IBM Plex Mono', monospace; color: #86817b;">{{ it.n }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6f6b64;">{{ it.code }}</span><span>{{ it.desc }}</span><span style="color: #6f6b64;">{{ it.unit }}</span><span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 700;">{{ it.qty }}</span><span style="justify-self: center; width: 13px; height: 13px; border: 1.2px solid #1b1a18;"></span></div>
+            </sc-for>
+          </sc-if>
+        </div>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 11.5px; color: #6f6b64;"><span>{{ lsResumen }}</span></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding-top: 44px; break-inside: avoid;">
+          <div style="border-top: 1px solid #1b1a18; padding-top: 5px; font-size: 11px; color: #6f6b64;">Entregado por</div>
+          <div style="border-top: 1px solid #1b1a18; padding-top: 5px; font-size: 11px; color: #6f6b64;">Recibido por</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+<sc-if value="{{ enProp }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 20px 16px 48px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <div data-noprint="1" style="width: 100%; max-width: 760px; box-sizing: border-box; background: #fff; border: 1px solid #dedad3; border-radius: 8px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;">
+        <span style="font-size: 12px; font-weight: 600; color: #6f6b64;">Incluir:</span>
+        <sc-for list="{{ selProp }}" as="s" hint-placeholder-count="3">
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked="{{ s.incl }}" onChange="{{ s.onIncl }}" style="width: 16px; height: 16px; margin: 0; accent-color: oklch(0.42 0.09 150);" />{{ s.nombre }}</label>
+        </sc-for>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6f6b64;">N°<input value="{{ nro }}" onChange="{{ onNro }}" style="width: 110px; padding: 5px 7px; border: 1px solid #c9c5bd; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;" /></label>
+        <button onClick="{{ onImprimir }}" style="margin-left: auto; border: 0; background: #1b1a18; color: #fff; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600;">Imprimir</button>
+      </div>
+      <sc-for list="{{ hojas }}" as="h" hint-placeholder-count="1">
+        <div data-hoja="1" style="width: 100%; max-width: 760px; box-sizing: border-box; background: #fff; border: 1px solid #dedbd5; border-radius: 4px; box-shadow: 0 2px 20px rgba(0,0,0,0.05); padding: 40px 46px 36px; font-family: 'IBM Plex Sans', sans-serif; color: #1b1a18;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 16px; border-bottom: 2px solid #1b1a18;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <img src="./logo-full-service.png" alt="Full Service" style="height: 62px; width: auto; max-width: 220px; object-fit: contain; object-position: left center; display: block;" />
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; line-height: 1.6; color: #6f6b64;">0971 235799 · fullcleanyservice@gmail.com</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; text-align: right;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Presupuesto</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; white-space: nowrap;">{{ h.nro }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64; white-space: nowrap;">{{ h.fecha }}</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 30px; padding: 16px 0; border-bottom: 1px solid #e6e2da;">
+            <div style="display: flex; flex-direction: column; gap: 3px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Cliente</div><div style="font-size: 14px; font-weight: 600;">{{ h.cliente }}</div></div>
+            <div style="display: flex; flex-direction: column; gap: 3px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Obra</div><div style="font-size: 14px; font-weight: 600;">{{ h.obra }}</div><div style="font-size: 12px; color: #6f6b64;">{{ h.ciudad }}</div></div>
+          </div>
+          <div style="padding: 16px 0 6px; display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; align-items: baseline; gap: 10px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #86817b;">{{ h.n }}</span><span style="font-size: 16px; font-weight: 700;">{{ h.titulo }}</span></div>
+            <textarea value="{{ h.texto }}" onChange="{{ h.onTexto }}" rows="4" style="width: 100%; box-sizing: border-box; field-sizing: content; padding: 4px 0; border: 1px dashed transparent; font-size: 12.5px; line-height: 1.6; color: #33312e; resize: none; background: transparent;" style-hover="border-color: #dedbd5"></textarea>
+          </div>
+          <div data-keep="1" style="padding: 10px 0 12px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border: 1.5px solid #1b1a18; padding: 10px 14px;">
+              <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                <div style="font-family: Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 800; letter-spacing: 0.01em; line-height: 1.2;">{{ h.cq.titulo }}</div>
+                <div style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #33312e;">{{ h.cq.sub }}</div>
+              </div>
+              <div style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; text-align: right; line-height: 1.35; white-space: nowrap;">PLANO: {{ h.cq.codigo }}<br />ESCALA: S/E</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; background: #f1f0ee; padding: 6px;">
+              <sc-for list="{{ h.cq.specs }}" as="sp" hint-placeholder-count="4">
+                <div style="background: #fff; border: 1px solid #dcdad6; padding: 6px 8px; font-family: Helvetica, Arial, sans-serif; font-size: 10.5px; line-height: 1.35;"><strong>{{ sp.k }}:</strong> {{ sp.v }}</div>
+              </sc-for>
+            </div>
+            <div style="background: #1b1a18; color: #fff; font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.03em; padding: 6px 12px;">{{ h.cq.barra }}</div>
+            <div style="padding: 4px 0;">{{ h.cq.svg }}</div>
+          </div>
+          <div data-keep="1" style="padding: 6px 0 4px;">
+            <label data-noprint="1" style="display: flex; align-items: center; gap: 7px; padding: 4px 0 8px; font-size: 12px; color: #6f6b64; cursor: pointer;"><input type="checkbox" checked="{{ h.verComp }}" onChange="{{ h.onVerComp }}" style="width: 16px; height: 16px; margin: 0; accent-color: oklch(0.42 0.09 150);" />Mostrar la lista de componentes en la propuesta</label>
+            <sc-if value="{{ h.verComp }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 70px 60px; gap: 8px; padding: 4px 0; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;"><span>Componentes provistos</span><span style="text-align: right;">Cant.</span><span>Un.</span></div>
+            <sc-for list="{{ h.comp }}" as="c" hint-placeholder-count="6">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 70px 60px; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f1eee9; font-size: 12px;"><span>{{ c.desc }}</span><span style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ c.cant }}</span><span style="color: #6f6b64;">{{ c.unit }}</span></div>
+            </sc-for>
+            </sc-if>
+            <label data-noprint="1" style="display: flex; align-items: center; gap: 7px; padding: 8px 0 4px; font-size: 12px; color: #6f6b64; cursor: pointer;"><input type="checkbox" checked="{{ h.verInst }}" onChange="{{ h.onVerInst }}" style="width: 16px; height: 16px; margin: 0; accent-color: oklch(0.42 0.09 150);" />Mostrar la descripción de la instalación</label>
+            <sc-if value="{{ h.verInst }}" hint-placeholder-val="{{ true }}">
+              <textarea value="{{ h.instTxt }}" onChange="{{ h.onInstTxt }}" rows="2" style="width: 100%; box-sizing: border-box; field-sizing: content; padding: 7px 0; border: 0; border-bottom: 1px solid #f1eee9; font-size: 12px; line-height: 1.55; color: #33312e; resize: none; background: transparent;"></textarea>
+            </sc-if>
+          </div>
+          <div data-keep="1" style="display: flex; justify-content: flex-end; padding: 14px 0;">
+            <div style="width: 300px; max-width: 100%; display: flex; flex-direction: column; gap: 5px; font-size: 12.5px;">
+              <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: #6f6b64;">Subtotal</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ h.sub }}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: #6f6b64;">IVA 10%</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ h.iva }}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 10px; padding-top: 7px; border-top: 2px solid #1b1a18; font-size: 14.5px; font-weight: 700;"><span>Total</span><span style="font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">{{ h.total }}</span></div>
+            </div>
+          </div>
+          <div data-keep="1" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 20px; padding: 12px 0; border-top: 1px solid #e6e2da;">
+            <div style="display: flex; flex-direction: column; gap: 3px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Plazo</div><input value="{{ h.plazo }}" onChange="{{ h.onPlazo }}" style="border: 0; padding: 0; font-size: 12px; background: transparent; min-width: 0;" /></div>
+            <div style="display: flex; flex-direction: column; gap: 3px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Forma de pago</div><input value="{{ pago }}" onChange="{{ onPago }}" style="border: 0; padding: 0; font-size: 12px; background: transparent; min-width: 0;" /></div>
+            <div style="display: flex; flex-direction: column; gap: 3px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Validez</div><input value="{{ validez }}" onChange="{{ onValidez }}" style="border: 0; padding: 0; font-size: 12px; background: transparent; min-width: 0;" /></div>
+          </div>
+          <div data-keep="1" style="padding-top: 40px;">
+            <div style="width: 230px; border-top: 1px solid #1b1a18; padding-top: 6px; font-size: 12.5px; line-height: 1.45;"><div style="font-weight: 600;">Ing. Edgar Mendez</div><div style="color: #6f6b64;">Ejecutivo Comercial</div></div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KEY = 'biodigestores-v1';
+const CAT0 = [
+ ["M01","Biodigestor TWG Ecológico 800 L","und",3311974],["M02","Biodigestor TWG Ecológico 1.800 L","und",4701835],["M21","Biodigestor 1.500 L","und",4284877],["M03","Caja de Grasa (260 L)","und",1442512],
+ ["M04","Cámara de registro","und",350000],["M05","Tubería PVC Ø 100 mm (6m)","tubo",75000],["M06","Tubería PVC Ø 2\" (6m)","tubo",90000],
+ ["M07","Distribuidor de caudal (2 salidas)","und",250000],["M08","Distribuidor de caudal (4 salidas)","und",450000],["M09","BOB Filtro / Filtro de Gases","und",679911],
+ ["M10","Cámara de cloración y toma de muestras","und",350000],["M11","Grava/Arena para pozo/zanja","m3",180000],["M12","Accesorios/Codos/Pegamento","glb",250000],
+ ["M13","Caja Secadora de Lodos (260 L)","und",1123735],["M14","Filtro biológico/grava","und",600000],["M15","Accesorios/Válvulas de purga","glb",350000],
+ ["M16","Mano de Obra por Tareas (Jornal/Día)","día",200000],["M17","Viático (Persona / Día)","día",60000],["M18","Traslado y Logística (Viaje / Obra)","viaje",200000],["M19","Costo por km recorrido (vehículo y combustible)","km",3500],["M20","Alojamiento (Persona / Noche)","noche",120000]
+].map(([code, desc, unit, cost]) => ({ code, desc, unit, cost: String(cost) }));
+const PROPS0 = () => [
+ { nombre: "Propuesta 1 (1x 800L)", pers: "2", dias: "3", viajes: "2", items: [["M01",1],["M03",1],["M04",1],["M07",1],["M05",3],["M06",1],["M12",1],["M09",1],["M14",1],["M11",2]] },
+ { nombre: "Propuesta 2 (2x 1.800L)", pers: "3", dias: "5", viajes: "2", items: [["M02",2],["M03",1],["M04",1],["M07",1],["M05",6],["M06",2],["M13",1],["M14",1],["M10",1],["M15",1]] },
+ { nombre: "Propuesta 3 (4x 1.800L)", pers: "4", dias: "8", viajes: "2", items: [["M02",4],["M03",1],["M04",1],["M08",1],["M05",12],["M06",4],["M13",1],["M14",1],["M10",1],["M15",2]] }
+].map(p => ({ ...p, items: p.items.map(([code, q]) => ({ code, qty: String(q) })) })).concat([AUTO0()]);
+const DIM = [
+ ["alto", "Residencia de estándar alto", 160, 5, 11], ["medio", "Residencia de estándar medio", 130, 6, 13], ["bajo", "Residencia de estándar bajo", 100, 8, 18],
+ ["prov", "Alojamiento provisorio", 80, 10, 22], ["hotel", "Hotel", 100, 8, 18], ["ind", "Industria en general", 70, 11, 25],
+ ["ofi", "Oficina", 50, 16, 36], ["esc", "Escuela", 50, 16, 36], ["com", "Edificios comerciales", 50, 16, 36], ["ees", "Estación de servicio", 50, 16, 36]
+].map(([k, label, lpd, c8, c18]) => ({ k, label, lpd, c8, c18 }));
+const RESID = ['alto', 'medio', 'bajo'];
+function dimensionar(tipo, personas, p8, p18, p15) {
+  const t = DIM.find(d => d.k === tipo) || DIM[1], p = Math.max(0, Math.ceil(personas));
+  if (!p) return null;
+  const c15 = Math.floor(1500 / t.lpd);
+  // 800 L solo para vivienda unifamiliar de hasta 5 personas.
+  if (RESID.includes(t.k) && p <= 5 && t.c8 >= p) return { n8: 1, n15: 0, n18: 0, n: 1, costo: p8, cap: t.c8, t, p, c15 };
+  // Desde 6 personas, o si no es vivienda: solo biodigestores de 1.800 L.
+  const n18 = Math.ceil(p / t.c18), best = { n8: 0, n15: 0, n18, n: n18, costo: n18 * p18, cap: n18 * t.c18 };
+  return { ...best, t, p, c15 };
+}
+const AUTO0 = () => ({ nombre: "Propuesta por personas", auto: true, dimTipo: "medio", dimUsuarios: "", pers: "", dias: "", viajes: "2", items: [], man: {} });
+function autoLista(d) {
+  const n = d.n, cau = d.p * d.t.lpd, L = [];
+  const add = (code, q) => { if (q > 0) L.push({ code, qty: String(q) }); };
+  add('M01', d.n8); add('M21', d.n15); add('M02', d.n18);
+  add('M03', Math.max(1, Math.ceil(d.p / 40)));
+  add('M04', Math.max(1, Math.ceil(n / 2)));
+  if (n >= 3) add('M08', Math.ceil(n / 4)); else add('M07', 1);
+  add('M05', 3 * n); add('M06', n);
+  add('M12', Math.ceil(n / 2)); add('M09', 1);
+  add('M13', Math.ceil(n / 4)); add('M14', 1); add('M10', 1);
+  add('M15', Math.ceil(n / 2));
+  add('M11', Math.max(2, Math.ceil(cau / 1000)));
+  return L;
+}
+const autoCuadrilla = (n) => ({ pers: n <= 1 ? 2 : n <= 2 ? 3 : 4, dias: Math.ceil(1.5 * n + 1.5) });
+const KM = { "Asunción": 8, "Lambaré": 0, "Luque": 22, "San Lorenzo": 20, "Fernando de la Mora": 12, "Capiatá": 28, "Mariano Roque Alonso": 22, "Limpio": 30, "Ñemby": 12, "Villa Elisa": 10, "San Antonio": 15, "Itá": 35, "Itauguá": 38, "Areguá": 35, "Ypacaraí": 48, "Guarambaré": 30, "Villeta": 30, "San Bernardino": 58, "Caacupé": 62, "Pirayú": 60, "Paraguarí": 70, "Eusebio Ayala": 80, "Carapeguá": 88, "Villa Hayes": 40, "Benjamín Aceval": 55, "Emboscada": 50, "Quiindy": 112, "Coronel Oviedo": 140, "Villarrica": 175, "San Estanislao": 180, "Caaguazú": 185, "Caazapá": 235, "San Juan Bautista": 200, "Ciudad del Este": 335, "Hernandarias": 350, "Presidente Franco": 340, "Encarnación": 370, "Pilar": 365, "Salto del Guairá": 410, "Concepción": 425, "Pedro Juan Caballero": 465, "Filadelfia": 470 };
+const UMBRAL = 150;
+const ESTADOS = ['BORRADOR', 'ENVIADO', 'APROBADO', 'FINALIZADO', 'DE BAJA'];
+const ESTCOL = { BORRADOR: ['#f4f3f0', '#55524d', '#c9c5bd'], ENVIADO: ['oklch(0.96 0.03 240)', 'oklch(0.40 0.10 240)', 'oklch(0.80 0.06 240)'], APROBADO: ['oklch(0.95 0.04 150)', 'oklch(0.38 0.09 150)', 'oklch(0.78 0.07 150)'], FINALIZADO: ['oklch(0.42 0.09 150)', '#fff', 'oklch(0.42 0.09 150)'], 'DE BAJA': ['oklch(0.96 0.03 25)', 'oklch(0.45 0.14 25)', 'oklch(0.82 0.06 25)'] };
+const buscarKm = (c) => { const n = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(); const k = Object.keys(KM).find(x => n(x) === n(c || '')); return k === undefined ? null : KM[k]; };
+const nuevoProy = (cliente) => ({ id: 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), cliente, obra: "", ciudad: "Lambaré", km: "0", margen: "74", fecha: new Date().toLocaleDateString('es-PY'), props: PROPS0() });
+const num = (s) => { const t = String(s ?? '').trim(); if (!t) return 0; const n = /^\d{1,3}(\.\d{3})+$/.test(t) ? t.replace(/\./g, '') : t.replace(',', '.'); return parseFloat(n) || 0; };
+const miles = (n) => { const r = Math.round(Number(n) || 0), s = String(Math.abs(r)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); return (r < 0 ? '-' : '') + s; };
+const fmt = (n) => 'Gs. ' + miles(n);
+const milesTxt = (s) => { const t = String(s ?? '').trim(); if (!t) return ''; return miles(num(t)); };
+const soloNum = (v) => String(v).replace(/\./g, '').replace(/[^\d,]/g, '');
+
+const HH = React.createElement;
+function croquis(items) {
+  const act = items.filter(i => i.activo && num(i.qty) > 0), has = (k) => act.some(i => i.code === k), q = (k) => act.filter(i => i.code === k).reduce((a, i) => a + num(i.qty), 0);
+  const tanques = [].concat(Array(Math.round(q('M02'))).fill(1800), Array(Math.round(q('M21'))).fill(1500), Array(Math.round(q('M01'))).fill(800)).slice(0, 6);
+  if (!tanques.length) tanques.push(800);
+  const n = tanques.length, volTot = tanques.reduce((a, b) => a + b, 0), iguales = tanques.every(x => x === tanques[0]);
+  const lit = tanques[0], litTxt = miles(lit), litDe = (j) => miles(tanques[j]);
+  const W = 640, cx = W / 2, ink = '#1b1a18', mut = '#55524d', org = 'oklch(0.62 0.16 55)', F = 'Helvetica, Arial, sans-serif';
+  const els = [HH('defs', { key: 'd' }, HH('marker', { id: 'ar', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, HH('path', { d: 'M0,0 L10,5 L0,10 z', fill: ink })))];
+  let kk = 0; const key = () => 'e' + (kk++);
+  const line = (pts, arrow, extra) => els.push(HH('polyline', { key: key(), points: pts.map(p => p.join(',')).join(' '), fill: 'none', stroke: ink, strokeWidth: 1.6, markerEnd: arrow ? 'url(#ar)' : undefined, ...extra }));
+  const txt = (x, y, t, o) => els.push(HH('text', { key: key(), x, y, textAnchor: 'middle', fontFamily: F, fontSize: 9.5, fill: ink, ...o }, t));
+  const box = (x, y, w, h, t1, t2, o = {}) => { els.push(HH('rect', { key: key(), x: x - w / 2, y, width: w, height: h, fill: o.fill || '#fff', stroke: o.stroke || ink, strokeWidth: 1.6, strokeDasharray: o.dash })); txt(x, y + (t2 ? h / 2 - 1 : h / 2 + 3.5), t1, { fontSize: 10, fontWeight: 700, fill: o.color || ink }); if (t2) txt(x, y + h / 2 + 11, t2, { fontSize: 8.5, fill: o.color || mut }); return { x, y, w, h, b: y + h }; };
+  let y = 14;
+  const casa = box(cx, y, 300, 28, n === 1 ? 'CASA HABITACIÓN / VIVIENDA UNIFAMILIAR' : 'CASA HABITACIÓN / EDIFICACIÓN', null, { fill: '#f1f0ee', dash: '4 3' });
+  y = casa.b + 34;
+  const top = []; if (has('M03')) top.push(['TRAMPA DE GRASA', 'Grasas (cocina)']); if (has('M04')) top.push(['CÁMARA REGISTRO', 'Negras (baños)']);
+  let yMerge;
+  if (top.length) {
+    const xs = top.length === 2 ? [cx - 120, cx + 120] : [cx];
+    top.forEach(([t, lab], i) => { const x = xs[i]; line([[x, casa.b], [x, y - 2]], true); txt(x + (i ? 8 : -8), casa.b + 18, lab, { fontSize: 8.5, fill: mut, textAnchor: i ? 'start' : 'end' }); box(x, y, 160, 36, t, 'Tanque 120 L'); });
+    yMerge = y + 36 + 18;
+    xs.forEach(x => line([[x, y + 36], [x, yMerge]]));
+    if (xs.length > 1) line([[xs[0], yMerge], [xs[1], yMerge]]);
+  } else { yMerge = casa.b + 18; line([[cx, casa.b], [cx, yMerge]]); }
+  txt(cx + 8, yMerge + 14, 'PVC Ø100 mm (pend. 2%)', { textAnchor: 'start', fontSize: 8.5, fontWeight: 700 });
+  y = yMerge + 26;
+  let feed = [[cx, yMerge]];
+  const R = n === 1 ? 44 : n <= 4 ? 40 : 32;
+  const bxs = n === 1 ? [cx] : Array.from({ length: n }, (_, j) => 80 + j * ((W - 160) / (n - 1)));
+  const conDist = n > 1 || has('M07') || has('M08');
+  if (conDist) {
+    line([[cx, yMerge], [cx, y - 2]], true);
+    box(cx, y, 200, 34, 'DISTRIBUIDOR DE CAUDAL', 'Módulo (' + (has('M08') ? 4 : n > 2 ? n : 2) + ' salidas)', { fill: '#e9e8e6' });
+    const yb = y + 34 + 18; line([[cx, y + 34], [cx, yb]]); line([[bxs[0], yb], [bxs[n - 1], yb]]);
+    y = yb + 22; bxs.forEach(x => line([[x, yb], [x, y - 2]], true));
+  } else { line([[cx, yMerge], [cx, y - 2]], true); }
+  const cy = y + R;
+  bxs.forEach((x, j) => {
+    els.push(HH('circle', { key: key(), cx: x, cy, r: R, fill: '#fff', stroke: ink, strokeWidth: 2.2 }));
+    els.push(HH('circle', { key: key(), cx: x, cy, r: R - 5, fill: 'none', stroke: '#b9b5ad', strokeWidth: 0.8 }));
+    const fs = Math.min(9, R * 0.23);
+    txt(x, cy - (n === 1 ? 5 : 9), 'BIODIGESTOR', { fontSize: fs, fontWeight: 700 });
+    if (n > 1) txt(x, cy + 2, 'N° ' + (j + 1), { fontSize: fs, fontWeight: 700 });
+    txt(x, cy + (n === 1 ? 8 : 14), litDe(j) + ' Litros', { fontSize: 8.5, fill: n === 1 ? 'oklch(0.50 0.15 255)' : mut, fontWeight: n === 1 ? 700 : 400 });
+  });
+  let yOut = cy + R + 20, secN = null;
+  if (has('M13')) {
+    if (n === 1) { const sx = cx + 190; line([[cx + R, cy], [sx - 70, cy]], true, { stroke: org, strokeDasharray: '4 3' }); txt(cx + R + 40, cy - 5, 'Lodos (PVC Ø2")', { fontSize: 8, fill: org, fontWeight: 700 }); box(sx, cy - 17, 140, 34, 'SECADERO DE LODOS', '260 L / base grava', { stroke: org, color: org, fill: 'oklch(0.97 0.03 70)' }); }
+    else { const sy = cy + R + 8; yOut = sy + 28 + 16; secN = () => { line([[bxs[0], sy + 14], [bxs[n - 1], sy + 14]], false, { stroke: org, strokeDasharray: '4 3' }); box(cx, sy, 180, 28, 'SECADERO DE LODOS', null, { stroke: org, color: org, fill: 'oklch(0.97 0.03 70)' }); }; }
+  }
+  if (n > 1) { bxs.forEach(x => line([[x, cy + R], [x, yOut]])); line([[bxs[0], yOut], [bxs[n - 1], yOut]]); if (secN) secN(); }
+  else line([[cx, cy + R], [cx, yOut]]);
+  txt(cx + 8, yOut + (n > 1 ? 13 : 4), 'Efluente PVC Ø100 mm', { textAnchor: 'start', fontSize: 8.5, fontWeight: 700 });
+  y = yOut + 24;
+  let prevB = yOut;
+  if (has('M14')) { line([[cx, prevB], [cx, y - 2]], true); const fb = box(cx, y, 200, 34, 'FILTRO BIOLÓGICO', 'Lecho de grava / arena'); prevB = fb.b; y = fb.b + 24; }
+  if (has('M10')) {
+    line([[cx, prevB], [cx, y + 16]]);
+    box(cx - 90, y, 150, 32, 'CÁMARA CLORACIÓN', 'Pastillas de cloro');
+    line([[cx - 15, y + 16], [cx + 3, y + 16]], true);
+    const tm = box(cx + 70, y, 130, 32, 'TOMA DE MUESTRAS', 'Inspección efluente');
+    line([[cx + 70, tm.b], [cx + 70, tm.b + 12], [cx, tm.b + 12]]);
+    prevB = tm.b + 12; y = tm.b + 34;
+  }
+  line([[cx, prevB], [cx, y - 2]], true);
+  const fin = has('M11') ? 'DISPOSICIÓN FINAL / ZANJA DE INFILTRACIÓN / POZO' : 'VERTIDO FINAL / ZANJA DE RIEGO';
+  box(cx, y, 330, 26, fin, null, { fill: ink, color: '#fff' });
+  const svg = HH('svg', { viewBox: '0 0 ' + W + ' ' + (y + 40), width: '100%', style: { display: 'block' } }, els);
+  const specs = [
+    { k: n === 1 ? 'Biodigestor' : 'Biodigestores', v: (iguales ? n + 'x ' + litTxt + ' Litros' : [1800, 1500, 800].map(l => [l, tanques.filter(x => x === l).length]).filter(z => z[1]).map(z => z[1] + 'x ' + miles(z[0]) + ' L').join(' + ')) + (n > 1 ? ' (' + miles(volTot) + ' L totales)' : '') },
+    { k: 'Tubería red', v: 'PVC Ø 100 mm (4")' },
+    { k: 'Pendiente mínima', v: '2,0%' },
+    n === 1 ? { k: 'Capacidad', v: 'Hasta 5 personas' } : n === 2 ? { k: 'Purga de lodos', v: 'Tubería PVC Ø 2"' } : { k: 'Instalación', v: 'Subterránea por módulos' }
+  ];
+  return {
+    svg, specs,
+    titulo: n === 1 ? 'PLANO CONSTRUCTIVO - VIVIENDA UNIFAMILIAR' : 'PLANO CONSTRUCTIVO - ' + n + ' BIODIGESTORES EN PARALELO',
+    sub: n === 1 ? 'Sistema de tratamiento sanitario domiciliario (1 a 5 habitantes)' : n === 2 ? 'Sistema de tratamiento sanitario domiciliario de capacidad media' : 'Planta de tratamiento domiciliaria con tanques prefabricados',
+    codigo: n === 1 ? 'SAN-DOM-01' : 'SAN-' + n + 'B-01',
+    barra: n === 1 ? 'ESQUEMA UNIFILAR Y RED DE CONEXIÓN EN PLANTA' : 'ESQUEMA EN PLANTA - CIRCUITO PARALELO CON ' + n + ' BIODIGESTORES' + (iguales ? ' DE ' + litTxt + ' L' : '')
+  };
+}
+function textoAuto(items, prop) {
+  const act = items.filter(i => i.activo && num(i.qty) > 0), q = (k) => act.filter(i => i.code === k).reduce((a, i) => a + num(i.qty), 0);
+  const n = q('M01') + q('M21') + q('M02');
+  const cap = [[q('M02'), '1.800 L'], [q('M21'), '1.500 L'], [q('M01'), '800 L']].filter(z => z[0]).map(z => (z[0] < n ? z[0] + ' de ' : '') + z[1]).join(' y ') || '800 L';
+  const partes = act.filter(i => !['M01','M02','M21','M05','M06','M11','M12','M15'].includes(i.code)).map(i => i.desc.replace(/\s*\(.*?\)/g, '').toLowerCase());
+  return 'Provisión e instalación de un sistema de tratamiento de efluentes cloacales con ' + (n === 1 ? 'un biodigestor' : n + ' biodigestores') + ' TWG Ecológico de ' + cap.replace(/^(\d+) de /, '$1 de ') + (partes.length ? ', ' + partes.join(', ') : '') + ', con su cañería de interconexión y disposición final. El sistema reemplaza al pozo ciego, reduce olores y evita los desagotes periódicos. Se entrega instalado, probado y funcionando.';
+}
+class Component extends DCLogic {
+  state = this.cargar();
+  cargar() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    if (!d || !d.catalogo || !d.proyectos) { const p = nuevoProy("Plantilla base"); d = { catalogo: CAT0, proyectos: [p] }; }
+    CAT0.forEach(c => { if (!d.catalogo.some(x => x.code === c.code)) d.catalogo.push({ ...c }); });
+    const AQ = new RegExp('Aqua' + 'rela\\s+Eco', 'g');
+    d.catalogo.forEach(c => { if (typeof c.desc === 'string') c.desc = c.desc.replace(AQ, 'TWG Ecológico'); });
+    d.proyectos.forEach(p => (p.props || []).forEach(o => { ['texto', 'instTxt', 'nombre'].forEach(k => { if (typeof o[k] === 'string') o[k] = o[k].replace(AQ, 'TWG Ecológico'); }); }));
+    if (!d.migM07) { d.proyectos.forEach(p => { const o = p.props && p.props[0]; if (o && !o.items.some(it => it.code === 'M07' || it.code === 'M08')) { const at = o.items.findIndex(it => it.code === 'M04'); o.items.splice(at < 0 ? o.items.length : at + 1, 0, { code: 'M07', qty: '1' }); } }); d.migM07 = true; }
+    if (!d.migM14) { d.proyectos.forEach(p => [0, 1].forEach(i => { const o = p.props && p.props[i]; if (o && !o.items.some(it => it.code === 'M14')) { const at = o.items.findIndex(it => it.code === 'M10' || it.code === 'M11'); o.items.splice(at < 0 ? o.items.length : at, 0, { code: 'M14', qty: '1' }); } })); d.migM14 = true; try { localStorage.setItem(KEY, JSON.stringify({ catalogo: d.catalogo, proyectos: d.proyectos, sel: d.sel, migM14: true })); } catch (e) {} }
+    d.proyectos.forEach(p => { if (p.props && !p.props.some(o => o.auto)) p.props.push(AUTO0()); });
+    d.proyectos.forEach(p => { if (p.km === undefined) { p.ciudad = p.ciudad || ''; p.km = ''; } });
+    return { ...d, sel: d.sel || d.proyectos[0].id, op: 0, tab: 'proy', factor: "1" };
+  }
+  guardar(parcial, extra) {
+    this.setState(extra ? { ...parcial, ...extra } : parcial, () => { const { catalogo, proyectos, sel } = this.state; localStorage.setItem(KEY, JSON.stringify({ catalogo, proyectos, sel, migM14: true, migM07: true })); });
+  }
+  proy() { return this.state.proyectos.find(p => p.id === this.state.sel) || this.state.proyectos[0]; }
+  editProy(fn) { const id = this.proy().id; this.guardar({ proyectos: this.state.proyectos.map(p => p.id === id ? fn(structuredClone(p)) : p) }); }
+  editOp(fn) { const op = this.state.op; this.editProy(p => { fn(p.props[op]); return p; }); }
+  calc(prop, margen, kmIda) {
+    const cat = Object.fromEntries(this.state.catalogo.map(c => [c.code, c]));
+    const cost = (k) => num(cat[k]?.cost);
+    let dAuto = null;
+    if (prop.auto) {
+      dAuto = dimensionar(prop.dimTipo || 'medio', num(prop.dimUsuarios), cost('M01'), cost('M02'), cost('M21'));
+      const man = prop.man || {}, cu = dAuto ? autoCuadrilla(dAuto.n) : { pers: 0, dias: 0 };
+      const lista = dAuto ? autoLista(dAuto) : [];
+      Object.keys(man).forEach(k => { if (!lista.some(x => x.code === k) && man[k].qty !== undefined) lista.push({ code: k, qty: '0' }); });
+      prop = { ...prop, pers: prop.pers !== '' && prop.pers != null ? prop.pers : String(cu.pers), dias: prop.dias !== '' && prop.dias != null ? prop.dias : String(cu.dias),
+        items: lista.map(x => { const m = man[x.code] || {}; return { code: x.code, qty: m.qty ?? x.qty, activo: m.activo, autoQty: x.qty, manual: m.qty !== undefined }; }) };
+    }
+    const items = prop.items.map(it => { const c = cat[it.code]; const pu = num(c?.cost); const activo = it.activo !== false; return { ...it, activo, desc: c?.desc ?? '—', unit: c?.unit ?? '', pu, bruto: num(it.qty) * pu, total: activo ? num(it.qty) * pu : 0 }; });
+    const mat = items.reduce((a, i) => a + i.total, 0);
+    const pers = num(prop.pers), dias = num(prop.dias), viajes = num(prop.viajes), km = num(kmIda);
+    const lejos = km > UMBRAL, noches = Math.max(0, dias - 1);
+    const base = [
+      { key: "mo", nombre: "Mano de obra por tareas", unidad: "días × personas", cant: dias, pers, pu: cost("M16") },
+      { key: "vi", nombre: "Viáticos del personal", unidad: "días × personas", cant: dias, pers, pu: cost("M17") },
+      { key: "tr", nombre: "Traslado y logística", unidad: "viajes", cant: viajes, pers: 1, pu: cost("M18") },
+      { key: "km", nombre: "Recorrido por distancia", unidad: "km totales (ida y vuelta)", cant: km * 2, pers: 1, pu: cost("M19") }
+    ];
+    if (lejos || (prop.ops && prop.ops.al)) base.push({ key: "al", nombre: "Alojamiento", unidad: "noches × personas", cant: lejos ? noches : 0, pers, pu: cost("M20") });
+    const ops = base.map(r => {
+      const o = (prop.ops && prop.ops[r.key]) || {};
+      const cant = o.cant ?? String(r.cant), pe = o.pers ?? String(r.pers), pu = o.pu ?? String(r.pu), activo = o.activo !== false;
+      const bruto = num(cant) * num(pe) * num(pu);
+      return { ...r, cant, pers: pe, pu, activo, bruto, total: activo ? bruto : 0, man: { cant: o.cant !== undefined, pers: o.pers !== undefined, pu: o.pu !== undefined } };
+    });
+    const op = ops.reduce((a, o) => a + o.total, 0), dir = mat + op, marg = dir * num(margen) / 100, venta = dir + marg;
+    return { items, mat, ops, op, dir, marg, venta, dAuto, persEf: prop.pers, diasEf: prop.dias };
+  }
+  renderVals() {
+    const s = this.state, p = this.proy(), op = Math.min(s.op, p.props.length - 1), prop = p.props[op];
+    const calcs = p.props.map(x => this.calc(x, p.margen, p.km)), c = calcs[op];
+    const set = (k) => (e) => this.editProy(x => { x[k] = e.target.value; return x; });
+    const setOp = (k) => (e) => { const v = e.target.value; this.editOp(o => { o[k] = v; }); };
+    return {
+      enProy: s.tab === 'proy', enPrecios: s.tab === 'precios',
+      tabProyBg: s.tab === 'proy' ? '#f4f3f0' : 'transparent', tabProyFg: s.tab === 'proy' ? '#1b1a18' : '#c9c5bd',
+      tabPreciosBg: s.tab === 'precios' ? '#f4f3f0' : 'transparent', tabPreciosFg: s.tab === 'precios' ? '#1b1a18' : '#c9c5bd',
+      enProp: s.tab === 'prop', tabPropBg: s.tab === 'prop' ? '#f4f3f0' : 'transparent', tabPropFg: s.tab === 'prop' ? '#1b1a18' : '#c9c5bd',
+      onTabProp: () => this.setState({ tab: 'prop' }), onImprimir: () => window.print(),
+      nro: p.nro ?? '', onNro: set('nro'), pago: p.pago ?? '50% de anticipo, 50% contra entrega', validez: p.validez ?? '15 días',
+      onPago: set('pago'), onValidez: set('validez'),
+      selProp: p.props.map((x, i) => ({ nombre: x.nombre, incl: !(p.excluir || []).includes(i), onIncl: (e) => { const v = e.target.checked; this.editProy(y => { const ex = new Set(y.excluir || []); v ? ex.delete(i) : ex.add(i); y.excluir = [...ex]; return y; }); } })),
+      hojas: p.props.map((x, i) => ({ x, i })).filter(({ x, i }) => !(p.excluir || []).includes(i) && !(x.auto && !calcs[i].dAuto)).map(({ x, i }, k) => {
+        const cc = calcs[i];
+        return { n: 'OPCIÓN ' + (i + 1), titulo: x.nombre, nro: p.nro || '—', fecha: p.fecha, cliente: p.cliente, obra: p.obra || 'Sistema de tratamiento de efluentes', ciudad: p.ciudad || '',
+          texto: x.texto ?? textoAuto(cc.items, x), onTexto: (e) => { const v = e.target.value; this.editProy(y => { y.props[i].texto = v; return y; }); },
+          cq: croquis(cc.items),
+          comp: cc.items.filter(it => it.activo && num(it.qty) > 0).map(it => ({ desc: it.desc, cant: String(it.qty).replace('.', ','), unit: it.unit })),
+          verInst: x.verInst !== false, onVerInst: (e) => { const v = e.target.checked; this.editProy(y => { y.props[i].verInst = v; return y; }); },
+          instTxt: x.instTxt ?? 'Instalación completa: excavación y movimiento de suelo, nivelación, montaje, conexiones, pruebas de estanqueidad, puesta en marcha, mano de obra, viáticos y traslado.',
+          onInstTxt: (e) => { const v = e.target.value; this.editProy(y => { y.props[i].instTxt = v; return y; }); },
+          verComp: x.verComp !== false, onVerComp: (e) => { const v = e.target.checked; this.editProy(y => { y.props[i].verComp = v; return y; }); },
+          sub: fmt(cc.venta), iva: fmt(cc.venta * 0.1), total: fmt(cc.venta * 1.1),
+          plazo: x.plazoTxt ?? (num(x.dias) + ' días de trabajo desde la aprobación'),
+          onPlazo: (e) => { const v = e.target.value; this.editProy(y => { y.props[i].plazoTxt = v; return y; }); } };
+      }),
+      enLista: s.tab === 'lista', onTabLista: () => this.setState({ tab: 'lista' }),
+      tabListaBg: s.tab === 'lista' ? '#f4f3f0' : 'transparent', tabListaFg: s.tab === 'lista' ? '#1b1a18' : '#c9c5bd',
+      ...(() => {
+        const idx = Math.min(s.lsOp ?? s.op ?? 0, p.props.length - 1), cc = calcs[idx], x = p.props[idx];
+        const act = cc.items.filter(it => it.activo && num(it.qty) > 0), pr = s.lsPrecios === true;
+        const qf = (v) => { const n = num(v); return Number.isInteger(n) ? String(n) : n.toLocaleString('es-PY'); };
+        return {
+          lsOps: p.props.map((o, i) => ({ v: String(i), label: 'Opción ' + (i + 1) + ' · ' + o.nombre })), lsOp: String(idx),
+          onLsOp: (e) => this.setState({ lsOp: +e.target.value }),
+          lsPrecios: pr, lsSinPrecios: !pr, onLsPrecios: (e) => this.setState({ lsPrecios: e.target.checked }),
+          lsCliente: p.cliente || 'Sin nombre', lsTitulo: 'Opción ' + (idx + 1) + ' · ' + x.nombre + (p.nro ? ' · ' + p.nro : ''),
+          lsFecha: p.fecha || '', lsCiudad: p.ciudad || '',
+          lsItems: act.map((it, k) => ({ n: String(k + 1), code: it.code, desc: it.desc, unit: it.unit, qty: qf(it.qty), pu: fmt(it.pu), total: fmt(it.total) })),
+          lsTotal: fmt(act.reduce((a, it) => a + it.total, 0)),
+          lsResumen: act.length + ' ítems'
+        };
+      })(),
+      enArch: s.tab === 'arch', onTabArch: () => this.setState({ tab: 'arch' }),
+      tabArchBg: s.tab === 'arch' ? '#f4f3f0' : 'transparent', tabArchFg: s.tab === 'arch' ? '#1b1a18' : '#c9c5bd',
+      estados: ESTADOS,
+      archFiltro: s.archFiltro || '', onArchFiltro: (e) => this.setState({ archFiltro: e.target.value }),
+      archEstadoF: s.archEstadoF || '', onArchEstadoF: (e) => this.setState({ archEstadoF: e.target.value }),
+      ...(() => {
+        const nz = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const q = nz(s.archFiltro), ef = s.archEstadoF || '';
+        const filas = s.proyectos.map((x, xi) => {
+          const cs = x.props.map(o => this.calc(o, x.margen, x.km));
+          const sel = Math.min(Math.max(parseInt(x.opElegida ?? 0, 10) || 0, 0), x.props.length - 1);
+          const est = x.estado || 'BORRADOR', col = ESTCOL[est] || ESTCOL.BORRADOR;
+          const upd = (fn) => this.guardar({ proyectos: s.proyectos.map(y => y.id === x.id ? fn(structuredClone(y)) : y) });
+          return { x, total: cs[sel].venta * 1.1, est,
+            row: { nro: x.nro || '—', fecha: x.fecha || '', cliente: x.cliente || 'Sin nombre', obra: [x.obra, x.ciudad].filter(Boolean).join(' · ') || '—',
+              opSel: String(sel), ops: x.props.map((o, i) => ({ v: String(i), label: 'Opción ' + (i + 1) + ' · ' + fmt(cs[i].venta * 1.1) })),
+              onOpSel: (e) => { const v = e.target.value; upd(y => { y.opElegida = v; return y; }); },
+              total: fmt(cs[sel].venta * 1.1), estado: est, estBg: col[0], estFg: col[1], estBorde: col[2],
+              onEstado: (e) => { const v = e.target.value; upd(y => { y.estado = v; return y; }); },
+              onAbrir: () => this.guardar({ sel: x.id, op: sel }, { tab: 'proy' }),
+              onProp: () => this.guardar({ sel: x.id, op: sel }, { tab: 'prop' }) } };
+        });
+        const vis = filas.filter(r => (!ef || r.est === ef) && (!q || nz([r.x.nro, r.x.cliente, r.x.obra, r.x.ciudad].join(' ')).includes(q)));
+        const apr = filas.filter(r => r.est === 'APROBADO' || r.est === 'FINALIZADO').reduce((a, r) => a + r.total, 0);
+        return { archivo: vis.map(r => r.row), archVacio: !vis.length, archCount: vis.length + ' de ' + filas.length + ' presupuestos', archAprobado: fmt(apr) };
+      })(),
+      onTabProy: () => this.setState({ tab: 'proy' }), onTabPrecios: () => this.setState({ tab: 'precios' }),
+      lista: s.proyectos.map(x => {
+        const v = 0;
+        return { cliente: x.cliente || 'Sin nombre', detalle: (x.ciudad ? x.ciudad + ' · ' : '') + x.fecha, bg: x.id === p.id ? 'oklch(0.95 0.03 150)' : '#fff', borde: x.id === p.id ? 'oklch(0.70 0.08 150)' : '#eeebe6', onSel: () => this.guardar({ sel: x.id, op: 0 }), v };
+      }),
+      cliente: p.cliente, obra: p.obra, margen: p.margen,
+      ciudad: p.ciudad ?? '', km: p.km ?? '', ciudades: Object.keys(KM),
+      kmNota: num(p.km) > UMBRAL ? 'Obra a ' + num(p.km) + ' km: se suma alojamiento para la cuadrilla.' : (buscarKm(p.ciudad) === null && p.ciudad ? 'Ciudad fuera de la lista: cargá los km a mano.' : 'La distancia se completa sola al elegir la ciudad; podés corregirla.'),
+      onCiudad: (e) => { const v = e.target.value, k = buscarKm(v); this.editProy(x => { x.ciudad = v; if (k !== null) x.km = String(k); return x; }); },
+      onKm: set('km'),
+      onCliente: set('cliente'), onObra: set('obra'), onMargen: set('margen'),
+      onNuevo: () => { const n = nuevoProy("Nuevo cliente"); this.guardar({ proyectos: [n, ...s.proyectos], sel: n.id, op: 0 }); },
+      onDuplicar: () => { const n = { ...structuredClone(p), id: 'b' + Date.now().toString(36), cliente: p.cliente + ' (copia)', fecha: new Date().toLocaleDateString('es-PY') }; this.guardar({ proyectos: [n, ...s.proyectos], sel: n.id }); },
+      onRestablecer: () => { if (confirm('¿Volver las tres opciones de este proyecto a las cantidades de la plantilla?')) this.editProy(x => { x.props = PROPS0(); return x; }); },
+      onEliminar: () => {
+        if (s.proyectos.length === 1) { alert('Tiene que quedar al menos un proyecto.'); return; }
+        if (confirm('¿Eliminar el proyecto ' + p.cliente + '?')) { const rest = s.proyectos.filter(x => x.id !== p.id); this.guardar({ proyectos: rest, sel: rest[0].id, op: 0 }); }
+      },
+      resumen: p.props.map((x, i) => ({
+        nombre: x.nombre, mat: fmt(calcs[i].mat), op: fmt(calcs[i].op), dir: fmt(calcs[i].dir), marg: fmt(calcs[i].marg), venta: fmt(calcs[i].venta), conIva: fmt(calcs[i].venta * 1.1),
+        bg: i === op ? 'oklch(0.97 0.02 150)' : '#fff',
+        tabBg: i === op ? '#1b1a18' : '#fff', tabFg: i === op ? '#fff' : '#1b1a18', tabBorde: i === op ? '#1b1a18' : '#c9c5bd',
+        onAbrir: () => this.setState({ op: i })
+      })),
+      opNombre: prop.nombre, onOpNombre: setOp('nombre'),
+      pers: prop.auto ? c.persEf : prop.pers, dias: prop.auto ? c.diasEf : prop.dias, viajes: prop.viajes, dimVisible: !!prop.auto,
+      onAutoReset: () => this.editOp(o => { o.man = {}; o.pers = ''; o.dias = ''; }), onPers: setOp('pers'), onDias: setOp('dias'), onViajes: setOp('viajes'),
+      ...(() => {
+        const tipo = prop.dimTipo || 'medio', us = prop.dimUsuarios ?? '';
+        const cat = Object.fromEntries(s.catalogo.map(x => [x.code, num(x.cost)]));
+        const d = dimensionar(tipo, num(us), cat.M01 || 0, cat.M02 || 0, cat.M21 || 0);
+        const txt = !d ? 'Elegí el tipo de establecimiento y cargá la cantidad de personas. La lista de insumos, las cantidades, la mano de obra, los costos y el precio final se arman solos. Las propuestas 1, 2 y 3 no se tocan.'
+          : d.p + ' personas en ' + d.t.label.toLowerCase() + ' (' + d.t.lpd + ' L/día por persona): ' + [d.n18 ? d.n18 + ' × 1.800 L' : '', d.n15 ? d.n15 + ' × 1.500 L' : '', d.n8 ? d.n8 + ' × 800 L' : ''].filter(Boolean).join(' + ') + ', con capacidad para ' + d.cap + ' personas.' + (d.n > 6 ? ' Son más de 6 tanques: conviene evaluar un sistema de mayor escala.' : '');
+        return {
+          dimTipos: DIM, dimTipo: tipo, dimUsuarios: us, dimResultado: txt,
+          ...(() => {
+            if (!d) return { dimHay: false, dimDatos: [], dimTexto: '' };
+            const caudal = d.p * d.t.lpd, vol = d.n8 * 800 + d.n15 * 1500 + d.n18 * 1800, trh = vol / caudal, capL = d.cap * d.t.lpd, holg = Math.round((d.cap / d.p - 1) * 100);
+            const eq = [d.n18 ? d.n18 + ' biodigestor' + (d.n18 > 1 ? 'es' : '') + ' de 1.800 L' : '', d.n15 ? d.n15 + ' biodigestor' + (d.n15 > 1 ? 'es' : '') + ' de 1.500 L' : '', d.n8 ? d.n8 + ' biodigestor' + (d.n8 > 1 ? 'es' : '') + ' de 800 L' : ''].filter(Boolean).join(' y ');
+            const dec = (x) => x.toLocaleString('es-PY', { maximumFractionDigits: 1 });
+            return {
+              dimHay: true,
+              dimDatos: [
+                { k: 'Agua tratada por día', v: miles(caudal) + ' L' },
+                { k: 'Al mes (30 días)', v: miles(caudal * 30 / 1000) + ' m³' },
+                { k: 'Volumen útil instalado', v: miles(vol) + ' L' },
+                { k: 'Tiempo de retención', v: dec(trh * 24) + ' h' }
+              ],
+              dimTexto: 'Para ' + d.p + ' personas en ' + d.t.label.toLowerCase() + ', con un aporte de ' + d.t.lpd + ' litros de aguas residuales por persona y por día (ABNT NBR 17076), el sistema recibe unos ' + miles(caudal) + ' litros por día, es decir ' + dec(caudal * 30 / 1000) + ' m³ por mes.\n\n' +
+                'Se proponen ' + eq + (d.n > 1 ? ', instalados en paralelo con un distribuidor de caudal que reparte el ingreso en partes iguales' : '') + '. El volumen útil total es de ' + miles(vol) + ' litros: el agua permanece en promedio ' + dec(trh * 24) + ' horas dentro del sistema, tiempo en el que las bacterias descomponen la materia orgánica antes de la descarga.\n\n' +
+                'La capacidad es para ' + d.cap + ' personas (' + miles(capL) + ' L/día)' + (holg > 0 ? ', un ' + holg + '% por encima de la demanda calculada, lo que da margen para visitas o crecimiento' : ', justa para la demanda calculada') + '. El lodo estabilizado se retira por la válvula de purga hacia la caja de secado, sin camión atmosférico; la frecuencia de purga depende del uso y se indica en el manual del fabricante.'
+            };
+          })(),
+          onDimTipo: (e) => { const v = e.target.value; this.editOp(o => { o.dimTipo = v; }); },
+          onDimUsuarios: (e) => { const v = e.target.value.replace(/[^\d]/g, ''); this.editOp(o => { o.dimUsuarios = v; }); },
+          onDimAplicar: () => { if (!d) return; this.editOp(o => {
+            const setQ = (code, q, after) => { const i = o.items.findIndex(it => it.code === code); if (q > 0) { if (i >= 0) { o.items[i].qty = String(q); o.items[i].activo = true; } else { const at = o.items.findIndex(it => it.code === after); o.items.splice(at < 0 ? 0 : at + 1, 0, { code, qty: String(q) }); } } else if (i >= 0) o.items.splice(i, 1); };
+            setQ('M01', d.n8, null); setQ('M02', d.n18, 'M01');
+            const d4 = d.n > 2 ? Math.ceil(d.n / 4) : 0, rest = d.n > 2 ? 0 : 1;
+            const d2 = d.n > 2 ? (d.n % 4 === 1 || d.n % 4 === 2 ? 0 : 0) : rest;
+            setQ('M08', d4, 'M04'); setQ('M07', d2, 'M04');
+          }); }
+        };
+      })(),
+      factor: s.factor, onFactor: (e) => this.setState({ factor: e.target.value }),
+      onAplicarFactor: () => { const f = num(s.factor); if (!f || f === 1) return; this.editOp(o => { o.items.forEach(it => { if (it.code !== 'M01' && it.code !== 'M02' && it.code !== 'M21') it.qty = String(Math.ceil(num(it.qty) * f * 100) / 100); }); }); this.setState({ factor: "1" }); },
+      codigos: s.catalogo.map(x => x.code).filter(k => !['M16','M17','M18'].includes(k)),
+      items: c.items.map((it, i) => ({
+        code: it.code, desc: it.desc, unit: it.unit, qty: it.qty, pu: fmt(it.pu), total: fmt(it.bruto),
+        activo: it.activo, opac: it.activo ? 1 : 0.45, tachado: it.activo ? 'none' : 'line-through',
+        onActivo: (e) => { const v = e.target.checked; this.editOp(o => { if (o.auto) { o.man = o.man || {}; o.man[it.code] = { ...(o.man[it.code] || {}), activo: v }; } else o.items[i].activo = v; }); },
+        onCode: (e) => { const v = e.target.value; if (prop.auto) return; this.editOp(o => { o.items[i].code = v; }); },
+        onQty: (e) => { const v = e.target.value; this.editOp(o => { if (o.auto) { o.man = o.man || {}; o.man[it.code] = { ...(o.man[it.code] || {}), qty: v }; } else o.items[i].qty = v; }); },
+        onDel: () => this.editOp(o => { if (o.auto) { o.man = o.man || {}; o.man[it.code] = { ...(o.man[it.code] || {}), activo: false }; } else o.items.splice(i, 1); })
+      })),
+      onAddItem: () => this.editOp(o => { if (o.auto) { const usados = new Set(c.items.map(x => x.code)); const libre = s.catalogo.map(x => x.code).find(k => !usados.has(k) && !['M16','M17','M18','M19','M20'].includes(k)); if (libre) { o.man = o.man || {}; o.man[libre] = { qty: '1' }; } } else o.items.push({ code: 'M12', qty: '1' }); }),
+      matTotal: fmt(c.mat),
+      opRows: c.ops.map(o => {
+        const ed = (k) => (e) => { const v = e.target.value; this.editOp(x => { x.ops = x.ops || {}; x.ops[o.key] = { ...(x.ops[o.key] || {}), [k]: v }; }); };
+        const bg = (m) => m ? 'oklch(0.97 0.04 85)' : '#fff';
+        return { nombre: o.nombre, unidad: o.unidad, cant: o.cant, pers: o.pers, pu: milesTxt(o.pu), total: fmt(o.bruto),
+          cantBg: bg(o.man.cant), persBg: bg(o.man.pers), puBg: bg(o.man.pu),
+          activo: o.activo, opac: o.activo ? 1 : 0.45, tachado: o.activo ? 'none' : 'line-through',
+          onCant: ed('cant'), onPersR: ed('pers'), onPu: (e) => { const v = soloNum(e.target.value); this.editOp(x => { x.ops = x.ops || {}; x.ops[o.key] = { ...(x.ops[o.key] || {}), pu: v }; }); },
+          onActivo: (e) => { const v = e.target.checked; this.editOp(x => { x.ops = x.ops || {}; x.ops[o.key] = { ...(x.ops[o.key] || {}), activo: v }; }); } };
+      }),
+      opNota: c.ops.some(o => o.man.cant || o.man.pers || o.man.pu) ? 'Los campos en amarillo fueron cambiados a mano.' : 'Calculado desde personas, días, km y precios maestros.',
+      onRecalcOps: () => this.editOp(x => { const act = {}; Object.entries(x.ops || {}).forEach(([k, v]) => { if (v.activo === false) act[k] = { activo: false }; }); x.ops = act; }),
+      opTotal: fmt(c.op),
+      dir: fmt(c.dir), marg: fmt(c.marg), venta: fmt(c.venta), conIva: fmt(c.venta * 1.1),
+      catalogo: s.catalogo.map((x, i) => {
+        const ed = (k) => (e) => { const v = e.target.value; this.guardar({ catalogo: s.catalogo.map((y, j) => j === i ? { ...y, [k]: v } : y) }); };
+        return { ...x, cost: milesTxt(x.cost), onDesc: ed('desc'), onUnit: ed('unit'), onCost: (e) => { const v = soloNum(e.target.value); this.guardar({ catalogo: s.catalogo.map((y, j) => j === i ? { ...y, cost: v } : y) }); },
+          onDel: () => { if (['M16','M17','M18'].includes(x.code)) { alert('M16, M17 y M18 se usan para mano de obra, viáticos y traslado.'); return; } if (confirm('¿Quitar ' + x.code + ' del catálogo?')) this.guardar({ catalogo: s.catalogo.filter((_, j) => j !== i) }); } };
+      }),
+      onAddCat: () => { const max = Math.max(0, ...s.catalogo.map(x => parseInt(x.code.slice(1)) || 0)); const code = 'M' + String(max + 1).padStart(2, '0'); this.guardar({ catalogo: [...s.catalogo, { code, desc: 'Nuevo insumo', unit: 'und', cost: '0' }] }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

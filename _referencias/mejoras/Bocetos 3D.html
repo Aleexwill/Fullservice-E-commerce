@@ -1,0 +1,2816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bocetos 3D — TWG Full Service</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
+    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f4f3f0; font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18; }
+  * { box-sizing: border-box; }
+  three-d-stage:not(:defined) { visibility: hidden; }
+  button, input, select { font-family: inherit; color: inherit; }
+  input:focus, select:focus { outline: 2px solid oklch(0.50 0.11 240); outline-offset: -1px; }
+  .app { display: grid; grid-template-columns: 214px minmax(0, 1fr) 200px; height: 100vh; }
+  /* Pantalla completa: las dos columnas se esconden y el visor toma todo el ancho */
+  .app.full { grid-template-columns: minmax(0, 1fr); }
+  .app.full .col { display: none; }
+  .col { overflow-y: auto; background: #ffffff; }
+  .col.izq { border-right: 1px solid #dedbd5; }
+  .col.der { border-left: 1px solid #dedbd5; }
+  .rot { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b; }
+  .plant { display: block; width: 100%; text-align: left; padding: 6px 9px; margin-bottom: 3px; font-size: 11px; font-weight: 500; background: #faf9f7; border: 1px solid #dedbd5; border-radius: 8px; cursor: pointer; }
+  .plant.on { font-weight: 600; color: #ffffff; background: #1b1a18; border-color: #1b1a18; }
+  .campo { display: grid; grid-template-columns: minmax(0, 1fr) 62px; align-items: center; gap: 6px; padding: 3px 0; font-size: 11px; }
+  .campo input { width: 100%; padding: 4px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: right; background: #ffffff; border: 1px solid #dedbd5; border-radius: 6px; }
+  .campo .u { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #86817b; }
+  .sw { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 11px; }
+  .sw button { padding: 5px 11px; font-size: 11.5px; font-weight: 600; border-radius: 20px; cursor: pointer; }
+  .acc { width: 100%; padding: 7px; margin-top: 5px; font-size: 11px; font-weight: 600; border-radius: 8px; cursor: pointer; }
+  .mat { display: grid; grid-template-columns: minmax(0, 1fr) 48px 32px; gap: 5px; align-items: baseline; padding: 4px 0; border-bottom: 1px solid #efedea; font-size: 10.5px; }
+  .mat b { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: right; }
+  .mat i { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-style: normal; color: #86817b; }
+  .vista { padding: 5px 0; font-size: 10.5px; font-weight: 600; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer; }
+  @media (max-width: 1100px) {
+    .app { grid-template-columns: 1fr; height: auto; }
+    .col { max-height: none; }
+    .col.izq, .col.der { border: 0; border-top: 1px solid #dedbd5; }
+    .escena { position: static !important; height: 76vh; min-height: 380px; }
+    /* La barra queda debajo de la escena: hay que dejarle su lugar dentro de la ventana */
+    .app.full .escena { height: calc(100vh - 86px); min-height: 320px; }
+    /* La barra sale del apilado absoluto: en fila arriba de la escena, sin invadir la columna de plantillas */
+    /* La barra queda fija al pie y por encima de los paneles: si no, el panel
+       de selección la tapaba entera y no se podía tocar ninguna herramienta. */
+    #barra { position: fixed !important; left: 12px !important; right: 12px !important; top: auto !important; bottom: 8px !important; flex-direction: row !important; flex-wrap: wrap !important; justify-content: center; max-height: none !important; z-index: 40; }
+    #paleta, #carpeta, #ventanaImg, #biblioteca, #panelPieza { position: fixed !important; left: 12px !important; right: 12px !important; top: auto !important; bottom: 58px !important; width: auto !important; max-height: 42vh !important; z-index: 30; }
+    .app > div:nth-child(2) { order: -1; position: sticky; top: 0; z-index: 5; background: #eceae5; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="col izq" style="padding: 12px;">
+    <div style="font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em;">Bocetos 3D</div>
+    <div class="rot" style="margin-top: 2px;">Plantillas y medidas en cm</div>
+
+    <div class="rot" style="margin: 16px 0 7px;">Plantilla</div>
+    <div id="plantillas"></div>
+
+    <div class="rot" style="margin: 16px 0 4px;">Medidas</div>
+    <div id="campos"></div>
+
+    <div class="rot" style="margin: 14px 0 2px;">Agregados</div>
+    <div id="extras"></div>
+
+    <div class="rot" style="margin: 16px 0 6px;">Piezas libres</div>
+    <select id="pieza" style="width: 100%; padding: 8px 10px; font-size: 12.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;"></select>
+    <button class="acc" id="agregarPieza" style="color: #ffffff; background: oklch(0.50 0.13 300); border: 0;">Agregar pieza</button>
+    <div id="listaLibres" style="margin-top: 8px;"></div>
+
+    <div class="rot" style="margin: 16px 0 6px;">Obra</div>
+    <input id="obra" placeholder="Nombre de la obra" style="width: 100%; padding: 8px 10px; font-size: 12.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px;" />
+    <button class="acc" id="guardar" style="color: #ffffff; background: oklch(0.50 0.13 150); border: 0;">Guardar boceto</button>
+    <select id="guardados" style="width: 100%; margin-top: 7px; padding: 8px 10px; font-size: 12px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;"></select>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px;">
+      <button class="acc" id="abrir" style="margin: 0; background: #f0eee9; border: 1px solid #dedbd5;">Abrir</button>
+      <button class="acc" id="borrar" style="margin: 0; color: #8a3a2f; background: #faf0ee; border: 1px solid #e8d3ce;">Borrar</button>
+    </div>
+  </div>
+
+  <div style="position: relative; min-height: 0;">
+    <div class="escena" style="position: absolute; inset: 0;">
+      <three-d-stage id="stage" name="boceto" background="#eceae5" style="display: block; width: 100%; height: 100%;"></three-d-stage>
+    </div>
+    <div style="position: absolute; left: 12px; top: 12px; display: flex; gap: 3px; padding: 3px; background: rgba(255,255,255,0.94); border: 1px solid #dedbd5; border-radius: 9px;">
+      <button class="vista" style="padding: 5px 9px;" data-v="perspectiva">Perspectiva</button>
+      <button class="vista" style="padding: 5px 9px;" data-v="frente">Frente</button>
+      <button class="vista" style="padding: 5px 9px;" data-v="lateral">Lateral</button>
+      <button class="vista" style="padding: 5px 9px;" data-v="planta">Planta</button>
+      <button class="vista" style="padding: 5px 9px;" data-v="ojo">A nivel de ojo</button>
+      <button class="vista" style="padding: 5px 9px;" data-v="foto">Guardar imagen</button>
+    </div>
+    <div style="position: absolute; left: 12px; top: 52px; display: flex; align-items: center; gap: 3px; padding: 3px; background: rgba(255,255,255,0.94); border: 1px solid #dedbd5; border-radius: 9px;">
+      <label style="display: flex; align-items: center; gap: 5px; padding: 0 8px; font-size: 11px; color: #6f6b64;">Paso
+        <input id="paso" value="10" inputmode="numeric" style="width: 46px; padding: 5px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; text-align: right; background: #ffffff; border: 1px solid #dedbd5; border-radius: 6px;" /> cm
+      </label>
+      <button class="vista" id="ampliarVista" style="padding: 5px 9px;">Pantalla completa</button>
+      <button class="vista" id="exportarBtn" style="padding: 5px 9px;">Exportar 3D</button>
+    </div>
+    <div id="barra" style="position: absolute; left: 12px; top: 96px; display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; max-height: min(420px, calc(100% - 110px)); overflow-y: auto; gap: 3px; padding: 5px; background: rgba(255,255,255,0.96); border: 1px solid #dedbd5; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.08);"></div>
+    <div id="paleta" style="display: none; position: absolute; left: 50px; top: 96px; width: 132px; padding: 8px; background: rgba(255,255,255,0.97); border: 1px solid #dedbd5; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.08);"></div>
+    <div id="carpeta" style="display: none; position: absolute; left: 50px; top: 96px; width: 236px; max-height: calc(100% - 140px); overflow-y: auto; padding: 10px 11px; background: rgba(255,255,255,0.98); border: 1px solid #dedbd5; border-radius: 11px; box-shadow: 0 6px 22px rgba(0,0,0,0.12);"></div>
+    <div id="ventanaImg" style="display: none; position: absolute; left: 50px; top: 96px; width: 246px; max-height: calc(100% - 140px); overflow-y: auto; padding: 10px 11px; background: rgba(255,255,255,0.98); border: 1px solid #dedbd5; border-radius: 11px; box-shadow: 0 6px 22px rgba(0,0,0,0.12);"></div>
+    <div id="biblioteca" style="display: none; position: absolute; left: 50px; top: 96px; width: 240px; max-height: calc(100% - 140px); overflow-y: auto; padding: 10px 11px; background: rgba(255,255,255,0.98); border: 1px solid #dedbd5; border-radius: 11px; box-shadow: 0 6px 22px rgba(0,0,0,0.12);"></div>
+    <div id="panelPieza" style="display: none; position: absolute; right: 12px; top: 96px; width: 234px; max-height: calc(100% - 150px); overflow-y: auto; padding: 10px 11px; background: rgba(255,255,255,0.97); border: 1px solid #dedbd5; border-radius: 11px; box-shadow: 0 6px 22px rgba(0,0,0,0.10);"></div>
+    <div id="dibujo" style="display: none; position: absolute; left: 50px; top: 96px; width: 208px; padding: 10px 11px; background: rgba(255,255,255,0.98); border: 1px solid #dedbd5; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.08);"></div>
+    <div id="lazo" style="display: none; position: absolute; pointer-events: none; border: 1.5px solid #2f6df6; background: rgba(47,109,246,0.12); border-radius: 3px; z-index: 12;"></div>
+    <div id="cartel" style="position: absolute; right: 12px; top: 12px; max-width: 190px; padding: 7px 10px; font-size: 10px; line-height: 1.5; color: #f4f3f0; background: rgba(27,26,24,0.92); border-radius: 9px;"></div>
+  </div>
+
+  <div class="col der" style="padding: 12px;">
+    <div class="rot">Elementos del modelo</div>
+    <div id="capas" style="margin: 8px 0 16px;"></div>
+    <div class="rot">Cómputo de materiales</div>
+    <div id="materiales" style="margin-top: 8px;"></div>
+    <button class="acc" id="alPresupuesto" style="color: #ffffff; background: oklch(0.50 0.11 240); border: 0; margin-top: 12px;">Enviar al presupuesto</button>
+    <div id="avisoComputo" style="margin-top: 8px; font-size: 11px; line-height: 1.5; color: #86817b;">El cómputo sale de las medidas. En la planilla de costos, el botón “Traer del boceto” lo carga como filas de material.</div>
+  </div>
+
+</div>
+
+<script src="./three-d-stage.js"></script>
+<script type="module">
+const stage = document.querySelector('#stage');
+const { THREE } = await stage.ready;
+// Los botones de descarga del visor tapan el dibujo: quedan guardados
+// detrás de "Exportar 3D" y solo aparecen cuando hacen falta.
+let verExport = false;
+function estiloExport() {
+  if (stage._toolbar) stage._toolbar.style.display = verExport ? 'flex' : 'none';
+  const b = document.querySelector('#exportarBtn');
+  if (!b) return;
+  b.style.cssText = 'padding: 5px 9px; font-size: 10.5px; font-weight: 600; border-radius: 7px; cursor: pointer; border: 1px solid ' + (verExport ? '#1b1a18' : '#dedbd5') + '; color: ' + (verExport ? '#ffffff' : '#1b1a18') + '; background: ' + (verExport ? '#1b1a18' : '#ffffff') + ';';
+}
+estiloExport();
+document.querySelector('#exportarBtn').onclick = () => { verExport = !verExport; estiloExport(); };
+const CM = 0.01;
+
+const M = {};
+const mat = (n, c, r, m) => { if (!M[n]) { M[n] = new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m || 0 }); M[n].name = n; } return M[n]; };
+
+// ————— texturas dibujadas al vuelo, para que los materiales se vean reales —————
+function lienzo(w, h, fn) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  fn(c.getContext('2d'), w, h);
+  const tx = new THREE.CanvasTexture(c);
+  tx.wrapS = tx.wrapT = THREE.RepeatWrapping;
+  if (THREE.SRGBColorSpace) tx.colorSpace = THREE.SRGBColorSpace;
+  return tx;
+}
+const ruido = (x, w, h, n, cols, r) => {
+  for (let i = 0; i < n; i++) {
+    x.fillStyle = cols[(Math.random() * cols.length) | 0];
+    x.beginPath(); x.arc(Math.random() * w, Math.random() * h, Math.random() * r + 0.6, 0, 6.3); x.fill();
+  }
+};
+const TEX = {
+  madera: (base, vetas) => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = base; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 260; i++) {
+      x.strokeStyle = 'rgba(0,0,0,' + (0.02 + Math.random() * 0.06) + ')';
+      x.lineWidth = 0.4 + Math.random() * 1.2;
+      const y = Math.random() * h;
+      x.beginPath(); x.moveTo(0, y);
+      x.bezierCurveTo(w * 0.35, y + (Math.random() * 7 - 3.5), w * 0.7, y + (Math.random() * 7 - 3.5), w, y + (Math.random() * 5 - 2.5));
+      x.stroke();
+    }
+    for (let i = 0; i < 6; i++) {
+      x.fillStyle = 'rgba(0,0,0,0.10)';
+      x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 3 + Math.random() * 4, 2 + Math.random() * 3, Math.random() * 3, 0, 6.3); x.fill();
+    }
+    x.strokeStyle = vetas; x.lineWidth = 2.4;
+    for (let i = 1; i < 6; i++) { const y = h / 6 * i; x.beginPath(); x.moveTo(0, y); x.lineTo(w, y); x.stroke(); }
+  }),
+  piedra: () => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = '#9d958a'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 46; i++) {
+      const cx = Math.random() * w, cy = Math.random() * h, r = 14 + Math.random() * 26;
+      x.fillStyle = ['#a9a196', '#8f887d', '#b4ac9f', '#7e786f', '#c0b8a9'][(Math.random() * 5) | 0];
+      x.beginPath();
+      for (let k = 0; k < 7; k++) {
+        const a = k / 7 * 6.283, rr = r * (0.6 + Math.random() * 0.5);
+        k ? x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr) : x.moveTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+      }
+      x.closePath(); x.fill();
+      x.strokeStyle = 'rgba(60,56,50,0.35)'; x.lineWidth = 1.4; x.stroke();
+    }
+    ruido(x, w, h, 400, ['rgba(255,255,255,0.05)', 'rgba(0,0,0,0.05)'], 1.4);
+  }),
+  ladrillo: () => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = '#b9a68f'; x.fillRect(0, 0, w, h);
+    const fh = h / 8;
+    for (let f = 0; f < 8; f++) {
+      const off = (f % 2) * 32;
+      for (let c = -1; c < 5; c++) {
+        x.fillStyle = ['#a0512f', '#95492b', '#ab5b38', '#8d4527', '#b06340'][(Math.random() * 5) | 0];
+        x.fillRect(c * 64 + off + 2, f * fh + 2, 60, fh - 4);
+      }
+    }
+    ruido(x, w, h, 500, ['rgba(0,0,0,0.06)', 'rgba(255,255,255,0.05)'], 1.3);
+  }),
+  cesped: () => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = '#6d8046'; x.fillRect(0, 0, w, h);
+    ruido(x, w, h, 2600, ['#5d7239', '#7b8c50', '#87965b', '#54682f', '#93a06a'], 2.2);
+  }),
+  arena: () => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = '#c8b28d'; x.fillRect(0, 0, w, h);
+    ruido(x, w, h, 2200, ['#bda781', '#d3bf9c', '#b09a75', '#dcc9a8'], 1.8);
+  }),
+  agua: () => lienzo(256, 256, (x, w, h) => {
+    const g = x.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#3f7590'); g.addColorStop(1, '#57889d');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 130; i++) {
+      x.strokeStyle = 'rgba(255,255,255,' + (0.03 + Math.random() * 0.10) + ')';
+      x.lineWidth = 0.6 + Math.random() * 1.6;
+      const y = Math.random() * h;
+      x.beginPath(); x.moveTo(0, y);
+      x.bezierCurveTo(w * 0.3, y - 3, w * 0.6, y + 3, w, y); x.stroke();
+    }
+  }),
+  cana: () => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = '#8e8a70'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 26; i++) {
+      const cx = i * (w / 26);
+      x.fillStyle = ['#9d9878', '#8a8568', '#a8a488', '#7c7860'][(i % 4)];
+      x.fillRect(cx, 0, w / 26 - 1, h);
+      x.strokeStyle = 'rgba(0,0,0,0.22)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(cx, 0); x.lineTo(cx, h); x.stroke();
+    }
+    x.strokeStyle = 'rgba(50,46,38,0.35)'; x.lineWidth = 2.6;
+    for (let k = 1; k < 4; k++) { const y = h / 4 * k; x.beginPath(); x.moveTo(0, y); x.lineTo(w, y); x.stroke(); }
+  }),
+  revoque: () => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = '#d6c7a4'; x.fillRect(0, 0, w, h);
+    ruido(x, w, h, 1800, ['rgba(0,0,0,0.035)', 'rgba(255,255,255,0.05)', '#cbbb98'], 2.4);
+  }),
+  cemento: () => lienzo(256, 256, (x, w, h) => {
+    x.fillStyle = '#8f8b85'; x.fillRect(0, 0, w, h);
+    ruido(x, w, h, 1700, ['rgba(0,0,0,0.05)', 'rgba(255,255,255,0.05)', '#847f79'], 2.6);
+  }),
+  tela: () => lienzo(128, 128, (x, w, h) => {
+    x.fillStyle = '#ddd8cd'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = 'rgba(0,0,0,0.05)';
+    for (let i = 0; i < w; i += 3) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, h); x.stroke(); }
+    for (let i = 0; i < h; i += 3) { x.beginPath(); x.moveTo(0, i); x.lineTo(w, i); x.stroke(); }
+  })
+};
+const conTex = (n, hacer, rep, r, met, color) => {
+  if (!M[n]) {
+    const tx = hacer(); tx.repeat.set(rep[0], rep[1]);
+    M[n] = new THREE.MeshStandardMaterial({ map: tx, roughness: r, metalness: met || 0, color: color || 0xffffff });
+    M[n].name = n;
+  }
+  return M[n];
+};
+
+const madera = () => conTex('madera', () => TEX.madera('#8a5a33', 'rgba(60,36,18,0.45)'), [2, 2], 0.68);
+const maderaOsc = () => conTex('madera oscura', () => TEX.madera('#4e372a', 'rgba(24,14,8,0.5)'), [2, 2], 0.74);
+const hierro = () => mat('hierro negro', 0x26251f, 0.42, 0.45);
+const blanco = () => mat('hierro blanco', 0xe8e5de, 0.5, 0.35);
+const tela = () => conTex('tela', TEX.tela, [3, 3], 0.86);
+const piedra = () => conTex('hormigon', TEX.piedra, [3, 3], 0.9);
+const cesped = () => conTex('cesped', TEX.cesped, [26, 18], 0.95);
+const agua = () => conTex('agua', TEX.agua, [8, 5], 0.18, 0.35);
+const revoque = () => conTex('revoque', TEX.revoque, [4, 3], 0.9);
+const ladrillo = () => conTex('ladrillo', TEX.ladrillo, [4, 4], 0.92);
+const cana = () => conTex('caña', TEX.cana, [1, 3], 0.88);
+const arena = () => conTex('arena', TEX.arena, [14, 3], 0.95);
+const junco = () => mat('junco', 0xb9a271, 0.95);
+const cemento = () => conTex('cemento alisado', TEX.cemento, [8, 5], 0.88);
+const vidrio = () => {
+  if (!M['vidrio']) {
+    M['vidrio'] = new THREE.MeshStandardMaterial({ color: 0xa8c6ce, roughness: 0.06, metalness: 0.22, transparent: true, opacity: 0.34 });
+    M['vidrio'].name = 'vidrio';
+  }
+  return M['vidrio'];
+};
+
+const caja = (n, w, h, d, x, y, z, m, ry) => {
+  const o = new THREE.Mesh(new THREE.BoxGeometry(Math.max(w, 0.005), Math.max(h, 0.005), Math.max(d, 0.005)), m);
+  o.name = n; o.position.set(x, y, z); if (ry) o.rotation.y = ry;
+  return o;
+};
+
+// ————— plantillas —————
+// cada una declara sus medidas en cm y devuelve {grupo, materiales}
+const PLANTILLAS = {
+  local: {
+    nombre: 'Local San Bernardino',
+    campos: [
+      ['largo', 'Largo del salón', 2000],
+      ['ancho', 'Ancho del salón', 900],
+      ['alto', 'Alto del salón', 320],
+      ['pergola', 'Largo de la galería', 1800],
+      ['volado', 'Volado de la galería', 430],
+      ['porticos', 'Pórticos blancos', 4],
+      ['pasarela', 'Largo de la pasarela', 1500],
+      ['cerco', 'Largo del cerco de caña', 2800]
+    ],
+    opciones: [
+      ['interior', 'Mobiliario interior', true], ['luces', 'Guirnaldas de luces', true],
+      ['cercoOn', 'Cerco de caña', true], ['lago', 'Lago y costa', true], ['eucaliptos', 'Eucaliptos', true]
+    ],
+    build(v, g, mats) {
+      const G = (n) => { const q = new THREE.Group(); q.name = n; g.add(q); return q; };
+      const cj = (n, w, h, d, x, y, z, m, ry) => caja(n, w * CM, h * CM, d * CM, x * CM, y * CM, z * CM, m, ry);
+      const cil = (n, r, h, x, y, z, m) => {
+        const o = new THREE.Mesh(new THREE.CylinderGeometry(r * CM, r * CM, h * CM, 10), m);
+        o.name = n; o.position.set(x * CM, y * CM, z * CM); return o;
+      };
+      const L = v.largo, A = v.ancho, H = v.alto, PB = 45;
+      const PL = v.pergola, V = v.volado, HG = 300;
+      const zFach = A / 2, zGal = zFach + V;
+      const dxEnt = L * 0.16;
+
+      // ————— terreno, lago y costa —————
+      const suelo = G('Terreno y lago');
+      suelo.add(cj('terreno', 4800, 20, 2800, 0, -12, 700, cesped()));
+      if (v.lago) {
+        const zC = zGal + 900;
+        suelo.add(cj('arena de la costa', 4800, 14, 280, 0, 0, zC + 140, arena()));
+        suelo.add(cj('agua del lago', 4800, 12, 1700, 0, -6, zC + 1130, agua()));
+        for (let i = 0; i < 32; i++) {
+          const x = -2300 + i * 148;
+          suelo.add(cj('junco ' + (i + 1), 6, 90, 6, x, 45, zC + 300 + (i % 3) * 22, junco()));
+        }
+        for (let i = 0; i < 8; i++) suelo.add(cj('piedra de la orilla ' + (i + 1), 70, 45, 60, -1500 + i * 400, 20, zC + 110, piedra()));
+      }
+
+      // ————— plataforma y salón —————
+      const sal = G('Salón');
+      sal.add(cj('plataforma de piedra', L + 320, PB, A + 340, 0, PB / 2, 70, piedra()));
+      sal.add(cj('piso del salón', L, 10, A, 0, PB + 5, 0, cemento()));
+      sal.add(cj('pared posterior', L, H, 22, 0, PB + H / 2, -A / 2, revoque()));
+      sal.add(cj('pared de ladrillo', 22, H, A, -L / 2, PB + H / 2, 0, ladrillo()));
+      sal.add(cj('pared lateral derecha', 22, H, A, L / 2, PB + H / 2, 0, revoque()));
+      sal.add(cj('depósito de servicio', 430, H * 0.8, 360, -L / 2 - 215, PB + H * 0.4, -A / 2 - 120, revoque()));
+      sal.add(cj('antepecho de la fachada', L, 90, 22, 0, PB + 45, zFach, revoque()));
+      sal.add(cj('vidrio de la fachada', L, H - 90, 8, 0, PB + 90 + (H - 90) / 2, zFach, vidrio()));
+      const np = Math.max(2, Math.round(L / 150));
+      for (let i = 0; i <= np; i++) {
+        sal.add(cj('parante de la fachada ' + (i + 1), 9, H - 90, 15, -L / 2 + (L / np) * i, PB + 90 + (H - 90) / 2, zFach, hierro()));
+      }
+      sal.add(cj('travesaño de la fachada', L, 9, 15, 0, PB + 90 + (H - 90) * 0.58, zFach, hierro()));
+      sal.add(cj('marco de la puerta', 250, H - 90, 18, dxEnt, PB + 90 + (H - 90) / 2, zFach + 4, hierro()));
+      sal.add(cj('puerta de vidrio corrediza', 234, H - 106, 6, dxEnt, PB + 90 + (H - 90) / 2, zFach + 6, vidrio()));
+      sal.add(cj('losa de techo', L + 44, 18, A + 44, 0, PB + H + 9, 0, revoque()));
+      const nl = Math.max(2, Math.round(L / 15));
+      for (let i = 0; i < nl; i++) {
+        sal.add(cj('listón del parapeto ' + (i + 1), 11, 95, 5, -L / 2 + 8 + i * (L / nl), PB + H + 18 + 47, -A / 2 + 14, maderaOsc()));
+      }
+      mats.push(['Piso de salón', 'm2', +(L * A / 10000).toFixed(1)]);
+      mats.push(['Vidrio de fachada con perfilería', 'm2', +(L * (H - 90) / 10000).toFixed(1)]);
+      mats.push(['Listón de parapeto 11 cm x 95 cm', 'un', nl]);
+
+      // ————— galería con listones de madera —————
+      const gal = G('Galería de listones');
+      const nc = Math.max(2, Math.round(PL / 400) + 1);
+      for (let i = 0; i < nc; i++) {
+        const x = -PL / 2 + (PL / (nc - 1)) * i;
+        gal.add(cj('columna de la galería ' + (i + 1), 13, HG, 13, x, PB + HG / 2, zGal, hierro()));
+        gal.add(cj('travesaño de la galería ' + (i + 1), 13, 19, V, x, PB + HG + 10, zFach + V / 2, hierro()));
+      }
+      gal.add(cj('viga frontal de la galería', PL, 21, 13, 0, PB + HG + 10, zGal, hierro()));
+      gal.add(cj('viga sobre la fachada', PL, 21, 13, 0, PB + HG + 10, zFach + 12, hierro()));
+      const ng = Math.max(2, Math.round(PL / 14));
+      for (let i = 0; i < ng; i++) {
+        gal.add(cj('listón de la galería ' + (i + 1), 9, 5, V, -PL / 2 + 6 + i * (PL / ng), PB + HG + 23, zFach + V / 2, madera()));
+      }
+      mats.push(['Columna metálica de galería', 'un', nc]);
+      mats.push(['Estructura metálica de galería', 'm', +((PL * 2 + V * nc) / 100).toFixed(1)]);
+      mats.push(['Listón de galería 9 cm — ' + v.volado + ' cm', 'un', ng]);
+
+      // ————— pórticos blancos sobre el césped —————
+      const por = G('Pórticos blancos');
+      const nb = Math.max(1, Math.round(v.porticos));
+      const z1 = zGal + 180, z2 = z1 + 560, HP = 260, pasoX = 560;
+      const xs = [];
+      for (let i = 0; i <= nb; i++) xs.push(-PL / 2 + i * pasoX);
+      xs.forEach((x, i) => [z1, z2].forEach((z, j) => {
+        por.add(cil('columna blanca ' + (i + 1) + '-' + (j + 1), 5.5, HP, x, HP / 2, z, blanco()));
+      }));
+      [z1, z2].forEach((z, j) => por.add(cj('tubo longitudinal ' + (j + 1), xs[nb] - xs[0], 9, 9, (xs[0] + xs[nb]) / 2, HP, z, blanco())));
+      xs.forEach((x, i) => por.add(cj('tubo transversal ' + (i + 1), 9, 9, z2 - z1, x, HP, (z1 + z2) / 2, blanco())));
+      mats.push(['Pórtico metálico blanco', 'un', nb]);
+      mats.push(['Caño estructural blanco', 'm', +(((xs[nb] - xs[0]) * 2 + (z2 - z1) * (nb + 1) + HP * (nb + 1) * 2) / 100).toFixed(1)]);
+      if (v.luces) {
+        const luz = mat('foco', 0xf6e6b4, 0.4);
+        let k = 0;
+        [z1, z2].forEach(z => {
+          for (let x = xs[0]; x <= xs[nb]; x += 70) {
+            const b = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), luz);
+            b.name = 'foco de guirnalda ' + (++k);
+            b.position.set(x * CM, (HP - 18) * CM, z * CM);
+            por.add(b);
+          }
+        });
+        mats.push(['Guirnalda de luces con focos', 'm', +(((xs[nb] - xs[0]) * 2) / 100).toFixed(1)]);
+      }
+
+      // ————— pasarela de madera y camino de piedra —————
+      // La pasarela llega desde el costado derecho y desemboca en la puerta,
+      // como en las fotos: corre paralela a la fachada, no hacia el agua.
+      const acc = G('Acceso');
+      const largoPas = v.pasarela, zPas = zGal + 150, xIni = L / 2 + 420;
+      const nt = Math.max(2, Math.round(largoPas / 12));
+      for (let i = 0; i < nt; i++) {
+        acc.add(cj('tabla de la pasarela ' + (i + 1), 11, 5, 190, xIni - i * (largoPas / nt), 20, zPas, maderaOsc()));
+      }
+      acc.add(cj('tramo de la pasarela hacia la puerta', 190, 5, zPas - zFach - V - 20, dxEnt, 20, (zPas + zFach + V) / 2, maderaOsc()));
+      [-118, 118].forEach((dz, i) => {
+        acc.add(cj('macetero de hormigón ' + (i + 1), 46, 52, 46, xIni - 40, 26, zPas + dz, piedra()));
+        for (let k = 0; k < 5; k++) {
+          acc.add(cj('planta del macetero', 5, 62, 5, xIni - 52 + k * 6, 78, zPas + dz, mat('follaje', 0x5f7a44, 0.95), (k - 2) * 0.14));
+        }
+      });
+      acc.add(cj('camino de piedra laja', 540, 8, 430, xIni + 330, 6, zPas, piedra()));
+      acc.add(cj('escalón de acceso', 300, 22, 60, dxEnt, PB - 11, zFach + V + 30, piedra()));
+      mats.push(['Tabla de pasarela 190 cm', 'un', nt]);
+      mats.push(['Macetero de hormigón', 'un', 2]);
+      mats.push(['Camino de piedra laja', 'm2', +(540 * 430 / 10000).toFixed(1)]);
+
+      // ————— cerco de caña sobre muro de piedra —————
+      if (v.cercoOn) {
+        const cer = G('Cerco de caña');
+        const xC = -L / 2 - 520, largoC = v.cerco, zC0 = -A / 2 - 150;
+        cer.add(cj('muro de piedra del cerco', 32, 45, largoC, xC, 22, zC0 + largoC / 2, piedra()));
+        const ncn = Math.round(largoC / 9);
+        for (let i = 0; i < ncn; i++) {
+          cer.add(cil('caña ' + (i + 1), 3.2, 180 + (i % 3) * 8, xC, 45 + 90, zC0 + 5 + i * 9, cana()));
+        }
+        cer.add(cj('travesaño del cerco', 8, 8, largoC, xC - 8, 190, zC0 + largoC / 2, hierro()));
+        mats.push(['Muro de piedra del cerco', 'm', +(largoC / 100).toFixed(1)]);
+        mats.push(['Caña tacuara 180 cm', 'un', ncn]);
+      }
+
+      // ————— kiosco —————
+      const kio = G('Kiosco');
+      const xK = -L / 2 - 120, zK = zGal + 900;
+      kio.add(cj('cuerpo del kiosco', 230, 210, 200, xK, 105, zK, blanco()));
+      kio.add(cj('techo del kiosco', 260, 12, 230, xK, 217, zK, hierro()));
+      kio.add(cj('mostrador del kiosco', 240, 10, 45, xK, 120, zK + 118, maderaOsc()));
+      mats.push(['Kiosco de atención', 'un', 1]);
+
+      // ————— eucaliptos —————
+      if (v.eucaliptos) {
+        const arb = G('Eucaliptos');
+        const pos = [[-L / 2 - 700, zGal + 520], [L / 2 + 520, zGal + 300], [-260, zGal + 1000], [L / 2 + 900, -A / 2 - 400], [-L / 2 - 900, -A / 2 - 700]];
+        pos.forEach(([x, z], i) => {
+          arb.add(cil('tronco de eucalipto ' + (i + 1), 15, 860 + i * 40, x, 430, z, mat('corteza', 0x9c9083, 0.95)));
+          [0, 1, 2].forEach(k => {
+            const c = new THREE.Mesh(new THREE.SphereGeometry((1.7 - k * 0.28), 14, 10), mat('follaje', 0x5f7a44, 0.95));
+            c.name = 'follaje ' + (i + 1) + '-' + (k + 1);
+            c.position.set((x + (k - 1) * 90) * CM, (830 + k * 60) * CM, (z + (k % 2 ? 70 : -60)) * CM);
+            c.scale.y = 0.75; arb.add(c);
+          });
+        });
+      }
+
+      // ————— mobiliario interior —————
+      if (v.interior) {
+        const int = G('Mobiliario interior');
+        int.add(cj('barra', 420, 105, 60, -L / 2 + 300, PB + 52, -A / 2 + 80, maderaOsc()));
+        int.add(cj('tapa de la barra', 440, 8, 72, -L / 2 + 300, PB + 108, -A / 2 + 80, madera()));
+        const barril = cil('barril decorativo', 32, 88, 120, PB + 44, -60, maderaOsc());
+        int.add(barril);
+        let n = 0;
+        for (let f = 0; f < 2; f++) for (let c = 0; c < 4; c++) {
+          const x = -L / 2 + 520 + c * 380, z = -A / 2 + 260 + f * 330;
+          n++;
+          int.add(cj('mesa ' + n, 150, 7, 85, x, PB + 74, z, madera()));
+          [[-66, 0], [66, 0]].forEach(q => int.add(cj('pata de la mesa ' + n, 8, 70, 66, x + q[0], PB + 35, z, maderaOsc())));
+          [-72, 72].forEach(dz => {
+            int.add(cj('silla ' + n, 118, 6, 44, x, PB + 45, z + dz, madera()));
+            int.add(cj('respaldo de la silla ' + n, 118, 44, 6, x, PB + 68, z + dz + (dz > 0 ? 19 : -19), madera()));
+          });
+        }
+        int.add(cj('cielorraso', L - 40, 8, A - 40, 0, PB + H - 24, 0, mat('cielorraso', 0xf0ece4, 0.9)));
+        mats.push(['Mesa de madera', 'un', n]);
+        mats.push(['Silla de madera', 'un', n * 2]);
+      }
+    }
+  },
+  cenefa: {
+    nombre: 'Cenefa de listones',
+    campos: [
+      ['largo', 'Largo total', 900],
+      ['alto', 'Alto de la cenefa', 40],
+      ['tabla', 'Ancho del listón', 12],
+      ['sep', 'Separación', 3],
+      ['espesor', 'Espesor del listón', 4],
+      ['altoLibre', 'Altura del borde inferior', 280],
+      ['soporte', 'Lado del caño', 5]
+    ],
+    opciones: [
+      ['ondulada', 'Borde ondulado', false],
+      ['parantes', 'Parantes de anclaje', true]
+    ],
+    build(v, g, mats) {
+      const cj = (n, w, h, d, x, y, z, m, ry) => caja(n, w * CM, h * CM, d * CM, x * CM, y * CM, z * CM, m, ry);
+      const L = v.largo, H = v.alto, tb = v.tabla, s = v.sep, e = v.espesor;
+      const y0 = v.altoLibre, sp = v.soporte;
+
+      // Dos soportes metálicos transversales: la cenefa se atornilla a ellos.
+      const ySup = y0 + H - sp * 1.6, yInf = y0 + sp * 1.6;
+      g.add(cj('soporte metálico transversal superior', L, sp, sp, 0, ySup, -e / 2 - sp / 2, hierro()));
+      g.add(cj('soporte metálico transversal inferior', L, sp, sp, 0, yInf, -e / 2 - sp / 2, hierro()));
+      mats.push(['Caño estructural ' + sp + 'x' + sp + ' cm — soporte transversal', 'm', +((L * 2) / 100).toFixed(1)]);
+
+      if (v.parantes) {
+        const np = Math.max(2, Math.round(L / 250) + 1);
+        for (let i = 0; i < np; i++) {
+          const x = -L / 2 + (L / (np - 1)) * i;
+          g.add(cj('parante de anclaje ' + (i + 1), sp, H + 10, sp, x, y0 + H / 2, -e / 2 - sp * 1.6, hierro()));
+        }
+        mats.push(['Parante de anclaje ' + sp + 'x' + sp + ' cm', 'un', np]);
+      }
+
+      // Listones verticales de madera
+      const k = Math.max(1, Math.floor(L / (tb + s)));
+      for (let i = 0; i < k; i++) {
+        const h = v.ondulada ? H * (0.7 + Math.abs(Math.sin(i * 0.55)) * 0.3) : H;
+        g.add(cj('listón de cenefa ' + (i + 1), tb, h, e, -L / 2 + tb / 2 + i * (tb + s), y0 + H - h / 2, 0, madera()));
+      }
+      mats.push(['Listón de madera ' + tb + ' cm x ' + H + ' cm', 'un', k]);
+      mats.push(['Tornillo autoperforante con arandela', 'un', k * 2]);
+      g.add(cj('terreno', L * 1.4, 4, 400, 0, -2, 100, cesped()));
+    }
+  },
+  pergola: {
+    nombre: 'Pérgola con telas',
+    campos: [
+      ['largo', 'Largo', 1680], ['ancho', 'Ancho', 890], ['alto', 'Alto libre', 290],
+      ['porticos', 'Pórticos por lado', 4], ['correas', 'Correas', 6],
+      ['poste', 'Lado del poste', 15], ['cenefa', 'Alto de cenefa', 34], ['tabla', 'Ancho de tabla', 12]
+    ],
+    opciones: [['telas', 'Telas tensadas', true], ['cenefaOn', 'Cenefa de madera', true], ['deck', 'Piso de deck', false]],
+    build(v, g, mats) {
+      const L = v.largo * CM, A = v.ancho * CM, H = v.alto * CM, p = v.poste * CM;
+      const n = Math.max(2, Math.round(v.porticos));
+      const xs = Array.from({ length: n }, (_, i) => -L / 2 + (L / (n - 1)) * i);
+      xs.forEach((x, i) => [-A / 2, A / 2].forEach((z, j) => {
+        g.add(caja('poste ' + (i + 1) + '-' + (j + 1), p, H, p, x, H / 2, z, blanco()));
+      }));
+      g.add(caja('viga posterior', L, p * 1.15, p, 0, H + p * 0.6, -A / 2, blanco()));
+      g.add(caja('viga frontal', L, p * 1.15, p, 0, H + p * 0.6, A / 2, blanco()));
+      xs.forEach((x, i) => g.add(caja('pórtico transversal ' + (i + 1), p, p * 1.15, A, x, H + p * 0.6, 0, blanco())));
+      const nc = Math.max(2, Math.round(v.correas));
+      for (let i = 0; i < nc; i++) {
+        g.add(caja('correa ' + (i + 1), L, p * 0.66, p * 0.66, 0, H + p * 0.55, -A / 2 + (A / (nc - 1)) * i, blanco()));
+      }
+      mats.push(['Poste metálico ' + v.poste + 'x' + v.poste + ' cm — ' + v.alto + ' cm', 'un', n * 2]);
+      mats.push(['Viga metálica longitudinal', 'm', +(L * 2).toFixed(1)]);
+      mats.push(['Pórtico transversal', 'm', +(A * n).toFixed(1)]);
+      mats.push(['Correa metálica', 'm', +(L * nc).toFixed(1)]);
+      if (v.telas) {
+        for (let i = 0; i < n - 1; i++) {
+          const t = caja('tela ' + (i + 1), (L / (n - 1)) - 0.3, 0.03, A - 0.1, (xs[i] + xs[i + 1]) / 2, H + p * 0.1, 0, tela());
+          t.rotation.x = (i % 2 ? 1 : -1) * 0.04;
+          g.add(t);
+        }
+        mats.push(['Tela tensada con herrajes', 'm2', +(L * A).toFixed(1)]);
+      }
+      if (v.cenefaOn) {
+        const alt = v.cenefa * CM, tb = v.tabla * CM;
+        const borde = (nom, largo, x, z, ry) => {
+          const k = Math.max(1, Math.round(largo / (tb + 0.01)));
+          for (let i = 0; i < k; i++) {
+            const h = alt * (0.72 + Math.abs(Math.sin(i * 2.7)) * 0.28);
+            const d = -largo / 2 + i * (largo / k) + largo / k / 2;
+            g.add(caja(nom + ' ' + (i + 1), tb * 0.92, h, 0.05, x + Math.cos(ry) * d, H + p * 1.2 - h / 2, z - Math.sin(ry) * d, madera(), ry));
+          }
+          return k;
+        };
+        let k = borde('cenefa frontal', L, 0, A / 2 + 0.08, 0);
+        k += borde('cenefa izquierda', A, -L / 2 - 0.08, 0, Math.PI / 2);
+        k += borde('cenefa derecha', A, L / 2 + 0.08, 0, Math.PI / 2);
+        mats.push(['Tabla de cenefa ' + v.tabla + ' cm x ' + v.cenefa + ' cm', 'un', k]);
+      }
+      if (v.deck) {
+        g.add(caja('piso de deck', L, 0.06, A, 0, -0.03, 0, madera()));
+        mats.push(['Deck de madera', 'm2', +(L * A).toFixed(1)]);
+      }
+      g.add(caja('terreno', L * 1.3, 0.04, A * 1.6, 0, -0.06, 0, cesped()));
+    }
+  },
+
+  cerco: {
+    nombre: 'Cerco de madera',
+    campos: [
+      ['largo', 'Largo', 1200], ['alto', 'Alto', 180], ['tabla', 'Ancho de tabla', 14],
+      ['sep', 'Separación', 2], ['postes', 'Poste cada', 250], ['zocalo', 'Alto de zócalo', 40]
+    ],
+    opciones: [['horizontal', 'Tablas horizontales', true], ['zocaloOn', 'Zócalo de piedra', true]],
+    build(v, g, mats) {
+      const L = v.largo * CM, H = v.alto * CM, tb = v.tabla * CM, s = v.sep * CM, zc = v.zocaloOn ? v.zocalo * CM : 0;
+      if (zc) { g.add(caja('zocalo de piedra', L, zc, 0.35, 0, zc / 2, 0, piedra())); mats.push(['Zócalo de piedra', 'm', +L.toFixed(1)]); }
+      const np = Math.max(2, Math.round(L / (v.postes * CM)) + 1);
+      for (let i = 0; i < np; i++) {
+        g.add(caja('poste ' + (i + 1), 0.09, H, 0.09, -L / 2 + (L / (np - 1)) * i, zc + H / 2, -0.13, hierro()));
+      }
+      mats.push(['Poste de hierro ' + v.alto + ' cm', 'un', np]);
+      if (v.horizontal) {
+        const k = Math.max(1, Math.floor(H / (tb + s)));
+        for (let i = 0; i < k; i++) g.add(caja('tabla ' + (i + 1), L, tb, 0.045, 0, zc + tb / 2 + i * (tb + s), 0, madera()));
+        g.add(caja('travesaño superior', L, 0.08, 0.09, 0, zc + H + 0.05, -0.13, hierro()));
+        mats.push(['Tabla de madera ' + v.tabla + ' cm — ' + v.largo + ' cm', 'un', k]);
+        mats.push(['Travesaño de hierro', 'm', +(L * 2).toFixed(1)]);
+      } else {
+        const k = Math.max(1, Math.floor(L / (tb + s)));
+        for (let i = 0; i < k; i++) g.add(caja('tabla ' + (i + 1), tb, H, 0.045, -L / 2 + tb / 2 + i * (tb + s), zc + H / 2, 0, madera()));
+        mats.push(['Tabla de madera ' + v.tabla + ' cm — ' + v.alto + ' cm', 'un', k]);
+        mats.push(['Travesaño de hierro', 'm', +(L * 2).toFixed(1)]);
+      }
+      g.add(caja('terreno', L * 1.15, 0.04, 3, 0, -0.02, 0.9, cesped()));
+    }
+  },
+
+  deck: {
+    nombre: 'Deck o pasarela',
+    campos: [
+      ['largo', 'Largo', 1240], ['ancho', 'Ancho', 360], ['tabla', 'Ancho de tabla', 17],
+      ['sep', 'Separación', 1], ['altura', 'Altura sobre el piso', 22], ['vigas', 'Vigas de apoyo', 4]
+    ],
+    opciones: [['bordes', 'Bordes de hierro', true], ['baranda', 'Baranda', false]],
+    build(v, g, mats) {
+      const L = v.largo * CM, A = v.ancho * CM, tb = v.tabla * CM, s = v.sep * CM, h = v.altura * CM;
+      const nv = Math.max(2, Math.round(v.vigas));
+      for (let i = 0; i < nv; i++) {
+        g.add(caja('viga de apoyo ' + (i + 1), 0.12, h, L, -A / 2 + (A / (nv - 1)) * i, h / 2, 0, hierro()));
+      }
+      const k = Math.max(1, Math.floor(L / (tb + s)));
+      for (let i = 0; i < k; i++) g.add(caja('tabla ' + (i + 1), A, 0.055, tb, 0, h + 0.028, -L / 2 + tb / 2 + i * (tb + s), madera()));
+      mats.push(['Tabla de deck ' + v.tabla + ' cm — ' + v.ancho + ' cm', 'un', k]);
+      mats.push(['Viga metálica de apoyo', 'm', +(L * nv).toFixed(1)]);
+      if (v.bordes) {
+        [-A / 2 - 0.05, A / 2 + 0.05].forEach((x, i) => g.add(caja('borde ' + (i + 1), 0.1, 0.1, L, x, h + 0.03, 0, hierro())));
+        mats.push(['Perfil de borde', 'm', +(L * 2).toFixed(1)]);
+      }
+      if (v.baranda) {
+        const np = Math.max(2, Math.round(L / 1.5) + 1);
+        for (let i = 0; i < np; i++) [-A / 2, A / 2].forEach((x, j) => {
+          g.add(caja('parante de baranda', 0.06, 0.95, 0.06, x, h + 0.5, -L / 2 + (L / (np - 1)) * i, hierro()));
+        });
+        [-A / 2, A / 2].forEach(x => g.add(caja('pasamanos', 0.07, 0.07, L, x, h + 0.98, 0, hierro())));
+        mats.push(['Parante de baranda', 'un', np * 2]);
+        mats.push(['Pasamanos', 'm', +(L * 2).toFixed(1)]);
+      }
+      g.add(caja('terreno', A * 2.2, 0.04, L * 1.1, 0, -0.02, 0, cesped()));
+    }
+  },
+
+  techo: {
+    nombre: 'Techo de listones',
+    campos: [
+      ['largo', 'Largo', 1060], ['ancho', 'Ancho', 450], ['alto', 'Alto adelante', 240],
+      ['pendiente', 'Baja hacia el frente', 28], ['tabla', 'Ancho de tabla', 20],
+      ['sep', 'Separación', 2], ['correas', 'Correas', 5], ['columnas', 'Columnas por lado', 5]
+    ],
+    opciones: [['cenefaOn', 'Cenefa de borde', true], ['vidrio', 'Cerramiento vidriado', false]],
+    build(v, g, mats) {
+      const L = v.largo * CM, A = v.ancho * CM, H = v.alto * CM, dz = v.pendiente * CM;
+      const tb = v.tabla * CM, s = v.sep * CM;
+      const nc = Math.max(2, Math.round(v.columnas));
+      const alto = (z) => H + dz * (0.5 - (z + A / 2) / A);
+      for (let i = 0; i < nc; i++) {
+        const x = -L / 2 + (L / (nc - 1)) * i;
+        g.add(caja('columna frontal ' + (i + 1), 0.11, alto(A / 2), 0.11, x, alto(A / 2) / 2, A / 2, hierro()));
+        g.add(caja('columna posterior ' + (i + 1), 0.11, alto(-A / 2), 0.11, x, alto(-A / 2) / 2, -A / 2, hierro()));
+      }
+      g.add(caja('viga frontal', L, 0.2, 0.1, 0, alto(A / 2) + 0.1, A / 2, hierro()));
+      g.add(caja('viga posterior', L, 0.2, 0.1, 0, alto(-A / 2) + 0.1, -A / 2, hierro()));
+      const nk = Math.max(2, Math.round(v.correas));
+      for (let i = 0; i < nk; i++) {
+        const c = caja('correa ' + (i + 1), 0.09, 0.13, A, -L / 2 + (L / (nk - 1)) * i, (alto(0)) + 0.05, 0, hierro());
+        c.rotation.x = Math.atan2(dz, A);
+        g.add(c);
+      }
+      const k = Math.max(1, Math.floor(A / (tb + s)));
+      for (let i = 0; i < k; i++) {
+        const z = -A / 2 + tb / 2 + i * (tb + s);
+        g.add(caja('tabla de techo ' + (i + 1), L, 0.05, tb, 0, alto(z) + 0.12, z, madera()));
+      }
+      mats.push(['Columna metálica', 'un', nc * 2]);
+      mats.push(['Viga metálica', 'm', +(L * 2).toFixed(1)]);
+      mats.push(['Correa metálica', 'm', +(A * nk).toFixed(1)]);
+      mats.push(['Tabla de techo ' + v.tabla + ' cm — ' + v.largo + ' cm', 'un', k]);
+      if (v.cenefaOn) {
+        g.add(caja('cenefa frontal', L, 0.34, 0.06, 0, alto(A / 2) - 0.06, A / 2 + 0.09, madera()));
+        [-L / 2 - 0.06, L / 2 + 0.06].forEach((x, i) => g.add(caja('cenefa lateral ' + (i + 1), 0.06, 0.3, A, x, alto(0), 0, madera())));
+        mats.push(['Cenefa de madera', 'm', +(L + A * 2).toFixed(1)]);
+      }
+      if (v.vidrio) {
+        g.add(caja('cerramiento vidriado', L, alto(-A / 2) * 0.8, 0.04, 0, alto(-A / 2) * 0.4, -A / 2 + 0.06, mat('vidrio', 0x7f9aa3, 0.25, 0.2)));
+        mats.push(['Cerramiento vidriado', 'm2', +(L * alto(-A / 2) * 0.8).toFixed(1)]);
+      }
+      g.add(caja('piso', L * 1.1, 0.05, A * 1.5, 0, -0.03, 0, piedra()));
+    }
+  },
+
+  muro: {
+    nombre: 'Muro con aberturas',
+    campos: [
+      ['largo', 'Largo', 800], ['alto', 'Alto', 280], ['espesor', 'Espesor', 15],
+      ['aberturas', 'Aberturas', 2], ['anchoAb', 'Ancho de abertura', 120], ['altoAb', 'Alto de abertura', 200]
+    ],
+    opciones: [['revestido', 'Revestido en madera', false]],
+    build(v, g, mats) {
+      const L = v.largo * CM, H = v.alto * CM, e = v.espesor * CM;
+      const na = Math.max(0, Math.round(v.aberturas));
+      const aw = v.anchoAb * CM, ah = v.altoAb * CM;
+      const material = v.revestido ? madera() : revoque();
+      if (na === 0) {
+        g.add(caja('muro', L, H, e, 0, H / 2, 0, material));
+      } else {
+        const paso = L / na;
+        const macizo = paso - aw;
+        for (let i = 0; i <= na; i++) {
+          const w = i === 0 || i === na ? macizo / 2 + 0.001 : macizo;
+          const x = -L / 2 + (i === 0 ? w / 2 : i * paso - aw / 2 - w / 2);
+          g.add(caja('paño ' + (i + 1), w, H, e, x, H / 2, 0, material));
+        }
+        for (let i = 0; i < na; i++) {
+          const x = -L / 2 + paso * i + paso / 2;
+          g.add(caja('dintel ' + (i + 1), aw, H - ah, e, x, ah + (H - ah) / 2, 0, material));
+          g.add(caja('marco ' + (i + 1), aw, ah, e * 0.35, x, ah / 2, 0, hierro()));
+        }
+        mats.push(['Abertura ' + v.anchoAb + 'x' + v.altoAb + ' cm con marco', 'un', na]);
+      }
+      mats.push([v.revestido ? 'Revestimiento de madera' : 'Muro revocado y pintado', 'm2', +(L * H - na * aw * ah).toFixed(1)]);
+      g.add(caja('terreno', L * 1.3, 0.04, 3.2, 0, -0.02, 1, cesped()));
+    }
+  }
+};
+
+// ————— agregados de entorno y mobiliario —————
+const EXTRAS = [
+  ['mesas', 'Mesas y sillas', 0],
+  ['reposeras', 'Reposeras', 0],
+  ['arboles', 'Árboles', 0],
+  ['aguaOn', 'Terreno con agua', false]
+];
+
+function agregarExtras(v, g, mats, ancho) {
+  const nm = Math.round(v.mesas || 0);
+  for (let i = 0; i < nm; i++) {
+    const x = (i % 3 - 1) * 2.4, z = Math.floor(i / 3) * 2.2 - 1;
+    g.add(caja('mesa ' + (i + 1), 1.5, 0.07, 0.85, x, 0.74, z, madera()));
+    [[-0.65, 0], [0.65, 0]].forEach(q => g.add(caja('pata de mesa', 0.08, 0.72, 0.6, x + q[0], 0.36, z, maderaOsc())));
+    [-0.75, 0.75].forEach(dz => {
+      g.add(caja('silla ' + (i + 1), 1.2, 0.06, 0.42, x, 0.45, z + dz, madera()));
+      g.add(caja('respaldo de silla', 1.2, 0.42, 0.06, x, 0.68, z + dz + (dz > 0 ? 0.18 : -0.18), madera()));
+    });
+  }
+  if (nm) { mats.push(['Mesa de madera', 'un', nm]); mats.push(['Banco de madera', 'un', nm * 2]); }
+  const nr = Math.round(v.reposeras || 0);
+  for (let i = 0; i < nr; i++) {
+    const x = -(ancho / 2) - 1.6 - (i % 2) * 1.9, z = Math.floor(i / 2) * 1.9 - 1;
+    g.add(caja('reposera ' + (i + 1), 1.7, 0.07, 0.62, x, 0.36, z, tela()));
+    const r = caja('respaldo de reposera', 0.62, 0.07, 0.66, x + 0.78, 0.58, z, tela());
+    r.rotation.z = Math.PI / 2.6; g.add(r);
+  }
+  if (nr) mats.push(['Reposera', 'un', nr]);
+  const na = Math.round(v.arboles || 0);
+  for (let i = 0; i < na; i++) {
+    const x = (i % 2 ? 1 : -1) * (ancho / 2 + 2.4 + i * 0.6), z = -2.5 - (i % 3) * 1.5;
+    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 3.4, 14), mat('corteza', 0x8b7d6b, 0.95));
+    tr.name = 'tronco'; tr.position.set(x, 1.7, z); g.add(tr);
+    const cp = new THREE.Mesh(new THREE.SphereGeometry(1.5, 18, 12), mat('follaje', 0x5f7a44, 0.95));
+    cp.name = 'follaje'; cp.position.set(x, 4.1, z); cp.scale.y = 0.8; g.add(cp);
+  }
+  if (v.aguaOn) {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(ancho * 2.4, 0.05, 6), agua());
+    w.name = 'agua'; w.position.set(0, -0.08, 7.5); g.add(w);
+  }
+}
+
+// ————— estado —————
+const KEY = 'twg-bocetos-v1';
+let plantilla = 'local';
+let valores = {};
+
+// ————— diseño libre —————
+// libres: piezas agregadas a mano, con medida y posición propias, en cm.
+// ajustes: corrimientos aplicados a piezas de la plantilla, por nombre.
+let libres = [], ajustes = {}, sel = null, modoLibre = false, paso = 10, seq = 0;
+let ocultos = {}, midiendo = false, ptosMed = [], lineaMed = null;
+// borrados: piezas de la plantilla que el usuario quitó, por nombre.
+// historial: fotos del boceto para poder deshacer con Ctrl+Z. porta: lo copiado.
+let borrados = {}, historial = [], porta = null, portaMulti = [];
+// Un bloque agrupa las piezas que entraron juntas (una cenefa, un cerco):
+// se selecciona, se arrastra y se copia como una sola cosa.
+let seqBloque = 0;
+let herramienta = 'orbitar', pinturaColor = '', pinturaMat = '';
+// refs: fotos que se apoyan en la escena para calcar sobre ellas.
+let refs = [], seqRef = 0;
+// multi: selección de varias piezas a la vez (doble clic toma toda la familia)
+let multi = { nombres: [], ids: [] }, marcosMulti = [];
+function hayMulti() { return (multi.nombres.length + multi.ids.length) > 1; }
+function limpiarMulti() {
+  marcosMulti.forEach(m => m.parent && m.parent.remove(m));
+  marcosMulti = []; multi = { nombres: [], ids: [] };
+}
+// La familia de una pieza: su nombre sin el número final ('cenefa frontal 7' → 'cenefa frontal').
+const familia = (n) => String(n || '').replace(/^· /, '').replace(/\s+\d+([-–]\d+)?$/, '').trim();
+const primeraPalabra = (n) => familia(n).split(/\s+/)[0];
+
+function foto() {
+  return JSON.stringify({ libres, ajustes, borrados, ocultos, valores, plantilla, refs });
+}
+function guardarPaso() {
+  historial.push(foto());
+  if (historial.length > 60) historial.shift();
+}
+function refrescarFicha() {
+  const el = document.querySelector('#panelPieza');
+  if (!el || el.style.display === 'none') return;
+  const m = medidaConjunto();
+  if (!m) return;
+  el.querySelectorAll('input[data-med]').forEach(inp => {
+    inp.value = inp.dataset.med === 'largo' ? m.largo : inp.dataset.med === 'ancho' ? m.ancho : m.alto;
+  });
+}
+function deshacer() {
+  if (!historial.length) { document.querySelector('#cartel').textContent = 'No hay nada más para deshacer.'; return; }
+  const d = JSON.parse(historial.pop());
+  libres = d.libres; ajustes = d.ajustes; borrados = d.borrados; ocultos = d.ocultos;
+  valores = d.valores; plantilla = d.plantilla;
+  if (d.refs) refs = d.refs;
+  sel = null;
+  panelMedidas(); pintar();
+  setTimeout(refrescarFicha, 50);
+  document.querySelector('#cartel').textContent = 'Se deshizo el último cambio.';
+}
+// Aviso que la selección no pisa: marcar() solo escribe si nadie puso un
+// mensaje recién.
+let avisoHasta = 0;
+const nPiezas = (n) => n === 1 ? '1 pieza' : n + ' piezas';
+function aviso(txt) {
+  document.querySelector('#cartel').textContent = txt;
+  avisoHasta = Date.now() + 2500;
+}
+function copiar() {
+  const d = datosSel(); if (!d) return;
+  if (d.tipo === 'libre') porta = Object.assign({}, d.L);
+  else {
+    const b = new THREE.Box3().setFromObject(sel), s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
+    porta = { nombre: sel.name.replace(/^· /, ''), tipo: 'copia',
+      w: Math.round(s.x / CM), h: Math.round(s.y / CM), d: Math.round(s.z / CM),
+      m: (sel.material && sel.material.name) || 'madera',
+      x: Math.round(c.x / CM), y: Math.round(c.y / CM), z: Math.round(c.z / CM), ry: 0 };
+  }
+  document.querySelector('#cartel').textContent = 'Copiado: ' + porta.nombre + '. Pegá con Ctrl+V.';
+}
+function pegar() {
+  if (!porta) return;
+  guardarPaso();
+  const x2 = porta.x + porta.w + 20;
+  const base = Math.max(0, (porta.y || 0) - (porta.h || 0) / 2);
+  const dy = Math.max(0, alturaEn(x2, porta.z || 0, [porta.id]) - base);
+  const c = Object.assign({}, porta, {
+    id: ++seq, x: x2, y: (porta.y || 0) + dy,
+    // bloque propio: la copia no queda soldada al original
+    bloque: porta.bloque ? 'bl' + (++seqBloque) : undefined
+  });
+  libres.push(c); pintar();
+  seleccionarPorId(c.id);
+  aviso('Pegado: ' + c.nombre + '. Arrastralo al lugar.');
+}
+function borrarSel() {
+  const d = datosSel(); if (!d) return;
+  guardarPaso();
+  if (d.tipo === 'libre') libres = libres.filter(x => x.id !== d.L.id);
+  else borrados[d.nombre] = true;
+  sel = null; pintar();
+}
+
+const MATERIALES = {
+  'madera': madera, 'madera oscura': maderaOsc, 'hierro negro': hierro,
+  'hierro blanco': blanco, 'tela': tela, 'hormigon': piedra, 'revoque': revoque,
+  'ladrillo': ladrillo, 'caña': cana, 'vidrio': vidrio, 'cemento alisado': cemento,
+  'cesped': cesped, 'arena': arena, 'agua': agua
+};
+const COLORES = ['#8a5a33', '#4e372a', '#26251f', '#e8e5de', '#a05236', '#9b9478', '#d6c7a4', '#8f8b85', '#6d8046', '#c03a26', '#2f6df6', '#f2c14e'];
+
+// [clave, nombre, ancho, alto, profundidad, material]
+const PIEZAS = [
+  ['poste', 'Poste', 15, 290, 15, 'hierro blanco'],
+  ['columna', 'Columna de madera', 20, 290, 20, 'madera oscura'],
+  ['viga', 'Viga', 400, 18, 10, 'hierro negro'],
+  ['correa', 'Correa', 400, 9, 9, 'hierro negro'],
+  ['tabla', 'Tabla de madera', 300, 12, 4, 'madera'],
+  ['liston', 'Listón', 300, 8, 4, 'madera'],
+  ['cenefa', 'Tabla de cenefa', 300, 34, 5, 'madera'],
+  ['deck', 'Panel de deck', 200, 6, 100, 'madera'],
+  ['telaLibre', 'Tela tensada', 300, 3, 300, 'tela'],
+  ['muroLibre', 'Paño de muro', 300, 260, 15, 'revoque'],
+  ['bloque', 'Bloque libre', 100, 100, 100, 'hormigon']
+];
+
+const nomLibre = (L) => L.nombre + ' ' + L.w + 'x' + L.h + 'x' + L.d + ' cm';
+
+function agregarLibre(clave) {
+  const y0 = alturaEn(0, 0);
+  const P = PIEZAS.find(x => x[0] === clave);
+  if (!P) return;
+  guardarPaso();
+  const alto = (valores.alto || 250);
+  libres.push({
+    id: ++seq, tipo: P[0], nombre: P[1],
+    w: P[2], h: P[3], d: P[4], m: P[5],
+    x: 0, y: y0 + (P[0] === 'poste' || P[0] === 'columna' || P[0] === 'muroLibre' ? P[3] / 2 : alto),
+    z: 0, ry: 0
+  });
+  pintar();
+  seleccionarPorId(libres[libres.length - 1].id);
+}
+
+function mallaLibre(L) {
+  const o = caja('· ' + nomLibre(L), L.w * CM, L.h * CM, L.d * CM,
+    L.x * CM, L.y * CM, L.z * CM, (MATERIALES[L.m] || madera)(), L.ry * Math.PI / 180);
+  if (L.color) { o.material = o.material.clone(); o.material.color = new THREE.Color(L.color); }
+  o.userData.libre = L.id;
+  return o;
+}
+
+function defaults(id) {
+  const p = PLANTILLAS[id], v = {};
+  p.campos.forEach(([k, , d]) => v[k] = d);
+  p.opciones.forEach(([k, , d]) => v[k] = d);
+  EXTRAS.forEach(([k, , d]) => v[k] = d);
+  return v;
+}
+
+function construir() {
+  const p = PLANTILLAS[plantilla];
+  const g = new THREE.Group(); g.name = p.nombre;
+  const mats = [];
+  p.build(valores, g, mats);
+  agregarExtras(valores, g, mats, (valores.ancho || 400) * CM);
+  // corrimientos hechos a mano sobre piezas de la plantilla
+  g.traverse(o => {
+    const a = ajustes[o.name];
+    if (a && o.isMesh) {
+      o.position.set(o.position.x + (a.dx || 0) * CM, o.position.y + (a.dy || 0) * CM, o.position.z + (a.dz || 0) * CM);
+      if (a.ry) o.rotation.y += a.ry * Math.PI / 180;
+      if (a.esc) o.scale.multiplyScalar(a.esc / 100);
+      if (a.sx || a.sy || a.sz) o.scale.set(o.scale.x * (a.sx || 1), o.scale.y * (a.sy || 1), o.scale.z * (a.sz || 1));
+      if (a.mat && MATERIALES[a.mat]) o.material = MATERIALES[a.mat]();
+      if (a.color) { o.material = o.material.clone(); o.material.color = new THREE.Color(a.color); }
+      o.userData.plantilla = o.name;
+    } else if (o.isMesh) {
+      o.userData.plantilla = o.name;
+    }
+  });
+  // piezas quitadas por el usuario
+  const fuera = [];
+  g.traverse(o => { if (o.isMesh && borrados[o.name]) fuera.push(o); });
+  fuera.forEach(o => o.parent && o.parent.remove(o));
+  g.children.forEach(q => { if (q.isGroup && ocultos[q.name]) q.visible = false; });
+  // piezas libres, agrupadas por capa
+  const capas = {};
+  libres.forEach(L => {
+    const nom = L.capa || 'Piezas libres';
+    if (!capas[nom]) {
+      const q = new THREE.Group(); q.name = nom;
+      if (ocultos[nom]) q.visible = false;
+      g.add(q); capas[nom] = q;
+    }
+    capas[nom].add(mallaLibre(L));
+  });
+  // fotos de referencia: planos con la imagen, para calcar encima
+  if (refs.length) {
+    const qr = new THREE.Group(); qr.name = 'Fotos de referencia';
+    if (ocultos['Fotos de referencia']) qr.visible = false;
+    refs.forEach(R => {
+      const tex = texturaRef(R);
+      const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: R.op, side: THREE.DoubleSide, depthWrite: false });
+      m.name = 'foto ' + R.id;
+      const pl = new THREE.Mesh(new THREE.PlaneGeometry(R.w * CM, R.h * CM), m);
+      pl.name = 'foto de referencia ' + R.id;
+      pl.position.set(R.x * CM, R.y * CM, R.z * CM);
+      pl.rotation.y = R.ry * Math.PI / 180;
+      if (R.piso) pl.rotation.x = -Math.PI / 2;
+      qr.add(pl);
+    });
+    g.add(qr);
+  }
+  // las piezas libres también entran al cómputo
+  // Se agrupa por familia: los prefabs numeran cada pieza ("teja 1", "teja 2"),
+  // así que sin quitar el número el cómputo saldría de a una unidad por fila.
+  const cuenta = {};
+  libres.forEach(L => {
+    const k = familia(L.nombre) + ' ' + L.w + 'x' + L.h + 'x' + L.d + ' cm';
+    cuenta[k] = (cuenta[k] || 0) + 1;
+  });
+  Object.entries(cuenta).forEach(([k, n]) => mats.push([k, 'un', n]));
+  return { g, mats };
+}
+
+const texCache = {};
+function texturaRef(R) {
+  if (texCache[R.id]) return texCache[R.id];
+  const im = new Image();
+  im.src = R.src;
+  const tex = new THREE.Texture(im);
+  im.onload = () => { tex.needsUpdate = true; if (stage._renderer) stage._renderer.render(stage._scene, stage._camera); };
+  tex.colorSpace = THREE.SRGBColorSpace;
+  texCache[R.id] = tex;
+  return tex;
+}
+
+let primerPintado = true;
+function pintar() {
+  const { g, mats } = construir();
+  // la cámara no debe saltar cada vez que se edita una pieza
+  const cam = stage._camera, ctl = stage._controls;
+  const cp = cam ? cam.position.clone() : null, ct = ctl ? ctl.target.clone() : null;
+  stage.setObject(g);
+  if (cp && !primerPintado) {
+    cam.position.copy(cp); ctl.target.copy(ct);
+    cam.updateProjectionMatrix(); ctl.update();
+  }
+  primerPintado = false;
+  stage.setAttribute('name', 'boceto-' + plantilla);
+  const p = PLANTILLAS[plantilla];
+  const medidas = [
+    valores.largo ? valores.largo + ' cm de largo' : '',
+    valores.ancho ? valores.ancho + ' cm de ancho' : '',
+    valores.alto ? 'alto ' + valores.alto + ' cm' : ''
+  ].filter(Boolean).join(' · ');
+  document.querySelector('#cartel').textContent = p.nombre + (medidas ? ' — ' + medidas : '');
+  document.querySelector('#materiales').innerHTML = mats.map(([d, u, c]) =>
+    '<div class="mat"><span>' + d + '</span><b>' + c.toLocaleString('es-PY') + '</b><i>' + u + '</i></div>'
+  ).join('') || '<div style="font-size:12px;color:#86817b">Sin materiales.</div>';
+  window.__computo = mats;
+  [...document.querySelectorAll('#plantillas .plant')].forEach(b => b.classList.toggle('on', b.dataset.p === plantilla));
+  listarCapas();
+  listarLibres();
+  const idAnt = sel && sel.userData.libre, nomAnt = sel && sel.userData.plantilla;
+  sel = null;
+  if (idAnt) seleccionarPorId(idAnt);
+  else if (nomAnt) { stage._object.traverse(o => { if (!sel && o.isMesh && o.name === nomAnt) marcar(o); }); }
+  else panelPieza();
+}
+
+// ————— selección y edición de piezas —————
+let marcoSel = null, tiradores = null;
+
+
+// Los tiradores son los cubitos azules de las caras: se arrastran para
+// agrandar o achicar la pieza sobre ese eje, como en SketchUp.
+function ponerTiradores() {
+  if (tiradores && tiradores.parent) tiradores.parent.remove(tiradores);
+  tiradores = null;
+  if (!sel || !modoLibre || herramienta !== 'mover') return;
+  const b = new THREE.Box3().setFromObject(sel);
+  const c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
+  const r = 1;
+  tiradores = new THREE.Group();
+  tiradores.name = 'tiradores de tamaño';
+  const azul = new THREE.MeshBasicMaterial({ color: 0x2f6df6, depthTest: false });
+  const caras = [
+    ['w', 1, [c.x + s.x / 2, c.y, c.z]], ['w', -1, [c.x - s.x / 2, c.y, c.z]],
+    ['h', 1, [c.x, c.y + s.y / 2, c.z]], ['h', -1, [c.x, c.y - s.y / 2, c.z]],
+    ['d', 1, [c.x, c.y, c.z + s.z / 2]], ['d', -1, [c.x, c.y, c.z - s.z / 2]]
+  ];
+  caras.forEach(([eje, signo, pos]) => {
+    const h = new THREE.Mesh(new THREE.BoxGeometry(r, r, r), azul);
+    h.name = 'tirador ' + eje;
+    h.position.set(pos[0], pos[1], pos[2]);
+    h.userData.tirador = { eje: eje, signo: signo };
+    h.renderOrder = 999;
+    tiradores.add(h);
+  });
+  stage._object.add(tiradores);
+  escalarTiradores();
+}
+
+// Los tiradores mantienen el mismo tamaño en pantalla a cualquier distancia:
+// si no, en un modelo de 20 m quedan de dos píxeles y no se pueden agarrar.
+function escalarTiradores() {
+  if (!tiradores || !stage._camera) return;
+  const cam = stage._camera;
+  tiradores.children.forEach(h => {
+    const d = cam.position.distanceTo(h.getWorldPosition(new THREE.Vector3()));
+    const k = Math.max(0.05, d * 0.022);
+    h.scale.set(k, k, k);
+  });
+}
+
+// aislar = true toma una pieza sola aunque pertenezca a un bloque (Ctrl+clic)
+function marcar(o, aislar) {
+  // Si la pieza forma parte de un bloque, se selecciona el bloque completo.
+  if (o && o.userData && o.userData.libre && !aislar) {
+    const L = libres.find(x => x.id === o.userData.libre);
+    if (L && L.bloque) {
+      const ids = libres.filter(x => x.bloque === L.bloque).map(x => x.id);
+      if (ids.length > 1) { marcarVarios([], ids); return; }
+    }
+  }
+  if (marcoSel && marcoSel.parent) marcoSel.parent.remove(marcoSel);
+  marcoSel = null;
+  limpiarMulti();
+  sel = o || null;
+  if (sel) {
+    marcoSel = new THREE.BoxHelper(sel, 0x2f6df6);
+    marcoSel.name = 'marco de selección';
+    marcoSel.material.depthTest = false;
+    stage._object.add(marcoSel);
+    if (Date.now() > avisoHasta) {
+      const nom = (sel.userData.libre ? (libres.find(x => x.id === sel.userData.libre) || {}).nombre : (sel.userData.plantilla || sel.name)) || 'pieza';
+      document.querySelector('#cartel').textContent = 'Seleccionada: ' + nom + '.';
+    }
+  }
+  ponerTiradores();
+  panelPieza();
+}
+// Medida real del conjunto seleccionado, en cm: se lee de la caja que lo
+// contiene, así sirve igual para una cenefa, una pérgola o un cerco.
+function medidaConjunto() {
+  if (!stage._object) return null;
+  const caja = new THREE.Box3();
+  let n = 0;
+  stage._object.traverse(o => {
+    if (!o.isMesh || /marco|tirador|dibujo en curso|cinta de medir/i.test(o.name)) return;
+    const esta = hayMulti()
+      ? ((o.userData.libre && multi.ids.indexOf(o.userData.libre) >= 0) ||
+         (!o.userData.libre && multi.nombres.indexOf(o.userData.plantilla || o.name) >= 0))
+      : (o === sel);
+    if (!esta) return;
+    caja.expandByObject(o); n++;
+  });
+  if (!n || caja.isEmpty()) return null;
+  const s = caja.getSize(new THREE.Vector3()), c = caja.getCenter(new THREE.Vector3());
+  return {
+    largo: Math.max(1, Math.round(s.x / CM)),
+    alto: Math.max(1, Math.round(s.y / CM)),
+    ancho: Math.max(1, Math.round(s.z / CM)),
+    cx: c.x / CM, cy: caja.min.y / CM, cz: c.z / CM, piezas: n
+  };
+}
+
+// Lleva el conjunto a la medida pedida en cm, estirando desde su base y su
+// centro: escribís 1200 de largo y la estructura queda de 12 m.
+function fijarMedida(campo, valorCm) {
+  const m = medidaConjunto();
+  if (!m || !valorCm || valorCm <= 0) return;
+  const actual = campo === 'largo' ? m.largo : campo === 'ancho' ? m.ancho : m.alto;
+  const k = valorCm / actual;
+  if (!isFinite(k) || k <= 0 || Math.abs(k - 1) < 0.0005) return;
+  const eje = campo === 'largo' ? 'x' : campo === 'ancho' ? 'z' : 'y';
+  aplicarMulti(d => {
+    if (d.tipo === 'libre') {
+      const L = d.L;
+      if (eje === 'x') { L.w = Math.max(1, Math.round(L.w * k)); L.x = Math.round(m.cx + (L.x - m.cx) * k); }
+      if (eje === 'z') { L.d = Math.max(1, Math.round(L.d * k)); L.z = Math.round(m.cz + (L.z - m.cz) * k); }
+      if (eje === 'y') { L.h = Math.max(1, Math.round(L.h * k)); L.y = Math.round(m.cy + (L.y - m.cy) * k); }
+    } else {
+      const a = Object.assign({}, ajustes[d.nombre]);
+      const cl = eje === 'x' ? 'sx' : eje === 'z' ? 'sz' : 'sy';
+      a[cl] = Math.round(((a[cl] || 1) * k) * 1000) / 1000;
+      // Posición actual de la pieza, para separarla del centro en la misma
+      // proporción: así la caja del conjunto llega a la medida pedida.
+      let mesh = null;
+      stage._object.traverse(x => { if (!mesh && x.isMesh && (x.userData.plantilla || x.name) === d.nombre) mesh = x; });
+      if (mesh) {
+        const c = new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
+        if (eje === 'x') a.dx = Math.round(((a.dx || 0) + (c.x / CM - m.cx) * (k - 1)) * 10) / 10;
+        if (eje === 'z') a.dz = Math.round(((a.dz || 0) + (c.z / CM - m.cz) * (k - 1)) * 10) / 10;
+        if (eje === 'y') a.dy = Math.round(((a.dy || 0) + (c.y / CM - m.cy) * (k - 1)) * 10) / 10;
+      }
+      ajustes[d.nombre] = a;
+    }
+  });
+  setTimeout(() => {
+    const m2 = medidaConjunto();
+    const real = m2 ? (campo === 'largo' ? m2.largo : campo === 'ancho' ? m2.ancho : m2.alto) : 0;
+    aviso(Math.abs(real - valorCm) <= Math.max(2, valorCm * 0.02)
+      ? 'Medida fijada: ' + campo + ' ' + Math.round(valorCm) + ' cm.'
+      : 'Quedó en ' + real + ' cm de ' + campo + ' (pedías ' + Math.round(valorCm) + ').');
+  }, 60);
+}
+
+function marcarVarios(nombres, ids) {
+  if (marcoSel && marcoSel.parent) marcoSel.parent.remove(marcoSel);
+  marcoSel = null;
+  if (tiradores && tiradores.parent) tiradores.parent.remove(tiradores);
+  tiradores = null;
+  limpiarMulti();
+  multi = { nombres: nombres.slice(), ids: ids.slice() };
+  sel = null;
+  stage._object.traverse(o => {
+    if (!o.isMesh) return;
+    const esta = (o.userData.libre && ids.indexOf(o.userData.libre) >= 0) ||
+      (!o.userData.libre && nombres.indexOf(o.userData.plantilla || o.name) >= 0);
+    if (!esta) return;
+    if (!sel) sel = o;
+    const m = new THREE.BoxHelper(o, 0x2f6df6);
+    m.name = 'marco de selección múltiple';
+    m.material.depthTest = false;
+    stage._object.add(m);
+    marcosMulti.push(m);
+  });
+  panelPieza();
+  const nSel = nombres.length + ids.length;
+  if (Date.now() > avisoHasta) {
+    document.querySelector('#cartel').textContent = nSel === 1 ? 'Seleccionada 1 pieza.' : 'Seleccionadas ' + nSel + ' piezas.';
+  }
+}
+
+function seleccionarFamilia(o, ancho) {
+  const base = ancho ? primeraPalabra(o.name) : familia(o.userData.plantilla || o.name);
+  const nombres = [], ids = [];
+  stage._object.traverse(x => {
+    if (!x.isMesh || /marco de selecci|tirador|foto de referencia/.test(x.name)) return;
+    const nom = x.userData.plantilla || x.name;
+    const coincide = ancho ? primeraPalabra(nom) === base : familia(nom) === base;
+    if (!coincide) return;
+    if (x.userData.libre) { if (ids.indexOf(x.userData.libre) < 0) ids.push(x.userData.libre); }
+    else if (nombres.indexOf(nom) < 0) nombres.push(nom);
+  });
+  if (nombres.length + ids.length < 2) { marcar(o); return; }
+  marcarVarios(nombres, ids);
+}
+
+// Toma todo lo que caiga dentro del recuadro dibujado en pantalla.
+function seleccionarEnRecuadro(L) {
+  const r = L.rect;
+  const x1 = Math.min(L.x0, L.x1) - r.left, x2 = Math.max(L.x0, L.x1) - r.left;
+  const y1 = Math.min(L.y0, L.y1) - r.top, y2 = Math.max(L.y0, L.y1) - r.top;
+  const nombres = [], ids = [];
+  const v = new THREE.Vector3();
+  stage._object.traverse(o => {
+    if (!o.isMesh || !visibleReal(o)) return;
+    if (/marco de selecci|tirador|foto de referencia|terreno|cesped|agua|arena/i.test(o.name)) return;
+    o.getWorldPosition(v);
+    v.project(stage._camera);
+    const px = (v.x * 0.5 + 0.5) * r.width, py = (-v.y * 0.5 + 0.5) * r.height;
+    if (px < x1 || px > x2 || py < y1 || py > y2) return;
+    if (o.userData.libre) { if (ids.indexOf(o.userData.libre) < 0) ids.push(o.userData.libre); }
+    else { const n = o.userData.plantilla || o.name; if (nombres.indexOf(n) < 0) nombres.push(n); }
+  });
+  const total = nombres.length + ids.length;
+  if (!total) { marcar(null); document.querySelector('#cartel').textContent = 'El recuadro quedó vacío.'; return; }
+  if (total === 1) {
+    let o = null;
+    stage._object.traverse(x => {
+      if (o || !x.isMesh) return;
+      if (ids.length ? x.userData.libre === ids[0] : (x.userData.plantilla || x.name) === nombres[0]) o = x;
+    });
+    marcar(o); return;
+  }
+  marcarVarios(nombres, ids);
+}
+
+function seleccionarPorId(id) {
+  let hit = null;
+  stage._object.traverse(o => { if (!hit && o.userData && o.userData.libre === id) hit = o; });
+  marcar(hit);
+}
+function datosSel() {
+  if (!sel) return null;
+  const id = sel.userData.libre;
+  if (id) return { tipo: 'libre', L: libres.find(x => x.id === id) };
+  return { tipo: 'plantilla', nombre: sel.userData.plantilla || sel.name };
+}
+
+function aplicarMulti(fn) {
+  guardarPaso();
+  multi.ids.forEach(id => { const L = libres.find(x => x.id === id); if (L) fn({ tipo: 'libre', L: L }); });
+  multi.nombres.forEach(n => fn({ tipo: 'plantilla', nombre: n }));
+  const m = { nombres: multi.nombres.slice(), ids: multi.ids.slice() };
+  pintar();
+  setTimeout(() => marcarVarios(m.nombres, m.ids), 30);
+}
+
+function panelConjunto() {
+  const el = document.querySelector('#panelPieza');
+  const n = multi.nombres.length + multi.ids.length;
+  const nom = familia((multi.nombres[0] || (libres.find(x => x.id === multi.ids[0]) || {}).nombre || 'piezas'));
+  el.style.display = 'block';
+  el.innerHTML =
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">' +
+      '<div style="font-size:11.5px;font-weight:600;text-transform:capitalize">' + nom + '</div>' +
+      '<button id="cerrarSel" style="font-size:15px;line-height:1;color:#b4aea5;background:transparent;border:0;cursor:pointer">×</button></div>' +
+    '<div class="rot" style="margin:3px 0 8px">Conjunto de ' + n + ' piezas</div>' +
+    '<button class="vista" id="ampliar" style="width:100%;margin-bottom:8px">Ampliar a todo lo parecido</button>' +
+    '<div class="rot" style="margin:2px 0 5px">Dirección</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+      '<button class="vista" id="girar90">Girar 90°</button>' +
+      '<button class="vista" id="girar45">Girar 45°</button>' +
+      '<button class="vista" id="acostarM">Acostar</button>' +
+      '<button class="vista" id="pararM">Poner de pie</button>' +
+    '</div>' +
+    '<label class="campo" style="grid-template-columns:minmax(0,1fr) 64px 20px;margin-top:6px"><span>Giro exacto</span><input id="gradoM" value="0" inputmode="decimal" /><span class="u">°</span></label>' +
+    '<div class="rot" style="margin:9px 0 5px">Correr el conjunto</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">' +
+      '<label class="campo" style="grid-template-columns:minmax(0,1fr);padding:0"><input id="movX" value="0" inputmode="decimal" placeholder="X" /></label>' +
+      '<label class="campo" style="grid-template-columns:minmax(0,1fr);padding:0"><input id="movZ" value="0" inputmode="decimal" placeholder="Z" /></label>' +
+      '<label class="campo" style="grid-template-columns:minmax(0,1fr);padding:0"><input id="movY" value="0" inputmode="decimal" placeholder="Alto" /></label>' +
+    '</div>' +
+    '<button class="vista" id="aplicarMov" style="width:100%;margin-top:6px">Correr</button>' +
+    fichaMedidas() +
+    '<div class="rot" style="margin:9px 0 5px">Tamaño del conjunto</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">' +
+      '<button class="vista" data-esc="0.8">−20%</button>' +
+      '<button class="vista" data-esc="1.25">+25%</button>' +
+      '<button class="vista" data-esc="2">Doble</button>' +
+    '</div>' +
+    '<label class="campo" style="grid-template-columns:minmax(0,1fr) 64px 20px;margin-top:6px"><span>Escalar a</span><input id="escM" value="100" inputmode="decimal" /><span class="u">%</span></label>' +
+    '<div class="rot" style="margin:9px 0 5px">Material</div>' +
+    '<select id="matM" style="width:100%;padding:7px 8px;font-size:12px;background:#fff;border:1px solid #dedbd5;border-radius:6px;cursor:pointer">' +
+      '<option value="">Dejar el material</option>' +
+      Object.keys(MATERIALES).map(k => '<option value="' + k + '">' + k + '</option>').join('') +
+    '</select>' +
+    '<div class="rot" style="margin:9px 0 5px">Color</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:5px">' +
+      COLORES.map(c => '<button data-cm="' + c + '" style="width:22px;height:22px;border-radius:5px;cursor:pointer;background:' + c + ';border:2px solid rgba(0,0,0,0.15)"></button>').join('') +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px">' +
+      '<button class="vista" id="copM">Copiar</button>' +
+      '<button class="vista" id="pegM">Pegar</button>' +
+      '<button class="vista" id="delM" style="color:#8a3a2f;background:#faf0ee;border-color:#e8d3ce">Borrar</button>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">' +
+      '<button class="vista" id="unirM">Unir como bloque</button>' +
+      '<button class="vista" id="sepM">Separar bloque</button>' +
+    '</div>' +
+    '<div style="margin-top:8px;font-size:10.5px;line-height:1.5;color:#86817b">Doble clic toma toda la familia. Shift y arrastrar dibuja un recuadro y toma todo lo que quede adentro. Ctrl+C y Ctrl+V copian el conjunto.</div>';
+
+  const q = (id) => el.querySelector('#' + id);
+  engancharFicha(el);
+  q('cerrarSel').onclick = () => marcar(null);
+  q('ampliar').onclick = () => { if (sel) seleccionarFamilia(sel, true); };
+  const girar = (g) => aplicarMulti(d => {
+    if (d.tipo === 'libre') { d.L.ry = ((d.L.ry || 0) + g) % 360; if (g % 90 === 0) { const w = d.L.w; d.L.w = d.L.d; d.L.d = w; } }
+    else ajustes[d.nombre] = Object.assign({}, ajustes[d.nombre], { ry: ((ajustes[d.nombre] || {}).ry || 0) + g });
+  });
+  q('girar90').onclick = () => girar(90);
+  q('girar45').onclick = () => girar(45);
+  q('acostarM').onclick = () => aplicarMulti(d => {
+    if (d.tipo !== 'libre') { ajustes[d.nombre] = Object.assign({}, ajustes[d.nombre], { ry: 90 }); return; }
+    const L = d.L; if (L.h > L.w) { const hh = L.h; L.h = L.w; L.w = hh; L.y = Math.round(L.h / 2); }
+  });
+  q('pararM').onclick = () => aplicarMulti(d => {
+    if (d.tipo !== 'libre') { ajustes[d.nombre] = Object.assign({}, ajustes[d.nombre], { ry: 0 }); return; }
+    const L = d.L; if (L.w > L.h) { const ww = L.w; L.w = L.h; L.h = ww; L.y = Math.round(L.h / 2); }
+  });
+  q('gradoM').onchange = (e) => {
+    const g = parseFloat(String(e.target.value).replace(',', '.')) || 0;
+    aplicarMulti(d => {
+      if (d.tipo === 'libre') d.L.ry = g;
+      else ajustes[d.nombre] = Object.assign({}, ajustes[d.nombre], { ry: g });
+    });
+  };
+  q('aplicarMov').onclick = () => {
+    const dx = parseFloat(q('movX').value) || 0, dz = parseFloat(q('movZ').value) || 0, dy = parseFloat(q('movY').value) || 0;
+    aplicarMulti(d => {
+      if (d.tipo === 'libre') { d.L.x += dx; d.L.z += dz; d.L.y += dy; }
+      else {
+        const a = Object.assign({ dx: 0, dy: 0, dz: 0 }, ajustes[d.nombre]);
+        a.dx += dx; a.dz += dz; a.dy += dy;
+        ajustes[d.nombre] = a;
+      }
+    });
+  };
+  // Escala el conjunto respecto de su propio centro, así no se desarma.
+  const escalar = (k) => {
+    const ids = multi.ids.slice();
+    if (!ids.length) { document.querySelector('#cartel').textContent = 'Escalar funciona en las piezas agregadas al dibujo.'; return; }
+    const ps = ids.map(id => libres.find(x => x.id === id)).filter(Boolean);
+    const cx = ps.reduce((a, L) => a + L.x, 0) / ps.length;
+    const cz = ps.reduce((a, L) => a + L.z, 0) / ps.length;
+    const minY = Math.min.apply(null, ps.map(L => L.y - L.h / 2));
+    guardarPaso();
+    ps.forEach(L => {
+      L.w = Math.max(1, Math.round(L.w * k)); L.h = Math.max(1, Math.round(L.h * k)); L.d = Math.max(1, Math.round(L.d * k));
+      L.x = Math.round(cx + (L.x - cx) * k);
+      L.z = Math.round(cz + (L.z - cz) * k);
+      L.y = Math.round(minY + (L.y - minY) * k);
+    });
+    pintar();
+    setTimeout(() => marcarVarios([], ids), 30);
+    document.querySelector('#cartel').textContent = 'Conjunto escalado al ' + Math.round(k * 100) + '%.';
+  };
+  el.querySelectorAll('button[data-esc]').forEach(b => b.onclick = () => escalar(parseFloat(b.dataset.esc)));
+  q('escM').onchange = (e) => {
+    const pc = parseFloat(String(e.target.value).replace(',', '.'));
+    if (isFinite(pc) && pc > 0) escalar(pc / 100);
+  };
+  q('matM').onchange = (e) => {
+    const m = e.target.value; if (!m) return;
+    aplicarMulti(d => { if (d.tipo === 'libre') d.L.m = m; else ajustes[d.nombre] = Object.assign({}, ajustes[d.nombre], { mat: m }); });
+  };
+  el.querySelectorAll('button[data-cm]').forEach(b => b.onclick = () => aplicarMulti(d => {
+    if (d.tipo === 'libre') d.L.color = b.dataset.cm;
+    else ajustes[d.nombre] = Object.assign({}, ajustes[d.nombre], { color: b.dataset.cm });
+  }));
+  q('unirM').onclick = () => {
+    guardarPaso();
+    const bl = 'bl' + (++seqBloque);
+    multi.ids.forEach(id => { const L = libres.find(x => x.id === id); if (L) L.bloque = bl; });
+    const m = { nombres: multi.nombres.slice(), ids: multi.ids.slice() };
+    pintar();
+    aviso('Unido como un bloque: ' + nPiezas(m.ids.length) + '.');
+    setTimeout(() => marcarVarios([], m.ids), 30);
+  };
+  q('sepM').onclick = () => {
+    guardarPaso();
+    multi.ids.forEach(id => { const L = libres.find(x => x.id === id); if (L) delete L.bloque; });
+    const ids = multi.ids.slice();
+    pintar();
+    document.querySelector('#cartel').textContent = 'Bloque separado: cada pieza se toca por su cuenta.';
+    setTimeout(() => marcarVarios([], ids), 30);
+  };
+  q('copM').onclick = () => {
+    portaMulti = multi.ids.map(id => Object.assign({}, libres.find(x => x.id === id))).filter(Boolean);
+    multi.nombres.forEach(n => {
+      let o = null; stage._object.traverse(x => { if (!o && x.isMesh && (x.userData.plantilla || x.name) === n) o = x; });
+      if (!o) return;
+      const b = new THREE.Box3().setFromObject(o), s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
+      portaMulti.push({ nombre: n, w: Math.round(s.x / CM), h: Math.round(s.y / CM), d: Math.round(s.z / CM),
+        m: (o.material && o.material.name) || 'madera', x: Math.round(c.x / CM), y: Math.round(c.y / CM), z: Math.round(c.z / CM), ry: 0 });
+    });
+    document.querySelector('#cartel').textContent = 'Copiadas ' + portaMulti.length + ' piezas. Pegá con Ctrl+V.';
+  };
+  q('pegM').onclick = () => pegarMulti();
+  q('delM').onclick = () => {
+    guardarPaso();
+    libres = libres.filter(x => multi.ids.indexOf(x.id) < 0);
+    multi.nombres.forEach(n => borrados[n] = true);
+    limpiarMulti(); sel = null; pintar();
+  };
+}
+
+function pegarMulti() {
+  if (!portaMulti.length) { pegar(); return; }
+  guardarPaso();
+  const mapa = {};
+  const ids0 = portaMulti.map(P => P.id);
+  const cx = portaMulti.reduce((a, P) => a + (P.x || 0), 0) / portaMulti.length + 100;
+  const cz = portaMulti.reduce((a, P) => a + (P.z || 0), 0) / portaMulti.length;
+  const yBase = portaMulti.reduce((a, P) => Math.min(a, (P.y || 0) - (P.h || 0) / 2), Infinity);
+  const dy = Math.max(0, alturaEn(cx, cz, ids0) - Math.max(0, yBase));
+  const nuevos = portaMulti.map(P => {
+    const bl = P.bloque ? (mapa[P.bloque] || (mapa[P.bloque] = 'bl' + (++seqBloque))) : undefined;
+    return Object.assign({}, P, { id: ++seq, x: P.x + 100, y: (P.y || 0) + dy, bloque: bl });
+  });
+  libres = libres.concat(nuevos);
+  pintar();
+  setTimeout(() => marcarVarios([], nuevos.map(n => n.id)), 30);
+}
+
+function panelPieza() {
+  const el = document.querySelector('#panelPieza');
+  if (hayMulti()) { panelConjunto(); return; }
+  const d = datosSel();
+  if (!d) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  const esLibre = d.tipo === 'libre';
+  const L = esLibre ? d.L : null;
+  const a = esLibre ? null : (ajustes[d.nombre] || {});
+  const campo = (k, et, v, u) => '<label class="campo" style="grid-template-columns: minmax(0,1fr) 64px 20px"><span>' + et + '</span><input data-p="' + k + '" value="' + v + '" inputmode="decimal" /><span class="u">' + u + '</span></label>';
+  const titulo = esLibre ? L.nombre : d.nombre;
+  const matAct = esLibre ? L.m : (a.mat || (sel.material && sel.material.name) || '');
+  const colAct = esLibre ? (L.color || '') : (a.color || '');
+  const capas = Array.from(new Set(['Piezas libres'].concat(libres.map(x => x.capa || 'Piezas libres'))
+    .concat((stage._object ? stage._object.children : []).filter(q => q.isGroup && q.name).map(q => q.name))));
+
+  el.innerHTML =
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">' +
+      '<div style="font-size:11.5px;font-weight:600;text-transform:capitalize">' + titulo + '</div>' +
+      '<button id="cerrarSel" style="font-size:15px;line-height:1;color:#b4aea5;background:transparent;border:0;cursor:pointer">×</button></div>' +
+    '<div class="rot" style="margin:3px 0 7px">' + (esLibre ? 'Pieza libre' : 'Pieza de la plantilla') + '</div>' +
+    (esLibre
+      ? campo('w', 'Ancho', L.w, 'cm') + campo('h', 'Alto', L.h, 'cm') + campo('d', 'Fondo', L.d, 'cm') +
+        campo('x', 'Posición X', L.x, 'cm') + campo('z', 'Posición Z', L.z, 'cm') + campo('y', 'Altura', L.y, 'cm') +
+        campo('ry', 'Giro', L.ry, '°')
+      : campo('dx', 'Correr en X', a.dx || 0, 'cm') + campo('dz', 'Correr en Z', a.dz || 0, 'cm') +
+        campo('dy', 'Subir o bajar', a.dy || 0, 'cm') + campo('ry', 'Girar', a.ry || 0, '°') +
+        campo('esc', 'Agrandar', a.esc || 100, '%')) +
+    fichaMedidas() +
+    '<div class="rot" style="margin:9px 0 5px">Material</div>' +
+    '<select id="matSel" style="width:100%;padding:7px 8px;font-size:12px;background:#fff;border:1px solid #dedbd5;border-radius:6px;cursor:pointer">' +
+      Object.keys(MATERIALES).map(k => '<option value="' + k + '"' + (k === matAct ? ' selected' : '') + '>' + k + '</option>').join('') +
+    '</select>' +
+    '<div class="rot" style="margin:9px 0 5px">Color</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:5px">' +
+      COLORES.map(c => '<button data-col="' + c + '" title="' + c + '" style="width:22px;height:22px;border-radius:5px;cursor:pointer;background:' + c + ';border:2px solid ' + (c === colAct ? '#2f6df6' : 'rgba(0,0,0,0.15)') + '"></button>').join('') +
+      '<button data-col="" title="Sin tinte" style="width:22px;height:22px;border-radius:5px;cursor:pointer;background:repeating-linear-gradient(45deg,#fff,#fff 4px,#ddd 4px,#ddd 8px);border:2px solid ' + (colAct ? 'rgba(0,0,0,0.15)' : '#2f6df6') + '"></button>' +
+    '</div>' +
+    (esLibre
+      ? '<div class="rot" style="margin:9px 0 5px">Capa</div>' +
+        '<div style="display:grid;grid-template-columns:minmax(0,1fr) 74px;gap:6px">' +
+        '<select id="capaSel" style="padding:7px 8px;font-size:12px;background:#fff;border:1px solid #dedbd5;border-radius:6px;cursor:pointer">' +
+          capas.map(c => '<option value="' + c + '"' + (c === (L.capa || 'Piezas libres') ? ' selected' : '') + '>' + c + '</option>').join('') +
+        '</select><button class="vista" id="capaNueva">Nueva</button></div>'
+      : '<div style="margin-top:9px;font-size:10.5px;color:#86817b">Capa: ' + ((sel.parent && sel.parent.name) || '—') + '</div>') +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px">' +
+      '<button class="vista" id="copSel">Copiar</button>' +
+      '<button class="vista" id="pegSel">Pegar</button>' +
+      '<button class="vista" id="delSel" style="color:#8a3a2f;background:#faf0ee;border-color:#e8d3ce">Borrar</button>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">' +
+      (esLibre ? '<button class="vista" id="pisoSel">Al piso</button>' : '<button class="vista" id="resetSel">Volver al lugar</button>') +
+      '<button class="vista" id="undoSel">Deshacer</button>' +
+    '</div>' +
+    '<div style="margin-top:8px;font-size:10.5px;line-height:1.5;color:#86817b">Arrastrá para mover · Shift y arrastrar hace un recuadro de selección · doble clic toma la familia · Shift y flechas cambian la altura · Delete borra · Ctrl+Z deshace.</div>';
+
+  const set = (campos) => {
+    guardarPaso();
+    const dd = datosSel(); if (!dd) return;
+    if (dd.tipo === 'libre') Object.assign(dd.L, campos);
+    else ajustes[dd.nombre] = Object.assign({}, ajustes[dd.nombre], campos);
+    pintar();
+  };
+  el.querySelectorAll('input[data-p]').forEach(inp => {
+    inp.onchange = () => set({ [inp.dataset.p]: parseFloat(String(inp.value).replace(',', '.')) || 0 });
+  });
+  engancharFicha(el);
+  const q = (id) => el.querySelector('#' + id);
+  q('matSel').onchange = (e) => set(esLibre ? { m: e.target.value } : { mat: e.target.value });
+  el.querySelectorAll('button[data-col]').forEach(b => b.onclick = () => set({ color: b.dataset.col }));
+  if (q('capaSel')) q('capaSel').onchange = (e) => set({ capa: e.target.value });
+  if (q('capaNueva')) q('capaNueva').onclick = () => {
+    const n = prompt('Nombre de la capa nueva', 'Propuesta nueva');
+    if (n) set({ capa: n.trim() });
+  };
+  if (q('cerrarSel')) q('cerrarSel').onclick = () => marcar(null);
+  if (q('copSel')) q('copSel').onclick = () => copiar();
+  if (q('pegSel')) q('pegSel').onclick = () => pegar();
+  if (q('delSel')) q('delSel').onclick = () => borrarSel();
+  if (q('undoSel')) q('undoSel').onclick = () => deshacer();
+  if (q('pisoSel')) q('pisoSel').onclick = () => set({ y: Math.round(d.L.h / 2) });
+  if (q('resetSel')) q('resetSel').onclick = () => { guardarPaso(); delete ajustes[d.nombre]; pintar(); };
+}
+
+function listarCapas() {
+  const el = document.querySelector('#capas');
+  if (!el) return;
+  const grupos = (stage._object ? stage._object.children : []).filter(q => q.isGroup && q.name);
+  if (!grupos.length) { el.innerHTML = '<div style="font-size:11px;color:#86817b">Esta plantilla no tiene grupos.</div>'; return; }
+  el.innerHTML = grupos.map(q =>
+    '<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;cursor:pointer">' +
+    '<input type="checkbox" data-c="' + q.name + '"' + (ocultos[q.name] ? '' : ' checked') + ' /><span>' + q.name + '</span></label>'
+  ).join('');
+  const nb = Object.keys(borrados).length;
+  if (nb) {
+    el.innerHTML += '<button class="vista" id="restaurar" style="width:100%;margin-top:8px">Restaurar ' + nb + ' pieza' + (nb > 1 ? 's' : '') + ' borrada' + (nb > 1 ? 's' : '') + '</button>';
+    el.querySelector('#restaurar').onclick = () => { guardarPaso(); borrados = {}; pintar(); };
+  }
+  el.querySelectorAll('input[data-c]').forEach(inp => {
+    inp.onchange = () => {
+      if (inp.checked) delete ocultos[inp.dataset.c]; else ocultos[inp.dataset.c] = true;
+      const q = stage._object.children.find(o => o.name === inp.dataset.c);
+      if (q) q.visible = inp.checked;
+    };
+  });
+}
+
+function listarLibres() {
+  const el = document.querySelector('#listaLibres');
+  if (!el) return;
+  if (!libres.length) { el.innerHTML = '<div style="font-size:11px;color:#86817b">Todavía no agregaste piezas.</div>'; return; }
+  el.innerHTML = libres.map(L =>
+    '<button class="plant" data-l="' + L.id + '" style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">' +
+    '<span>' + L.nombre + '</span><span class="rot">' + L.w + '×' + L.h + '</span></button>'
+  ).join('');
+  el.querySelectorAll('button[data-l]').forEach(b => b.onclick = () => seleccionarPorId(+b.dataset.l));
+}
+
+// Altura de lo que ya está dibujado en ese punto: todo lo que se agrega
+// se apoya encima (plataforma, deck, losa) en vez de quedar enterrado.
+function alturaEn(xcm, zcm, ignorar) {
+  if (!stage._object) return 0;
+  const rd = new THREE.Raycaster(new THREE.Vector3(xcm * CM, 60, zcm * CM), new THREE.Vector3(0, -1, 0));
+  const hits = rd.intersectObjects(stage._object.children, true).filter(h =>
+    h.object.isMesh &&
+    !/marco|tirador|dibujo en curso|agua|cinta de medir|calco/i.test(h.object.name) &&
+    !(ignorar && h.object.userData && ignorar.indexOf(h.object.userData.libre) >= 0));
+  return hits.length ? Math.max(0, Math.round(hits[0].point.y / CM)) : 0;
+}
+
+// ————— dibujo directo sobre el piso —————
+// Se arrastra sobre el suelo para marcar el largo y el ancho; al soltar sale
+// la pieza con el alto y el material elegidos en el panel.
+const DIB = {
+  tipo: 'pared', alto: 260, esp: 15, mat: 'revoque', tabla: 12, sep: 3,
+  tipos: [
+    ['pared', 'Pared o muro'],
+    ['piso', 'Piso o deck'],
+    ['viga', 'Viga o caño'],
+    ['listones', 'Fila de listones'],
+    ['bloque', 'Bloque suelto']
+  ]
+};
+let dibujo = null, previa = null;
+const planoPiso = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+// Ficha editable con las tres medidas de la estructura seleccionada.
+function fichaMedidas() {
+  const m = medidaConjunto();
+  if (!m) return '';
+  const c = (id, et, v) => '<label class="campo" style="grid-template-columns:minmax(0,1fr) 58px 18px;padding:2px 0"><span>' + et + '</span>' +
+    '<input data-med="' + id + '" value="' + v + '" inputmode="decimal" /><span class="u">cm</span></label>';
+  return '<div class="rot" style="margin:9px 0 4px">Medida de la estructura</div>' +
+    c('largo', 'Largo', m.largo) + c('ancho', 'Ancho', m.ancho) + c('alto', 'Alto', m.alto) +
+    '<div style="margin-top:3px;font-family:\'IBM Plex Mono\', monospace;font-size:9.5px;color:#86817b">' +
+      (m.largo / 100).toFixed(2) + ' × ' + (m.ancho / 100).toFixed(2) + ' × ' + (m.alto / 100).toFixed(2) + ' m · ' + nPiezas(m.piezas) +
+    '</div>';
+}
+function engancharFicha(el) {
+  el.querySelectorAll('input[data-med]').forEach(inp => {
+    inp.onchange = () => {
+      const v = parseFloat(String(inp.value).replace(',', '.'));
+      const m0 = { nombres: multi.nombres.slice(), ids: multi.ids.slice() };
+      const solo = sel && sel.userData && sel.userData.libre;
+      fijarMedida(inp.dataset.med, v);
+      setTimeout(() => {
+        if (m0.nombres.length + m0.ids.length > 1) marcarVarios(m0.nombres, m0.ids);
+        else if (solo) seleccionarPorId(solo);
+      }, 40);
+    };
+  });
+}
+
+function pintarDibujo() {
+  const el = document.querySelector('#dibujo');
+  el.innerHTML =
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">' +
+      '<div style="font-size:11.5px;font-weight:600">Dibujar</div>' +
+      '<button id="cerrarDib" style="font-size:15px;line-height:1;color:#b4aea5;background:transparent;border:0;cursor:pointer">×</button></div>' +
+    '<div class="rot" style="margin:3px 0 7px">Arrastrá sobre el piso</div>' +
+    '<select id="dibTipo" style="width:100%;padding:6px;font-size:11px;background:#fff;border:1px solid #dedbd5;border-radius:6px;cursor:pointer">' +
+      DIB.tipos.map(x => '<option value="' + x[0] + '"' + (x[0] === DIB.tipo ? ' selected' : '') + '>' + x[1] + '</option>').join('') +
+    '</select>' +
+    '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px 18px;margin-top:5px"><span>Alto</span><input id="dibAlto" value="' + DIB.alto + '" inputmode="decimal" /><span class="u">cm</span></label>' +
+    '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px 18px"><span>Espesor</span><input id="dibEsp" value="' + DIB.esp + '" inputmode="decimal" /><span class="u">cm</span></label>' +
+    '<div class="rot" style="margin:6px 0 4px">Material</div>' +
+    '<select id="dibMat" style="width:100%;padding:6px;font-size:11px;background:#fff;border:1px solid #dedbd5;border-radius:6px;cursor:pointer">' +
+      Object.keys(MATERIALES).map(k => '<option value="' + k + '"' + (k === DIB.mat ? ' selected' : '') + '>' + k + '</option>').join('') +
+    '</select>' +
+    '<div style="margin-top:7px;font-size:10px;line-height:1.5;color:#86817b">El alto se aplica desde el piso. Después lo estirás con los cubitos o con la rueda.</div>';
+  el.querySelector('#cerrarDib').onclick = () => { el.style.display = 'none'; usarHerramienta('mover'); };
+  el.querySelector('#dibTipo').onchange = (e) => { DIB.tipo = e.target.value; };
+  el.querySelector('#dibMat').onchange = (e) => { DIB.mat = e.target.value; };
+  el.querySelector('#dibAlto').onchange = (e) => { DIB.alto = parseFloat(String(e.target.value).replace(',', '.')) || 0; };
+  el.querySelector('#dibEsp').onchange = (e) => { DIB.esp = parseFloat(String(e.target.value).replace(',', '.')) || 1; };
+}
+
+function puntoPiso(ev) {
+  rc.setFromCamera(coord(ev), stage._camera);
+  // primero lo que ya está dibujado; si no hay nada, el suelo
+  const hits = rc.intersectObjects(stage._object ? stage._object.children : [], true).filter(h =>
+    h.object.isMesh && !/marco|tirador|dibujo en curso|cinta de medir/i.test(h.object.name));
+  if (hits.length) return hits[0].point.clone();
+  const p = new THREE.Vector3();
+  return rc.ray.intersectPlane(planoPiso, p) ? p : null;
+}
+
+function crearDibujado(x, z, w, d, base) {
+  const alto = Math.max(1, DIB.alto), esp = Math.max(1, DIB.esp);
+  const y0 = Math.max(0, Math.round(base || 0));
+  guardarPaso();
+  const ids = [];
+  const bl = 'bl' + (++seqBloque);
+  const nuevo = (nombre, W, H, D, X, Y, Z) => {
+    const id = ++seq;
+    ids.push(id);
+    libres.push({ id: id, tipo: 'dibujo', bloque: bl, capa: 'Dibujado', nombre: nombre,
+      w: Math.max(1, Math.round(W)), h: Math.max(1, Math.round(H)), d: Math.max(1, Math.round(D)),
+      m: DIB.mat, x: Math.round(X), y: Math.round(Y + y0), z: Math.round(Z), ry: 0 });
+  };
+  if (DIB.tipo === 'pared') {
+    // el lado más corto pasa a ser el espesor: se dibuja el recorrido del muro
+    if (w >= d) nuevo('pared', w, alto, esp, x, alto / 2, z);
+    else nuevo('pared', esp, alto, d, x, alto / 2, z);
+  } else if (DIB.tipo === 'piso') {
+    nuevo('piso', w, esp, d, x, esp / 2, z);
+  } else if (DIB.tipo === 'viga') {
+    if (w >= d) nuevo('viga', w, esp, esp, x, alto, z);
+    else nuevo('viga', esp, esp, d, x, alto, z);
+  } else if (DIB.tipo === 'listones') {
+    const largo = Math.max(w, d), horiz = w >= d;
+    const k = Math.max(1, Math.floor(largo / (DIB.tabla + DIB.sep)));
+    for (let i = 0; i < k; i++) {
+      const off = -largo / 2 + DIB.tabla / 2 + i * (DIB.tabla + DIB.sep);
+      if (horiz) nuevo('listón ' + (i + 1), DIB.tabla, alto, esp, x + off, alto / 2, z);
+      else nuevo('listón ' + (i + 1), esp, alto, DIB.tabla, x, alto / 2, z + off);
+    }
+  } else {
+    nuevo('bloque', w, alto, d, x, alto / 2, z);
+  }
+  pintar();
+  setTimeout(() => { if (ids.length > 1) marcarVarios([], ids); else seleccionarPorId(ids[0]); }, 40);
+  aviso('Dibujado: ' + Math.round(Math.max(w, d)) + ' cm — se puede arrastrar y estirar.');
+}
+
+// ————— clic, arrastre y teclas —————
+const rc = new THREE.Raycaster();
+const planoDrag = new THREE.Plane();
+let arrastre = null, escalado = null, lazo = null, ruedaTimer = null;
+
+// Redibujo liviano mientras se arrastra: evita reconstruir la escena en cada cuadro.
+let liveTimer = null;
+function pintarLive() {
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(() => pintar(), 70);
+}
+
+function coord(ev) {
+  const cv = stage._renderer.domElement, r = cv.getBoundingClientRect();
+  return new THREE.Vector2(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+}
+// three no ignora los objetos invisibles al hacer raycast: sin este control,
+// una capa apagada seguía siendo seleccionable con el clic.
+function visibleReal(o) {
+  let p = o;
+  while (p) { if (p.visible === false) return false; p = p.parent; }
+  return true;
+}
+function picar(ev) {
+  rc.setFromCamera(coord(ev), stage._camera);
+  const hits = rc.intersectObjects(stage._object.children, true);
+  return (hits.find(h => h.object.isMesh && visibleReal(h.object) &&
+    !/terreno|agua|piso|cesped|follaje|tronco|marco de selecci|tirador/i.test(h.object.name)) || null);
+}
+
+// ————— cinta de medir —————
+function medirPunto(ev) {
+  rc.setFromCamera(coord(ev), stage._camera);
+  const hits = rc.intersectObjects(stage._object.children, true);
+  const h = hits.find(x => x.object.isMesh);
+  if (!h) return;
+  ptosMed.push(h.point.clone());
+  if (ptosMed.length === 1) {
+    document.querySelector('#cartel').textContent = 'Medir: tocá el segundo punto.';
+    return;
+  }
+  const [a, b] = ptosMed;
+  const d = a.distanceTo(b);
+  if (lineaMed && lineaMed.parent) lineaMed.parent.remove(lineaMed);
+  const geo = new THREE.BufferGeometry().setFromPoints([a, b]);
+  lineaMed = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xd8402a, depthTest: false }));
+  lineaMed.name = 'cinta de medir';
+  stage._object.add(lineaMed);
+  const cm = Math.round(d / CM);
+  document.querySelector('#cartel').textContent = 'Medida: ' + cm.toLocaleString('es-PY') + ' cm  ·  ' + (cm / 100).toFixed(2) + ' m';
+  ptosMed = [];
+}
+
+function iniciar() {
+  const cv = stage._renderer.domElement;
+  if (stage._controls) stage._controls.addEventListener('change', escalarTiradores);
+  cv.addEventListener('pointerdown', (ev) => {
+    if (herramienta === 'dibujar' && ev.button === 0) {
+      const p0 = puntoPiso(ev);
+      if (!p0) return;
+      stage._controls.enabled = false;
+      previa = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01),
+        new THREE.MeshBasicMaterial({ color: 0x2f6df6, transparent: true, opacity: 0.35 }));
+      previa.name = 'dibujo en curso';
+      stage._object.add(previa);
+      dibujo = { p0: p0, base: Math.max(0, Math.round(p0.y / CM)) };
+      cv.setPointerCapture(ev.pointerId);
+      return;
+    }
+    if (midiendo && ev.button === 0) { medirPunto(ev); return; }
+    // Con la manito también se arrastra: si ya hay algo seleccionado y el clic
+    // cae sobre esa pieza, se mueve; si cae en otro lado, gira la vista.
+    const conMano = herramienta === 'orbitar' && (sel || hayMulti());
+    if ((!modoLibre && !conMano) || ev.button !== 0) return;
+    // Shift + arrastrar = recuadro de selección, como el lazo de SketchUp
+    if (ev.shiftKey && herramienta === 'mover') {
+      const cvr = cv.getBoundingClientRect();
+      lazo = { x0: ev.clientX, y0: ev.clientY, rect: cvr };
+      const el = document.querySelector('#lazo');
+      el.style.display = 'block';
+      el.style.left = (ev.clientX - cvr.left) + 'px';
+      el.style.top = (ev.clientY - cvr.top) + 'px';
+      el.style.width = '0px'; el.style.height = '0px';
+      stage._controls.enabled = false;
+      cv.setPointerCapture(ev.pointerId);
+      return;
+    }
+    // ¿tocó un tirador de tamaño?
+    if (tiradores && sel) {
+      rc.setFromCamera(coord(ev), stage._camera);
+      const ht = rc.intersectObjects(tiradores.children, false)[0];
+      if (ht) {
+        const d0 = datosSel();
+        stage._controls.enabled = false;
+        const T = ht.object.userData.tirador;
+        const ejeV = { w: new THREE.Vector3(1, 0, 0), h: new THREE.Vector3(0, 1, 0), d: new THREE.Vector3(0, 0, 1) }[T.eje];
+        const nrm = new THREE.Vector3(0, 0, 1).applyQuaternion(stage._camera.quaternion);
+        planoDrag.setFromNormalAndCoplanarPoint(nrm, ht.point);
+        const p0 = new THREE.Vector3();
+        rc.ray.intersectPlane(planoDrag, p0);
+        guardarPaso();
+        const base = new THREE.Box3().setFromObject(sel).getSize(new THREE.Vector3());
+        escalado = {
+          d: d0, T: T, eje: ejeV, p0: p0, mesh: sel,
+          w0: d0.tipo === 'libre' ? d0.L.w : Math.round(base.x / CM),
+          h0: d0.tipo === 'libre' ? d0.L.h : Math.round(base.y / CM),
+          dd0: d0.tipo === 'libre' ? d0.L.d : Math.round(base.z / CM),
+          x0: d0.tipo === 'libre' ? d0.L.x : 0,
+          y0: d0.tipo === 'libre' ? d0.L.y : 0,
+          z0: d0.tipo === 'libre' ? d0.L.z : 0,
+          a0: d0.tipo === 'libre' ? null : Object.assign({ sx: 1, sy: 1, sz: 1, dx: 0, dy: 0, dz: 0 }, ajustes[d0.nombre])
+        };
+        cv.setPointerCapture(ev.pointerId);
+        return;
+      }
+    }
+    const aislar = ev.ctrlKey || ev.metaKey;
+    const h = picar(ev);
+    if (!h) { if (!conMano) marcar(null); return; }
+    // Si la pieza tocada ya es parte de la selección, se arrastra todo el conjunto.
+    const enConjunto = hayMulti() && (h.object.userData.libre
+      ? multi.ids.indexOf(h.object.userData.libre) >= 0
+      : multi.nombres.indexOf(h.object.userData.plantilla || h.object.name) >= 0);
+    if (enConjunto && (herramienta === 'mover' || conMano)) {
+      stage._controls.enabled = false;
+      const n = ev.altKey ? new THREE.Vector3(0, 0, 1).applyQuaternion(stage._camera.quaternion) : new THREE.Vector3(0, 1, 0);
+      planoDrag.setFromNormalAndCoplanarPoint(n, h.point);
+      const p0 = new THREE.Vector3();
+      rc.ray.intersectPlane(planoDrag, p0);
+      guardarPaso();
+      arrastre = {
+        grupo: { nombres: multi.nombres.slice(), ids: multi.ids.slice() },
+        vert: ev.altKey, p0: p0,
+        base: multi.ids.map(id => { const L = libres.find(x => x.id === id); return L ? { id: id, x: L.x, y: L.y, z: L.z } : null; }).filter(Boolean),
+        baseNom: multi.nombres.map(nn => { const a = ajustes[nn] || {}; return { n: nn, dx: a.dx || 0, dy: a.dy || 0, dz: a.dz || 0 }; })
+      };
+      cv.setPointerCapture(ev.pointerId);
+      return;
+    }
+    if (conMano) {
+      // con la manito solo se mueve lo ya seleccionado; lo demás gira la vista
+      const mismo = sel && (h.object === sel || (h.object.userData.libre && sel.userData && sel.userData.libre === h.object.userData.libre));
+      if (!mismo) return;
+    } else marcar(h.object, aislar);
+    if (herramienta === 'pintar') { aplicarPintura(h.object); return; }
+    if (herramienta === 'borrar') { borrarSel(); return; }
+    if (herramienta === 'copiar') { copiar(); return; }
+    const d = datosSel();
+    if (!d) return;
+    stage._controls.enabled = false;
+    const n = ev.altKey ? new THREE.Vector3(0, 0, 1).applyQuaternion(stage._camera.quaternion) : new THREE.Vector3(0, 1, 0);
+    planoDrag.setFromNormalAndCoplanarPoint(n, h.point);
+    const p0 = new THREE.Vector3();
+    rc.ray.intersectPlane(planoDrag, p0);
+    guardarPaso();
+    if (d.tipo === 'libre') {
+      arrastre = { L: d.L, x0: d.L.x, y0: d.L.y, z0: d.L.z, p0: p0, vert: ev.altKey, mesh: h.object };
+    } else {
+      // una pieza sola de la plantilla se corre con el mismo mecanismo del conjunto
+      const a = ajustes[d.nombre] || {};
+      arrastre = {
+        grupo: { nombres: [d.nombre], ids: [] }, vert: ev.altKey, p0: p0,
+        base: [], baseNom: [{ n: d.nombre, dx: a.dx || 0, dy: a.dy || 0, dz: a.dz || 0 }]
+      };
+    }
+    cv.setPointerCapture(ev.pointerId);
+  });
+  // La rueda agranda o achica cuando el puntero está sobre una pieza
+  // seleccionada; en cualquier otro lugar sigue acercando la vista.
+  cv.addEventListener('wheel', (ev) => {
+    if (!sel && !hayMulti()) return;
+    const h = picar(ev);
+    if (!h) return;
+    const o = h.object;
+    const enSel = hayMulti()
+      ? (o.userData.libre ? multi.ids.indexOf(o.userData.libre) >= 0 : multi.nombres.indexOf(o.userData.plantilla || o.name) >= 0)
+      : (o === sel || (o.userData.libre && sel.userData && sel.userData.libre === o.userData.libre));
+    if (!enSel) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    const k = ev.deltaY < 0 ? 1.06 : 1 / 1.06;
+    const escalarUno = (d) => {
+      if (d.tipo === 'libre') {
+        const L = d.L;
+        L.w = Math.max(1, Math.round(L.w * k));
+        L.h = Math.max(1, Math.round(L.h * k));
+        L.d = Math.max(1, Math.round(L.d * k));
+      } else {
+        const a = Object.assign({}, ajustes[d.nombre]);
+        a.esc = Math.max(5, Math.round(((a.esc || 100) * k) * 10) / 10);
+        ajustes[d.nombre] = a;
+      }
+    };
+    if (hayMulti()) {
+      multi.ids.forEach(id => { const L = libres.find(x => x.id === id); if (L) escalarUno({ tipo: 'libre', L: L }); });
+      multi.nombres.forEach(n => escalarUno({ tipo: 'plantilla', nombre: n }));
+    } else {
+      const d = datosSel(); if (d) escalarUno(d);
+    }
+    if (!ruedaTimer) guardarPaso();
+    clearTimeout(ruedaTimer);
+    pintarLive();
+    document.querySelector('#cartel').textContent = 'Tamaño: ' + (ev.deltaY < 0 ? 'agrandando' : 'achicando') + ' — soltá la rueda para fijar';
+    ruedaTimer = setTimeout(() => {
+      ruedaTimer = null;
+      const m = { nombres: multi.nombres.slice(), ids: multi.ids.slice() };
+      pintar();
+      if (m.nombres.length + m.ids.length > 1) setTimeout(() => marcarVarios(m.nombres, m.ids), 30);
+    }, 220);
+  }, { passive: false, capture: true });
+
+  cv.addEventListener('pointermove', (ev) => {
+    if (dibujo) {
+      const p = puntoPiso(ev);
+      if (!p || !previa) return;
+      const snap = (n) => Math.round(n / CM / paso) * paso * CM;
+      const x1 = snap(dibujo.p0.x), z1 = snap(dibujo.p0.z), x2 = snap(p.x), z2 = snap(p.z);
+      const w = Math.max(0.02, Math.abs(x2 - x1)), d = Math.max(0.02, Math.abs(z2 - z1));
+      const alto = Math.max(0.02, DIB.alto * CM);
+      previa.geometry.dispose();
+      previa.geometry = new THREE.BoxGeometry(w, DIB.tipo === 'piso' ? DIB.esp * CM : alto, d);
+      previa.position.set((x1 + x2) / 2, dibujo.base * CM + (DIB.tipo === 'piso' ? DIB.esp * CM : alto) / 2, (z1 + z2) / 2);
+      dibujo.fin = { x: (x1 + x2) / 2 / CM, z: (z1 + z2) / 2 / CM, w: w / CM, d: d / CM, base: dibujo.base };
+      document.querySelector('#cartel').textContent = 'Dibujando: ' + Math.round(w / CM) + ' x ' + Math.round(d / CM) + ' cm';
+      return;
+    }
+    if (lazo) {
+      const el = document.querySelector('#lazo'), r = lazo.rect;
+      const x1 = Math.min(lazo.x0, ev.clientX), y1 = Math.min(lazo.y0, ev.clientY);
+      el.style.left = (x1 - r.left) + 'px';
+      el.style.top = (y1 - r.top) + 'px';
+      el.style.width = Math.abs(ev.clientX - lazo.x0) + 'px';
+      el.style.height = Math.abs(ev.clientY - lazo.y0) + 'px';
+      lazo.x1 = ev.clientX; lazo.y1 = ev.clientY;
+      return;
+    }
+    if (escalado) {
+      rc.setFromCamera(coord(ev), stage._camera);
+      const p = new THREE.Vector3();
+      if (!rc.ray.intersectPlane(planoDrag, p)) return;
+      const av = p.clone().sub(escalado.p0).dot(escalado.eje) / CM * escalado.T.signo;
+      const E = escalado, T = E.T;
+      const nuevo = Math.max(paso, Math.round(({ w: E.w0, h: E.h0, d: E.dd0 }[T.eje] + av) / paso) * paso);
+      const delta = nuevo - { w: E.w0, h: E.h0, d: E.dd0 }[T.eje];
+      if (E.d.tipo === 'libre') {
+        const L = E.d.L;
+        if (T.eje === 'w') { L.w = nuevo; L.x = E.x0 + T.signo * delta / 2; }
+        if (T.eje === 'h') { L.h = nuevo; L.y = E.y0 + T.signo * delta / 2; }
+        if (T.eje === 'd') { L.d = nuevo; L.z = E.z0 + T.signo * delta / 2; }
+        document.querySelector('#cartel').textContent = L.nombre + ' — ' + L.w + ' × ' + L.h + ' × ' + L.d + ' cm';
+      } else {
+        const a = Object.assign({}, E.a0);
+        const k = { w: 'sx', h: 'sy', d: 'sz' }[T.eje];
+        const cor = { w: 'dx', h: 'dy', d: 'dz' }[T.eje];
+        const orig = { w: E.w0, h: E.h0, d: E.dd0 }[T.eje];
+        a[k] = (E.a0[k] || 1) * (nuevo / orig);
+        a[cor] = (E.a0[cor] || 0) + T.signo * delta / 2;
+        ajustes[E.d.nombre] = a;
+        document.querySelector('#cartel').textContent = E.d.nombre + ' — ' + nuevo + ' cm en ese lado';
+      }
+      pintarLive();
+      return;
+    }
+    if (!arrastre) return;
+    rc.setFromCamera(coord(ev), stage._camera);
+    const p = new THREE.Vector3();
+    if (!rc.ray.intersectPlane(planoDrag, p)) return;
+    const dv = p.clone().sub(arrastre.p0);
+    if (arrastre.grupo) {
+      const dx = Math.round(dv.x / CM / paso) * paso, dz = Math.round(dv.z / CM / paso) * paso, dy = Math.round(dv.y / CM / paso) * paso;
+      arrastre.base.forEach(B => {
+        const Lp = libres.find(x => x.id === B.id);
+        if (!Lp) return;
+        if (arrastre.vert) Lp.y = B.y + dy;
+        else { Lp.x = B.x + dx; Lp.z = B.z + dz; }
+      });
+      arrastre.baseNom.forEach(B => {
+        const a = Object.assign({}, ajustes[B.n]);
+        if (arrastre.vert) a.dy = B.dy + dy;
+        else { a.dx = B.dx + dx; a.dz = B.dz + dz; }
+        ajustes[B.n] = a;
+      });
+      document.querySelector('#cartel').textContent = 'Conjunto: ' + (arrastre.vert ? 'altura ' + dy : 'X ' + dx + ' · Z ' + dz) + ' cm';
+      pintarLive();
+      return;
+    }
+    const L = arrastre.L;
+    if (arrastre.vert) L.y = Math.round((arrastre.y0 + dv.y / CM) / paso) * paso;
+    else { L.x = Math.round((arrastre.x0 + dv.x / CM) / paso) * paso; L.z = Math.round((arrastre.z0 + dv.z / CM) / paso) * paso; }
+    arrastre.mesh.position.set(L.x * CM, L.y * CM, L.z * CM);
+    if (marcoSel) marcoSel.update();
+    document.querySelector('#cartel').textContent = L.nombre + ' — X ' + L.x + ' · Z ' + L.z + ' · altura ' + L.y + ' cm';
+  });
+  const fin = () => {
+    if (lazo) {
+      const el = document.querySelector('#lazo');
+      el.style.display = 'none';
+      stage._controls.enabled = true;
+      const L = lazo; lazo = null; fijarVista();
+      if (L.x1 === undefined || Math.abs(L.x1 - L.x0) < 6 || Math.abs(L.y1 - L.y0) < 6) return;
+      seleccionarEnRecuadro(L);
+      return;
+    }
+    if (dibujo) {
+      const f = dibujo.fin;
+      if (previa && previa.parent) previa.parent.remove(previa);
+      previa = null; dibujo = null; fijarVista();
+      if (f && (f.w >= paso || f.d >= paso)) crearDibujado(f.x, f.z, f.w, f.d, f.base);
+      return;
+    }
+    if (escalado) { escalado = null; fijarVista(); pintar(); return; }
+    if (!arrastre) return;
+    const eraGrupo = arrastre.grupo;
+    arrastre = null;
+    fijarVista();
+    pintar();
+    if (eraGrupo) setTimeout(() => marcarVarios(eraGrupo.nombres, eraGrupo.ids), 30);
+  };
+  cv.addEventListener('dblclick', (ev) => {
+    if (!modoLibre) return;
+    const h = picar(ev);
+    if (h) seleccionarFamilia(h.object, false);
+  });
+  cv.addEventListener('pointerup', fin);
+  cv.addEventListener('pointercancel', fin);
+
+  window.addEventListener('keydown', (ev) => {
+    if (/INPUT|SELECT|TEXTAREA/.test((document.activeElement || {}).tagName || '')) return;
+    const ctrl = ev.ctrlKey || ev.metaKey;
+    if (ctrl && (ev.key === 'z' || ev.key === 'Z')) { ev.preventDefault(); deshacer(); return; }
+    // Con varias piezas seleccionadas, Ctrl+C y Ctrl+V trabajan sobre todo el conjunto.
+    if (ctrl && (ev.key === 'c' || ev.key === 'C')) {
+      ev.preventDefault();
+      if (hayMulti()) { const b = document.querySelector('#panelPieza #copM'); if (b) b.click(); } else { portaMulti = []; copiar(); }
+      return;
+    }
+    if (ctrl && (ev.key === 'v' || ev.key === 'V')) { ev.preventDefault(); if (portaMulti.length) pegarMulti(); else pegar(); return; }
+    if (!sel) return;
+    // Delete borra de una vez todo lo seleccionado, sea una pieza o un conjunto.
+    if (ev.key === 'Delete' || ev.key === 'Backspace') {
+      ev.preventDefault();
+      if (hayMulti()) {
+        guardarPaso();
+        const n = multi.nombres.length + multi.ids.length;
+        libres = libres.filter(x => multi.ids.indexOf(x.id) < 0);
+        multi.nombres.forEach(nn => borrados[nn] = true);
+        limpiarMulti(); sel = null; pintar();
+        document.querySelector('#cartel').textContent = 'Borradas ' + n + ' piezas. Ctrl+Z las devuelve.';
+      } else borrarSel();
+      return;
+    }
+    const d = datosSel(); if (!d) return;
+    const mov = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[ev.key];
+    if (mov && hayMulti()) {
+      // las flechas corren todo el conjunto
+      ev.preventDefault();
+      aplicarMulti(dd => {
+        if (dd.tipo === 'libre') {
+          if (ev.shiftKey) dd.L.y += -mov[1] * paso; else { dd.L.x += mov[0] * paso; dd.L.z += mov[1] * paso; }
+        } else {
+          const a = Object.assign({ dx: 0, dy: 0, dz: 0 }, ajustes[dd.nombre]);
+          if (ev.shiftKey) a.dy += -mov[1] * paso; else { a.dx += mov[0] * paso; a.dz += mov[1] * paso; }
+          ajustes[dd.nombre] = a;
+        }
+      });
+      return;
+    }
+    if (mov) {
+      ev.preventDefault();
+      guardarPaso();
+      if (d.tipo === 'libre') {
+        if (ev.shiftKey) d.L.y += -mov[1] * paso; else { d.L.x += mov[0] * paso; d.L.z += mov[1] * paso; }
+      } else {
+        const a = Object.assign({ dx: 0, dy: 0, dz: 0 }, ajustes[d.nombre]);
+        if (ev.shiftKey) a.dy += -mov[1] * paso; else { a.dx += mov[0] * paso; a.dz += mov[1] * paso; }
+        ajustes[d.nombre] = a;
+      }
+      pintar();
+    }
+    if (ev.key === 'Escape') marcar(null);
+  });
+}
+
+// ————— panel de medidas de la plantilla —————
+function panelMedidas() {
+  const p = PLANTILLAS[plantilla];
+  document.querySelector('#campos').innerHTML = p.campos.map(([k, et]) =>
+    '<label class="campo"><span>' + et + '</span><input data-k="' + k + '" value="' + valores[k] + '" inputmode="decimal" /></label>'
+  ).join('');
+  document.querySelectorAll('#campos input').forEach(inp => {
+    inp.onchange = () => {
+      guardarPaso();
+      const n = parseFloat(String(inp.value).replace(',', '.'));
+      valores[inp.dataset.k] = isFinite(n) ? n : 0;
+      pintar();
+    };
+  });
+  const opts = p.opciones.concat(EXTRAS);
+  document.querySelector('#extras').innerHTML = opts.map(([k, et, d]) =>
+    typeof d === 'boolean'
+      ? '<div class="sw"><span>' + et + '</span><button data-t="' + k + '"></button></div>'
+      : '<label class="campo"><span>' + et + '</span><input data-k="' + k + '" value="' + valores[k] + '" inputmode="numeric" /></label>'
+  ).join('');
+  document.querySelectorAll('#extras input').forEach(inp => {
+    inp.onchange = () => { guardarPaso(); const n = parseFloat(inp.value); valores[inp.dataset.k] = isFinite(n) ? n : 0; pintar(); };
+  });
+  const estilo = (b, on) => {
+    b.textContent = on ? 'Sí' : 'No';
+    b.style.cssText = 'padding: 5px 13px; font-size: 11.5px; font-weight: 600; border-radius: 20px; cursor: pointer; border: 1px solid ' + (on ? '#1b1a18' : '#dedbd5') + '; color: ' + (on ? '#ffffff' : '#6f6b64') + '; background: ' + (on ? '#1b1a18' : '#ffffff') + ';';
+  };
+  document.querySelectorAll('#extras button[data-t]').forEach(b => {
+    estilo(b, !!valores[b.dataset.t]);
+    b.onclick = () => { guardarPaso(); valores[b.dataset.t] = !valores[b.dataset.t]; estilo(b, valores[b.dataset.t]); pintar(); };
+  });
+}
+
+document.querySelector('#plantillas').innerHTML = Object.entries(PLANTILLAS).map(([id, p]) =>
+  '<div style="display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:4px;margin-bottom:5px">' +
+    '<button class="plant" data-p="' + id + '" style="margin:0">' + p.nombre + '</button>' +
+    '<button data-add="' + id + '" title="Agregar al dibujo como piezas editables" style="font-size:17px;font-weight:600;line-height:1;color:#33312e;background:#fff;border:1px solid #dedbd5;border-radius:8px;cursor:pointer">+</button>' +
+  '</div>'
+).join('');
+document.querySelectorAll('#plantillas button[data-add]').forEach(b => {
+  b.onclick = () => insertarPlantilla(b.dataset.add);
+});
+document.querySelectorAll('#plantillas .plant').forEach(b => {
+  b.onclick = () => {
+    guardarPaso();
+    plantilla = b.dataset.p; valores = defaults(plantilla);
+    ajustes = {}; borrados = {}; sel = null;
+    panelMedidas(); pintar();
+    setTimeout(() => vista('perspectiva'), 60);
+  };
+});
+
+// ————— vistas fijas y captura —————
+function vista(tipo) {
+  const cam = stage._camera, ctl = stage._controls, obj = stage._object;
+  if (!cam || !ctl || !obj) return;
+  const box = new THREE.Box3();
+  obj.children.forEach(q => { if (!/terreno|lago/i.test(q.name || '')) box.expandByObject(q); });
+  if (box.isEmpty()) box.setFromObject(obj);
+  const c = box.getCenter(new THREE.Vector3());
+  const d = box.getSize(new THREE.Vector3()).length();
+  if (tipo === 'ojo') {
+    cam.position.set(c.x + 0.5, 1.65, box.max.z + 6);
+    ctl.target.set(c.x, 1.5, c.z);
+    cam.updateProjectionMatrix(); ctl.update();
+    return;
+  }
+  const pos = {
+    perspectiva: [c.x + d * 0.5, c.y + d * 0.4, c.z + d * 0.6],
+    frente: [c.x, c.y + d * 0.10, c.z + d * 1.0],
+    lateral: [c.x + d * 1.0, c.y + d * 0.10, c.z],
+    planta: [c.x + 0.001, c.y + d * 1.1, c.z]
+  }[tipo] || [c.x + d * 0.5, c.y + d * 0.4, c.z + d * 0.6];
+  ctl.target.copy(c);
+  cam.position.set(pos[0], pos[1], pos[2]);
+  cam.updateProjectionMatrix();
+  ctl.update();
+}
+function guardarImagen() {
+  const r = stage._renderer;
+  r.render(stage._scene, stage._camera);
+  const url = r.domElement.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (document.querySelector('#obra').value.trim() || 'boceto') + '-' + plantilla + '.png';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+document.querySelectorAll('.vista[data-v]').forEach(b => {
+  b.onclick = () => b.dataset.v === 'foto' ? guardarImagen() : vista(b.dataset.v);
+});
+
+// Pantalla completa: esconde las dos columnas y deja el visor a todo el ancho.
+const btnAmpliar = document.querySelector('#ampliarVista');
+btnAmpliar.onclick = () => {
+  const app = document.querySelector('.app');
+  const full = app.classList.toggle('full');
+  btnAmpliar.textContent = full ? 'Mostrar paneles' : 'Pantalla completa';
+  btnAmpliar.style.color = full ? '#ffffff' : '#1b1a18';
+  btnAmpliar.style.background = full ? '#1b1a18' : '#ffffff';
+  btnAmpliar.style.borderColor = full ? '#1b1a18' : '#dedbd5';
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+};
+window.addEventListener('keydown', (ev) => {
+  if (ev.key === 'F2') { ev.preventDefault(); btnAmpliar.click(); }
+});
+
+// ————— guardado de bocetos —————
+function leer() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+function listar() {
+  const items = leer();
+  document.querySelector('#guardados').innerHTML = '<option value="">Bocetos guardados…</option>' +
+    items.map((b, i) => '<option value="' + i + '">' + (b.num || ('D-' + String(i + 1).padStart(2, '0'))) + ' · ' + b.obra + ' · ' + ((PLANTILLAS[b.plantilla] || {}).nombre || b.plantilla) + '</option>').join('');
+}
+document.querySelector('#guardar').onclick = () => {
+  const obra = document.querySelector('#obra').value.trim() || 'Sin nombre';
+  const items = leer();
+  items.push({ num: 'D-' + String(items.length + 1).padStart(2, '0'), obra, plantilla, valores: Object.assign({}, valores),
+    libres: JSON.parse(JSON.stringify(libres)), ajustes: JSON.parse(JSON.stringify(ajustes)),
+    ocultos: Object.assign({}, ocultos), refs: JSON.parse(JSON.stringify(refs)), borrados: Object.assign({}, borrados),
+    fecha: new Date().toLocaleDateString('es-PY') });
+  localStorage.setItem(KEY, JSON.stringify(items));
+  listar();
+  document.querySelector('#cartel').textContent = 'Diseño ' + items[items.length - 1].num + ' guardado: ' + obra;
+};
+document.querySelector('#abrir').onclick = () => {
+  const i = document.querySelector('#guardados').value;
+  if (i === '') return;
+  const b = leer()[+i];
+  if (!b) return;
+  guardarPaso();
+  plantilla = b.plantilla;
+  valores = Object.assign(defaults(plantilla), b.valores);
+  libres = Array.isArray(b.libres) ? JSON.parse(JSON.stringify(b.libres)) : [];
+  ajustes = b.ajustes ? JSON.parse(JSON.stringify(b.ajustes)) : {};
+  ocultos = b.ocultos ? Object.assign({}, b.ocultos) : {};
+  refs = Array.isArray(b.refs) ? JSON.parse(JSON.stringify(b.refs)) : [];
+  seqRef = refs.reduce((a, R) => Math.max(a, R.id || 0), 0);
+  borrados = b.borrados ? Object.assign({}, b.borrados) : {};
+  seq = libres.reduce((a, L) => Math.max(a, L.id || 0), 0);
+  seqBloque = libres.reduce((a, L) => Math.max(a, parseInt(String(L.bloque || '').replace('bl', ''), 10) || 0), 0);
+  sel = null;
+  document.querySelector('#obra').value = b.obra;
+  panelMedidas(); pintar();
+};
+document.querySelector('#borrar').onclick = () => {
+  const i = document.querySelector('#guardados').value;
+  if (i === '') return;
+  const items = leer(); items.splice(+i, 1);
+  localStorage.setItem(KEY, JSON.stringify(items));
+  listar();
+};
+
+document.querySelector('#alPresupuesto').onclick = () => {
+  const filas = (window.__computo || []).map(([desc, unidad, cant]) => ({ desc, unidad, cant: String(cant), costo: '0' }));
+  const obra = document.querySelector('#obra').value.trim() || PLANTILLAS[plantilla].nombre;
+  localStorage.setItem('twg-computo-boceto', JSON.stringify({ obra, plantilla: PLANTILLAS[plantilla].nombre, fecha: new Date().toLocaleDateString('es-PY'), filas }));
+  const av = document.querySelector('#avisoComputo');
+  av.textContent = filas.length + ' materiales listos. Abrí la planilla de costos y tocá “Traer del boceto”.';
+  av.style.color = 'oklch(0.42 0.13 150)';
+};
+
+// ————— barra de piezas y modos —————
+document.querySelector('#pieza').innerHTML = PIEZAS.map(P =>
+  '<option value="' + P[0] + '">' + P[1] + ' · ' + P[2] + '×' + P[3] + '×' + P[4] + ' cm</option>').join('');
+document.querySelector('#agregarPieza').onclick = () => {
+  if (!modoLibre) { modoLibre = true; estiloModo(); }
+  agregarLibre(document.querySelector('#pieza').value);
+};
+document.querySelector('#paso').onchange = (e) => {
+  const n = parseFloat(e.target.value); paso = isFinite(n) && n > 0 ? n : 10; panelPieza();
+};
+// Con cualquier herramienta que no sea la manito, la vista queda quieta:
+// solo se permite acercar con la rueda, así el boceto no se mueve al tocarlo.
+function fijarVista() {
+  const c = stage._controls;
+  if (!c) return;
+  const libre = herramienta === 'orbitar';
+  c.enableRotate = libre;
+  c.enablePan = libre;
+  c.enableZoom = true;
+  c.enabled = true;
+}
+
+function estiloModo() {
+  const b = document.querySelector('#modoBtn');
+  if (!b) return;
+  b.textContent = modoLibre ? 'Diseño libre activo' : 'Diseño libre';
+  b.style.cssText = 'padding: 7px 12px; font-size: 11.5px; font-weight: 600; border-radius: 7px; cursor: pointer; border: 1px solid ' + (modoLibre ? 'oklch(0.50 0.13 300)' : '#dedbd5') + '; color: ' + (modoLibre ? '#ffffff' : '#1b1a18') + '; background: ' + (modoLibre ? 'oklch(0.50 0.13 300)' : '#ffffff') + ';';
+  if (!modoLibre) marcar(null);
+}
+
+function estiloMedir() {
+  const b = document.querySelector('#medirBtn');
+  if (!b) return;
+  b.textContent = midiendo ? 'Midiendo…' : 'Medir';
+  b.style.cssText = 'padding: 7px 12px; font-size: 11.5px; font-weight: 600; border-radius: 7px; cursor: pointer; border: 1px solid ' + (midiendo ? '#c03a26' : '#dedbd5') + '; color: ' + (midiendo ? '#ffffff' : '#1b1a18') + '; background: ' + (midiendo ? '#c03a26' : '#ffffff') + ';';
+}
+
+
+
+// ————— barra de herramientas —————
+const ICO = {
+  mano: '<path d="M6 9V4.6a1.3 1.3 0 0 1 2.6 0V9h.8V3.4a1.3 1.3 0 0 1 2.6 0V9h.8V4.6a1.3 1.3 0 0 1 2.6 0v7.2c0 3.3-2.2 5.7-5.2 5.7-3 0-5.2-2.2-5.2-5.2V9z"/>',
+  cruz: '<path d="M9 2h2v6h6v2h-6v6H9v-6H3V8h6z"/><path d="M10 1l2 2h-4zM10 19l-2-2h4zM1 10l2-2v4zM19 10l-2 2V8z"/>',
+  mover: '<path d="M4 4l6 2-2.2 2.2L14 14.4V9h2v9H7v-2h5.4L6.2 9.8 4 12z"/>',
+  pintar: '<path d="M6 3h8a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H8v2h-2V3zm2 2v3h6V5H8zm8 7c1.6 2 2.4 3.3 2.4 4.2a2.4 2.4 0 0 1-4.8 0c0-.9.8-2.2 2.4-4.2z"/>',
+  borrar: '<path d="M9.6 3.4l7 7-6.2 6.2H5.2L2.8 14.2zM5 14.2l1.6 1.6h2.2l4.4-4.4-3.6-3.6z"/>',
+  copiar: '<path d="M7 2h8v11H7zm2 2v7h4V4zM4 6h2v9h7v2H4z"/>',
+  pegar: '<path d="M6 3h2V2h4v1h2v3H6zm-1 4h10v11H5zm2 2v7h6V9z"/>',
+  medir: '<path d="M2 7h16v6H2zm2 2v2h1V9zm3 0v3h1V9zm3 0v2h1V9zm3 0v3h1V9z"/>',
+  girar: '<path d="M10 3a7 7 0 1 1-6.9 8.2l2-.3A5 5 0 1 0 10 5v2.5L6 4.2 10 1z"/>',
+  acostar: '<path d="M4 3h3v14H4zm5 5h8l-2.5-2.5 1.4-1.4L20 8l-4.1 4-1.4-1.5L17 8H9z"/>',
+  deshacer: '<path d="M9 5V2L3.5 6.5 9 11V8h4a4 4 0 0 1 0 8h-3v2h3a6 6 0 0 0 0-12z"/>',
+  carpeta: '<path d="M2 4h6l2 2h8v10H2zm2 4v6h12V8z"/>',
+  foto: '<path d="M7 4h6l1 2h3v10H3V6h3zm3 3.5A3.5 3.5 0 1 0 10 15a3.5 3.5 0 0 0 0-7.5zm0 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>',
+  imagen: '<path d="M2 3h16v14H2zm2 2v7.6l3.6-3.6 2.6 2.6 3.2-3.2L16 11V5zm2.6 1.2a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2z"/>',
+  biblio: '<path d="M2 2h5v16H2zm6 0h4v16H8zm5.4.6l4.6 1-3.4 15.2-4.6-1z"/>',
+  lapiz: '<path d="M14.2 2.4l3.4 3.4-9.6 9.6-4.3.9.9-4.3zM2.4 17.2h15.2v1.6H2.4z"/>'
+};
+const HERR = [
+  ['orbitar', 'mano', 'Girar la vista — arrastrá para orbitar'],
+  ['mover', 'cruz', 'Seleccionar y mover piezas'],
+  ['dibujar', 'lapiz', 'Dibujar: arrastrá sobre el piso y sale la pieza'],
+  ['pintar', 'pintar', 'Pintar: elegí color y tocá una pieza'],
+  ['borrar', 'borrar', 'Borrar la pieza que toques'],
+  ['copiar', 'copiar', 'Copiar la pieza que toques'],
+  ['pegar', 'pegar', 'Pegar lo copiado'],
+  ['medir', 'medir', 'Medir entre dos puntos'],
+  ['girar', 'girar', 'Girar 90° la pieza seleccionada'],
+  ['acostar', 'acostar', 'Cambiar de vertical a horizontal'],
+  ['deshacer', 'deshacer', 'Deshacer (Ctrl+Z)'],
+  ['biblio', 'biblio', 'Objetos armados: cercos, techos, rejas, pisos'],
+  ['imagen', 'imagen', 'Imágenes de referencia'],
+  ['carpeta', 'carpeta', 'Carpeta de diseños'],
+  ['foto', 'foto', 'Guardar imagen']
+];
+
+function botonHerr(clave, ico, on, sep) {
+  return '<button data-h="' + clave + '" title="' + ico[2] + '" style="width:27px;height:27px;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;' +
+    'border:1px solid ' + (on ? '#1b1a18' : '#dedbd5') + ';background:' + (on ? '#1b1a18' : '#ffffff') + ';color:' + (on ? '#ffffff' : '#33312e') + ';' + (sep ? 'margin-bottom:7px' : '') + '">' +
+    '<svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor">' + ICO[ico[1]] + '</svg></button>';
+}
+function pintarBarra() {
+  // los grupos se separan con margen, no con elementos: así el orden se lee de corrido
+  document.querySelector('#barra').innerHTML = HERR.map((h, i) =>
+    botonHerr(h[0], h, herramienta === h[0], i === 1 || i === 6 || i === 8 || i === 11)
+  ).join('');
+  document.querySelectorAll('#barra button[data-h]').forEach(b => b.onclick = () => usarHerramienta(b.dataset.h));
+}
+
+function usarHerramienta(h) {
+  const cartel = document.querySelector('#cartel');
+  if (h === 'pegar') { pegar(); return; }
+  if (h === 'deshacer') { deshacer(); return; }
+  if (h === 'foto') { guardarImagen(); return; }
+  if (h === 'girar') {
+    const d = datosSel();
+    if (!d) { cartel.textContent = 'Primero tocá una pieza con la herramienta de mover.'; return; }
+    guardarPaso();
+    if (d.tipo === 'libre') { const L = d.L; L.ry = (L.ry + 90) % 360; const w = L.w; L.w = L.d; L.d = w; }
+    else ajustes[d.nombre] = Object.assign({}, ajustes[d.nombre], { ry: ((ajustes[d.nombre] || {}).ry || 0) + 90 });
+    pintar(); return;
+  }
+  if (h === 'acostar') {
+    const d = datosSel();
+    if (!d || d.tipo !== 'libre') { cartel.textContent = 'Acostar funciona en las piezas que agregás.'; return; }
+    guardarPaso();
+    const L = d.L, hh = L.h; L.h = L.w; L.w = hh; L.y = Math.round(L.h / 2);
+    pintar(); return;
+  }
+  if (h === 'biblio') {
+    const el = document.querySelector('#biblioteca');
+    const abierta = el.style.display === 'block';
+    el.style.display = abierta ? 'none' : 'block';
+    ['#paleta', '#carpeta', '#ventanaImg'].forEach(s => document.querySelector(s).style.display = 'none');
+    if (!abierta) pintarBiblio();
+    return;
+  }
+  if (h === 'imagen') {
+    const el = document.querySelector('#ventanaImg');
+    const abierta = el.style.display === 'block';
+    el.style.display = abierta ? 'none' : 'block';
+    document.querySelector('#paleta').style.display = 'none';
+    document.querySelector('#carpeta').style.display = 'none';
+    document.querySelector('#biblioteca').style.display = 'none';
+    if (!abierta) pintarVentanaImg();
+    return;
+  }
+  if (h === 'carpeta') {
+    const el = document.querySelector('#carpeta');
+    const abierta = el.style.display === 'block';
+    el.style.display = abierta ? 'none' : 'block';
+    document.querySelector('#paleta').style.display = 'none';
+    if (!abierta) pintarCarpeta();
+    return;
+  }
+  herramienta = h;
+  modoLibre = (h === 'mover' || h === 'pintar' || h === 'borrar' || h === 'copiar');
+  midiendo = (h === 'medir');
+  ptosMed = [];
+  document.querySelector('#paleta').style.display = h === 'pintar' ? 'block' : 'none';
+  document.querySelector('#dibujo').style.display = h === 'dibujar' ? 'block' : 'none';
+  if (h === 'dibujar') { pintarDibujo(); cartel.textContent = 'Dibujar: arrastrá sobre el piso para marcar el largo y el ancho.'; }
+  document.querySelector('#carpeta').style.display = 'none';
+  document.querySelector('#ventanaImg').style.display = 'none';
+  document.querySelector('#biblioteca').style.display = 'none';
+  if (h !== 'dibujar') document.querySelector('#dibujo').style.display = 'none';
+  if (h === 'pintar') pintarPaleta();
+  if (h === 'medir') cartel.textContent = 'Medir: tocá el primer punto.';
+  // la manito NO borra la selección: se limpia con Escape o con un clic en vacío
+  fijarVista();
+  pintarBarra();
+}
+
+function pintarPaleta() {
+  document.querySelector('#paleta').innerHTML =
+    '<div class="rot" style="margin-bottom:6px">Pintura</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:5px">' +
+    COLORES.map(c => '<button data-pc="' + c + '" style="width:24px;height:24px;border-radius:5px;cursor:pointer;background:' + c + ';border:2px solid ' + (c === pinturaColor ? '#2f6df6' : 'rgba(0,0,0,0.15)') + '"></button>').join('') +
+    '</div>' +
+    '<div class="rot" style="margin:8px 0 5px">Material</div>' +
+    '<select id="pinMat" style="width:100%;padding:6px;font-size:11.5px;background:#fff;border:1px solid #dedbd5;border-radius:6px;cursor:pointer">' +
+    '<option value="">Dejar el material</option>' +
+    Object.keys(MATERIALES).map(k => '<option value="' + k + '"' + (k === pinturaMat ? ' selected' : '') + '>' + k + '</option>').join('') +
+    '</select>';
+  document.querySelectorAll('#paleta button[data-pc]').forEach(b => b.onclick = () => { pinturaColor = b.dataset.pc; pintarPaleta(); });
+  document.querySelector('#pinMat').onchange = (e) => { pinturaMat = e.target.value; };
+}
+
+function aplicarPintura(o) {
+  guardarPaso();
+  const id = o.userData.libre;
+  if (id) {
+    const L = libres.find(x => x.id === id);
+    if (pinturaColor) L.color = pinturaColor;
+    if (pinturaMat) L.m = pinturaMat;
+  } else {
+    const n = o.userData.plantilla || o.name;
+    const a = Object.assign({}, ajustes[n]);
+    if (pinturaColor) a.color = pinturaColor;
+    if (pinturaMat) a.mat = pinturaMat;
+    ajustes[n] = a;
+  }
+  pintar();
+}
+
+// ————— ventana de imágenes de referencia —————
+function achicarImagen(src, cb) {
+  const im = new Image();
+  im.onload = () => {
+    const max = 1400;
+    const k = Math.min(1, max / Math.max(im.width, im.height));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+    cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+    cb(cv.toDataURL('image/jpeg', 0.78), im.width / im.height);
+  };
+  im.src = src;
+}
+
+function sumarImagen(src, nombre) {
+  achicarImagen(src, (chico, prop) => {
+    const ancho = 600;
+    refs.push({
+      id: ++seqRef, nombre: nombre || ('Foto ' + (refs.length + 1)), src: chico,
+      w: ancho, h: Math.round(ancho / (prop || 1.5)),
+      x: 0, y: Math.round(ancho / (prop || 1.5) / 2), z: 0, ry: 0, op: 0.85, piso: false
+    });
+    pintar(); pintarVentanaImg();
+    document.querySelector('#cartel').textContent = 'Foto agregada a la escena. Movela y escalala con los campos.';
+  });
+}
+
+function leerArchivos(lista) {
+  [...lista].filter(f => /^image\//.test(f.type)).forEach(f => {
+    const fr = new FileReader();
+    fr.onload = () => sumarImagen(fr.result, f.name.replace(/\.[^.]+$/, ''));
+    fr.readAsDataURL(f);
+  });
+}
+
+function pintarVentanaImg() {
+  const el = document.querySelector('#ventanaImg');
+  el.innerHTML =
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">' +
+      '<div style="font-size:11.5px;font-weight:600">Imágenes de referencia</div>' +
+      '<button id="cerrarImg" style="font-size:15px;line-height:1;color:#b4aea5;background:transparent;border:0;cursor:pointer">×</button></div>' +
+    '<div id="zona" style="margin:9px 0;padding:18px 12px;text-align:center;font-size:11.5px;line-height:1.5;color:#86817b;background:#faf9f7;border:1.5px dashed #cfcbc3;border-radius:9px;cursor:pointer">' +
+      'Arrastrá una foto acá, pegala con Ctrl+V<br />o tocá para elegirla</div>' +
+    '<input id="archivoImg" type="file" accept="image/*" multiple style="display:none" />' +
+    (refs.length ? refs.map(R =>
+      '<div style="padding:9px 0;border-top:1px solid #efedea">' +
+      '<div style="display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center">' +
+        '<img src="' + R.src + '" style="width:52px;height:40px;object-fit:cover;border-radius:5px" />' +
+        '<div style="min-width:0;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + R.nombre + '</div>' +
+        '<button class="vista" data-qi="' + R.id + '" style="padding:4px 8px;color:#8a3a2f;background:#faf0ee;border-color:#e8d3ce">×</button></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">' +
+        '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px;padding:2px 0"><span style="font-size:11px">Ancho</span><input data-ri="' + R.id + '" data-rk="w" value="' + R.w + '" /></label>' +
+        '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px;padding:2px 0"><span style="font-size:11px">Alto</span><input data-ri="' + R.id + '" data-rk="h" value="' + R.h + '" /></label>' +
+        '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px;padding:2px 0"><span style="font-size:11px">Pos X</span><input data-ri="' + R.id + '" data-rk="x" value="' + R.x + '" /></label>' +
+        '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px;padding:2px 0"><span style="font-size:11px">Pos Z</span><input data-ri="' + R.id + '" data-rk="z" value="' + R.z + '" /></label>' +
+        '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px;padding:2px 0"><span style="font-size:11px">Altura</span><input data-ri="' + R.id + '" data-rk="y" value="' + R.y + '" /></label>' +
+        '<label class="campo" style="grid-template-columns:minmax(0,1fr) 54px;padding:2px 0"><span style="font-size:11px">Giro</span><input data-ri="' + R.id + '" data-rk="ry" value="' + R.ry + '" /></label>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">' +
+        '<button class="vista" data-rp="' + R.id + '" style="padding:5px 8px">' + (R.piso ? 'Poner de pie' : 'Acostar en el piso') + '</button>' +
+        '<button class="vista" data-ro="' + R.id + '" style="padding:5px 8px">Transparencia ' + Math.round(R.op * 100) + '%</button>' +
+      '</div></div>'
+    ).join('') : '') +
+    '<div style="margin-top:10px;padding-top:9px;border-top:1px solid #efedea;font-size:10.5px;line-height:1.55;color:#86817b">' +
+      'La foto queda en la escena para que dibujes encima con las piezas libres. ' +
+      'Si querés que el modelo salga armado de una foto, mandámela por el chat y te la modelo — el programa solo no puede leerla.</div>';
+
+  const q = (s) => el.querySelector(s);
+  q('#cerrarImg').onclick = () => { el.style.display = 'none'; };
+  const zona = q('#zona'), inp = q('#archivoImg');
+  zona.onclick = () => inp.click();
+  inp.onchange = () => leerArchivos(inp.files);
+  zona.ondragover = (e) => { e.preventDefault(); zona.style.background = '#f0f4fb'; };
+  zona.ondragleave = () => { zona.style.background = '#faf9f7'; };
+  // stopPropagation: sin esto el listener de la ventana sumaba la foto dos veces
+  zona.ondrop = (e) => { e.preventDefault(); e.stopPropagation(); zona.style.background = '#faf9f7'; leerArchivos(e.dataTransfer.files); };
+  el.querySelectorAll('input[data-ri]').forEach(i => i.onchange = () => {
+    const R = refs.find(x => x.id === +i.dataset.ri); if (!R) return;
+    const n = parseFloat(String(i.value).replace(',', '.'));
+    R[i.dataset.rk] = isFinite(n) ? n : 0;
+    pintar();
+  });
+  el.querySelectorAll('button[data-qi]').forEach(b => b.onclick = () => {
+    refs = refs.filter(x => x.id !== +b.dataset.qi); pintar(); pintarVentanaImg();
+  });
+  el.querySelectorAll('button[data-rp]').forEach(b => b.onclick = () => {
+    const R = refs.find(x => x.id === +b.dataset.rp);
+    R.piso = !R.piso; R.y = R.piso ? 2 : Math.round(R.h / 2);
+    pintar(); pintarVentanaImg();
+  });
+  el.querySelectorAll('button[data-ro]').forEach(b => b.onclick = () => {
+    const R = refs.find(x => x.id === +b.dataset.ro);
+    R.op = R.op > 0.75 ? 0.5 : (R.op > 0.4 ? 0.25 : 1);
+    pintar(); pintarVentanaImg();
+  });
+}
+
+// pegar con Ctrl+V y arrastrar sobre toda la ventana
+window.addEventListener('paste', (ev) => {
+  const it = [...(ev.clipboardData || {}).items || []].find(i => /^image\//.test(i.type));
+  if (!it) return;
+  const f = it.getAsFile();
+  if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => { sumarImagen(fr.result, 'Pegada'); document.querySelector('#ventanaImg').style.display = 'block'; };
+  fr.readAsDataURL(f);
+});
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => {
+  if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+  e.preventDefault();
+  leerArchivos(e.dataTransfer.files);
+  document.querySelector('#ventanaImg').style.display = 'block';
+  pintarVentanaImg();
+});
+
+
+// ————— biblioteca de objetos armados —————
+// Cada objeto se arma con piezas libres: entra a la escena y se sigue editando
+// pieza por pieza, o todo junto con doble clic.
+const rep = (n, fn) => { const a = []; for (let i = 0; i < n; i++) a.push(fn(i)); return a; };
+const PZ = (nombre, w, h, d, x, y, z, m, ry) => ({ nombre, w, h, d, x, y, z, m, ry: ry || 0 });
+
+const BIBLIO = {
+  'Cercos y murallas': [
+    ['Muralla de piedra', (L = 600) => [PZ('muralla de piedra', L, 180, 35, 0, 90, 0, 'hormigon'),
+      PZ('coronamiento de la muralla', L + 10, 12, 45, 0, 186, 0, 'cemento alisado')]],
+    ['Muro de ladrillo visto', (L = 600) => [PZ('muro de ladrillo', L, 200, 25, 0, 100, 0, 'ladrillo'),
+      PZ('viga de encadenado', L, 20, 28, 0, 210, 0, 'cemento alisado')]],
+    ['Cerco de tejido romboidal', (L = 600) => rep(Math.round(L / 250) + 1, i => PZ('poste del tejido ' + (i + 1), 8, 200, 8, -L / 2 + i * 250, 100, 0, 'hierro negro'))
+      .concat([PZ('paño de tejido', L, 180, 3, 0, 100, 0, 'tela'),
+        PZ('travesaño inferior del tejido', L, 5, 5, 0, 18, 0, 'hierro negro'),
+        PZ('travesaño superior del tejido', L, 5, 5, 0, 196, 0, 'hierro negro')])],
+    ['Cerco de madera vertical', (L = 600) => rep(Math.round(L / 16), i => PZ('tabla del cerco ' + (i + 1), 14, 180, 4, -L / 2 + 8 + i * 16, 90, 0, 'madera'))
+      .concat([PZ('travesaño del cerco 1', L, 8, 8, 0, 40, -6, 'hierro negro'), PZ('travesaño del cerco 2', L, 8, 8, 0, 150, -6, 'hierro negro')])],
+    ['Cerco de caña tacuara', (L = 600) => rep(Math.round(L / 9), i => PZ('caña del cerco ' + (i + 1), 6, 185, 6, -L / 2 + 5 + i * 9, 92, 0, 'caña'))
+      .concat([PZ('muro bajo del cerco', L, 45, 32, 0, 22, 0, 'hormigon')])],
+    ['Cerco de reja metálica', (L = 600) => rep(Math.round(L / 12), i => PZ('barrote del cerco ' + (i + 1), 4, 170, 4, -L / 2 + 6 + i * 12, 85, 0, 'hierro negro'))
+      .concat([PZ('marco inferior de la reja', L, 8, 6, 0, 8, 0, 'hierro negro'), PZ('marco superior de la reja', L, 8, 6, 0, 172, 0, 'hierro negro')])]
+  ],
+  'Techos': [
+    ['Techo de listones de madera', (L = 500) => rep(Math.round(L / 14), i => PZ('listón del techo ' + (i + 1), 9, 5, 400, -L / 2 + 6 + i * 14, 300, 0, 'madera'))
+      .concat([PZ('viga del techo 1', L, 20, 12, 0, 288, -195, 'hierro negro'), PZ('viga del techo 2', L, 20, 12, 0, 288, 195, 'hierro negro'),
+        PZ('columna del techo 1', 12, 288, 12, -L / 2 + 10, 144, 195, 'hierro negro'), PZ('columna del techo 2', 12, 288, 12, L / 2 - 10, 144, 195, 'hierro negro'),
+        PZ('columna del techo 3', 12, 288, 12, -L / 2 + 10, 144, -195, 'hierro negro'), PZ('columna del techo 4', 12, 288, 12, L / 2 - 10, 144, -195, 'hierro negro')])],
+    ['Techo de chapa trapezoidal', (L = 500) => [PZ('chapa del techo', L, 6, 420, 0, 300, 0, 'hierro blanco'),
+      PZ('cumbrera de la chapa', L, 10, 30, 0, 306, 0, 'hierro blanco')]
+      .concat(rep(4, i => PZ('correa de la chapa ' + (i + 1), L, 10, 10, 0, 292, -160 + i * 107, 'hierro negro')))
+      .concat(rep(4, i => PZ('columna de la chapa ' + (i + 1), 12, 292, 12, (i % 2 ? 1 : -1) * (L / 2 - 10), 146, (i < 2 ? -1 : 1) * 200, 'hierro negro')))],
+    ['Techo de tejas', (L = 500) => rep(Math.round(L / 22), i => PZ('teja ' + (i + 1), 20, 8, 420, -L / 2 + 11 + i * 22, 302, 0, 'ladrillo'))
+      .concat([PZ('losa del techo de tejas', L, 12, 430, 0, 292, 0, 'cemento alisado')])],
+    ['Techo de policarbonato', (L = 500) => [PZ('paño de policarbonato', L, 4, 400, 0, 300, 0, 'vidrio')]
+      .concat(rep(5, i => PZ('perfil del policarbonato ' + (i + 1), 8, 12, 400, -L / 2 + i * (L / 4), 292, 0, 'hierro blanco')))],
+    ['Tela tensada', (L = 500) => [PZ('tela tensada', L, 4, 400, 0, 300, 0, 'tela')]
+      .concat(rep(4, i => PZ('mástil de la tela ' + (i + 1), 10, 300, 10, (i % 2 ? 1 : -1) * L / 2, 150, (i < 2 ? -1 : 1) * 200, 'hierro blanco')))]
+  ],
+  'Rejas y barandas': [
+    ['Reja de barrotes verticales', (L = 300) => rep(Math.round(L / 12), i => PZ('barrote de la reja ' + (i + 1), 3, 150, 3, -L / 2 + 6 + i * 12, 75, 0, 'hierro negro'))
+      .concat([PZ('marco de la reja inferior', L, 6, 5, 0, 4, 0, 'hierro negro'), PZ('marco de la reja superior', L, 6, 5, 0, 148, 0, 'hierro negro')])],
+    ['Reja con travesaños', (L = 300) => rep(6, i => PZ('travesaño de la reja ' + (i + 1), L, 8, 4, 0, 20 + i * 26, 0, 'hierro negro'))
+      .concat(rep(3, i => PZ('parante de la reja ' + (i + 1), 8, 160, 6, -L / 2 + i * (L / 2), 80, 0, 'hierro negro')))],
+    ['Baranda de caño', (L = 300) => [PZ('pasamanos de la baranda', L, 7, 7, 0, 100, 0, 'hierro blanco'), PZ('travesaño medio de la baranda', L, 5, 5, 0, 55, 0, 'hierro blanco')]
+      .concat(rep(Math.round(L / 120) + 1, i => PZ('parante de la baranda ' + (i + 1), 6, 100, 6, -L / 2 + i * 120, 50, 0, 'hierro blanco')))]
+  ],
+  'Paredes': [
+    ['Pared revocada', (L = 400) => [PZ('pared revocada', L, 260, 15, 0, 130, 0, 'revoque')]],
+    ['Pared de ladrillo visto', (L = 400) => [PZ('pared de ladrillo visto', L, 260, 22, 0, 130, 0, 'ladrillo')]],
+    ['Pared de piedra', (L = 400) => [PZ('pared de piedra', L, 240, 32, 0, 120, 0, 'hormigon')]],
+    ['Muro de bloques', (L = 400) => rep(6, i => PZ('hilada de bloques ' + (i + 1), L, 40, 20, 0, 20 + i * 42, 0, 'cemento alisado'))],
+    ['Pared con revestimiento de madera', (L = 400) => [PZ('pared de fondo', L, 260, 12, 0, 130, 0, 'revoque')]
+      .concat(rep(Math.round(L / 16), i => PZ('listón del revestimiento ' + (i + 1), 14, 250, 4, -L / 2 + 8 + i * 16, 130, 8, 'madera')))]
+  ],
+  'Vidriados': [
+    ['Paño fijo vidriado', (L = 300) => [PZ('vidrio del paño', L, 220, 6, 0, 110, 0, 'vidrio'),
+      PZ('marco del paño inferior', L, 8, 12, 0, 4, 0, 'hierro negro'), PZ('marco del paño superior', L, 8, 12, 0, 216, 0, 'hierro negro'),
+      PZ('marco del paño izquierdo', 8, 220, 12, -L / 2, 110, 0, 'hierro negro'), PZ('marco del paño derecho', 8, 220, 12, L / 2, 110, 0, 'hierro negro')]],
+    ['Ventanal con perfilería', (L = 500) => [PZ('vidrio del ventanal', L, 230, 6, 0, 115, 0, 'vidrio')]
+      .concat(rep(Math.round(L / 150) + 1, i => PZ('parante del ventanal ' + (i + 1), 9, 230, 14, -L / 2 + i * (L / Math.round(L / 150)), 115, 0, 'hierro negro')))
+      .concat([PZ('travesaño del ventanal', L, 9, 14, 0, 150, 0, 'hierro negro'), PZ('antepecho del ventanal', L, 90, 20, 0, -45, 0, 'revoque')])],
+    ['Puerta corrediza de vidrio', () => [PZ('hoja de vidrio 1', 120, 220, 5, -60, 110, 0, 'vidrio'), PZ('hoja de vidrio 2', 120, 220, 5, 60, 110, 6, 'vidrio'),
+      PZ('marco de la corrediza', 250, 10, 16, 0, 222, 3, 'hierro negro'), PZ('riel de la corrediza', 250, 6, 16, 0, 3, 3, 'hierro negro')]],
+    ['Cerramiento de vidrio templado', (L = 600) => [PZ('vidrio templado', L, 260, 8, 0, 130, 0, 'vidrio')]
+      .concat(rep(Math.round(L / 200) + 1, i => PZ('herraje del templado ' + (i + 1), 12, 20, 20, -L / 2 + i * 200, 10, 0, 'hierro blanco')))]
+  ],
+  'Cenefas': [
+    ['Cenefa recta', (L = 400) => [PZ('cenefa recta', L, 34, 5, 0, 17, 0, 'madera')]],
+    ['Cenefa de listones', (L = 400) => rep(Math.round(L / 13), i => PZ('listón de la cenefa ' + (i + 1), 11, 34, 5, -L / 2 + 6 + i * 13, 17, 0, 'madera'))],
+    ['Cenefa dentada', (L = 400) => rep(Math.round(L / 13), i => PZ('diente de la cenefa ' + (i + 1), 11, 24 + (i % 3) * 12, 5, -L / 2 + 6 + i * 13, 12 + (i % 3) * 6, 0, 'madera'))],
+    ['Cenefa con viga', (L = 400) => [PZ('viga de la cenefa', L, 20, 14, 0, 44, 0, 'hierro negro')]
+      .concat(rep(Math.round(L / 13), i => PZ('listón de la cenefa ' + (i + 1), 11, 34, 5, -L / 2 + 6 + i * 13, 17, 0, 'madera')))]
+  ],
+  'Portones y puertas': [
+    ['Portón corredizo', (L = 400) => [PZ('bastidor del portón', L, 200, 8, 0, 100, 0, 'hierro negro')]
+      .concat(rep(Math.round(L / 15), i => PZ('tabla del portón ' + (i + 1), 13, 190, 4, -L / 2 + 7 + i * 15, 100, 6, 'madera')))
+      .concat([PZ('riel del portón', L + 200, 8, 12, 0, 4, 0, 'hierro negro')])],
+    ['Portón de dos hojas', (L = 360) => rep(2, k => PZ('hoja del portón ' + (k + 1), L / 2 - 4, 200, 6, (k ? 1 : -1) * L / 4, 100, 0, 'hierro negro'))
+      .concat(rep(Math.round(L / 16), i => PZ('tabla del portón ' + (i + 1), 14, 190, 4, -L / 2 + 8 + i * 16, 100, 5, 'madera')))
+      .concat(rep(2, k => PZ('columna del portón ' + (k + 1), 25, 220, 25, (k ? 1 : -1) * (L / 2 + 15), 110, 0, 'hormigon')))],
+    ['Puerta de madera', () => [PZ('hoja de la puerta', 90, 210, 5, 0, 105, 0, 'madera'),
+      PZ('marco de la puerta izquierdo', 8, 215, 14, -49, 107, 0, 'madera oscura'), PZ('marco de la puerta derecho', 8, 215, 14, 49, 107, 0, 'madera oscura'),
+      PZ('dintel de la puerta', 106, 8, 14, 0, 214, 0, 'madera oscura')]],
+    ['Puerta doble vidriada', () => [PZ('hoja vidriada 1', 90, 215, 5, -46, 107, 0, 'vidrio'), PZ('hoja vidriada 2', 90, 215, 5, 46, 107, 0, 'vidrio'),
+      PZ('marco de la puerta doble', 196, 10, 16, 0, 218, 0, 'hierro negro'),
+      PZ('parante central de la puerta', 8, 215, 16, 0, 107, 0, 'hierro negro')]]
+  ],
+  'Accesos, pisos y veredas': [
+    ['Entrada de piedra laja', (L = 300) => rep(12, i => PZ('laja ' + (i + 1), 90 + (i % 3) * 14, 6, 70 + (i % 2) * 12, -L / 3 + (i % 3) * 100, 3, -100 + Math.floor(i / 3) * 72, 'hormigon'))],
+    ['Vereda de hormigón', (L = 600) => rep(Math.round(L / 100), i => PZ('paño de vereda ' + (i + 1), 98, 8, 120, -L / 2 + 49 + i * 100, 4, 0, 'cemento alisado'))],
+    ['Escalera de dos escalones', (L = 300) => [PZ('escalón 1', L, 18, 35, 0, 9, 0, 'hormigon'), PZ('escalón 2', L, 18, 35, 0, 27, -35, 'hormigon')]],
+    ['Deck de madera', (L = 400) => rep(Math.round(L / 18), i => PZ('tabla del deck ' + (i + 1), 16, 5, 300, -L / 2 + 9 + i * 18, 22, 0, 'madera'))
+      .concat(rep(3, i => PZ('viga del deck ' + (i + 1), L, 20, 10, 0, 10, -120 + i * 120, 'hierro negro')))],
+    ['Camino de piedras sueltas', (L = 600) => rep(14, i => PZ('piedra del camino ' + (i + 1), 55 + (i % 3) * 10, 8, 45, -L / 2 + i * (L / 14), 4, (i % 2 ? 18 : -18), 'hormigon'))],
+    ['Piso de baldosas', (L = 400) => rep(16, i => PZ('baldosa ' + (i + 1), 96, 6, 96, -L / 2 + 50 + (i % 4) * 100, 3, -150 + Math.floor(i / 4) * 100, 'cemento alisado'))]
+  ],
+  'Vegetación y canteros': [
+    ['Árbol grande', () => [PZ('tronco del árbol', 30, 500, 30, 0, 250, 0, 'madera oscura'),
+      PZ('copa del árbol 1', 320, 200, 320, 0, 560, 0, 'cesped'), PZ('copa del árbol 2', 220, 140, 220, 60, 660, -40, 'cesped')]],
+    ['Árbol chico', () => [PZ('tronco del arbolito', 18, 260, 18, 0, 130, 0, 'madera oscura'),
+      PZ('copa del arbolito', 180, 140, 180, 0, 320, 0, 'cesped')]],
+    ['Palmera', () => [PZ('tronco de la palmera', 26, 480, 26, 0, 240, 0, 'madera oscura')]
+      .concat(rep(6, i => PZ('hoja de la palmera ' + (i + 1), 190, 8, 40, Math.cos(i * 1.05) * 95, 490, Math.sin(i * 1.05) * 95, 'cesped', i * 60)))],
+    ['Arbusto', () => [PZ('arbusto', 120, 90, 120, 0, 45, 0, 'cesped')]],
+    ['Cantero con plantas', (L = 300) => [PZ('borde del cantero', L, 40, 90, 0, 20, 0, 'hormigon')]
+      .concat(rep(Math.round(L / 40), i => PZ('planta del cantero ' + (i + 1), 8, 70, 8, -L / 2 + 20 + i * 40, 70, 0, 'cesped', (i % 3 - 1) * 10)))],
+    ['Macetero', () => [PZ('macetero', 50, 55, 50, 0, 27, 0, 'hormigon')]
+      .concat(rep(5, i => PZ('planta del macetero ' + (i + 1), 6, 65, 6, -12 + i * 6, 85, 0, 'cesped', (i - 2) * 9)))]
+  ]
+};
+
+// Arma la plantilla aparte y la vuelca como piezas libres, para que entre al
+// dibujo actual sin reemplazar nada y se pueda estirar pieza por pieza.
+function insertarPlantilla(id) {
+  const P = PLANTILLAS[id];
+  if (!P) return;
+  guardarPaso();
+  const v = defaults(id);
+  const g = new THREE.Group();
+  try { P.build(v, g, []); } catch (e) { document.querySelector('#cartel').textContent = 'No se pudo armar esa plantilla.'; return; }
+  const ids = [];
+  const bloqueNuevo = 'bl' + (++seqBloque);
+  const cajaP = new THREE.Box3().setFromObject(g);
+  const cenP = cajaP.getCenter(new THREE.Vector3());
+  const y0 = alturaEn(Math.round(cenP.x / CM), Math.round(cenP.z / CM));
+  const saltar = /terreno|cesped|agua|arena|junco|piedra de la orilla/i;
+  g.traverse(o => {
+    if (!o.isMesh || saltar.test(o.name)) return;
+    const b = new THREE.Box3().setFromObject(o);
+    const s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
+    const nid = ++seq;
+    ids.push(nid);
+    libres.push({
+      id: nid, tipo: 'plantilla-copia', bloque: bloqueNuevo, capa: P.nombre, nombre: o.name,
+      w: Math.max(1, Math.round(s.x / CM)), h: Math.max(1, Math.round(s.y / CM)), d: Math.max(1, Math.round(s.z / CM)),
+      m: (o.material && o.material.name) || 'madera',
+      x: Math.round(c.x / CM), y: Math.round(c.y / CM) + y0, z: Math.round(c.z / CM),
+      ry: Math.round(o.rotation.y * 180 / Math.PI)
+    });
+  });
+  if (!ids.length) { document.querySelector('#cartel').textContent = 'Esa plantilla no tiene piezas para agregar.'; return; }
+  if (!modoLibre) usarHerramienta('mover');
+  pintar();
+  setTimeout(() => marcarVarios([], ids), 40);
+  aviso('Se agregó ' + P.nombre + ' al dibujo — ' + nPiezas(ids.length) + '. Ajustá la medida con Escalar o estirando los cubitos.');
+}
+
+const vecesBiblio = {};
+function sumarBiblio(cat, nom) {
+  const item = (BIBLIO[cat] || []).find(x => x[0] === nom);
+  if (!item) return;
+  guardarPaso();
+  const bloqueBiblio = 'bl' + (++seqBloque);
+  const piezas = item[1]();
+  // Cada objeto nuevo del mismo tipo entra corrido, para que no quede
+  // encimado sobre el anterior.
+  const n = vecesBiblio[nom] = (vecesBiblio[nom] || 0) + 1;
+  const dz = (n - 1) * 150;
+  const cx = piezas.reduce((a, P) => a + (P.x || 0), 0) / piezas.length;
+  const cz = piezas.reduce((a, P) => a + (P.z || 0), 0) / piezas.length + dz;
+  const y0 = alturaEn(cx, cz);
+  const ids = [];
+  piezas.forEach(P => {
+    const id = ++seq;
+    ids.push(id);
+    libres.push(Object.assign({ id: id, tipo: 'biblio', bloque: bloqueBiblio, capa: nom }, P, { z: (P.z || 0) + dz, y: (P.y || 0) + y0 }));
+  });
+  pintar();
+  setTimeout(() => marcarVarios([], ids), 40);
+  aviso('Se agregó ' + nom + (n > 1 ? ' n° ' + n : '') + ' — ' + nPiezas(piezas.length) + '. Arrastralo al lugar.');
+}
+
+let catAbierta = Object.keys(BIBLIO)[0];
+function pintarBiblio() {
+  const el = document.querySelector('#biblioteca');
+  el.innerHTML =
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">' +
+      '<div style="font-size:11.5px;font-weight:600">Objetos armados</div>' +
+      '<button id="cerrarBib" style="font-size:15px;line-height:1;color:#b4aea5;background:transparent;border:0;cursor:pointer">×</button></div>' +
+    '<div class="rot" style="margin:3px 0 8px">Entran como piezas editables</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px">' +
+      Object.keys(BIBLIO).map(c =>
+        '<button data-cat="' + c + '" style="padding:5px 9px;font-size:11px;font-weight:600;border-radius:16px;cursor:pointer;' +
+        'border:1px solid ' + (c === catAbierta ? '#1b1a18' : '#dedbd5') + ';color:' + (c === catAbierta ? '#fff' : '#6f6b64') + ';background:' + (c === catAbierta ? '#1b1a18' : '#fff') + '">' + c + '</button>').join('') +
+    '</div>' +
+    (BIBLIO[catAbierta] || []).map(it =>
+      '<div style="display:grid;grid-template-columns:minmax(0,1fr) 30px;gap:4px;margin-bottom:4px">' +
+        '<button class="plant" data-bib="' + it[0] + '" style="margin:0">' + it[0] + '</button>' +
+        '<button data-mas="' + it[0] + '" title="Agregar otro ' + it[0].toLowerCase() + '" style="font-size:14px;font-weight:700;line-height:1;color:#fff;background:oklch(0.50 0.13 300);border:0;border-radius:7px;cursor:pointer">+</button>' +
+      '</div>').join('');
+  el.querySelector('#cerrarBib').onclick = () => { el.style.display = 'none'; };
+  el.querySelectorAll('button[data-cat]').forEach(b => b.onclick = () => { catAbierta = b.dataset.cat; pintarBiblio(); });
+  el.querySelectorAll('button[data-bib]').forEach(b => b.onclick = () => {
+    if (!modoLibre) { usarHerramienta('mover'); }
+    sumarBiblio(catAbierta, b.dataset.bib);
+  });
+  // el + agrega otro sin cerrar la ventana: se puede tocar varias veces seguidas
+  el.querySelectorAll('button[data-mas]').forEach(b => b.onclick = (ev) => {
+    ev.stopPropagation();
+    if (!modoLibre) { usarHerramienta('mover'); }
+    sumarBiblio(catAbierta, b.dataset.mas);
+    el.style.display = 'block';
+  });
+}
+
+// ————— carpeta de diseños numerados —————
+function pintarCarpeta() {
+  const items = leer();
+  document.querySelector('#carpeta').innerHTML =
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">' +
+      '<div style="font-size:11.5px;font-weight:600">Carpeta de diseños</div>' +
+      '<button id="cerrarCarp" style="font-size:15px;line-height:1;color:#b4aea5;background:transparent;border:0;cursor:pointer">×</button></div>' +
+    '<button class="vista" id="guardarNuevo" style="width:100%;margin:9px 0 10px">Guardar como diseño nuevo</button>' +
+    (items.length
+      ? items.map((b, i) =>
+          '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:7px 0;border-top:1px solid #efedea">' +
+          '<div style="min-width:0"><div style="font-size:12px;font-weight:600">' + (b.num || ('D-' + String(i + 1).padStart(2, '0'))) + ' · ' + b.obra + '</div>' +
+          '<div class="rot">' + ((PLANTILLAS[b.plantilla] || {}).nombre || b.plantilla) + ' · ' + b.fecha + '</div></div>' +
+          '<button class="vista" data-ab="' + i + '" style="padding:5px 9px">Abrir</button>' +
+          '<button class="vista" data-bo="' + i + '" style="padding:5px 8px;color:#8a3a2f;background:#faf0ee;border-color:#e8d3ce">×</button></div>'
+        ).join('')
+      : '<div style="font-size:11.5px;color:#86817b">Todavía no guardaste diseños.</div>');
+  const el = document.querySelector('#carpeta');
+  el.querySelector('#cerrarCarp').onclick = () => { el.style.display = 'none'; };
+  el.querySelector('#guardarNuevo').onclick = () => { document.querySelector('#guardar').click(); pintarCarpeta(); };
+  el.querySelectorAll('button[data-ab]').forEach(b => b.onclick = () => {
+    document.querySelector('#guardados').value = b.dataset.ab;
+    document.querySelector('#abrir').click();
+    el.style.display = 'none';
+  });
+  el.querySelectorAll('button[data-bo]').forEach(b => b.onclick = () => {
+    document.querySelector('#guardados').value = b.dataset.bo;
+    document.querySelector('#borrar').click();
+    pintarCarpeta();
+  });
+}
+
+valores = defaults(plantilla);
+panelMedidas();
+pintarBarra();
+estiloModo();
+estiloMedir();
+fijarVista();
+listar();
+pintar();
+iniciar();
+setTimeout(() => vista('perspectiva'), 140);
+</script>
+</body>
+</html>

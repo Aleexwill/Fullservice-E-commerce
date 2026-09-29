@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  doc-page:not(:defined) { visibility: hidden; }
+  a { color: #1b1a18; text-decoration: underline; }
+  a:hover { color: #6f6b64; }
+</style>
+<script src="./doc-page.js"></script>
+<script>
+  // Escape vuelve a la página anterior, salvo mientras se escribe en un campo.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || e.defaultPrevented || window.__escBack === false || document.querySelector("image-slot[data-reframe]")) return;
+    var t = e.target, tag = t && t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) { t.blur(); return; }
+    if (history.length > 1) history.back();
+  });
+</script>
+</helmet>
+
+<doc-page size="a4">
+  <div style="font-family: 'IBM Plex Serif', Georgia, serif; font-size: 11pt; line-height: 1.55; color: #1b1a18;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-bottom: 12px; margin-bottom: 22px; border-bottom: 1.5px solid #1b1a18;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="./logo-full-service.png" alt="Full Service" style="height: 52px; width: auto; display: block;" />
+        <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5pt; font-weight: 700; letter-spacing: 0.01em;">The Wealth Group Import Export SA</div>
+      </div>
+      <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 9pt; line-height: 1.4; color: #6f6b64; text-align: right;">Ysapy c/ Jasy<br />Lambaré</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: start; margin-bottom: 18px;">
+      <div>
+        <div>Señores</div>
+        <div>Consejo Directivo y Administración</div>
+        <div style="font-weight: 600;">Colegio Domingo Savio</div>
+        <div><u>Presente</u></div>
+      </div>
+      <div style="white-space: nowrap;">Lambaré, 23 de Septiembre de 2026</div>
+    </div>
+
+    <div style="margin-bottom: 18px; padding: 10px 14px; background: #f4f3f0; border-left: 3px solid #1b1a18; break-inside: avoid;">
+      <div style="font-weight: 600;">Ref.: Liquidación de Honorarios por Proyecto Ejecutivo y Consultoría Técnica - Remodelación de 1730 m2.</div>
+      <div style="display: flex; gap: 22px; flex-wrap: wrap; margin-top: 4px; font-family: 'IBM Plex Sans', sans-serif; font-size: 9.5pt; color: #33312e;">
+        <span>Nivel de escuela: 1.240 m2</span>
+        <span>Nivel planta alta 375 m2</span>
+        <span>Subsuelo 115 m2</span>
+      </div>
+    </div>
+
+    <p style="margin: 0 0 10px;">De nuestra mayor consideración:</p>
+
+    <p style="margin: 0 0 10px; text-align: justify; text-wrap: pretty;">Nos dirigimos a ustedes en representación de The Wealth Group Import Export SA con el fin de agradecerles la confianza depositada en nuestro equipo técnico durante las etapas preliminares para el proyecto de remodelación de su prestigiosa institución.</p>
+
+    <p style="margin: 0 0 10px; text-align: justify; text-wrap: pretty;">Hemos tomado conocimiento de su decisión de pausar temporalmente el inicio de las obras para evaluar otras propuestas. Comprendemos perfectamente que esta es una práctica habitual y respetamos sus procesos administrativos.</p>
+
+    <p style="margin: 0 0 8px; text-align: justify; text-wrap: pretty;">No obstante, consideramos oportuno dejar constancia del alcance del trabajo técnico e intelectual que nuestra firma ya ha desarrollado y entregado a su institución. Hasta la fecha, hemos ejecutado un <strong>Proyecto Ejecutivo Completo</strong>, el cual ha demandado un importante despliegue de nuestros recursos técnicos e ingeniería, incluyendo:</p>
+
+    <div style="display: flex; flex-direction: column; gap: 5px; margin: 0 0 12px; padding-left: 14px; text-align: justify;">
+      <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr);"><span>–</span><span><strong>Relevamiento topográfico y altimétrico:</strong> Medición detallada de los 1.730 m2 a intervenir, incluyendo el cálculo de compensación por la diferencia de 2 metros en los niveles del terreno.</span></div>
+      <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr);"><span>–</span><span><strong>Consultoría de campo:</strong> Realización de 10 visitas técnicas in situ y 5 reuniones de coordinación para definir las necesidades exactas del colegio.</span></div>
+      <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr);"><span>–</span><span><strong>Ingeniería y Arquitectura:</strong> Revisión de ingeniería, elaboración de planos técnicos con sus divisorias correspondientes, zonificación y renderizado (modelado 3D) del proyecto final.</span></div>
+      <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr);"><span>–</span><span><strong>Ingeniería de Costos:</strong> Elaboración de la planilla de presupuesto detallado con precios por sector, análisis de costos y cronograma de ejecución físico-financiero.</span></div>
+    </div>
+
+    <p style="margin: 0 0 12px; text-align: justify; text-wrap: pretty;">Toda esta documentación técnica, planos y cálculos entregados constituyen propiedad intelectual de nuestra empresa. El desarrollo de este paquete técnico tiene un valor establecido por honorarios profesionales de <strong>Gs. 48.440.000</strong>.</p>
+
+    <p style="margin: 0 0 8px; text-align: justify; text-wrap: pretty;">Con el afán de mantener nuestra excelente relación comercial y facilitar la concreción de las obras, queremos plantearles el siguiente escenario de trabajo:</p>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; text-align: justify;">
+      <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); padding: 8px 12px; border: 1px solid #b9b5ad; break-inside: avoid;"><span style="font-weight: 600;">1.</span><span><strong>Ejecución con nuestra firma:</strong> En caso de que el Colegio Domingo Savio decida adjudicar la obra a nuestra empresa, el costo de este Proyecto Ejecutivo quedará 100% bonificado, absorbiéndose en su totalidad dentro de los costos operativos de la obra.</span></div>
+      <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); padding: 8px 12px; border: 1px solid #b9b5ad; break-inside: avoid;"><span style="font-weight: 600;">2.</span><span><strong>Ejecución con terceros:</strong> Si la institución decide llevar a cabo la remodelación con otro proveedor de construcción, utilizando como base nuestros planos, mediciones, cómputos y soluciones de ingeniería, solicitaremos la cancelación de la factura correspondiente a los honorarios mencionados más arriba en concepto de Derechos de Proyecto y Consultoría Técnica, liberando así los derechos para que su contratista pueda utilizarlos.</span></div>
+    </div>
+
+    <p style="margin: 0 0 10px; text-align: justify; text-wrap: pretty;">Quedamos a su entera disposición para reunirnos, aclarar cualquier punto sobre esta liquidación y, sobre todo, explorar la mejor manera de avanzar juntos para que el colegio obtenga la infraestructura que necesita.</p>
+
+    <div style="break-inside: avoid;">
+      <p style="margin: 0 0 10px;">Sin otro particular, nos despedimos con nuestra mayor estima.</p>
+      <p style="margin: 0 0 52px;">Atentamente,</p>
+      <div style="width: 250px; padding-top: 6px; border-top: 1px solid #1b1a18; line-height: 1.45;">
+        <div style="font-weight: 600;">Rodrigo Riveros</div>
+        <div>Dirección General</div>
+        <div>Ysapy c/ Jasy -Lambaré-Lambaré</div>
+        <div>The Wealth Group Import Export SA</div>
+      </div>
+    </div>
+
+  </div>
+</doc-page>
+</x-dc>
+</body>
+</html>

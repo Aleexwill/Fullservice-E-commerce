@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  doc-page:not(:defined) { visibility: hidden; }
+  a { color: oklch(0.45 0.10 240); text-decoration: none; }
+  a:hover { color: oklch(0.36 0.10 240); }
+</style>
+<script src="./doc-page.js"></script>
+<script>
+  // Escape vuelve a la página anterior, salvo mientras se escribe en un campo.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || e.defaultPrevented || window.__escBack === false || document.querySelector("image-slot[data-reframe]")) return;
+    var t = e.target, tag = t && t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) { t.blur(); return; }
+    if (history.length > 1) history.back();
+  });
+</script>
+</helmet>
+
+<doc-page size="letter">
+
+  <section class="page" data-screen-label="01" style="box-sizing: border-box; display: flex; flex-direction: column; padding: 26px 30px 22px; background: #ffffff; font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18;">
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 176px; gap: 14px; align-items: stretch; border: 1.5px solid #1b1a18;">
+      <div style="padding: 12px 16px; border-right: 1.5px solid #1b1a18;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #6f6b64;">Plano constructivo y de flujo</div>
+        <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin-top: 4px;">Sistema de tratamiento de aguas residuales con tanques</div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 22px; margin-top: 10px; font-size: 12.5px; line-height: 1.45;">
+          <div><span style="color: #6f6b64;">Proyecto:</span> Planta de Tratamiento Modular Domiciliaria</div>
+          <div><span style="color: #6f6b64;">Ubicación:</span> Exterior / Subterráneo</div>
+          <div><span style="color: #6f6b64;">Sistema:</span> 100% módulos prefabricados (polietileno / PVC)</div>
+          <div><span style="color: #6f6b64;">Escala:</span> S/E</div>
+          <div><span style="color: #6f6b64;">Unidades:</span> Milímetros (mm) / Metros (m)</div>
+          <div><span style="color: #6f6b64;">Biodigestores:</span> 4 unidades en paralelo</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 12px 16px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #6f6b64;">Lámina</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; letter-spacing: -0.01em;">01 / 02</div>
+        <div style="font-size: 12px; color: #33312e;">Vista en planta · esquema de flujo</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: baseline; gap: 10px; padding: 14px 0 6px;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;">Vista en planta</span>
+      <span style="flex: 1; border-top: 1px solid #b9b5ad;"></span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding-bottom: 5px; border-bottom: 1px dashed #b9b5ad;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; color: #6f6b64;">Línea de edificación / línea municipal</span>
+        <span style="font-size: 10.5px; white-space: nowrap; color: #6f6b64;">Tubería principal PVC Ø110 mm (4") · pendiente mínima 2% · línea de lodos Ø 2"</span>
+      </div>
+
+      <div style="display: flex; justify-content: center; padding-top: 12px;">
+        <div style="padding: 9px 30px; text-align: center; white-space: nowrap; font-size: 13.5px; font-weight: 600; letter-spacing: 0.02em; color: #ffffff; background: #1b1a18; border-radius: 3px;">CASA HABITACIÓN</div>
+      </div>
+
+      <div style="position: relative; height: 26px;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 0; margin: 0 auto; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; left: 25%; right: 25%; border-top: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; bottom: 0; left: 25%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; bottom: 0; left: 75%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 0; left: 50%; height: 13px; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; justify-items: center;">
+        <div style="width: 100%; max-width: 250px; box-sizing: border-box; padding: 8px 12px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #faf9f7;">
+          <div style="font-size: 12.5px; font-weight: 600;">TRAMPA DE GRASA</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #33312e; margin-top: 2px;">Tanque plástico 120 L</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64;">Ø 500 mm × H 650 mm</div>
+        </div>
+        <div style="width: 100%; max-width: 250px; box-sizing: border-box; padding: 8px 12px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #faf9f7;">
+          <div style="font-size: 12.5px; font-weight: 600;">CÁMARA DE REGISTRO</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #33312e; margin-top: 2px;">Tanque plástico 120 L</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64;">Ø 500 mm × H 650 mm</div>
+        </div>
+      </div>
+
+      <div style="position: relative; height: 28px;">
+        <div style="position: absolute; top: 0; height: 14px; left: 25%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 0; height: 14px; left: 75%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 14px; left: 25%; right: 25%; border-top: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 14px; bottom: 0; left: 50%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+      </div>
+
+      <div style="display: flex; justify-content: center;">
+        <div style="width: 252px; padding: 8px 12px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #f0eee9;">
+          <div style="font-size: 12.5px; font-weight: 600;">DISTRIBUIDOR DE CAUDAL</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #33312e; margin-top: 2px;">Módulo plástico 250 L</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64;">Ø 700 mm × H 600 mm</div>
+        </div>
+      </div>
+
+      <div style="position: relative; height: 26px;">
+        <div style="position: absolute; top: 0; height: 13px; left: 50%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; left: 12.5%; right: 12.5%; border-top: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; bottom: 0; left: 12.5%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; bottom: 0; left: 37.5%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; bottom: 0; left: 62.5%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+        <div style="position: absolute; top: 13px; bottom: 0; left: 87.5%; width: 0; border-left: 1.5px solid #1b1a18;"></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); justify-items: center;">
+        <div style="width: 100%; max-width: 180px; box-sizing: border-box; padding: 8px 8px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #ffffff;">
+          <div style="font-size: 12.5px; font-weight: 600;">BIODIGESTOR 1</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #33312e; margin-top: 2px; white-space: nowrap;">600 L · HDPE tricapa</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #6f6b64; white-space: nowrap;">Ø 850 mm × H 1.150 mm</div>
+        </div>
+        <div style="width: 100%; max-width: 180px; box-sizing: border-box; padding: 8px 8px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #ffffff;">
+          <div style="font-size: 12.5px; font-weight: 600;">BIODIGESTOR 2</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #33312e; margin-top: 2px; white-space: nowrap;">600 L · HDPE tricapa</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #6f6b64; white-space: nowrap;">Ø 850 mm × H 1.150 mm</div>
+        </div>
+        <div style="width: 100%; max-width: 180px; box-sizing: border-box; padding: 8px 8px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #ffffff;">
+          <div style="font-size: 12.5px; font-weight: 600;">BIODIGESTOR 3</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #33312e; margin-top: 2px; white-space: nowrap;">600 L · HDPE tricapa</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #6f6b64; white-space: nowrap;">Ø 850 mm × H 1.150 mm</div>
+        </div>
+        <div style="width: 100%; max-width: 180px; box-sizing: border-box; padding: 8px 8px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #ffffff;">
+          <div style="font-size: 12.5px; font-weight: 600;">BIODIGESTOR 4</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #33312e; margin-top: 2px; white-space: nowrap;">600 L · HDPE tricapa</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #6f6b64; white-space: nowrap;">Ø 850 mm × H 1.150 mm</div>
+        </div>
+      </div>
+
+      <div style="position: relative; height: 32px;">
+        <div style="position: absolute; top: 0; height: 16px; left: 12.5%; width: 0; border-left: 1.5px dashed #6f6b64;"></div>
+        <div style="position: absolute; top: 0; height: 16px; left: 37.5%; width: 0; border-left: 1.5px dashed #6f6b64;"></div>
+        <div style="position: absolute; top: 0; height: 16px; left: 62.5%; width: 0; border-left: 1.5px dashed #6f6b64;"></div>
+        <div style="position: absolute; top: 0; height: 16px; left: 87.5%; width: 0; border-left: 1.5px dashed #6f6b64;"></div>
+        <div style="position: absolute; top: 16px; left: 12.5%; right: 12.5%; border-top: 1.5px dashed #6f6b64;"></div>
+        <div style="position: absolute; top: 16px; bottom: 0; left: 50%; width: 0; border-left: 1.5px dashed #6f6b64;"></div>
+        <div style="position: absolute; top: 17px; left: 51%; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6f6b64;">línea de lodos Ø 2"</div>
+      </div>
+
+      <div style="display: flex; justify-content: center;">
+        <div style="width: 252px; padding: 8px 12px; text-align: center; border: 1.5px dashed #6f6b64; border-radius: 3px; background: #faf9f7;">
+          <div style="font-size: 12.5px; font-weight: 600;">CÁMARA DE SECADO DE LODOS</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #33312e; margin-top: 2px;">Tanque perforado 500 L</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64;">Ø 950 mm × H 800 mm</div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; padding: 16px 0 8px;">
+        <span style="flex: none; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6f6b64;">Efluente aclarado · PVC Ø110 mm</span>
+        <span style="flex: 1; border-top: 1.5px solid #1b1a18;"></span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 0.9fr); align-items: center;">
+        <div style="padding: 8px 10px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #ffffff;">
+          <div style="font-size: 12.5px; font-weight: 600;">FILTRO BIOLÓGICO / GRAVA</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #33312e; margin-top: 2px;">Tanque vertical 600 L</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64;">Ø 850 mm × H 1.100 mm</div>
+        </div>
+        <div style="text-align: center; font-size: 14px; color: #1b1a18;">→</div>
+        <div style="padding: 8px 10px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #ffffff;">
+          <div style="font-size: 12.5px; font-weight: 600;">CÁMARA DE CLORACIÓN</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #33312e; margin-top: 2px;">Tanque vertical 250 L</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64;">Ø 650 mm × H 850 mm</div>
+        </div>
+        <div style="text-align: center; font-size: 14px; color: #1b1a18;">→</div>
+        <div style="padding: 8px 10px; text-align: center; border: 1.5px solid #1b1a18; border-radius: 3px; background: #ffffff;">
+          <div style="font-size: 12.5px; font-weight: 600;">CÁMARA TOMA DE MUESTRAS</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #33312e; margin-top: 2px;">Tanque vertical 120 L</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6f6b64;">Ø 500 mm × H 650 mm</div>
+        </div>
+        <div style="text-align: center; font-size: 14px; color: #1b1a18;">→</div>
+        <div style="padding: 10px 8px; text-align: center; white-space: nowrap; font-size: 12.5px; font-weight: 600; line-height: 1.35; color: #ffffff; background: #1b1a18; border-radius: 3px;">VERTIDO FINAL<br />ZANJA DE RIEGO</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="page" data-screen-label="02" style="box-sizing: border-box; display: flex; flex-direction: column; padding: 26px 30px 22px; background: #ffffff; font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; color: #1b1a18;">
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 176px; gap: 14px; align-items: stretch; border: 1.5px solid #1b1a18;">
+      <div style="padding: 12px 16px; border-right: 1.5px solid #1b1a18;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #6f6b64;">Plano constructivo y de flujo</div>
+        <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin-top: 4px;">Especificaciones técnicas y notas de instalación</div>
+        <div style="margin-top: 8px; font-size: 12.5px; color: #33312e;">Planta de Tratamiento Modular Domiciliaria · 4 biodigestores en paralelo · módulos prefabricados de polietileno y PVC</div>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 12px 16px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #6f6b64;">Lámina</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; letter-spacing: -0.01em;">02 / 02</div>
+        <div style="font-size: 12px; color: #33312e;">Tabla de especificaciones</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: baseline; gap: 10px; padding: 14px 0 8px;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;">Tabla de especificaciones técnicas</span>
+      <span style="flex: 1; border-top: 1px solid #b9b5ad;"></span>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+      <thead>
+        <tr style="background: #1b1a18; color: #ffffff;">
+          <th style="padding: 8px 10px; text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;">Ítem</th>
+          <th style="padding: 8px 10px; text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;">Elemento</th>
+          <th style="padding: 8px 10px; text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;">Tipo de tanque</th>
+          <th style="padding: 8px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;">Capacidad</th>
+          <th style="padding: 8px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;">Diámetro</th>
+          <th style="padding: 8px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;">Altura</th>
+          <th style="padding: 8px 10px; text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;">Tubería</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #dedbd5;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">01</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Trampa de grasa</td>
+          <td style="padding: 9px 10px;">Cónico PVC con tapa</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">120 L</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">500 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">650 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 110 mm</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #dedbd5; background: #faf9f7;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">02</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Cámara de registro</td>
+          <td style="padding: 9px 10px;">Cónico con rejilla</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">120 L</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">500 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">650 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 110 mm</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #dedbd5;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">03</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Distribuidor de caudal</td>
+          <td style="padding: 9px 10px;">Cónico bajo, polietileno</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">250 L</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">700 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">600 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 110 mm</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #dedbd5; background: #faf9f7;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">04</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Biodigestores (×4)</td>
+          <td style="padding: 9px 10px;">HDPE tricapa, autolimpiante</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">600 L c/u</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">850 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">1.150 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 110 mm · lodos 2"</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #dedbd5;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">05</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Secadero de lodos</td>
+          <td style="padding: 9px 10px;">Tanque perforado</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">500 L</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">950 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">800 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 2"</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #dedbd5; background: #faf9f7;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">06</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Filtro biológico</td>
+          <td style="padding: 9px 10px;">Relleno de grava y arena</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">600 L</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">850 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">1.100 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 110 mm</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #dedbd5;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">07</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Cámara de cloración</td>
+          <td style="padding: 9px 10px;">Con dosificador en línea</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">250 L</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">650 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">850 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 110 mm</td>
+        </tr>
+        <tr style="border-bottom: 1.5px solid #1b1a18; background: #faf9f7;">
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">08</td>
+          <td style="padding: 9px 10px; font-weight: 600;">Cámara muestreadora</td>
+          <td style="padding: 9px 10px;">Registro de limpieza</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">120 L</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">500 mm</td>
+          <td style="padding: 9px 10px; text-align: right; font-family: 'IBM Plex Mono', monospace;">650 mm</td>
+          <td style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace;">Ø 110 mm</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="display: flex; align-items: baseline; gap: 10px; padding: 18px 0 8px;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;">Notas generales de instalación</span>
+      <span style="flex: 1; border-top: 1px solid #b9b5ad;"></span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+      <div style="padding: 12px 14px; border: 1.5px solid #1b1a18; border-radius: 3px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">01 · Base de apoyo</div>
+        <div style="margin-top: 6px; font-size: 12.5px; line-height: 1.55; text-wrap: pretty;">Asentar todos los tanques sobre una cama de arena limpia de 10 cm de espesor, sobre radier o carpeta de concreto pobre de 5 cm.</div>
+      </div>
+      <div style="padding: 12px 14px; border: 1.5px solid #1b1a18; border-radius: 3px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">02 · Perforaciones y conexiones</div>
+        <div style="margin-top: 6px; font-size: 12.5px; line-height: 1.55; text-wrap: pretty;">Utilizar copas sierra a la medida exacta y sellar con juntas flexibles o gomas pasamuros (grommets de neopreno) para prevenir filtraciones.</div>
+      </div>
+      <div style="padding: 12px 14px; border: 1.5px solid #1b1a18; border-radius: 3px; background: #faf9f7;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">03 · Tapado y relleno</div>
+        <div style="margin-top: 6px; font-size: 12.5px; line-height: 1.55; text-wrap: pretty;">Llenar los tanques con agua limpia antes de efectuar el rellenado lateral de tierra, para equilibrar presiones hidrostáticas y evitar el colapso de las paredes de polietileno.</div>
+      </div>
+    </div>
+
+    <div style="flex: 1;"></div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; border-top: 1.5px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6b64;">
+      <span>Escala S/E · unidades mm / m</span>
+      <span>Trazo continuo: línea de efluente · trazo discontinuo: línea de lodos</span>
+      <span>Lámina 02 / 02</span>
+    </div>
+  </section>
+
+</doc-page>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  // doc-page detecta las láminas al montarse, y en este caso las secciones
+  // llegan después: sin este empujón se queda en modo documento con flujo
+  // continuo y las dos hojas se imprimen partidas.
+  paginar = () => {
+    const el = this.base && this.base.querySelector ? this.base.querySelector("doc-page") : document.querySelector("doc-page");
+    if (el && typeof el._measure === "function") { try { el._measure(); } catch (e) {} }
+  };
+
+  componentDidMount() {
+    this.paginar();
+    requestAnimationFrame(this.paginar);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(this.paginar);
+    setTimeout(this.paginar, 300);
+  }
+
+  componentDidUpdate() { this.paginar(); }
+
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
