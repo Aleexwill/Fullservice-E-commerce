@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, Phone, ArrowRight, ShoppingCart } from 'lucide-react';
+import { Menu, X, Phone, ArrowRight, ShoppingCart, User } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
 import { useCartStore } from '@/lib/cart-store';
@@ -54,6 +54,9 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
           </div>
 
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
+            <Link href="/cuenta" className="rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white" aria-label="Mi cuenta">
+              <User className="h-5 w-5" />
+            </Link>
             <Link href="/carrito" className="relative rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white" aria-label={`Carrito${totalItems > 0 ? ` — ${totalItems} items` : ''}`}>
               <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
@@ -78,7 +81,12 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
             <div className="grid gap-1 sm:grid-cols-2">
               {navLinks.map((link) => <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)} className="rounded-xl px-4 py-3.5 font-body text-sm font-semibold uppercase tracking-[.05em] text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white">{link.label}</Link>)}
             </div>
-            <Link href="/tienda" onClick={() => setIsOpen(false)} className="btn-primary mt-3 w-full justify-center">Ver tienda <ArrowRight className="h-4 w-4" /></Link>
+            <div className="mt-3 flex gap-2">
+              <Link href="/cuenta" onClick={() => setIsOpen(false)} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/10 py-3 font-body text-sm font-semibold text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white">
+                <User className="h-4 w-4" />Mi cuenta
+              </Link>
+              <Link href="/tienda" onClick={() => setIsOpen(false)} className="btn-primary flex-1 justify-center">Ver tienda <ArrowRight className="h-4 w-4" /></Link>
+            </div>
           </div>
         </div>
       </nav>

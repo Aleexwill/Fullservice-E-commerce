@@ -118,5 +118,9 @@ export async function findOrCreateCustomerByEmail(email: string, name: string, p
       activationExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 48), // 48h
     },
   });
+  // Send activation email asynchronously (fire and forget)
+  import('@/lib/email').then(({ sendCustomerActivationEmail }) =>
+    sendCustomerActivationEmail({ to: email, customerName: name, activationToken }).catch(() => null)
+  ).catch(() => null);
   return account.id;
 }
