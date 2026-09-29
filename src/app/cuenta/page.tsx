@@ -61,11 +61,15 @@ export default function CuentaPage() {
     ]).then(([me, ord]) => {
       if (!me) {
         router.push('/cuenta/login');
+        // keep loading=true so nothing renders while navigating
         return;
       }
       setCustomer(me.customer);
       setOrders(ord?.orders ?? []);
-    }).finally(() => setLoading(false));
+      setLoading(false);
+    }).catch(() => {
+      router.push('/cuenta/login');
+    });
   }, [router]);
 
   async function handleLogout() {
