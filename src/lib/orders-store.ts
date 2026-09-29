@@ -3,7 +3,7 @@ import type { Order as PrismaOrder } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
+export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed' | 'receipt_submitted';
 
 export interface OrderItem {
   productId: string;
@@ -34,6 +34,12 @@ export interface Order {
   total: number;
   paymentMethod: string;
   adminNotes: string;
+  customerAccountId?: string;
+  transferReceiptUrl?: string;
+  transferReceiptAt?: string;
+  paymentConfirmedAt?: string;
+  paymentConfirmedBy?: string;
+  adminReceiptUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -52,6 +58,12 @@ function toOrder(o: PrismaOrder): Order {
     total: Number(o.total),
     paymentMethod: o.paymentMethod,
     adminNotes: o.adminNotes,
+    customerAccountId: o.customerAccountId ?? undefined,
+    transferReceiptUrl: o.transferReceiptUrl || undefined,
+    transferReceiptAt: o.transferReceiptAt?.toISOString(),
+    paymentConfirmedAt: o.paymentConfirmedAt?.toISOString(),
+    paymentConfirmedBy: o.paymentConfirmedBy || undefined,
+    adminReceiptUrl: o.adminReceiptUrl || undefined,
     createdAt: o.createdAt.toISOString(),
     updatedAt: o.updatedAt.toISOString(),
   };

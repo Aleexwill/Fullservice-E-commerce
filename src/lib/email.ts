@@ -159,3 +159,53 @@ export async function sendOrderConfirmationEmail({
     html,
   });
 }
+
+export async function sendCustomerActivationEmail({
+  to,
+  customerName,
+  activationToken,
+}: {
+  to: string;
+  customerName: string;
+  activationToken: string;
+}) {
+  const link = `${SITE_URL}/cuenta/activar?token=${activationToken}`;
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#F4F7FB;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td align="center" style="padding:32px 16px;">
+      <table width="100%" style="max-width:560px;background:#FFFFFF;border-radius:8px;overflow:hidden;">
+        <tr>
+          <td style="background:#0B1120;padding:24px 32px;">
+            <p style="margin:0;font-size:18px;font-weight:700;color:#F4F7FB;letter-spacing:0.05em;">Full Service & Clean</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0B1120;">Activá tu cuenta</h1>
+            <p style="margin:0 0 20px;font-size:14px;color:#4A5E80;line-height:1.6;">Hola ${customerName}, gracias por tu pedido. Hacé clic en el botón para crear tu contraseña y acceder a tus pedidos en cualquier momento.</p>
+            <div style="text-align:center;margin:24px 0;">
+              <a href="${link}" style="display:inline-block;padding:14px 28px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#F4F7FB;text-decoration:none;background:#1A3A5C;border-radius:6px;">Activar cuenta →</a>
+            </div>
+            <p style="margin:0;font-size:12px;color:#8094B4;">El enlace vence en 48 horas. Si no hiciste ningún pedido, ignorá este email.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#0B1120;padding:16px 32px;">
+            <p style="margin:0;font-size:11px;color:#2A3A5C;">Full Service & Clean · ${SITE_URL}</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: 'Activá tu cuenta — Full Service & Clean',
+    html,
+  });
+}

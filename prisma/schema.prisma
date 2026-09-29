@@ -84,23 +84,61 @@ model Lead {
 // ============================================================
 
 model Order {
-  id            String   @id @default(cuid())
-  orderNumber   String   @unique
-  status        String   @default("pending")
-  paymentStatus String   @default("pending")
-  customer      Json
-  items         Json
-  subtotal      Decimal  @db.Decimal(10, 2)
-  shipping      Decimal  @db.Decimal(10, 2) @default(0)
-  discount      Decimal  @db.Decimal(10, 2) @default(0)
-  total         Decimal  @db.Decimal(10, 2)
-  paymentMethod String   @default("")
-  adminNotes    String   @default("")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  orderNumber         String    @unique
+  status              String    @default("pending")
+  paymentStatus       String    @default("pending")
+  customer            Json
+  items               Json
+  subtotal            Decimal   @db.Decimal(10, 2)
+  shipping            Decimal   @db.Decimal(10, 2) @default(0)
+  discount            Decimal   @db.Decimal(10, 2) @default(0)
+  total               Decimal   @db.Decimal(10, 2)
+  paymentMethod       String    @default("")
+  adminNotes          String    @default("")
+  // Cuenta de cliente vinculada (opcional — puede ser guest)
+  customerAccountId   String?
+  customerAccount     CustomerAccount? @relation(fields: [customerAccountId], references: [id])
+  // Comprobante de transferencia subido por el cliente
+  transferReceiptUrl  String    @default("")
+  transferReceiptAt   DateTime?
+  // Confirmación de pago por admin
+  paymentConfirmedAt  DateTime?
+  paymentConfirmedBy  String    @default("")
+  // Comprobante subido por el admin
+  adminReceiptUrl     String    @default("")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@index([status])
   @@index([createdAt])
+  @@index([customerAccountId])
+}
+
+// ============================================================
+// CUENTAS DE CLIENTES (tienda)
+// ============================================================
+
+model CustomerAccount {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String
+  phone               String    @default("")
+  address             String    @default("")
+  passwordHash        String    @default("") // vacío = cuenta no activada aún
+  isActive            Boolean   @default(true)
+  activationToken     String?   @unique         // para el link de activación
+  activationExpiresAt DateTime?
+  resetToken          String?   @unique
+  resetExpiresAt      DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  orders              Order[]
+
+  @@index([email])
+  @@index([activationToken])
+  @@index([resetToken])
 }
 
 // ============================================================
