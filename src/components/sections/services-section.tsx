@@ -47,7 +47,7 @@ export async function ServicesSection() {
           <p className="fs-section-description">Del mantenimiento cotidiano a una nueva obra. Encontrá el servicio que necesita tu espacio.</p>
         </div>
         <ServicesParallax />
-        <div className="fs-services-grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+        <div className="fs-services-grid">
           {featured.map((service, i) => {
             const Icon = ICON_MAP[service.icon] || Wrench;
             const href = service.category === 'limpieza'

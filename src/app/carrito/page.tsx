@@ -41,8 +41,8 @@ export default function CarritoPage() {
               {/* Items */}
               <div className="space-y-4 lg:col-span-2">
                 {items.map((item) => (
-                  <div key={item.productId} className="card flex items-center gap-4 p-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#F4F7FB]">
+                  <div key={item.productId} className="card flex flex-wrap items-center gap-3 p-4 sm:flex-nowrap sm:gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#F4F7FB] sm:h-16 sm:w-16">
                       {item.image ? (
                         <NextImage src={item.image} alt={item.name} width={64} height={64} className="h-full w-full object-cover" />
                       ) : (

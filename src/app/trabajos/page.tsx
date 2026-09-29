@@ -216,7 +216,7 @@ export default function TrabajosDestacadosPage() {
       </section>
 
       {/* Filtros */}
-      <section className="sticky top-[95px] z-40 border-b border-gray-200 bg-white/95 backdrop-blur-lg">
+      <section className="sticky top-[68px] z-40 border-b border-gray-200 bg-white/95 backdrop-blur-lg lg:top-[95px]">
         <div className="container-main flex gap-1 overflow-x-auto py-3">
           {categories.map((cat) => (
             <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
