@@ -68,6 +68,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingReceipts, setPendingReceipts] = useState(0);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return {};
+    try { return JSON.parse(localStorage.getItem('fs-nav-collapsed') ?? '{}'); } catch { return {}; }
+  });
+  const toggleGroup = (label: string) => {
+    setCollapsed((prev) => {
+      const next = { ...prev, [label]: !prev[label] };
+      try { localStorage.setItem('fs-nav-collapsed', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
   const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
   const pageLabel = getPageLabel(pathname);
 
@@ -100,44 +111,56 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <span className="badge-blue text-[0.6rem] font-bold tracking-widest">ADMIN</span>
       </div>
       <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Navegación principal">
-        {navGroupsWithBadges.map((group, gi) => (
+        {navGroupsWithBadges.map((group, gi) => {
+          const isCollapsed = group.label ? !!collapsed[group.label] : false;
+          // If a child is active, keep group open regardless
+          const hasActive = group.items.some((item) => isActive(item.href, item.exact));
+          const open = !isCollapsed || hasActive;
+          return (
           <div key={gi} className={gi > 0 ? 'mt-2 border-t border-steel-900/30 pt-2' : ''}>
             {group.label && (
-              <p className="mb-1 px-3 pt-1 font-body text-[0.6rem] font-bold uppercase tracking-[0.12em] text-steel-600">
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.label)}
+                className="mb-1 flex w-full items-center justify-between rounded px-3 pt-1 pb-0.5 font-body text-[0.6rem] font-bold uppercase tracking-[0.12em] text-steel-600 transition-colors hover:text-steel-400"
+              >
                 {group.label}
-              </p>
+                <ChevronRight className={cn('h-3 w-3 shrink-0 transition-transform duration-200', open ? 'rotate-90' : '')} />
+              </button>
             )}
-            <div className="space-y-px">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href, item.exact);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      'group flex items-center gap-2.5 rounded-lg px-3 py-2 font-body text-[0.8rem] transition-all duration-150',
-                      active
-                        ? 'bg-blue-muted/70 text-blue-bright font-semibold shadow-[inset_0_0_0_1px_rgba(45,143,204,.18)]'
-                        : 'text-steel-400 hover:bg-steel-900/60 hover:text-arctic'
-                    )}
-                  >
-                    <Icon className={cn('h-[15px] w-[15px] shrink-0 transition-colors', active ? 'text-blue-bright' : 'text-steel-500 group-hover:text-arctic')} />
-                    <span className="flex-1 leading-none">{item.label}</span>
-                    {item.badge && item.badge > 0 ? (
-                      <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E65C4F] px-1 text-[0.6rem] font-bold text-white">
-                        {item.badge > 9 ? '9+' : item.badge}
-                      </span>
-                    ) : active ? (
-                      <ChevronRight className="ml-auto h-3 w-3 opacity-60" />
-                    ) : null}
-                  </Link>
-                );
-              })}
-            </div>
+            {open && (
+              <div className="space-y-px">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href, item.exact);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={cn(
+                        'group flex items-center gap-2.5 rounded-lg px-3 py-2 font-body text-[0.8rem] transition-all duration-150',
+                        active
+                          ? 'bg-blue-muted/70 text-blue-bright font-semibold shadow-[inset_0_0_0_1px_rgba(45,143,204,.18)]'
+                          : 'text-steel-400 hover:bg-steel-900/60 hover:text-arctic'
+                      )}
+                    >
+                      <Icon className={cn('h-[15px] w-[15px] shrink-0 transition-colors', active ? 'text-blue-bright' : 'text-steel-500 group-hover:text-arctic')} />
+                      <span className="flex-1 leading-none">{item.label}</span>
+                      {item.badge && item.badge > 0 ? (
+                        <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E65C4F] px-1 text-[0.6rem] font-bold text-white">
+                          {item.badge > 9 ? '9+' : item.badge}
+                        </span>
+                      ) : active ? (
+                        <ChevronRight className="ml-auto h-3 w-3 opacity-60" />
+                      ) : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        ))}
+        )})}
       </nav>
       <div className="border-t border-steel-900/40 p-2.5">
         <div className="mb-2 flex items-center gap-2 rounded-lg bg-steel-900/40 px-3 py-2.5">
@@ -164,6 +187,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     </>
   );
+
+
 
   return (
     <AdminThemeProvider>
