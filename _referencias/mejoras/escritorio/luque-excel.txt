@@ -1,0 +1,368 @@
+3 | A=9 | B=INSTALACIONES ELECTRICAS | C=Unidad | D=Cantidad | E=C.UNITARIO | F=C.TOTAL | G= | H=
+4 | A=9.1 | B=ILUMINACION | C= | D= | E= | F= | G= | H=
+5 | A=9.1.1 | B=ARTEFACTO DE ILUMINACION DE ADOSAR LED CIRC. Ø285 h28 24W FRIA | C=uni. | D=34 | E=59600 | F=2026400 | G=ELECTROPAR  | H=
+6 | A=9.1.2 | B=ARTEFACTO DE ADOSAR TECHO DICRO GU10 CIRC FIJO NEGRO DION - ZAGA | C=uni. | D=6 | E=70100 | F=420600 | G=ELECTROPAR  | H=
+7 | A=9.2 | B=MANO DE OBRA | C= | D= | E= | F=0 | G= | H=
+8 | A=9.2.1 | B=* Boca en  luminarias Interna | C=unid | D=34 | E=55000 | F=1870000 | G= | H=
+9 | A=9.2.2 | B=* Boca en  luminarias Exteriores | C=unid | D=6 | E=60000 | F=360000 | G= | H=
+10 | A=9.2.3 | B=* Boca en toma corriente comunes | C=unid | D=40 | E=50000 | F=2000000 | G= | H=
+11 | A=9.2.4 | B=* Boca en toma para horno | C=unid | D=1 | E=75000 | F=75000 | G= | H=
+12 | A=9.2.5 | B=* Boca en toma para microondas | C=unid | D=1 | E= | F=0 | G= | H=
+13 | A=9.2.6 | B=* Boca en toma para heladera | C=unid | D=1 | E= | F=0 | G= | H=
+14 | A=9.2.7 | B=* Boca en toma para cocina anafe | C=unid | D=1 | E= | F=0 | G= | H=
+15 | A=9.2.8 | B=* Boca en toma para lavarropa | C=unid | D=1 | E= | F=0 | G= | H=
+16 | A=9.2.9 | B=* Boca en toma para secarropa | C=unid | D=1 | E= | F=0 | G= | H=
+17 | A=9.2.10 | B=* Boca en toma sobre mesada | C=unid | D=2 | E= | F=0 | G= | H=
+18 | A=9.2.11 | B=* Boca en extractor de aire cocina | C=unid | D=1 | E= | F=0 | G= | H=
+19 | A=9.2.12 | B=* Boca en toma para plancha | C=unid | D=1 | E= | F=0 | G= | H=
+20 | A=9.2.13 | B=* Boca en alimentación para Aire monofásica | C=unid | D=6 | E= | F=0 | G= | H=
+21 | A=9.2.14 | B=* Boca en alimentación para termo calefones | C=unid | D=2 | E= | F=0 | G= | H=
+22 | A=9.2.15 | B=*Boca en ventilador de techo | C=unid | D=4 | E= | F=0 | G= | H=
+23 | A=9.2.16 | B=* Provisión y colocación de tablero de 24 modulos, planta Alta | C=unid | D=2 | E= | F=0 | G= | H=
+24 | A=9.2.17 | B=* Boca en tableros colocación y conexión de llaves TM ( planta baja y planta alta ) | C=unid | D=25 | E= | F=0 | G= | H=
+25 | A=9.2.18 | B=* Cableado para alimentador principal tablero planta baja 4x16mm2 ( metros lineal ) | C=ml | D=18 | E= | F=0 | G= | H=
+26 | A=9.2.19 | B=* Colocación y conexión de artefactos normales | C=unid | D=58 | E= | F=0 | G= | H=
+27 | A=9.2.20 | B=* Ducteado para  TV cable | C=unid | D=5 | E= | F=0 | G= | H=
+28 | A=9.2.21 | B=* Ducteado para  Internet | C=unid | D=1 | E= | F=0 | G= | H=
+29 | A=9.2.22 | B=* Colocación de caja para central de señales debiles | C=unid | D=1 | E= | F=0 | G= | H=
+30 | A=9.2.23 | B=* Alimentación  de motobomba de agua | C=unid | D=1 | E= | F=0 | G= | H=
+31 | A=9.2.24 | B=* Preparación con cableado para medidor y acometida | C=gl | D=1 | E= | F=0 | G= | H=
+32 | A=9.2.25 | B=* Preparación de puesta a tierra para los tableros | C=gl | D=1 | E= | F=0 | G= | H=
+33 | A=11 | B=INSTALACIONES TERMICAS Y VENTILACION | C= | D= | E= | F= | G= | H=
+34 | A=11.1 | B=PROVISION DE AIRE ACONDICIONADO DE 12.000 BTU/H | C=uni. | D=3 | E=1989000 | F=5967000 | G=TUPY  | H=VCP
+35 | A=11.2 | B=CONEXION DE AIRE ACONDICIONADO DE 12.000 BTU/H POR ML | C=mts. | D=36 | E= | F=0 | G= | H=
+36 | A=11.3 | B=MONTAJE DE AIRE ACONDICIONADO DE 12.000 BTU/H | C=uni. | D=3 | E= | F=0 | G= | H=
+37 | A=11.4 | B=PROVISION DE AIRE ACONDICIONADO DE 18.000 BTU/H | C=uni. | D=3 | E=3211000 | F=9633000 | G=TUPY  | H=JAM
+38 | A=11.5 | B=CONEXION DE AIRE ACONDICIONADO DE 18.000 BTU/H POR ML | C=mts. | D=36 | E= | F=0 | G= | H=
+39 | A=11.6 | B=MONTAJE DE AIRE ACONDICIONADO DE 18.000 BTU/H | C=uni. | D=3 | E= | F=0 | G= | H=
+40 | A=11.7 | B=Provisión y montaje de ventilador de 56" | C=uni. | D=4 | E=179000 | F=716000 | G=BRISTOL | H=Tokyo
+41 | A= | B= | C= | D= | E= | F= | G= | H=
+42 | A= | B=QUINCHO | C= | D= | E= | F= | G= | H=
+43 | A= | B=INSTALACION ELECTRICA | C= | D= | E= | F= | G= | H=
+44 | A= | B=ILUMINACION | C= | D= | E= | F=0 | G= | H=
+45 | A= | B=Artefacto De Iluminación De Adosar Led 18 W Fria H28 210X210 | C=uni. | D=4 | E=34874 | F=139496 | G=LUMINITECNIA  | H=
+46 | A= | B=Bocas De Iluminación | C=uni. | D=4 | E= | F=0 | G= | H=
+47 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=4 | E= | F=0 | G= | H=
+48 | A= | B=TOMAS | C= | D= | E= | F=0 | G= | H=
+49 | A= | B=Boca De Tomas Universal Doble C/ Tierra | C=uni. | D=2 | E=23000 | F=46000 | G=ELECTROPAR  | H=
+50 | A= | B=Boca De Tomas Para Ventiladores De Techo | C=uni. | D=1 | E=25000 | F=25000 | G=ELECTROPAR  | H=
+51 | A= | B=Boca De Tomas Con Tierra Schuko | C=uni. | D=2 | E=50000 | F=100000 | G=ELECTROPAR  | H=
+52 | A= | B=ALIMENTACION A TABLEROS | C= | D= | E= | F=0 | G= | H=
+53 | A= | B=Cable Xlpe De 4X16Mm2 + 1X6Tmm2 - Alimentación Ts-Zb-Canchas Y Quinchos Desde Gabinete De Medidores 2 | C=mts. | D=25 | E=18500 | F=462500 | G= | H=
+54 | A= | B=Ducteado Por Ml | C=mts. | D=25 | E= | F=0 | G= | H=
+55 | A= | B=TABLEROS | C= | D= | E= | F=0 | G= | H=
+56 | A= | B=Interruptor Termomagnético 1X10 A - Marca Abb | C=uni. | D=2 | E= | F=0 | G= | H=
+57 | A= | B=Interruptor Termomagnético 1X16 A - Marca Abb | C=uni. | D=2 | E= | F=0 | G= | H=
+58 | A= | B=ALIMENTACIONES A CIRCUITOS | C= | D= | E= | F=0 | G= | H=
+59 | A= | B=Cable Multifilar 3X4Mm² Alimentación Para Iluminación | C=mts. | D=120 | E= | F=0 | G= | H=
+60 | A= | B=Cable Multifilar 3X2,5Mm² Alimentación Para Iluminación | C=mts. | D=40 | E= | F=0 | G= | H=
+61 | A= | B=Cable Multifilar 4X4Mm² + T1X2.5Mm² Alimentación De Tomas | C=mts. | D=110 | E= | F=0 | G= | H=
+62 | A= | B= | C= | D= | E= | F= | G= | H=
+63 | A= | B= | C= | D= | E= | F= | G= | H=
+64 | A= | B=SALON MULTIUSO | C= | D= | E= | F= | G= | H=
+65 | A= | B=INSTALACIONES ELECTRICAS | C= | D= | E= | F= | G= | H=
+66 | A= | B=ILUMINACION | C= | D= | E= | F=0 | G= | H=
+67 | A= | B=Artefacto De Iluminación De Adosar Cabezal Led P/Riel Magnético 12W Luz Calida/Neutra/Fria Negro Linpi Minitrak – Zaga | C=uni. | D=35 | E= | F=0 | G= | H=
+68 | A= | B=Artefacto De Iluminación De Adosar Cabezal Led P/Riel Magnético 2X12W Luz Calida/Neutra/Fria Negro Linpi Minitrak – Zaga | C=uni. | D=8 | E= | F=0 | G= | H=
+69 | A= | B=Riel Electr Alum 1Mt Negro Magnético Magslim - Zaga | C=glo. | D=4 | E= | F=0 | G= | H=
+70 | A= | B=Artefacto De Iluminación De Adosar Led 18 W Fria H28 210X210 | C=uni. | D=8 | E= | F=0 | G= | H=
+71 | A= | B=Bocas De Iluminación Para Artefactos | C=uni. | D=20 | E= | F=0 | G= | H=
+72 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=40 | E= | F=0 | G= | H=
+73 | A= | B=TOMAS | C= | D= | E= | F=0 | G= | H=
+74 | A= | B=Boca De Tomas Universal C/ Tierra  | C=uni. | D=22 | E= | F=0 | G= | H=
+75 | A= | B=Boca De Tomas Con Tierra Schuko | C=uni. | D=2 | E= | F=0 | G= | H=
+76 | A= | B=Boca De Extractor Monofásico De Cocina | C=uni. | D=1 | E= | F=0 | G= | H=
+77 | A= | B=Boca De Heladera | C=uni. | D=1 | E= | F=0 | G= | H=
+78 | A= | B=Boca De Cocina Eléctrica | C=uni. | D=1 | E= | F=0 | G= | H=
+79 | A= | B=Boca De Microondas | C=uni. | D=1 | E= | F=0 | G= | H=
+80 | A= | B=Boca De Aire Acondicionado Trifásico | C=uni. | D=2 | E= | F=0 | G= | H=
+81 | A= | B=Boca De Aire Acondicionado Monofásico | C=uni. | D=1 | E= | F=0 | G= | H=
+82 | A= | B=SEÑALES | C= | D= | E= | F=0 | G= | H=
+83 | A= | B=Provisión De Materiales Y Mano De Obra Para Puntos De Camara Ip Tipo Domo. Provisión De Materiales Y Mano De Obra Para Instalación De Puntos De Red. Cableado Estructurado Cat 6 Con Conectores Rj 45. Certificación De Puntos De Red | C=uni. | D=1 | E= | F=0 | G= | H=
+84 | A= | B=ALIMENTACION A TABLEROS | C= | D= | E= | F=0 | G= | H=
+85 | A= | B=Cable Xlpe De 4X6Mm2 + 1X6Tmm2 - Alimentación Ts-Zb-Iluminación Sum Desde Gabinete De Medidores 2 | C=mts. | D=56 | E= | F=0 | G= | H=
+86 | A= | B=Cable Xlpe De 4X35Mm2 + 1X16Tmm2 - Alimentación Ts-Zb-Sum Aa Y Cocina Desde Gabinete De Medidores 2 | C=mts. | D=56 | E= | F=0 | G= | H=
+87 | A= | B=Ducteado Por Ml | C=mts. | D=112 | E= | F=0 | G= | H=
+88 | A= | B=TABLEROS | C= | D= | E= | F=0 | G= | H=
+89 | A= | B=Interruptor Termomagnético 1X10 A - Marca Abb | C=uni. | D=5 | E= | F=0 | G= | H=
+90 | A= | B=Interruptor Termomagnético 1X16 A - Marca Abb | C=uni. | D=4 | E= | F=0 | G= | H=
+91 | A= | B=Interruptor Termomagnético 1X20 A - Marca Abb | C=uni. | D=6 | E= | F=0 | G= | H=
+92 | A= | B=Interruptor Termomagnético 3X25 A - Marca Abb | C=uni. | D=2 | E= | F=0 | G= | H=
+93 | A= | B=Interruptor Termomagnético 3X32 A - Marca Abb | C=uni. | D=2 | E= | F=0 | G= | H=
+94 | A= | B=Interruptor Termomagnético 3X63 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+95 | A= | B=Interruptor Termomagnético 3X100 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+96 | A= | B=ALIMENTACIONES A CIRCUITOS | C= | D= | E= | F=0 | G= | H=
+97 | A= | B=Cable Multifilar 3X2,5Mm² Alimentación Para Iluminación | C=mts. | D=380 | E= | F=0 | G= | H=
+98 | A= | B=Cable Multifilar 4X4Mm² + T1X2.5Mm² Alimentación De Tomas | C=mts. | D=40 | E= | F=0 | G= | H=
+99 | A= | B=Cable Multifilar 4X6Mm² + T1X2.5Mm² Alimentación De Tomas | C=mts. | D=30 | E= | F=0 | G= | H=
+100 | A= | B=INSTALACIONES TERMICAS Y VENTILACION | C= | D= | E= | F= | G= | H=
+101 | A= | B=Provisión De Aire Acondicionado De 60.000 Btu/H | C=uni. | D=3 | E= | F=0 | G= | H=
+102 | A= | B=Provisión De Aire Acondicionado De 24.000 Btu/H | C=uni. | D=1 | E= | F=0 | G= | H=
+103 | A= | B=Conexión De Aire Acondicionado De 60.000 Btu/H Por Ml | C=mts. | D=32 | E= | F=0 | G= | H=
+104 | A= | B=Conexión De Aire Acondicionado De 24.000 Btu/H Por Ml | C=mts. | D=18 | E= | F=0 | G= | H=
+105 | A= | B=Montaje De Aire Acondicionado De 60.000 Btu/H | C=uni. | D=3 | E= | F=0 | G= | H=
+106 | A= | B=Montaje De Aire Acondicionado De 24.000 Btu/H | C=uni. | D=1 | E= | F=0 | G= | H=
+107 | A= | B= | C= | D= | E= | F= | G= | H=
+108 | A= | B= | C= | D= | E= | F= | G= | H=
+109 | A= | B=GIMNASIO | C= | D= | E= | F= | G= | H=
+110 | A= | B=INSTALACIONES ELECTRICAS | C= | D= | E= | F= | G= | H=
+111 | A= | B=ILUMINACION | C= | D= | E= | F=0 | G= | H=
+112 | A= | B=Artefacto De Iluminación De Adosar Led 18 W Fria H28 210X210 | C=uni. | D=6 | E= | F=0 | G= | H=
+113 | A= | B=Artefacto De Iluminación De Adosar Led Circ. Ø210 H28 18W Fria  | C=uni. | D=7 | E= | F=0 | G= | H=
+114 | A= | B=Artefacto De Iluminación De Adosar Led Circ. Ø110 H28 6W Fria  | C=uni. | D=10 | E= | F=0 | G= | H=
+115 | A= | B=Artefacto De Iluminación De Adosar De Pared Led 18 W Fria H28 210X210 | C=uni. | D=6 | E= | F=0 | G= | H=
+116 | A= | B=Bocas De Iluminación Para Artefactos | C=uni. | D=20 | E= | F=0 | G= | H=
+117 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=29 | E= | F=0 | G= | H=
+118 | A= | B=TOMAS | C= | D= | E= | F=0 | G= | H=
+119 | A= | B=Boca De Tomas Universal C/ Tierra  | C=uni. | D=13 | E= | F=0 | G= | H=
+120 | A= | B=Boca De Tomas Con Tierra Embutidas En El Piso | C=uni. | D=4 | E= | F=0 | G= | H=
+121 | A= | B=Boca De Aire Acondicionado Monofásico | C=uni. | D=2 | E= | F=0 | G= | H=
+122 | A= | B=SEÑALES | C= | D= | E= | F=0 | G= | H=
+123 | A= | B=Provisión De Materiales Y Mano De Obra Para Puntos De Camara Ip Tipo Domo. Provisión De Materiales Y Mano De Obra Para Instalación De Puntos De Red. Cableado Estructurado Cat 6 Con Conectores Rj 45, Certificación De Puntos De Red | C=uni. | D=1 | E= | F=0 | G= | H=
+124 | A= | B=ALIMENTACION A TABLEROS | C= | D= | E= | F=0 | G= | H=
+125 | A= | B=Cable Xlpe De 4X35Mm2 + 1X16Tmm2 - Alimentación Ts-Zb-Sum Desde Gabinete De Medidores 2 | C=mts. | D=56 | E= | F=0 | G= | H=
+126 | A= | B=Cable Xlpe De 4X25Mm2 + 1X10Tmm2 - Alimentación Ts-Zb-Sum Desde Gabinete De Medidores 2 | C=mts. | D=56 | E= | F=0 | G= | H=
+127 | A= | B=Ducteado Por Ml | C=mts. | D=112 | E= | F=0 | G= | H=
+128 | A= | B=TABLEROS | C= | D= | E= | F=0 | G= | H=
+129 | A= | B=Interruptor Termomagnético 1X10 A - Marca Abb | C=uni. | D=3 | E= | F=0 | G= | H=
+130 | A= | B=Interruptor Termomagnético 1X16 A - Marca Abb | C=uni. | D=7 | E= | F=0 | G= | H=
+131 | A= | B=Interruptor Termomagnético 1X20 A - Marca Abb | C=uni. | D=2 | E= | F=0 | G= | H=
+132 | A= | B=Interruptor Termomagnético 3X40 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+133 | A= | B=Interruptor Diferencial 4X40 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+134 | A= | B=ALIMENTACIONES A CIRCUITOS | C= | D= | E= | F=0 | G= | H=
+135 | A= | B=Cable Multifilar 3X2Mm² Alimentación Para Iluminación | C=mts. | D=165 | E= | F=0 | G= | H=
+136 | A= | B=Cable Multifilar 4X4Mm² + T1X2.5Mm² Alimentación De Tomas | C=mts. | D=40 | E= | F=0 | G= | H=
+137 | A= | B=INSTALACIONES TERMICAS Y VENTILACION | C= | D= | E= | F= | G= | H=
+138 | A= | B=Provisión De Aire Acondicionado De 24.000 Btu/H | C=uni. | D=2 | E= | F=0 | G= | H=
+139 | A= | B=Conexión De Aire Acondicionado De 24.000 Btu/H Por Ml | C=mts. | D=26 | E= | F=0 | G= | H=
+140 | A= | B=Montaje De Aire Acondicionado De 24.000 Btu/H | C=uni. | D=1 | E= | F=0 | G= | H=
+141 | A= | B= | C= | D= | E= | F= | G= | H=
+142 | A= | B= | C= | D= | E= | F= | G= | H=
+143 | A= | B=SANITARIOS | C= | D= | E= | F= | G= | H=
+144 | A= | B=INSTALACIONES ELECTRICAS | C= | D= | E= | F= | G= | H=
+145 | A= | B=Iluminación | C= | D= | E= | F=0 | G= | H=
+146 | A= | B=Artefacto De Iluminación De Adosar Led Circ. Ø160 H28 12W Fria  | C=uni. | D=12 | E= | F=0 | G= | H=
+147 | A= | B=Artefacto De Iluminación De Adosar Led Circ. Ø110 H28 6W Fria | C=uni. | D=11 | E= | F=0 | G= | H=
+148 | A= | B=Artefacto De Iluminación Proyector Led 12 W | C=uni. | D=8 | E= | F=0 | G= | H=
+149 | A= | B=Bocas De Iluminación Para Artefactos | C=uni. | D=20 | E= | F=0 | G= | H=
+150 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=31 | E= | F=0 | G= | H=
+151 | A= | B=Tomas | C= | D= | E= | F=0 | G= | H=
+152 | A= | B=Boca De Tomas Universal C/ Tierra  | C=uni. | D=7 | E= | F=0 | G= | H=
+153 | A= | B=Boca De Termocalefón | C=uni. | D= | E= | F=0 | G= | H=
+154 | A= | B=Boca de ducha eléctrica | C=uni. | D=4 | E= | F=0 | G= | H=
+155 | A= | B=Señales | C= | D= | E= | F=0 | G= | H=
+156 | A= | B=Provisión De Materiales Y Mano De Obra Para Puntos De Camara Ip Tipo Domo | C=uni. | D=1 | E= | F=0 | G= | H=
+157 | A= | B=Alimentación A Tableros | C= | D= | E= | F=0 | G= | H=
+158 | A= | B=Cable Xlpe De 4X25Mm2 + 1X10Tmm2 - Alimentación Ts-Zb-Sala De Maquinas Desde Gabinete De Medidores 2 | C=mts. | D=52 | E= | F=0 | G= | H=
+159 | A= | B=Electroductos Y Accesorios Ml | C=mts. | D=52 | E= | F=0 | G= | H=
+160 | A= | B=Tableros | C= | D= | E= | F=0 | G= | H=
+161 | A= | B=Interruptor Termomagnético 1X10 A - Marca Abb | C=uni. | D=4 | E= | F=0 | G= | H=
+162 | A= | B=Interruptor Termomagnético 1X16 A - Marca Abb | C=uni. | D=7 | E= | F=0 | G= | H=
+163 | A= | B=Interruptor Termomagnético 1X20 A - Marca Abb | C=uni. | D=3 | E= | F=0 | G= | H=
+164 | A= | B=Interruptor Termomagnético 3X40 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+165 | A= | B=Interruptor Diferencial 4X40 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+166 | A= | B=Alimentación De Circuitos | C= | D= | E= | F=0 | G= | H=
+167 | A= | B=Cable Multifilar 3X2,5Mm² Alimentación Para Iluminación | C=mts. | D=460 | E= | F=0 | G= | H=
+168 | A= | B=Cable Multifilar 4X4Mm² + T1X2.5Mm² Alimentación De Tomas | C=mts. | D=92 | E= | F=0 | G= | H=
+169 | A= | B=Cable Multifilar 4X6Mm² + T1X2.5Mm² Alimentación De Tomas | C=mts. | D=30 | E= | F=0 | G= | H=
+170 | A= | B= | C= | D= | E= | F= | G= | H=
+171 | A= | B= | C= | D= | E= | F= | G= | H=
+172 | A= | B=CASETA DE GUARDIA | C= | D= | E= | F= | G= | H=
+173 | A= | B=INSTALACIONES ELECTRICAS | C= | D= | E= | F= | G= | H=
+174 | A= | B=Iluminación | C= | D= | E= | F=0 | G= | H=
+175 | A= | B=Artefacto De Iluminación De Adosar Led Circ. Ø210 H28 18W Fria  | C=uni. | D=3 | E= | F=0 | G= | H=
+176 | A= | B=Artefacto De Iluminación De Adosar Led Circ. Ø110 H28 6W Fria  | C=uni. | D=6 | E= | F=0 | G= | H=
+177 | A= | B=Artefacto De Iluminación Proyector Led 12 W | C=uni. | D=3 | E= | F=0 | G= | H=
+178 | A= | B=Artefacto De Iluminación De Adosar De Pared Led 18 W Fria H28 210X210 | C=uni. | D=6 | E= | F=0 | G= | H=
+179 | A= | B=Bocas De Iluminación Para Artefactos | C=uni. | D=14 | E= | F=0 | G= | H=
+180 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=18 | E= | F=0 | G= | H=
+181 | A= | B=Alumbrado Led Marca Vcp Con Brazo Para Alumbrado De 100W | C=uni. | D=55 | E= | F=0 | G= | H=
+182 | A= | B=Montaje De Poste H°A° | C=uni. | D=55 | E= | F=0 | G= | H=
+183 | A= | B=Boca De Tomas Universal C/ Tierra  | C=uni. | D=11 | E= | F=0 | G= | H=
+184 | A= | B=Boca De Motor De Portón | C=uni. | D=1 | E= | F=0 | G= | H=
+185 | A= | B=Boca Para Aire Acondicionado Monofásico | C=uni. | D=1 | E= | F=0 | G= | H=
+186 | A= | B=Señales Débiles | C= | D= | E= | F=0 | G= | H=
+187 | A= | B=Provisión De Materiales Y Mano De Obra Para Puntos De Camara Ip Tipo Domo . Incluyendo Cableado Estructurado Cat 6 Con Conectores Rj 45. Certificación De Puntos De Red. Provisión E Instalación De Rack Mural. Provisión E Instalación De Dvr, Ups, Patch Panel. Mano De Obra Para Montaje Y Pruebas | C=uni. | D=1 | E= | F=0 | G= | H=
+188 | A= | B=Alimentación A Tableros | C= | D= | E= | F=0 | G= | H=
+189 | A= | B=Cable Xlpe De 4X6Mm2 + 1X2,5Tmm2 - Alimentación Ts-Za-Acceso 1 Desde Gabinete De Medidores 2 | C=mts. | D=12 | E= | F=0 | G= | H=
+190 | A= | B=Electroductos Y Accesorios Ml | C=mts. | D=12 | E= | F=0 | G= | H=
+191 | A= | B=Tableros | C= | D= | E= | F=0 | G= | H=
+192 | A= | B=Interruptor Termomagnético 1X10 A - Marca Abb | C=uni. | D=3 | E= | F=0 | G= | H=
+193 | A= | B=Interruptor Termomagnético 1X16 A - Marca Abb | C=uni. | D=7 | E= | F=0 | G= | H=
+194 | A= | B=Interruptor Termomagnético 1X20 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+195 | A= | B=Interruptor Termomagnético 3X25 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+196 | A= | B=Interruptor Diferencial 4X25 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+197 | A= | B=Alimentación De Circuitos | C= | D= | E= | F=0 | G= | H=
+198 | A= | B=Cable Multifilar 3X2Mm² Alimentación Para Iluminación | C=mts. | D=70 | E= | F=0 | G= | H=
+199 | A= | B=Cable Multifilar 4X4Mm² + T1X2.5Mm² Alimentación De Tomas Y Ap | C=mts. | D=2570 | E= | F=0 | G= | H=
+200 | A= | B=311 | C=0 | D=0 | E=0 | F=0 | G= | H=
+201 | A= | B=Instalaciones Térmicas Y Ventilación | C= | D= | E= | F= | G= | H=
+202 | A= | B=Provisión De Aire Acondicionado De 18.000 Btu/H | C=uni. | D=1 | E= | F=0 | G= | H=
+203 | A= | B=Conexión De Aire Acondicionado De 18.000 Btu/H Por Ml | C=mts. | D=10 | E= | F=0 | G= | H=
+204 | A= | B=Montaje De Aire Acondicionado De 18.000 Btu/H | C=uni. | D=1 | E= | F=0 | G= | H=
+205 | A= | B= | C= | D= | E= | F= | G= | H=
+206 | A= | B= | C= | D= | E= | F= | G= | H=
+207 | A= | B=INFRAESTRUCTURA | C= | D= | E= | F= | G= | H=
+208 | A= | B=INSTALACION ELECTRICA - MEDIA TENSION HASTA ACOMETIDA | C= | D= | E= | F= | G= | H=
+209 | A= | B=MT - ACOMETIDA 1 | C= | D= | E= | F=0 | G= | H=
+210 | A= | B=Puestos de Entrega Tipo ANDE (CONSULTA ANDE) | C= | D= | E= | F=0 | G= | H=
+211 | A= | B=Poste De H°A° 12/300 Tipo Ande | C=uni. | D=0 | E= | F=0 | G= | H=
+212 | A= | B=Poste De H°A° 12/500 Tipo Ande | C=uni. | D=15 | E= | F=0 | G= | H=
+213 | A= | B=Poste De H°A° 12/800 Tipo Ande | C=uni. | D=3 | E= | F=0 | G= | H=
+214 | A= | B=Aislador Triple Campana | C=uni. | D=63 | E= | F=0 | G= | H=
+215 | A= | B=Perno Recto 3/4X11" | C=uni. | D=63 | E= | F=0 | G= | H=
+216 | A= | B=Cruceta Polimérica | C=uni. | D=21 | E= | F=0 | G= | H=
+217 | A= | B=Cable Pre-Ensamblado 3X70Mm2+1X50Mm2 Xlpe | C=mts. | D=560 | E= | F=0 | G= | H=
+218 | A= | B=Mano Francesa | C=uni. | D=42 | E= | F=0 | G= | H=
+219 | A= | B=Excavación De Zanjas Y Protección Mecánica | C=glo. | D=1 | E= | F=0 | G= | H=
+220 | A= | B=Caño Pead De 4" | C=mts. | D=90 | E= | F=0 | G= | H=
+221 | A= | B=Soporterias | C=glo. | D=1 | E= | F=0 | G= | H=
+222 | A= | B=Registros De H°A° 50X50  | C=uni. | D=99 | E= | F=0 | G= | H=
+223 | A= | B=Registros De H°A° 60X60 | C=uni. | D=17 | E= | F=0 | G= | H=
+224 | A= | B=PUESTO DE DISTRIBUCION TIPO ANDE (CONSULTA ANDE) | C= | D= | E= | F=0 | G= | H=
+225 | A= | B=Seccionador Fusible Trifásico Mt | C=uni. | D=48 | E= | F=0 | G= | H=
+226 | A= | B=Seccionador Bajo Carga Trifásico Mt | C=uni. | D=3 | E= | F=0 | G= | H=
+227 | A= | B=Fusible 25 Amp | C=uni. | D=96 | E= | F=0 | G= | H=
+228 | A= | B=Barra De Cobre 30X5Mm | C=mts. | D=80 | E= | F=0 | G= | H=
+229 | A= | B=Nicho Para Base De Tableros De Distribución 1000X600X350 (H) | C=uni. | D=16 | E= | F=0 | G= | H=
+230 | A= | B=Soportes, Aisladores, Herrajes | C=glo. | D=1 | E= | F=0 | G= | H=
+231 | A= | B=Cable Preensamblado 3 X 120 Mm2 + 1X70 Mm2 Xlpe | C=uni. | D=420 | E= | F=0 | G= | H=
+232 | A= | B=Cable Nyy Subt. 1X150,00Mm2 | C=uni. | D=270 | E= | F=0 | G= | H=
+233 | A= | B=Caño Pead De 4" | C=mts. | D=2030 | E= | F=0 | G= | H=
+234 | A= | B=Descargador De Sobretensión 1P 45Ka 275V Sist. Din Ez9 Schneider | C=uni. | D=32 | E= | F=0 | G= | H=
+235 | A= | B=Celda De Distribución | C=uni. | D=1 | E= | F=0 | G= | H=
+236 | A= | B=TRANSFORMADOR TIPO ANDE CONVENCIONAL, TIPO PEDESTAL | C= | D= | E= | F=0 | G= | H=
+237 | A= | B=Transformador 100 Kva Tipo Ande | C=uni. | D=15 | E= | F=0 | G= | H=
+238 | A= | B=Transformador 150 Kva Tipo Ande | C=uni. | D=1 | E= | F=0 | G= | H=
+239 | A= | B=ALIMENTACIÓN A TABLEROS DE LLEGADAS A CADA MEDIDOR | C= | D= | E= | F=0 | G= | H=
+240 | A= | B=Cable Nyy Subt. Nexans 4 X 25 Mm2 Xlpe - Alimentación Tableros De Llegada En Acometidas Desde Puntos De Entrega | C=mts. | D=2030 | E= | F=0 | G= | H=
+241 | A= | B=Ducteado Por Ml | C=mts. | D=2030 | E= | F=0 | G= | H=
+242 | A= | B=Excavación De Zanjas + Protección Mecánica | C=glo. | D=1 | E= | F=0 | G= | H=
+243 | A= | B=TABLEROS BT AUX Y TABLERO DE AT 1 | C= | D= | E= | F=0 | G= | H=
+244 | A= | B=Gabinete Metálico Compacto Para Distribución En Bt Medidas 1000X1550X600 Marca Cominsa O Similar | C=uni. | D=65 | E= | F=0 | G= | H=
+245 | A= | B=Nicho Para Tableros De Medidores | C=uni. | D=65 | E= | F=0 | G= | H=
+246 | A= | B=Disyuntor Termo Magnético 3X25 A Marca Abb | C=uni. | D=195 | E= | F=0 | G= | H=
+247 | A= | B=Disyuntor Termo Magnético 3X50 A Marca Abb | C=uni. | D=65 | E= | F=0 | G= | H=
+248 | A= | B=Disyuntor Termo Magnético 3X63 A Marca Abb | C=uni. | D=0 | E= | F=0 | G= | H=
+249 | A= | B=Disyuntor Termo Magnético 3X80 A Marca Abb | C=uni. | D=0 | E= | F=0 | G= | H=
+250 | A= | B=Disyuntor Termo Magnético 3X100 A Marca Abb | C=uni. | D=0 | E= | F=0 | G= | H=
+251 | A= | B=Descargador De Sobretensión 1P 45Ka 275V Sist. Din Ez9 Schneider | C=uni. | D=65 | E= | F=0 | G= | H=
+252 | A= | B=MT - AREA TECNICA 2 | C= | D= | E= | F=0 | G= | H=
+253 | A= | B=Puestos de Entrega Tipo ANDE (Depende del proyecto de ANDE) | C= | D= | E= | F=0 | G= | H=
+254 | A= | B=Poste De H°A° 12/300 Tipo Ande | C=uni. | D=37 | E= | F=0 | G= | H=
+255 | A= | B=Poste De H°A° 12/500 Tipo Ande | C=uni. | D=12 | E= | F=0 | G= | H=
+256 | A= | B=Poste De H°A° 12/800 Tipo Ande | C=uni. | D=1 | E= | F=0 | G= | H=
+257 | A= | B=Aislador Triple Campana | C=uni. | D=150 | E= | F=0 | G= | H=
+258 | A= | B=Perno Recto 3/4X11" | C=uni. | D=150 | E= | F=0 | G= | H=
+259 | A= | B=Cruceta Polimérica | C=uni. | D=150 | E= | F=0 | G= | H=
+260 | A= | B=Cable Pre-Ensamblado 3X70Mm2+1X50Mm2 Xlpe | C=mts. | D=540 | E= | F=0 | G= | H=
+261 | A= | B=Mano Francesa | C=uni. | D=30 | E= | F=0 | G= | H=
+262 | A= | B=Excavación De Zanjas Y Protección Mecánica | C=glo. | D=1 | E= | F=0 | G= | H=
+263 | A= | B=Caño Pead De 4" | C=mts. | D=340 | E= | F=0 | G= | H=
+264 | A= | B=Registros De H°A° 50X50  | C=uni. | D=9 | E= | F=0 | G= | H=
+265 | A= | B=Registros De H°A° 60X60 | C=uni. | D=9 | E= | F=0 | G= | H=
+266 | A= | B=PUESTO DE DISTRIBUCION TIPO ANDE (DEPENDE DEL PROYECTO DE ANDE) | C= | D= | E= | F=0 | G= | H=
+267 | A= | B=Seccionador Fusible Trifásico Mt | C=uni. | D=27 | E= | F=0 | G= | H=
+268 | A= | B=Seccionador Bajo Carga Trifásico Mt | C=uni. | D=3 | E= | F=0 | G= | H=
+269 | A= | B=Fusible 25 Amp | C=uni. | D=54 | E= | F=0 | G= | H=
+270 | A= | B=Barra De Cobre 30X5Mm | C=mts. | D=45 | E= | F=0 | G= | H=
+271 | A= | B=Nicho Para Base De Tableros De Distribución 1000X600X350 (H) | C=uni. | D=9 | E= | F=0 | G= | H=
+272 | A= | B=Soportes, Aisladores, Herrajes | C=glo. | D=1 | E= | F=0 | G= | H=
+273 | A= | B=Cable Preensamblado 3 X 120 Mm2 + 1X70 Mm2 Xlpe | C=mts. | D=520 | E= | F=0 | G= | H=
+274 | A= | B=Cable Nyy Subt. 1X150,00Mm2 | C=mts. | D=60 | E= | F=0 | G= | H=
+275 | A= | B=Caño Pead De 4" | C=mts. | D=20 | E= | F=0 | G= | H=
+276 | A= | B=Descargador De Sobretensión 1P 45Ka 275V Sist. Din Ez9 Schneider | C=uni. | D=18 | E= | F=0 | G= | H=
+277 | A= | B=TRANSFORMADOR TIPO PEDESTAL Y GENERADOR | C= | D= | E= | F=0 | G= | H=
+278 | A= | B=Transformador 100 Kva Tipo Ande | C=uni. | D=7 | E= | F=0 | G= | H=
+279 | A= | B=Transformador 150 Kva Tipo Ande | C=uni. | D=1 | E= | F=0 | G= | H=
+280 | A= | B=Transformador 300 Kva Tipo Pedestal | C=uni. | D=1 | E= | F=0 | G= | H=
+281 | A= | B=Generador Cabinado 275Kva C/ Tta | C=uni. | D=1 | E= | F=0 | G= | H=
+282 | A= | B=Uso De Grúa - Flete | C=glo. | D=1 | E= | F=0 | G= | H=
+283 | A= | B=ALIMENTACIÓN A TABLEROS | C= | D= | E= | F=0 | G= | H=
+284 | A= | B=Cable Nyy Subt. Nexans 4 X 25 Mm2 Xlpe - Alimentación Tableros De Llegada En Acometidas Desde Puntos De Entrega | C=mts. | D=780 | E= | F=0 | G= | H=
+285 | A= | B=Cable Nyy Subt. Nexans De 4X35Mm2 + 1X16Tmm2 - Alimentación Ts-Zb-At2 Y Uso Diario Desde Gabinete De Medidores 2 | C=mts. | D=20 | E= | F=0 | G= | H=
+286 | A= | B=Cable Xlpe De 4X35Mm2 + 1X16Tmm2 - Alimentación Ts-Zb-At2 Y Uso Diario Desde Gabinete De Medidores  | C=mts. | D=20 | E= | F=0 | G= | H=
+287 | A= | B=Cable Nyy Subt. Nexans 4 X 25 Mm2 Xlpe - Alimentación Tableros De Llegada En Acometidas Desde Puntos De Entrega | C=mts. | D=1650 | E= | F=0 | G= | H=
+288 | A= | B=Ducteado Por Ml | C=glo. | D=1 | E= | F=0 | G= | H=
+289 | A= | B=Excavación De Zanjas + Protección Mecánica | C=mts. | D=1650 | E= | F=0 | G= | H=
+290 | A= | B=TABLEROS | C= | D= | E= | F=0 | G= | H=
+291 | A= | B=Gabinete Metálico Compacto Para 2 Medidores Monofásicos (Limitadora 100A) Gris - Cominsa Electric | C=uni. | D=4 | E= | F=0 | G= | H=
+292 | A= | B=Gabinete Metálico Compacto Para Distribución En Bt Medidas 1000X1550X600 Marca Cominsa O Similar | C=uni. | D=33 | E= | F=0 | G= | H=
+293 | A= | B=Nicho Para Tableros De Medidores | C=uni. | D=33 | E= | F=0 | G= | H=
+294 | A= | B=Disyuntor Termo Magnético 3X25 A Marca Abb | C=uni. | D=54 | E= | F=0 | G= | H=
+295 | A= | B=Disyuntor Termo Magnético 3X40 A Marca Abb | C=uni. | D=5 | E= | F=0 | G= | H=
+296 | A= | B=Disyuntor Termo Magnético 3X63 A Marca Abb | C=uni. | D=2 | E= | F=0 | G= | H=
+297 | A= | B=Disyuntor Termo Magnético 3X80 A Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+298 | A= | B=Disyuntor Termo Magnético 3X100 A Marca Abb | C=uni. | D=3 | E= | F=0 | G= | H=
+299 | A= | B=Descargador De Sobretensión 1P 45Ka 275V Sist. Din Ez9 Schneider | C=uni. | D=39 | E= | F=0 | G= | H=
+300 | A= | B=Tablero Ts-Zb-At2-Uso Diario | C=uni. | D=1 | E= | F=0 | G= | H=
+301 | A= | B=Tablero Ts-Zb-Pci Y Carga | C=uni. | D=1 | E= | F=0 | G= | H=
+302 | A= | B=INSTALACION ELECTRICA - PUESTA A TIERRA Y AREAS COMUNES | C= | D= | E= | F= | G= | H=
+303 | A= | B=SISTEMA DE PUESTA A TIERRA | C= | D= | E= | F=0 | G= | H=
+304 | A= | B=Sistema de tierra - AREA TECNICA 1 | C= | D= | E= | F=0 | G= | H=
+305 | A= | B=Caño galvanizado de 1-1/2" x 6 mts. | C=uni. | D=6 | E= | F=0 | G= | H=
+306 | A= | B=Caño PVC de 1" x 3 mts. | C=mts. | D=24 | E= | F=0 | G= | H=
+307 | A= | B=Jabalina de cobre de 5/8"x3 mts | C=uni. | D=8 | E= | F=0 | G= | H=
+308 | A= | B=Conductor de cobre desnudo de 1x95 mm2 | C=mts. | D=25 | E= | F=0 | G= | H=
+309 | A= | B=Conductor de cobre desnudo de 1x70 mm2 | C=mts. | D=30 | E= | F=0 | G= | H=
+310 | A= | B=Conductor de cobre desnudo de 1x50 mm2 | C=mts. | D=20 | E= | F=0 | G= | H=
+311 | A= | B=Conjunto de soldadura y mejorador de tierra | C=uni. | D=2 | E= | F=0 | G= | H=
+312 | A= | B=Pozo para ubicación de jabalina | C=uni. | D=10 | E= | F=0 | G= | H=
+313 | A= | B=Excavación | C=mts. | D=40 | E= | F=0 | G= | H=
+314 | A= | B=Sistema de tierra - AREA TECNICA 2 | C= | D= | E= | F=0 | G= | H=
+315 | A= | B=Caño galvanizado de 1-1/2" x 6 mts. | C=uni. | D=7 | E= | F=0 | G= | H=
+316 | A= | B=Caño PVC de 1" x 3 mts. | C=mts. | D=28 | E= | F=0 | G= | H=
+317 | A= | B=Jabalina de cobre de 5/8"x3 mts | C=uni. | D=12 | E= | F=0 | G= | H=
+318 | A= | B=Conductor de cobre desnudo de 1x70 mm2 | C=mts. | D=30 | E= | F=0 | G= | H=
+319 | A= | B=Conductor de cobre desnudo de 1x50 mm2 | C=mts. | D=35 | E= | F=0 | G= | H=
+320 | A= | B=Conjunto de soldadura y mejorador de tierra | C=uni. | D=2 | E= | F=0 | G= | H=
+321 | A= | B=Pozo para ubicación de jabalina | C=uni. | D=14 | E= | F=0 | G= | H=
+322 | A= | B=Excavación | C=mts. | D=55 | E= | F=0 | G= | H=
+323 | A= | B=Conductor de cobre desnudo de 1x25 mm2 - PARARRAYOS | C=mts. | D=16 | E= | F=0 | G= | H=
+324 | A= | B=GENERADOR | C= | D= | E= | F=0 | G= | H=
+325 | A= | B=Generador Cabinado 22 Kva C/ Tta | C=uni. | D=1 | E= | F=0 | G= | H=
+326 | A= | B=Tablero De Emergencia Para Transferencia | C=uni. | D=1 | E= | F=0 | G= | H=
+327 | A= | B=Uso De Grúa - Flete | C=glo. | D=1 | E= | F=0 | G= | H=
+328 | A= | B=BOCAS DE CIRCUITOS | C= | D= | E= | F=0 | G= | H=
+329 | A= | B=Boca De Iluminación | C=uni. | D=12 | E= | F=0 | G= | H=
+330 | A= | B=Boca De Tomas Universal C/ Tierra | C=uni. | D=10 | E= | F=0 | G= | H=
+331 | A= | B=Boca De Bomba De Sumidero | C=uni. | D=2 | E= | F=0 | G= | H=
+332 | A= | B=MONTAJE DE ARTEFACTOS DE ILUMINACIÓN | C= | D= | E= | F=0 | G= | H=
+333 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=20 | E= | F=0 | G= | H=
+334 | A= | B=Aplique Bidireccional Rectangular Negro Argo | C=uni. | D=8 | E= | F=0 | G= | H=
+335 | A= | B=BOCAS DE CIRCUITOS | C= | D= | E= | F=0 | G= | H=
+336 | A= | B=Boca De Iluminación | C=uni. | D=8 | E= | F=0 | G= | H=
+337 | A= | B=Boca De Tomas Universal C/ Tierra | C=uni. | D=4 | E= | F=0 | G= | H=
+338 | A= | B=MONTAJE DE ARTEFACTOS DE ILUMINACIÓN | C= | D= | E= | F=0 | G= | H=
+339 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=8 | E= | F=0 | G= | H=
+340 | A= | B=Aplique Bidireccional Rectangular Negro Argo | C=uni. | D=8 | E= | F=0 | G= | H=
+341 | A= | B=Sistema de tierra - CANCHAS Y QUINCHOS | C= | D= | E= | F=0 | G= | H=
+342 | A= | B=Caño galvanizado de 1-1/2" x 6 mts. | C=uni. | D=98 | E= | F=0 | G= | H=
+343 | A= | B=Caño PVC de 1" x 3 mts. | C=mts. | D=98 | E= | F=0 | G= | H=
+344 | A= | B=Jabalina de cobre de 5/8"x3 mts | C=uni. | D=294 | E= | F=0 | G= | H=
+345 | A= | B=Conductor de cobre desnudo de 1x16 mm2 | C=mts. | D=980 | E= | F=0 | G= | H=
+346 | A= | B=Conjunto de soldadura y mejorador de tierra | C=uni. | D=98 | E= | F=0 | G= | H=
+347 | A= | B=Pozo para ubicación de jabalina | C=uni. | D=98 | E= | F=0 | G= | H=
+348 | A= | B=Excavación | C=mts. | D=882 | E= | F=0 | G= | H=
+349 | A= | B=Sistema de tierra - PISCINA Y PARQUE INFANTIL | C= | D= | E= | F=0 | G= | H=
+350 | A= | B=Caño galvanizado de 1-1/2" x 6 mts. | C=uni. | D=6 | E= | F=0 | G= | H=
+351 | A= | B=Caño PVC de 1" x 3 mts. | C=mts. | D=24 | E= | F=0 | G= | H=
+352 | A= | B=Jabalina de cobre de 5/8"x3 mts | C=uni. | D=8 | E= | F=0 | G= | H=
+353 | A= | B=Conductor de cobre desnudo de 1x50 mm2 | C=mts. | D=34 | E= | F=0 | G= | H=
+354 | A= | B=Conjunto de soldadura y mejorador de tierra | C=uni. | D=2 | E= | F=0 | G= | H=
+355 | A= | B=Pozo para ubicación de jabalina | C=uni. | D=10 | E= | F=0 | G= | H=
+356 | A= | B=Excavación | C=mts. | D=34 | E= | F=0 | G= | H=
+357 | A= | B=CANCHAS - ZONA B | C= | D= | E= | F=0 | G= | H=
+358 | A= | B=Iluminación | C= | D= | E= | F=0 | G= | H=
+359 | A= | B=Proyector Led 200W Luz Fria Para Exterior Court - Argo | C=uni. | D=20 | E= | F=0 | G= | H=
+360 | A= | B=Bocas De Iluminación | C=uni. | D=8 | E= | F=0 | G= | H=
+361 | A= | B=Montaje De Artefactos De Iluminación | C=uni. | D=20 | E= | F=0 | G= | H=
+362 | A= | B=Poste De H°A° 9/200 Tipo Ande | C=uni. | D=8 | E= | F=0 | G= | H=
+363 | A= | B=Montaje De Poste H°A° | C=uni. | D=8 | E= | F=0 | G= | H=
+364 | A= | B=Tableros | C= | D= | E= | F=0 | G= | H=
+365 | A= | B=Interruptor Termomagnético 3X40 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+366 | A= | B=Interruptor Diferencial 4X40 A - Marca Abb | C=uni. | D=1 | E= | F=0 | G= | H=
+367 | A= | B=Interruptor Termomagnético 1X16 A - Marca Abb | C=uni. | D=5 | E= | F=0 | G= | H=
+368 | A= | B=Alimentaciones A Circuitos | C= | D= | E= | F=0 | G= | H=
+369 | A= | B=Cable Multifilar 3X4Mm² Alimentación Para Iluminación | C=mts. | D=160 | E= | F=0 | G= | H=
+370 | A= | B=Cable Multifilar 3X2,5Mm² Alimentación Para Iluminación | C=mts. | D=80 | E= | F=0 | G= | H=
