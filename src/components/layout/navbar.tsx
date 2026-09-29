@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, Phone, ArrowRight } from 'lucide-react';
+import { Menu, X, Phone, ArrowRight, ShoppingCart } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
+import { useCartStore } from '@/lib/cart-store';
 import type { SiteSettings } from '@/lib/settings-store';
 
 const BASE_NAV_LINKS = [
@@ -18,6 +19,7 @@ const BASE_NAV_LINKS = [
 
 export function Navbar({ settings }: { settings?: SiteSettings }) {
   const [isOpen, setIsOpen] = useState(false);
+  const totalItems = useCartStore((s) => s.totalItems());
   const phone = settings?.contact.phone || siteConfig.phone;
   const openingHours = settings?.business.openingHours.weekdays || siteConfig.openingHours;
   const navLinks = BASE_NAV_LINKS.filter(
@@ -52,6 +54,14 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
           </div>
 
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
+            <Link href="/carrito" className="relative rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white" aria-label={`Carrito${totalItems > 0 ? ` — ${totalItems} items` : ''}`}>
+              <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#2D8FCC] text-[0.6rem] font-bold text-white">
+                  {totalItems > 99 ? '99+' : totalItems}
+                </span>
+              )}
+            </Link>
             <Link href="/tienda" className="btn-primary ml-1 hidden gap-2 xl:inline-flex">Tienda <ArrowRight className="h-3.5 w-3.5" /></Link>
             <button onClick={() => setIsOpen(!isOpen)} className="rounded-lg p-2.5 text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white lg:hidden" aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={isOpen} aria-controls="mobile-navigation">
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
