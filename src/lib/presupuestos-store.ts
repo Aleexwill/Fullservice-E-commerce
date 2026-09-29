@@ -206,7 +206,7 @@ export async function getPresupuestoStats() {
 
   return {
     total: all.length, nuevos, enEjecucion, completedCount, approvedCount, conversionRate,
-    totalEstimated, totalCotizado, totalAprobado, totalFacturado,
+    totalEstimated, totalCotizado, totalAprobado, totalFacturado, totalFinal: totalFacturado,
     totalFinal: totalAprobado,
     byStatus, byType, byPriority, byCustomer,
     seguimiento: { total: segTotal, activos: segActivos, aprobados: segAprobados, perdidos: segPerdidos, pausados: segPausados, conversionRate: segConversionRate },

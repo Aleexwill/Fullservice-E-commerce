@@ -119,9 +119,9 @@ export async function deleteProduct(id: string): Promise<boolean> {
 export async function getProductStats() {
   const products = await prisma.product.findMany();
   const active = products.filter((p) => p.isActive);
-  const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
-  const totalValue = products.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
-  const outOfStock = products.filter((p) => p.stock === 0).length;
+  const totalStock = active.reduce((sum, p) => sum + p.stock, 0);
+  const totalValue = active.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
+  const outOfStock = active.filter((p) => p.stock === 0).length;
   const featured = products.filter((p) => p.isFeatured).length;
   const categories = [...new Set(products.map((p) => p.category))];
   const brands = [...new Set(products.map((p) => p.brand))];
