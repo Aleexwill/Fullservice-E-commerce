@@ -67,8 +67,9 @@ const LIGHT_CSS = `
 .admin-shell[data-theme="light"] .text-cloud{color:#1e2a40!important}
 .admin-shell[data-theme="light"] .text-steel-100{color:#1e2a40!important}
 .admin-shell[data-theme="light"] .text-steel-300{color:#3a4e6e!important}
-.admin-shell[data-theme="light"] .text-steel-400{color:#4a5e80!important}
-.admin-shell[data-theme="light"] .text-steel-500{color:#6a7e9a!important}
+.admin-shell[data-theme="light"] .text-steel-400{color:#3a4e6e!important}
+.admin-shell[data-theme="light"] .text-steel-500{color:#4a5e80!important}
+.admin-shell[data-theme="light"] .text-steel-600{color:#3a4e6e!important}
 .admin-shell[data-theme="light"] .text-steel-600{color:#64748b!important}
 .admin-shell[data-theme="light"] .text-steel-700{color:#475569!important}
 .admin-shell[data-theme="light"] .text-blue-bright{color:#1a5d9a!important}
@@ -114,8 +115,8 @@ const LIGHT_CSS = `
 /* Inline transparent table row stripes */
 .admin-shell[data-theme="light"] .theme-row-alt{background-color:rgba(0,0,0,.025)!important}
 
-/* Hardcoded bg-steel-800, bg-steel-950 (used in dropdowns, inputs) */
-.admin-shell[data-theme="light"] .bg-steel-800,.admin-shell[data-theme="light"] .bg-steel-950{background-color:#e8ecf2!important}
+/* Hardcoded bg-steel-800, bg-steel-950, bg-steel-600 (used in dropdowns, inputs) */
+.admin-shell[data-theme="light"] .bg-steel-800,.admin-shell[data-theme="light"] .bg-steel-950,.admin-shell[data-theme="light"] .bg-steel-600{background-color:#e8ecf2!important}
 
 /* Icon container bg-steel-900 inside card-interactive */
 .admin-shell[data-theme="light"] .card-interactive .bg-steel-900{background-color:#e2e8f2!important}

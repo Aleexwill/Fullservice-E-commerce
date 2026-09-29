@@ -22,9 +22,13 @@ const config: Config = {
           light: '#131B2E',
         },
         steel: {
+          950: '#111827',
           900: '#1A2640',
-          700: '#2E4060',   // borders/surfaces — unchanged visually
-          500: '#6B82A0',   // muted text — lifted for 4.7:1 contrast on carbon
+          800: '#223052',
+          700: '#2E4060',   // borders/surfaces
+          600: '#5A7090',   // section labels dark mode
+          500: '#6B82A0',   // muted text — 4.7:1 contrast on carbon
+          400: '#7A8EAA',   // nav items dark mode
           300: '#8094B4',
           100: '#C0CEDF',
         },
