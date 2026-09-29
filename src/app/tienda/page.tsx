@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import {
@@ -79,15 +80,28 @@ const categorias: Categoria[] = [
    PAGE
    ============================================================ */
 
-export default function TiendaPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+function TiendaInner() {
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') ?? '');
   const [sortBy, setSortBy] = useState('featured');
   const [onlyOnSale, setOnlyOnSale] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
+    const cat = searchParams.get('categoria');
+    return categorias.find((c) => c.id === cat) ? cat : null;
+  });
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
   const gridRef = useRef<HTMLElement>(null);
+
+  // Scroll to grid when landing with a filter from the assistant
+  const didAutoScroll = useRef(false);
+  useEffect(() => {
+    if (!didAutoScroll.current && (searchParams.get('q') || searchParams.get('categoria'))) {
+      didAutoScroll.current = true;
+      setTimeout(() => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 600);
+    }
+  }, [searchParams]);
 
   function handleSelectCategory(id: string) {
     setSelectedCategory((prev) => (prev === id ? null : id));
@@ -416,5 +430,13 @@ export default function TiendaPage() {
       {/* Marcas carrusel */}
       <BrandsCarousel />
     </>
+  );
+}
+
+export default function TiendaPage() {
+  return (
+    <Suspense>
+      <TiendaInner />
+    </Suspense>
   );
 }

@@ -615,7 +615,7 @@ const RX = {
     price:   /(precio|costo|cuesta|cuanto|cotiz|tarifa|valor)/,
     presup:  /(presupuesto|cotizacion|solicitar|pedir|necesito|quiero contratar)/,
     booking: /(agend|turno|cita|reserv|servicio|limpieza|mantenimi|obra|construcc|metal|herreria)/,
-    tienda:  /(tienda|producto|comprar|catalogo|herramienta|material|articulo)/,
+    tienda:  /(tienda|producto|comprar|catalogo|herramienta|material|articulo|marca|precio de|tienen|venden)/,
     trabajos:/(trabajo|proyecto|portafolio|referencia|ejemplo|cliente|hicieron)/,
     hours:   /(horario|a que hora|abren|abierto|cierran|atienden)/,
     place:   /(ubicacion|direccion|donde|mapa|llegar|quedan)/,
@@ -643,6 +643,8 @@ async function respond(raw) {
 async function handleIntent(raw, t) {
     if (RX.status.test(t)) return beginStatus();
     if (RX.presup.test(t)) return showPresupuesto();
+    const productIntent = detectProductIntent(t);
+    if (productIntent) return showTiendaFiltrada(productIntent);
     if (RX.tienda.test(t)) return showTienda();
     if (RX.trabajos.test(t)) return showTrabajos();
     if (RX.booking.test(t)) return showServicios(t);
@@ -699,6 +701,46 @@ function showPresupuesto() {
 }
 
 /* ---------- Tienda ---------- */
+/* Marcas y palabras clave conocidas. Cada entrada: { re, q, label }
+   re   = regex para detectar el mensaje del usuario
+   q    = valor que se pasa a /tienda?q= (se urlencodea)
+   label= nombre amigable para mostrar en el mensaje */
+const PRODUCT_INTENTS = [
+    { re: /karcher|karche|hidrolav/,       q: 'Karcher',       label: 'Kärcher' },
+    { re: /stanley|stanle/,                q: 'Stanley',       label: 'Stanley' },
+    { re: /bosch/,                         q: 'Bosch',         label: 'Bosch' },
+    { re: /makita/,                        q: 'Makita',        label: 'Makita' },
+    { re: /dewalt|de walt/,               q: 'DeWalt',        label: 'DeWalt' },
+    { re: /3m\b|scotch/,                  q: '3M',            label: '3M' },
+    { re: /sika\b/,                        q: 'Sika',          label: 'Sika' },
+    { re: /wurth|würth/,                   q: 'Wurth',         label: 'Würth' },
+    { re: /hierro|acero|varilla/,          q: 'hierro',        label: 'hierro / acero' },
+    { re: /pintura|latex|esmalte|rodillo/, q: 'pintura',       label: 'pinturas' },
+    { re: /hidrolimpiadora|hidrolavadora/, q: 'hidrolimpiadora', label: 'hidrolimpiadoras' },
+    { re: /taladro/,                       q: 'taladro',       label: 'taladros' },
+    { re: /amoladora|esmeril/,             q: 'amoladora',     label: 'amoladoras' },
+    { re: /sierra|caladora|circular/,      q: 'sierra',        label: 'sierras' },
+    { re: /cable|extension|enchufe/,       q: 'cable',         label: 'cables y extensiones' },
+    { re: /casco|guante|proteccion|epp/,   q: 'seguridad',     label: 'EPP / seguridad' },
+    { re: /cemento|hormigon|mezcla/,       q: 'cemento',       label: 'cemento y mezclas' },
+    { re: /tornillo|bulón|tuerca|fijacion/,q: 'tornillo',      label: 'fijaciones y tornillería' },
+    { re: /cano|tubo|plomeria|grifo|canilla/, q: 'plomeria',   label: 'plomería' },
+];
+
+function detectProductIntent(t) {
+    return PRODUCT_INTENTS.find(p => p.re.test(t)) || null;
+}
+
+function showTiendaFiltrada(intent) {
+    const url = PAGE_LINKS.tienda + '?q=' + encodeURIComponent(intent.q);
+    return bot(
+        '¡Tenemos productos de <b>' + esc(intent.label) + '</b> en nuestra tienda! 🛒 ' +
+        'Hacé clic para ver todos los resultados:<br>' +
+        '<a href="' + url + '" style="color:#6FC3F5;text-decoration:underline;font-weight:600">Ver ' + esc(intent.label) + ' en la tienda →</a>',
+        { chips: ['🏪 Ver toda la tienda', '📋 Solicitar presupuesto', 'Menú principal'], say: 'Productos ' + intent.label + ' 🏪' }
+    );
+}
+
 function showTienda() {
     return bot('En nuestra <b>tienda online</b> encontrás herramientas y materiales de las mejores marcas, con envío a domicilio. 🛒' +
         '<br><a href="' + PAGE_LINKS.tienda + '" style="color:#6FC3F5;text-decoration:underline">Ver toda la tienda →</a>',
