@@ -4,7 +4,7 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Upload, CheckCircle2, Package, AlertCircle } from 'lucide-react';
+import { ChevronRight, Upload, CheckCircle2, Package, AlertCircle, Printer } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
 interface OrderItem {
@@ -252,10 +252,20 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
             </dl>
           </div>
 
-          <Link href="/cuenta" className="inline-flex items-center gap-1 font-body text-caption text-[#2D8FCC] hover:underline">
-            <ChevronRight className="h-3 w-3 rotate-180" />
-            Volver a mis pedidos
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/cuenta" className="inline-flex items-center gap-1 font-body text-caption text-[#2D8FCC] hover:underline">
+              <ChevronRight className="h-3 w-3 rotate-180" />
+              Volver a mis pedidos
+            </Link>
+            <Link
+              href={`/cuenta/pedidos/${id}/imprimir`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 font-body text-caption text-[#4A5E80] transition-colors hover:bg-gray-50"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Imprimir / PDF
+            </Link>
+          </div>
         </div>
       </section>
     </>

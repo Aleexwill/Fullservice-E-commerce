@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { fetchJson } from '@/lib/utils';
 import { useToast } from '@/components/admin/toast';
 import NextImage from 'next/image';
+import Link from 'next/link';
 import {
   Search,
   RefreshCw,
@@ -29,6 +30,7 @@ import {
   Upload,
   BadgeCheck,
   Receipt,
+  Printer,
 } from 'lucide-react';
 
 interface Order {
@@ -251,7 +253,18 @@ export default function AdminPedidosPage() {
                 <h2 className="font-display text-h2 text-arctic">{selectedOrder.orderNumber}</h2>
                 <p className="font-body text-caption text-steel-500">{formatDate(selectedOrder.createdAt)}</p>
               </div>
-              <button onClick={() => { setSelectedOrder(null); setAdminReceiptUrl(''); }} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"><X className="h-5 w-5" /></button>
+              <div className="flex items-center gap-1">
+                <Link
+                  href={`/admin/pedidos/${selectedOrder.id}/imprimir`}
+                  target="_blank"
+                  className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-body text-caption text-steel-400 transition-colors hover:bg-steel-900 hover:text-arctic"
+                  title="Imprimir comprobante"
+                >
+                  <Printer className="h-4 w-4" />
+                  <span className="hidden sm:inline">Imprimir</span>
+                </Link>
+                <button onClick={() => { setSelectedOrder(null); setAdminReceiptUrl(''); }} className="rounded-md p-1.5 text-steel-500 hover:bg-steel-900 hover:text-arctic"><X className="h-5 w-5" /></button>
+              </div>
             </div>
             <div className="space-y-5 p-6">
               {/* Status controls */}

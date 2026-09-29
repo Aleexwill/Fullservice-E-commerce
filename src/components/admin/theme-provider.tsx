@@ -40,7 +40,7 @@ export function AdminThemeProvider({ children }: { children: React.ReactNode }) 
 }
 
 const LIGHT_CSS = `
-.admin-shell[data-theme="light"]{color-scheme:light}
+.admin-shell[data-theme="light"]{color-scheme:light;color:#1e2a40}
 
 /* Shell backgrounds */
 .admin-shell[data-theme="light"] .bg-carbon{background-color:#f0f2f5!important}
@@ -122,6 +122,39 @@ const LIGHT_CSS = `
 
 /* bg-carbon-light/50 → kanban column en leads */
 .admin-shell[data-theme="light"] [class~="bg-carbon-light/50"]{background-color:rgba(248,250,252,.85)!important}
+
+/* Hardcoded hex text colors (accent / status) */
+.admin-shell[data-theme="light"] [class*="text-[#2D8FCC]"]{color:#1a5d9a!important}
+.admin-shell[data-theme="light"] [class*="text-[#38BDF8]"]{color:#0369a1!important}
+.admin-shell[data-theme="light"] [class*="text-[#A78BFA]"]{color:#6d28d9!important}
+.admin-shell[data-theme="light"] [class*="text-[#F6C90E]"]{color:#854d0e!important}
+.admin-shell[data-theme="light"] [class*="text-[#25D366]"]{color:#166534!important}
+.admin-shell[data-theme="light"] [class*="text-[#8094B4]"]{color:#4a5e80!important}
+.admin-shell[data-theme="light"] [class*="text-[#B7C5D9]"]{color:#3a4e6e!important}
+.admin-shell[data-theme="light"] [class*="text-[#C0CEDF]"]{color:#4a5e80!important}
+.admin-shell[data-theme="light"] [class*="text-[#4A5E80]"]{color:#1e2a40!important}
+.admin-shell[data-theme="light"] [class*="text-[#0B1120]"]{color:#0B1120!important}
+
+/* Modal / dialog backgrounds */
+.admin-shell[data-theme="light"] .bg-carbon-light\/95{background-color:rgba(255,255,255,.97)!important}
+.admin-shell[data-theme="light"] [class*="bg-carbon-light/95"]{background-color:rgba(255,255,255,.97)!important}
+
+/* Dividers */
+.admin-shell[data-theme="light"] [class*="divide-steel-"]{border-color:#e2e5ea!important}
+.admin-shell[data-theme="light"] [class*="border-steel-"]:not([class*="border-steel-900"]):not([class*="border-steel-800"]):not([class*="border-steel-700"]){border-color:#d1d9e6!important}
+
+/* bg-blue-bright used as active nav / tag bg */
+.admin-shell[data-theme="light"] .bg-blue-bright.text-white{background-color:#1a5d9a!important}
+.admin-shell[data-theme="light"] [class*="bg-blue-bright"]:not(.text-white){background-color:#dbeeff!important}
+
+/* Sidebar nav items that inherit dark colors */
+.admin-shell[data-theme="light"] .nav-item{color:#3a4e6e!important}
+.admin-shell[data-theme="light"] .nav-item:hover{background-color:#e8ecf2!important;color:#0B1120!important}
+
+/* Success / warning / danger semantic text → readable on light bg */
+.admin-shell[data-theme="light"] .text-success-bright{color:#15803d!important}
+.admin-shell[data-theme="light"] .text-yellow-bright{color:#a16207!important}
+.admin-shell[data-theme="light"] .text-danger-bright{color:#b91c1c!important}
 `;
 
 /** Aplica la clase admin-shell y el data-theme reactivo. Envuelve el contenido del layout. */
