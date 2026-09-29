@@ -377,7 +377,7 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
                   placeholder="0"
                   className="input font-mono"
                   min="0"
-                  step="1000"
+                  step="1"
                   required
                 />
               </div>
@@ -392,7 +392,7 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
                   placeholder="Para mostrar descuento"
                   className="input font-mono"
                   min="0"
-                  step="1000"
+                  step="1"
                 />
               </div>
               <div>
