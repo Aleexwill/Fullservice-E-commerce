@@ -66,7 +66,8 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
       const found = data.orders.find((o: OrderDetail) => o.id === id);
       if (!found) { router.push('/cuenta'); return; }
       setOrder(found);
-    }).finally(() => setLoading(false));
+      setLoading(false);
+    }).catch(() => { router.push('/cuenta/login'); });
   }, [id, router]);
 
   async function submitReceipt(e: React.FormEvent) {
