@@ -62,7 +62,7 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     fetch('/api/customer/orders').then((r) => (r.ok ? r.json() : null)).then((data) => {
-      if (!data) { router.push('/cuenta/login'); return; }
+      if (!data?.orders) { router.push('/cuenta/login'); return; }
       const found = data.orders.find((o: OrderDetail) => o.id === id);
       if (!found) { router.push('/cuenta'); return; }
       setOrder(found);

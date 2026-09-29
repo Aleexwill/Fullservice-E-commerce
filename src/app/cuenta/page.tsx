@@ -59,7 +59,7 @@ export default function CuentaPage() {
       fetch('/api/customer/me').then((r) => (r.ok ? r.json() : null)),
       fetch('/api/customer/orders').then((r) => (r.ok ? r.json() : null)),
     ]).then(([me, ord]) => {
-      if (!me) {
+      if (!me?.customer) {
         router.push('/cuenta/login');
         // keep loading=true so nothing renders while navigating
         return;
