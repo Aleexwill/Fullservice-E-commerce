@@ -137,9 +137,9 @@ export default function CuentaPage() {
                 <Link
                   key={order.id}
                   href={`/cuenta/pedidos/${order.id}`}
-                  className="card flex items-center justify-between gap-4 p-4 transition-shadow hover:shadow-md"
+                  className="card flex flex-col gap-3 p-4 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="font-mono text-body-sm font-bold text-[#0B1120]">{order.orderNumber}</p>
                     <p className="font-body text-caption text-[#8094B4]">
                       {new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -155,9 +155,9 @@ export default function CuentaPage() {
                     </span>
                   </div>
 
-                  <div className="shrink-0 text-right">
+                  <div className="flex items-center justify-between sm:block sm:shrink-0 sm:text-right">
                     <p className="font-display text-body font-bold text-[#0B1120]">{formatPrice(order.total)}</p>
-                    <ChevronRight className="ml-auto h-4 w-4 text-[#8094B4]" />
+                    <ChevronRight className="h-4 w-4 text-[#8094B4] sm:ml-auto sm:mt-0.5" />
                   </div>
                 </Link>
               ))}
