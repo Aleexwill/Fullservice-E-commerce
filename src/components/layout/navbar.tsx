@@ -87,7 +87,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
                 <User className="h-5 w-5" />
               </button>
               {accountOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-white/10 bg-[#0B1120]/98 shadow-[0_8px_30px_rgba(0,0,0,.4)] backdrop-blur-xl">
+                <div className="absolute right-0 top-full z-[9999] mt-2 w-52 overflow-hidden rounded-xl border border-white/10 bg-[#0d1628] shadow-[0_12px_40px_rgba(0,0,0,.6)]">
                   {loggedIn ? (
                     <>
                       <Link href="/cuenta" onClick={() => setAccountOpen(false)} className="flex items-center gap-3 px-4 py-3 font-body text-sm text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white">
