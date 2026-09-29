@@ -78,7 +78,7 @@ export default function AdminInventarioPage() {
               <span className="font-body text-body-sm text-arctic">{m.description}</span>
               <span className="font-mono text-caption text-steel-400">{m.unit}</span>
               <span className="font-body text-caption text-steel-500">{CATEGORIES[m.category] || m.category}</span>
-              <span className="text-right font-mono text-body-sm text-success-bright">{gs(m.unitPrice)}</span>
+              <span className="text-right font-mono text-body-sm text-arctic">{gs(m.unitPrice)}</span>
               <span className="font-body text-caption text-steel-500 truncate">{m.provider}</span>
               <div className="flex items-center gap-1">
                 <button onClick={() => setEditing(m)} className="rounded p-1 text-steel-500 hover:text-arctic"><Save className="h-3.5 w-3.5" /></button>
