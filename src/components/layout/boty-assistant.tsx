@@ -24,6 +24,7 @@ export function BotyAssistant() {
       position: 'right',
       demo: false,
       autoGreet: false,
+      avatar: '/logo.png',
     };
 
     const script = document.createElement('script');
