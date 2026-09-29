@@ -61,7 +61,7 @@ export default async function HomePage() {
   const projects = (await getAllProjects().catch(() => [])).filter(p => p.isActive && p.image);
   return (
     <div className="fs-home">
-      <HeroSection showStore={settings.sections?.showStore !== false} />
+      <HeroSection />
       <ServicesSection />
       <PortfolioPreview projects={projects} />
       <ProcessSection />
