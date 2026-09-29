@@ -65,81 +65,79 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#0B1120]/98 backdrop-blur-md" onClick={onClose}>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 bg-[#0B1120] p-4 md:p-6" onClick={(e) => e.stopPropagation()}>
-        <div>
-          <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${badgeColors[project.badge] || badgeColors.neutral}`}>
+
+      {/* Top bar: title + close — always visible */}
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-[#0B1120] px-4 py-3 md:px-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${badgeColors[project.badge] || badgeColors.neutral}`}>
             {categoryLabel[project.category] || project.category}
           </span>
-          <h2 className="mt-2 font-display text-xl font-bold text-white md:text-2xl">{project.title}</h2>
-          {project.description && (
-            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-white/90">{project.description}</p>
-          )}
+          <h2 className="truncate font-display text-base font-bold text-white md:text-lg">{project.title}</h2>
         </div>
-        <button onClick={onClose} className="rounded-xl bg-white/10 p-2.5 text-white/70 hover:bg-white/20 hover:text-white">
+        <button onClick={onClose} className="shrink-0 rounded-xl bg-white/10 p-2.5 text-white/70 hover:bg-white/20 hover:text-white">
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Image viewer */}
-      <div className="relative flex flex-1 items-center justify-center overflow-hidden px-4" onClick={(e) => e.stopPropagation()}>
-        {images.length > 0 ? (
-          <>
-            <img
-              src={images[idx]}
-              alt={`${project.title} — imagen ${idx + 1}`}
-              className="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
-            />
-            {images.length > 1 && (
-              <>
-                <button onClick={prev} className="absolute left-4 rounded-full bg-white/10 p-3 text-white hover:bg-white/25 backdrop-blur-sm">
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button onClick={next} className="absolute right-4 rounded-full bg-white/10 p-3 text-white hover:bg-white/25 backdrop-blur-sm">
-                  <ChevRight className="h-5 w-5" />
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {images.map((_, i) => (
-                    <button key={i} onClick={() => setIdx(i)}
-                      className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-5 bg-[#2D8FCC]' : 'w-1.5 bg-white/30'}`} />
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <div className="flex h-64 w-full items-center justify-center rounded-xl border border-white/10 bg-white/5">
-            <Isotipo size={80} color="#2D8FCC30" />
-          </div>
-        )}
-      </div>
+      {/* Body: two-column on md+, stacked on mobile (image first) */}
+      <div className="flex flex-1 flex-col overflow-hidden md:flex-row" onClick={(e) => e.stopPropagation()}>
 
-      {/* Thumbnails */}
-      {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto px-6 py-3" onClick={(e) => e.stopPropagation()}>
-          {images.map((src, i) => (
-            <button key={i} onClick={() => setIdx(i)}
-              className={`h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${i === idx ? 'border-[#2D8FCC]' : 'border-white/10 opacity-60 hover:opacity-100'}`}>
-              <img src={src} alt="" className="h-full w-full object-cover" />
-            </button>
-          ))}
+        {/* Image column — takes all remaining space */}
+        <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-[#070e1a] px-4 py-4">
+          {images.length > 0 ? (
+            <>
+              <img
+                src={images[idx]}
+                alt={`${project.title} — imagen ${idx + 1}`}
+                className="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
+              />
+              {images.length > 1 && (
+                <>
+                  <button onClick={prev} className="absolute left-4 rounded-full bg-white/10 p-3 text-white hover:bg-white/25 backdrop-blur-sm">
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button onClick={next} className="absolute right-4 rounded-full bg-white/10 p-3 text-white hover:bg-white/25 backdrop-blur-sm">
+                    <ChevRight className="h-5 w-5" />
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {images.map((_, i) => (
+                      <button key={i} onClick={() => setIdx(i)}
+                        className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-5 bg-[#2D8FCC]' : 'w-1.5 bg-white/30'}`} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div className="flex h-64 w-full items-center justify-center rounded-xl border border-white/10 bg-white/5">
+              <Isotipo size={80} color="#2D8FCC30" />
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Details panel */}
-      <div className="border-t border-white/10 bg-[#0B1120] px-4 py-4 md:px-6" onClick={(e) => e.stopPropagation()}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <div className="flex flex-wrap gap-4 text-xs text-white/50">
-              {project.location && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-[#6FC3F5]" />{project.location}</span>}
-              {project.duration && <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5 text-[#6FC3F5]" />{project.duration} · {project.year}</span>}
+        {/* Info sidebar — fixed width on md+, scrollable */}
+        <div className="flex w-full shrink-0 flex-col overflow-y-auto border-t border-white/10 bg-[#0B1120] md:w-72 md:border-l md:border-t-0 lg:w-80">
+          {/* Description */}
+          {project.description && (
+            <div className="border-b border-white/10 px-5 py-4">
+              <p className="text-sm leading-relaxed text-white/80">{project.description}</p>
+            </div>
+          )}
+
+          {/* Meta */}
+          <div className="border-b border-white/10 px-5 py-4">
+            <div className="flex flex-col gap-2.5 text-xs text-white/55">
+              {project.location && <span className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-[#6FC3F5]" />{project.location}</span>}
+              {project.duration && <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-[#6FC3F5]" />{project.duration} · {project.year}</span>}
               {project.client && <span className="text-white/40">Cliente: <span className="text-white/60">{project.client}</span></span>}
             </div>
           </div>
+
+          {/* Technical details */}
           {details.length > 0 && (
-            <div>
-              <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-widest text-[#6FC3F5]">Detalles técnicos</p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+            <div className="px-5 py-4">
+              <p className="mb-3 text-[0.65rem] font-bold uppercase tracking-widest text-[#6FC3F5]">Detalles técnicos</p>
+              <div className="grid grid-cols-1 gap-y-3">
                 {details.map(([k, v]) => (
                   <div key={k}>
                     <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-white/35">{k}</span>
@@ -151,6 +149,18 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
           )}
         </div>
       </div>
+
+      {/* Thumbnails — below image on mobile, below sidebar on md+ */}
+      {images.length > 1 && (
+        <div className="flex shrink-0 gap-2 overflow-x-auto border-t border-white/10 bg-[#0B1120] px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+          {images.map((src, i) => (
+            <button key={i} onClick={() => setIdx(i)}
+              className={`h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${i === idx ? 'border-[#2D8FCC]' : 'border-white/10 opacity-60 hover:opacity-100'}`}>
+              <img src={src} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
