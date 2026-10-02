@@ -162,18 +162,23 @@ export default function DescuentosPage() {
 
       {/* Filter tabs */}
       <div className="mb-4 flex flex-wrap gap-2">
-        {(['all', 'active', 'scheduled', 'expired', 'none'] as const).map((f) => (
+        {([
+          { key: 'all',       short: 'Todos' },
+          { key: 'active',    short: 'Activas' },
+          { key: 'scheduled', short: 'Progr.' },
+          { key: 'expired',   short: 'Venc.' },
+          { key: 'none',      short: 'Sin promo' },
+        ] as const).map(({ key, short }) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full border px-3 py-1 font-body text-body-sm transition-colors ${
-              filter === f
+            key={key}
+            onClick={() => setFilter(key)}
+            className={`rounded-full border px-3 py-1 font-body text-body-sm transition-colors whitespace-nowrap ${
+              filter === key
                 ? 'border-blue bg-blue text-white'
                 : 'border-gray-200 bg-white text-[#4A5E80] hover:border-blue'
             }`}
           >
-            {f === 'all' ? 'Todos' : STATUS_LABELS[f].label}
-            <span className="ml-1.5 opacity-70">({counts[f]})</span>
+            {short} <span className="opacity-70">({counts[key]})</span>
           </button>
         ))}
       </div>
