@@ -4,6 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, Phone, ArrowRight, ShoppingCart, User, LogIn, UserPlus, Package, LogOut } from 'lucide-react';
+
+function FacebookIcon() {
+  return <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
+}
+function InstagramIcon() {
+  return <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>;
+}
+function LinkedinIcon() {
+  return <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>;
+}
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
 import { useCartStore } from '@/lib/cart-store';
@@ -57,7 +67,27 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
             <Phone className="h-3.5 w-3.5 text-[#6FC3F5]" />
             <span>{phone}</span><span className="text-white/30">•</span><span>{openingHours}</span>
           </div>
-          <span className="font-body text-[0.7rem] font-medium uppercase tracking-[.1em] text-[#B7C5D9]">Envíos a todo el país</span>
+          <div className="flex items-center gap-3">
+            <span className="font-body text-[0.7rem] font-medium uppercase tracking-[.1em] text-[#B7C5D9]">Envíos a todo el país</span>
+            <span className="text-white/20">|</span>
+            <div className="flex items-center gap-2">
+              {siteConfig.social.facebook && (
+                <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
+                  <FacebookIcon />
+                </a>
+              )}
+              {siteConfig.social.instagram && (
+                <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
+                  <InstagramIcon />
+                </a>
+              )}
+              {siteConfig.social.linkedin && (
+                <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
+                  <LinkedinIcon />
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -140,8 +170,29 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
         <div id="mobile-navigation" className={cn('overflow-hidden transition-all duration-300 lg:hidden', isOpen ? 'max-h-[32rem] pb-5' : 'max-h-0')}>
           <div className="border-t border-white/10 pt-4">
             <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 font-body text-xs text-[#B7C5D9]">
-              <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-[#6FC3F5]" />{phone}</div>
-              <div className="mt-1 text-[#9AAAC0]">{openingHours}</div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-[#6FC3F5]" />{phone}</div>
+                  <div className="mt-1 text-[#9AAAC0]">{openingHours}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {siteConfig.social.facebook && (
+                    <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
+                      <FacebookIcon />
+                    </a>
+                  )}
+                  {siteConfig.social.instagram && (
+                    <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
+                      <InstagramIcon />
+                    </a>
+                  )}
+                  {siteConfig.social.linkedin && (
+                    <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
+                      <LinkedinIcon />
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="grid gap-1 sm:grid-cols-2">
               {navLinks.map((link) => <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)} className="rounded-xl px-4 py-3.5 font-body text-sm font-semibold uppercase tracking-[.05em] text-[#B7C5D9] transition-colors hover:bg-white/5 hover:text-white">{link.label}</Link>)}
