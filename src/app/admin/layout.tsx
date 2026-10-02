@@ -84,7 +84,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return next;
     });
   };
-  const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href;
+    // Match full path segments: /admin/presupuestos must NOT match /admin/presupuestos/solicitudes
+    return pathname === href || pathname.startsWith(href + '/');
+  };
   const pageLabel = getPageLabel(pathname);
 
   useEffect(() => {
