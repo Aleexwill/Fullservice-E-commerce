@@ -231,7 +231,7 @@ export default async function ProductPage({ params }: Props) {
                     <Link key={p.id} href={`/tienda/${p.slug}`} className="card-interactive group overflow-hidden">
                       <div className="relative flex h-36 items-center justify-center bg-gradient-to-br from-steel-900 to-steel-700">
                         {p.images?.[0] ? (
-                          <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" />
+                          <img src={p.images[0]} alt={p.name} className="h-full w-full object-contain p-2" />
                         ) : (
                           <Isotipo size={48} />
                         )}

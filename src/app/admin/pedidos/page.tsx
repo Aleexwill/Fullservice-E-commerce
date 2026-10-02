@@ -83,21 +83,29 @@ export default function AdminPedidosPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [adminReceiptUrl, setAdminReceiptUrl] = useState('');
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [savingReceipt, setSavingReceipt] = useState(false);
+
+  const PAGE_SIZE = 20;
 
   const fetchOrders = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (filterStatus) params.set('status', filterStatus);
+    params.set('page', String(page));
+    params.set('limit', String(PAGE_SIZE));
     fetchJson<any>(`/api/pedidos?${params}`)
       .then((d) => { setOrders(d?.orders || []); setTotal(d?.total || 0); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [search, filterStatus]);
+  }, [search, filterStatus, page]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [search, filterStatus]);
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -404,6 +412,29 @@ export default function AdminPedidosPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && total > PAGE_SIZE && (
+        <div className="mt-4 flex items-center justify-between font-body text-body-sm text-steel-500">
+          <span>{total} pedido{total !== 1 ? 's' : ''} · Página {page} de {Math.ceil(total / PAGE_SIZE)}</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="btn-secondary py-1.5 disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(Math.ceil(total / PAGE_SIZE), p + 1))}
+              disabled={page >= Math.ceil(total / PAGE_SIZE)}
+              className="btn-secondary py-1.5 disabled:opacity-40"
+            >
+              Siguiente
+            </button>
           </div>
         </div>
       )}

@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
   TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Inbox,
-  Image as ImageIcon, Tag, Wallet,
+  Image as ImageIcon, Tag, Wallet, CalendarDays, ClipboardCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
@@ -24,12 +24,14 @@ const navGroups: NavGroup[] = [
   { label: 'E-Commerce', items: [
     { href: '/admin/productos', label: 'Productos', icon: Package },
     { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
-    { href: '/admin/promos', label: 'Promociones', icon: Tag },
+    { href: '/admin/promos', label: 'Descuentos', icon: Tag },
     { href: '/admin/reportes/ecommerce', label: 'Reporte ventas', icon: TrendingUp },
   ]},
   { label: 'Servicios', items: [
     { href: '/admin/presupuestos', label: 'Presupuestos', icon: Calculator },
     { href: '/admin/presupuestos/solicitudes', label: 'Solicitudes web', icon: Inbox },
+    { href: '/admin/agenda', label: 'Agenda de trabajo', icon: CalendarDays },
+    { href: '/admin/informes-tecnicos', label: 'Informes técnicos', icon: ClipboardCheck },
     { href: '/admin/inventario', label: 'Lista de precios', icon: ClipboardList },
     { href: '/admin/reportes/servicios', label: 'Reporte servicios', icon: BarChart3 },
   ]},
@@ -39,7 +41,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/trabajos', label: 'Portfolio', icon: FolderOpen },
     { href: '/admin/carousel', label: 'Carrusel hero', icon: ImageIcon },
     { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers },
-    { href: '/admin/promos', label: 'Banners', icon: Megaphone },
+    { href: '/admin/promos', label: 'Banners & Promos', icon: Megaphone },
   ]},
   { label: 'Clientes & CRM', items: [
     { href: '/admin/clientes', label: 'Clientes', icon: UserCheck },

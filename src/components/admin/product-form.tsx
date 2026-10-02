@@ -524,7 +524,7 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
                     <img
                       src={url}
                       alt={`Imagen ${i + 1}`}
-                      className="aspect-square w-full object-cover"
+                      className="aspect-square w-full object-contain p-2"
                       onError={(e) => { (e.target as HTMLImageElement).src = ''; }}
                     />
                     <button

@@ -1,0 +1,305 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import NextImage from 'next/image';
+import {
+  Search, Star, ShoppingCart, ChevronRight, Truck, ShieldCheck, CreditCard,
+  Package, Wrench, Zap, Droplets, Paintbrush, Hammer, Lock, type LucideIcon,
+} from 'lucide-react';
+import { Isotipo } from '@/components/ui/isotipo';
+import { BrandsCarousel } from '@/components/sections/brands-carousel';
+import { PromoBannerCarousel } from '@/components/sections/promo-banner-carousel';
+import { useCartStore } from '@/lib/cart-store';
+import { formatPrice, getEffectivePrice } from '@/lib/utils';
+import { toast } from 'sonner';
+
+interface Product {
+  id: string; sku: string; slug: string; name: string; brand: string; category: string;
+  price: number; compareAtPrice: number | null; stock: number; images: string[];
+  isFeatured: boolean; rating: number; reviewCount: number; salesCount: number;
+  promoDiscountPercent: number | null; promoStartsAt: string | null; promoEndsAt: string | null;
+  shortDescription: string;
+}
+
+interface Categoria {
+  id: string; name: string; icon: LucideIcon; accent: string; color: string; match: string[];
+}
+
+const categorias: Categoria[] = [
+  { id: 'herramientas', name: 'Herramientas', icon: Wrench,     accent: '#2D8FCC', color: 'from-blue-deep to-blue',         match: ['herramienta'] },
+  { id: 'electricidad', name: 'Electricidad', icon: Zap,        accent: '#F6E05E', color: 'from-yellow-muted to-yellow',    match: ['electric'] },
+  { id: 'plomeria',     name: 'Plomería',     icon: Droplets,   accent: '#63B3ED', color: 'from-blue-muted to-blue',        match: ['plomeria'] },
+  { id: 'pinturas',     name: 'Pinturas',     icon: Paintbrush, accent: '#48BB78', color: 'from-success-light to-success',  match: ['pintura'] },
+  { id: 'fijaciones',   name: 'Fijaciones',   icon: Hammer,     accent: '#A0AEC0', color: 'from-steel-900 to-steel-700',    match: ['fijacion'] },
+  { id: 'seguridad',    name: 'Seguridad',    icon: Lock,       accent: '#FC8181', color: 'from-danger-light to-danger',    match: ['seguridad'] },
+];
+
+export function TiendaClient({ initialProducts }: { initialProducts: Product[] }) {
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') ?? '');
+  const [sortBy, setSortBy] = useState('featured');
+  const [onlyOnSale, setOnlyOnSale] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
+    const cat = searchParams.get('categoria');
+    return categorias.find((c) => c.id === cat) ? cat : null;
+  });
+  const addItem = useCartStore((s) => s.addItem);
+  const gridRef = useRef<HTMLElement>(null);
+  const didAutoScroll = useRef(false);
+
+  useEffect(() => {
+    if (!didAutoScroll.current && (searchParams.get('q') || searchParams.get('categoria'))) {
+      didAutoScroll.current = true;
+      setTimeout(() => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 600);
+    }
+  }, [searchParams]);
+
+  function handleSelectCategory(id: string) {
+    setSelectedCategory((prev) => (prev === id ? null : id));
+    requestAnimationFrame(() => {
+      gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function handleAddToCart(product: Product) {
+    const { price } = getEffectivePrice(product);
+    addItem({
+      productId: product.id,
+      sku: product.sku,
+      name: product.name,
+      slug: product.slug,
+      price,
+      image: product.images?.[0] || '',
+      stock: product.stock,
+    });
+    toast.success(`${product.name} agregado al carrito`);
+  }
+
+  const activeCategory = categorias.find((c) => c.id === selectedCategory);
+
+  const filtered = initialProducts
+    .filter((p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((p) => !onlyOnSale || getEffectivePrice(p).isOnSale)
+    .filter((p) => !activeCategory || activeCategory.match.some((kw) => p.category.toLowerCase().includes(kw)));
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === 'price-asc') return getEffectivePrice(a).price - getEffectivePrice(b).price;
+    if (sortBy === 'price-desc') return getEffectivePrice(b).price - getEffectivePrice(a).price;
+    if (sortBy === 'rating') return b.rating - a.rating;
+    if (sortBy === 'bestsellers') return b.salesCount - a.salesCount;
+    return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
+  });
+
+  return (
+    <>
+      <PromoBannerCarousel />
+
+      {/* Breadcrumb */}
+      <div className="border-b border-gray-200">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+          <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
+          <ChevronRight className="h-3 w-3" />
+          <span className="text-[#0B1120]">Tienda</span>
+        </div>
+      </div>
+
+      {/* Hero + Search */}
+      <section className="border-b border-gray-200 bg-white py-12">
+        <div className="container-main">
+          <span className="overline mb-2 block">Ferretería online</span>
+          <h1 className="font-display text-h1 uppercase text-[#0B1120]">Nuestra Tienda</h1>
+          <div className="mt-4 h-[3px] w-12 rounded-sm bg-gradient-to-r from-blue to-orange" />
+          <p className="mt-4 max-w-lg font-body text-body text-[#4A5E80]">
+            Todo lo que necesitas para tu obra o reparación, con envío a domicilio.
+          </p>
+          <div className="relative mt-8 max-w-xl">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8094B4]" />
+            <input
+              type="text"
+              placeholder="Buscar productos, marcas, SKU..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Buscar productos"
+              className="input pl-11 pr-4"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Categorias */}
+      <section className="section-sm border-b border-gray-200">
+        <div className="container-main">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-display text-h3 text-[#0B1120]">Categorías</h2>
+            {selectedCategory && (
+              <button onClick={() => setSelectedCategory(null)} className="font-body text-body-sm text-blue hover:underline">
+                Ver todas
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {categorias.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleSelectCategory(cat.id)}
+                aria-pressed={selectedCategory === cat.id}
+                className={`card-interactive group overflow-hidden text-left ${selectedCategory === cat.id ? 'ring-2 ring-blue' : ''}`}
+              >
+                <div className={`flex h-20 items-center justify-center bg-gradient-to-br ${cat.color}`}>
+                  <cat.icon className="h-8 w-8 transition-transform group-hover:scale-110" style={{ color: cat.accent }} aria-hidden="true" />
+                </div>
+                <div className="p-3 text-center">
+                  <h3 className="font-display text-h4 text-[#0B1120]">{cat.name}</h3>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust strip */}
+      <section className="border-b border-gray-200 bg-[#F4F7FB] py-4">
+        <div className="container-main flex flex-wrap items-center justify-center gap-8 text-center">
+          {[
+            { icon: Truck, text: 'Envío a todo el país' },
+            { icon: ShieldCheck, text: 'Garantía oficial' },
+            { icon: CreditCard, text: 'Pago seguro' },
+          ].map(({ icon: Icon, text }) => (
+            <div key={text} className="flex items-center gap-2">
+              <Icon className="h-4 w-4 text-blue" />
+              <span className="font-body text-body-sm text-[#4A5E80]">{text}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Product Grid */}
+      <section ref={gridRef} className="section">
+        <div className="container-main">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="font-body text-body-sm text-[#8094B4]">
+              {sorted.length} producto{sorted.length !== 1 ? 's' : ''}
+              {activeCategory && ` en "${activeCategory.name}"`}
+              {searchTerm && ` para "${searchTerm}"`}
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex cursor-pointer items-center gap-2 font-body text-body-sm text-[#4A5E80]">
+                <input type="checkbox" checked={onlyOnSale} onChange={(e) => setOnlyOnSale(e.target.checked)} />
+                Solo ofertas
+              </label>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="input max-w-[200px] py-2 text-body-sm">
+                <option value="featured">Destacados</option>
+                <option value="bestsellers">Más vendidos</option>
+                <option value="price-asc">Precio: menor a mayor</option>
+                <option value="price-desc">Precio: mayor a menor</option>
+                <option value="rating">Mejor valorados</option>
+              </select>
+            </div>
+          </div>
+
+          {sorted.length === 0 ? (
+            <div className="card p-12 text-center">
+              <Package className="mx-auto h-12 w-12 text-[#C0CEDF]" />
+              <h3 className="mt-4 font-display text-h3 text-[#0B1120]">
+                {searchTerm || activeCategory ? 'Sin resultados' : 'Catálogo vacío'}
+              </h3>
+              <p className="mt-2 font-body text-body-sm text-[#8094B4]">
+                {searchTerm
+                  ? `No se encontraron productos para "${searchTerm}".`
+                  : activeCategory
+                    ? `Todavía no hay productos cargados en "${activeCategory.name}".`
+                    : 'Aún no hay productos en el catálogo.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {sorted.map((product) => {
+                const promo = getEffectivePrice(product);
+                const discount = promo.isOnSale
+                  ? promo.discountPercent
+                  : product.compareAtPrice && product.compareAtPrice > product.price
+                    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
+                    : 0;
+                const displayPrice = promo.isOnSale ? promo.price : product.price;
+                const strikePrice = promo.isOnSale
+                  ? product.price
+                  : product.compareAtPrice && product.compareAtPrice > product.price
+                    ? product.compareAtPrice
+                    : null;
+
+                return (
+                  <div key={product.id} className="card-interactive group overflow-hidden">
+                    <Link href={`/tienda/${product.slug}`}>
+                      <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
+                        {product.images && product.images.length > 0 ? (
+                          <NextImage
+                            src={product.images[0]}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            className="object-contain p-2"
+                          />
+                        ) : (
+                          <Isotipo size={56} color="#2D8FCC20" />
+                        )}
+                        <div className="absolute left-2 top-2 flex gap-1">
+                          {promo.isOnSale && <span className="badge-red">Oferta -{discount}%</span>}
+                          {!promo.isOnSale && discount > 0 && <span className="badge-red">-{discount}%</span>}
+                          {product.isFeatured && <span className="badge-blue">Destacado</span>}
+                        </div>
+                        {product.stock === 0 && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-[#0B1120]/70">
+                            <span className="badge-neutral">Sin stock</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4 pb-0">
+                        <span className="font-body text-overline uppercase tracking-[0.08em] text-[#8094B4]">{product.brand}</span>
+                        <h3 className="mt-1 min-h-[2.5rem] font-body text-body-sm font-semibold leading-tight text-[#0B1120] line-clamp-2">
+                          {product.name}
+                        </h3>
+                        {product.reviewCount > 0 && (
+                          <div className="mt-2 flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`h-3 w-3 ${i < Math.floor(product.rating) ? 'fill-yellow text-yellow' : 'text-[#C0CEDF]'}`} />
+                            ))}
+                            <span className="ml-1 font-body text-caption text-[#8094B4]">({product.reviewCount})</span>
+                          </div>
+                        )}
+                        <div className="mt-3 flex items-baseline gap-2">
+                          <span className="font-display text-[1.2rem] font-bold text-[#0B1120]">{formatPrice(displayPrice)}</span>
+                          {strikePrice && (
+                            <span className="font-body text-caption text-[#8094B4] line-through">{formatPrice(strikePrice)}</span>
+                          )}
+                        </div>
+                        <span className="mt-1 block font-mono text-[0.65rem] text-[#C0CEDF]">{product.sku}</span>
+                      </div>
+                    </Link>
+                    <div className="p-4 pt-3">
+                      <button
+                        className="btn-primary w-full"
+                        disabled={product.stock === 0}
+                        onClick={() => handleAddToCart(product)}
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        {product.stock > 0 ? 'Agregar al carrito' : 'Sin stock'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <BrandsCarousel />
+    </>
+  );
+}
