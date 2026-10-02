@@ -44,7 +44,7 @@ export default function CarritoPage() {
                   <div key={item.productId} className="card flex flex-wrap items-center gap-3 p-4 sm:flex-nowrap sm:gap-4">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#F4F7FB] sm:h-16 sm:w-16">
                       {item.image ? (
-                        <NextImage src={item.image} alt={item.name} width={64} height={64} className="h-full w-full object-cover" />
+                        <NextImage src={item.image} alt={item.name} width={64} height={64} className="h-full w-full object-contain p-1" />
                       ) : (
                         <ShoppingCart className="h-6 w-6 text-[#C0CEDF]" />
                       )}
