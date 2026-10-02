@@ -99,6 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [sidebarOpen]);
 
+
   // Count orders with receipt_submitted for badge on Pedidos
   useEffect(() => {
     fetch('/api/pedidos?status=pending')
