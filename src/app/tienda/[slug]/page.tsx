@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronRight, Star, ShieldCheck, Truck, CreditCard } from 'lucide-react';
-import { getProductBySlug, getAllProducts } from '@/lib/products-store';
+import { getProductBySlug } from '@/lib/products-store';
+import { prisma } from '@/lib/prisma';
 import { siteConfig } from '@/config/site';
 import { formatPrice, getEffectivePrice } from '@/lib/utils';
 import { Isotipo } from '@/components/ui/isotipo';
@@ -17,12 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(params.slug).catch(() => null);
   if (!product) return {};
 
+  const canonical = `${siteConfig.url}/tienda/${product.slug}`;
   return {
     title: product.name,
     description: product.shortDescription || product.description.slice(0, 155),
+    alternates: { canonical },
     openGraph: {
       title: product.name,
       description: product.shortDescription || product.description.slice(0, 155),
+      url: canonical,
       images: product.images?.[0] ? [product.images[0]] : undefined,
     },
   };
@@ -40,10 +44,11 @@ export default async function ProductPage({ params }: Props) {
       ? product.compareAtPrice
       : null;
 
-  const all = await getAllProducts().catch(() => []);
-  const related = all
-    .filter((p) => p.id !== product.id && p.category === product.category && p.isActive)
-    .slice(0, 4);
+  const related = await prisma.product.findMany({
+    where: { category: product.category, id: { not: product.id }, isActive: true },
+    take: 4,
+    select: { id: true, name: true, slug: true, price: true, compareAtPrice: true, images: true, promoDiscountPercent: true, promoStartsAt: true, promoEndsAt: true },
+  }).catch(() => []);
 
   const productSchema = {
     '@context': 'https://schema.org',
@@ -79,7 +84,7 @@ export default async function ProductPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema).replace(/</g, '\\u003c') }}
       />
       {/* Breadcrumb */}
       <div className="border-b border-steel-900/40">

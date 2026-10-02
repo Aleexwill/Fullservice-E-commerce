@@ -193,6 +193,7 @@ function TiendaInner() {
               placeholder="Buscar productos, marcas, SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Buscar productos"
               className="input pl-11 pr-4"
             />
           </div>
@@ -218,6 +219,7 @@ function TiendaInner() {
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
+                aria-pressed={selectedCategory === cat.id}
                 className={`card-interactive group overflow-hidden text-left ${
                   selectedCategory === cat.id ? 'ring-2 ring-blue' : ''
                 }`}
