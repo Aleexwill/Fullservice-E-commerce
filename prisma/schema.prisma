@@ -27,6 +27,7 @@ model Product {
   category         String
   brand            String
   price            Decimal  @db.Decimal(10, 2)
+  costPrice        Decimal? @db.Decimal(10, 2)
   compareAtPrice   Decimal? @db.Decimal(10, 2)
   stock            Int      @default(0)
   images           String[]

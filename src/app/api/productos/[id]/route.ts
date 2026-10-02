@@ -32,6 +32,9 @@ export async function PUT(
     const product = await updateProduct(params.id, {
       ...body,
       price: body.price !== undefined ? Number(body.price) : undefined,
+      costPrice: body.costPrice !== undefined
+        ? (body.costPrice ? Number(body.costPrice) : null)
+        : undefined,
       compareAtPrice: body.compareAtPrice !== undefined
         ? (body.compareAtPrice ? Number(body.compareAtPrice) : null)
         : undefined,

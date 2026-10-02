@@ -76,6 +76,7 @@ export default function EditarProductoPage() {
     category: product.category,
     brand: product.brand,
     price: product.price.toString(),
+    costPrice: product.costPrice ? product.costPrice.toString() : '',
     compareAtPrice: product.compareAtPrice ? product.compareAtPrice.toString() : '',
     stock: product.stock.toString(),
     images: product.images || [],

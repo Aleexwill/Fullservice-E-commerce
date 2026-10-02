@@ -29,6 +29,7 @@ interface ProductFormData {
   category: string;
   brand: string;
   price: string;
+  costPrice: string;
   compareAtPrice: string;
   stock: string;
   images: string[];
@@ -69,6 +70,7 @@ const defaultData: ProductFormData = {
   category: 'Ferreteria General',
   brand: '',
   price: '',
+  costPrice: '',
   compareAtPrice: '',
   stock: '',
   images: [],
@@ -205,6 +207,7 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
         body: JSON.stringify({
           ...form,
           price: Number(form.price),
+          costPrice: form.costPrice ? Number(form.costPrice) : null,
           compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : null,
           stock: Number(form.stock) || 0,
           promoDiscountPercent: form.promoDiscountPercent ? Number(form.promoDiscountPercent) : null,
@@ -365,10 +368,10 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
               <DollarSign className="h-5 w-5 text-[#48BB78]" />
               <h2 className="font-display text-h3 text-arctic">Precios y stock</h2>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label className="mb-1.5 block font-body text-caption uppercase tracking-[0.06em] text-steel-300">
-                  Precio (Gs.) *
+                  Precio venta (Gs.) *
                 </label>
                 <input
                   type="number"
@@ -379,6 +382,20 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
                   min="0"
                   step="1"
                   required
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block font-body text-caption uppercase tracking-[0.06em] text-steel-300">
+                  Costo (Gs.)
+                </label>
+                <input
+                  type="number"
+                  value={form.costPrice}
+                  onChange={(e) => updateField('costPrice', e.target.value)}
+                  placeholder="Solo uso interno"
+                  className="input font-mono"
+                  min="0"
+                  step="1"
                 />
               </div>
               <div>
@@ -409,11 +426,18 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
                 />
               </div>
             </div>
-            {form.compareAtPrice && Number(form.compareAtPrice) > Number(form.price) && (
-              <div className="mt-3 rounded-md bg-[#48BB78]/10 px-3 py-2 font-body text-caption text-[#48BB78]">
-                Descuento: {Math.round((1 - Number(form.price) / Number(form.compareAtPrice)) * 100)}% OFF
-              </div>
-            )}
+            <div className="mt-3 flex flex-wrap gap-3">
+              {form.costPrice && form.price && Number(form.costPrice) > 0 && Number(form.price) > 0 && (
+                <div className="rounded-md bg-[#48BB78]/10 px-3 py-2 font-body text-caption text-[#48BB78]">
+                  Margen: {Math.round((1 - Number(form.costPrice) / Number(form.price)) * 100)}% · Ganancia: {(Number(form.price) - Number(form.costPrice)).toLocaleString('es-PY')} Gs.
+                </div>
+              )}
+              {form.compareAtPrice && Number(form.compareAtPrice) > Number(form.price) && (
+                <div className="rounded-md bg-[#48BB78]/10 px-3 py-2 font-body text-caption text-[#48BB78]">
+                  Descuento: {Math.round((1 - Number(form.price) / Number(form.compareAtPrice)) * 100)}% OFF
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Promocion por tiempo */}
