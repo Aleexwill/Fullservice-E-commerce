@@ -1,79 +1,89 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, requireRole } from '@/lib/auth';
-import { getAllProducts, createProduct, getEffectivePrice, type Product } from '@/lib/products-store';
+import { requireRole } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { createProduct, type Product } from '@/lib/products-store';
 import { parseBody, CreateProductoSchema } from '@/lib/schemas';
 
 const SORTABLE_FIELDS = ['createdAt', 'name', 'price', 'rating', 'salesCount', 'stock'] as const;
 type SortableField = (typeof SORTABLE_FIELDS)[number];
 
+function toProduct(p: any): Product {
+  return {
+    id: p.id,
+    sku: p.sku,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    shortDescription: p.shortDescription,
+    category: p.category,
+    brand: p.brand,
+    price: Number(p.price),
+    compareAtPrice: p.compareAtPrice === null ? null : Number(p.compareAtPrice),
+    stock: p.stock,
+    images: p.images,
+    specifications: (p.specifications as Record<string, string>) ?? {},
+    tags: p.tags,
+    isFeatured: p.isFeatured,
+    isActive: p.isActive,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    salesCount: p.salesCount,
+    promoDiscountPercent: p.promoDiscountPercent,
+    promoStartsAt: p.promoStartsAt ? p.promoStartsAt.toISOString() : null,
+    promoEndsAt: p.promoEndsAt ? p.promoEndsAt.toISOString() : null,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+  };
+}
+
 // GET /api/productos
 export async function GET(request: NextRequest) {
   try {
-    const products = await getAllProducts();
     const { searchParams } = new URL(request.url);
 
-    let filtered = [...products];
-
-    // Filter by search
+    // Build where clause
+    const andClauses: any[] = [];
     const search = searchParams.get('search');
     if (search) {
-      const q = search.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q)
+      andClauses.push({ OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
+        { brand: { contains: search, mode: 'insensitive' } },
+      ]});
+    }
+    if (searchParams.get('category')) andClauses.push({ category: searchParams.get('category') });
+    if (searchParams.get('active') === 'true') andClauses.push({ isActive: true });
+    if (searchParams.get('featured') === 'true') andClauses.push({ isFeatured: true });
+    if (searchParams.get('onSale') === 'true') {
+      const now = new Date();
+      andClauses.push(
+        { promoDiscountPercent: { not: null } },
+        { promoStartsAt: { lte: now } },
+        { OR: [{ promoEndsAt: null }, { promoEndsAt: { gte: now } }] },
       );
     }
+    const where = andClauses.length ? { AND: andClauses } : {};
 
-    // Filter by category
-    const category = searchParams.get('category');
-    if (category) {
-      filtered = filtered.filter((p) => p.category === category);
-    }
-
-    // Filter by active
-    const active = searchParams.get('active');
-    if (active === 'true') {
-      filtered = filtered.filter((p) => p.isActive);
-    }
-
-    // Filter by featured
-    const featured = searchParams.get('featured');
-    if (featured === 'true') {
-      filtered = filtered.filter((p) => p.isFeatured);
-    }
-
-    // Filter by promocion vigente
-    const onSale = searchParams.get('onSale');
-    if (onSale === 'true') {
-      filtered = filtered.filter((p) => getEffectivePrice(p).isOnSale);
-    }
-
-    // Sort (whitelist de campos para evitar acceso dinámico arbitrario)
+    // Sort
     const sortParam = searchParams.get('sort') || 'createdAt';
     const sort: SortableField = SORTABLE_FIELDS.includes(sortParam as SortableField) ? (sortParam as SortableField) : 'createdAt';
-    const order = searchParams.get('order') || 'desc';
-    filtered.sort((a, b) => {
-      const aVal = a[sort];
-      const bVal = b[sort];
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-      }
-      return order === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
-    });
+    const order = (searchParams.get('order') || 'desc') === 'asc' ? 'asc' : 'desc';
+    const orderBy: any = { [sort]: order };
 
     // Pagination
-    const totalFiltered = filtered.length;
     const limit = Math.min(Math.max(Number(searchParams.get('limit') || 20), 1), 100);
     const page = Math.max(Number(searchParams.get('page') || 1), 1);
-    const offset = (page - 1) * limit;
-    const paginated = filtered.slice(offset, offset + limit);
+    const skip = (page - 1) * limit;
+
+    const [rows, totalFiltered] = await Promise.all([
+      prisma.product.findMany({ where, orderBy, skip, take: limit }),
+      prisma.product.count({ where }),
+    ]);
 
     return NextResponse.json({
-      products: paginated,
+      products: rows.map(toProduct),
       total: totalFiltered,
       page,
       limit,
