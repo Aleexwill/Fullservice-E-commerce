@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = settings.seo.metaTitle || `${siteConfig.name} — Mantenimiento · Limpieza · Servicios`;
   const description = settings.seo.metaDescription || siteConfig.description;
 
-  const ogImage = settings.seo.ogImage || `${siteConfig.url}/og-image.png`;
+  const ogImage = settings.seo.ogImage || `${siteConfig.url}/opengraph-image`;
   const siteName = settings.general.siteName || siteConfig.name;
 
   return {
@@ -105,7 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Saturday'], opens: '08:00', closes: '13:00' },
     ],
     priceRange: '$$',
-    image: `${siteConfig.url}/og-image.png`,
+    image: `${siteConfig.url}/opengraph-image`,
     sameAs: Object.values(settings.social).filter(Boolean),
   };
 

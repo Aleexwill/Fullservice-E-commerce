@@ -87,11 +87,25 @@ export default async function ProductPage({ params }: Props) {
       : {}),
   };
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteConfig.url },
+      { '@type': 'ListItem', position: 2, name: 'Tienda', item: `${siteConfig.url}/tienda` },
+      { '@type': 'ListItem', position: 3, name: product.name, item: `${siteConfig.url}/tienda/${product.slug}` },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema).replace(/</g, '\\u003c') }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c') }}
       />
       {/* Breadcrumb */}
       <div className="border-b border-steel-900/40">

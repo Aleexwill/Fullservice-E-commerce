@@ -149,7 +149,15 @@ export default function CheckoutPage() {
         <div className="container-main">
           <h1 className="mb-8 font-display text-h1 uppercase text-[#0B1120]">Finalizar compra</h1>
 
-          {!hydrated ? null : items.length === 0 ? (
+          {!hydrated ? (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 animate-pulse">
+              <div className="space-y-4 lg:col-span-2">
+                <div className="card h-64 bg-gray-100 p-5" />
+                <div className="card h-32 bg-gray-100 p-5" />
+              </div>
+              <div className="card h-64 bg-gray-100 p-5" />
+            </div>
+          ) : items.length === 0 ? (
             <div className="py-16 text-center">
               <p className="font-body text-body text-[#4A5E80]">Tu carrito está vacío.</p>
               <Link href="/tienda" className="btn-primary mt-4 inline-flex">Ir a la tienda</Link>
