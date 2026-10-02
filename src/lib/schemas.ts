@@ -108,6 +108,7 @@ export const CreateProductoSchema = z.object({
   category: z.string().max(100).default('general'),
   brand: z.string().max(100).default(''),
   price: z.number().min(0, 'El precio debe ser mayor o igual a cero'),
+  costPrice: z.number().min(0).nullable().default(null),
   compareAtPrice: z.number().min(0).nullable().default(null),
   stock: z.number().int().min(0).default(0),
   images: z.array(z.string().url()).default([]),
