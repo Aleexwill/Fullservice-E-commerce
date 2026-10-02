@@ -149,7 +149,15 @@ export default function CheckoutPage() {
         <div className="container-main">
           <h1 className="mb-8 font-display text-h1 uppercase text-[#0B1120]">Finalizar compra</h1>
 
-          {!hydrated ? null : items.length === 0 ? (
+          {!hydrated ? (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 animate-pulse">
+              <div className="space-y-4 lg:col-span-2">
+                <div className="card h-64 bg-gray-100 p-5" />
+                <div className="card h-32 bg-gray-100 p-5" />
+              </div>
+              <div className="card h-64 bg-gray-100 p-5" />
+            </div>
+          ) : items.length === 0 ? (
             <div className="py-16 text-center">
               <p className="font-body text-body text-[#4A5E80]">Tu carrito está vacío.</p>
               <Link href="/tienda" className="btn-primary mt-4 inline-flex">Ir a la tienda</Link>
@@ -161,13 +169,31 @@ export default function CheckoutPage() {
                 <div className="card space-y-4 p-5">
                   <h2 className="font-display text-h4 uppercase text-[#0B1120]">Tus datos</h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <input required placeholder="Nombre completo" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" />
-                    <input required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input" />
-                    <input required placeholder="Teléfono" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" />
-                    <input placeholder="Ciudad" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" />
+                    <label className="flex flex-col gap-1 font-body text-body-sm text-[#4A5E80]">
+                      Nombre completo *
+                      <input id="checkout-name" required placeholder="Juan Pérez" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" />
+                    </label>
+                    <label className="flex flex-col gap-1 font-body text-body-sm text-[#4A5E80]">
+                      Email *
+                      <input id="checkout-email" required type="email" placeholder="juan@email.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input" />
+                    </label>
+                    <label className="flex flex-col gap-1 font-body text-body-sm text-[#4A5E80]">
+                      Teléfono *
+                      <input id="checkout-phone" required placeholder="+595 981 000 000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" />
+                    </label>
+                    <label className="flex flex-col gap-1 font-body text-body-sm text-[#4A5E80]">
+                      Ciudad
+                      <input id="checkout-city" placeholder="Asunción" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input" />
+                    </label>
                   </div>
-                  <input required placeholder="Dirección de entrega" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" />
-                  <textarea placeholder="Notas (opcional)" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="input min-h-[80px]" />
+                  <label className="flex flex-col gap-1 font-body text-body-sm text-[#4A5E80]">
+                    Dirección de entrega *
+                    <input id="checkout-address" required placeholder="Calle, número, barrio" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input" />
+                  </label>
+                  <label className="flex flex-col gap-1 font-body text-body-sm text-[#4A5E80]">
+                    Notas (opcional)
+                    <textarea id="checkout-notes" placeholder="Instrucciones especiales para la entrega" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="input min-h-[80px]" />
+                  </label>
                 </div>
 
                 <div className="card space-y-3 p-5">

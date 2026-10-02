@@ -139,8 +139,11 @@ function AdminPresupuestosPageInner() {
 
   const del = async (id: string) => {
     if (!confirm('¿Eliminar este presupuesto?')) return;
-    await fetch(`/api/presupuestos/${id}`, { method: 'DELETE' });
-    fetchData();
+    try {
+      const res = await fetch(`/api/presupuestos/${id}`, { method: 'DELETE' });
+      if (!res.ok) { alert('No se pudo eliminar el presupuesto'); return; }
+      fetchData();
+    } catch { alert('Error de conexión'); }
   };
 
   const changeStatus = async (id: string, status: string) => {

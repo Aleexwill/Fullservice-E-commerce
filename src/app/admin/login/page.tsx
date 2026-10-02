@@ -147,7 +147,8 @@ function LoginForm() {
       if (data.mustChangePassword) {
         router.push('/admin/cambiar-password');
       } else {
-        const redirectTo = searchParams.get('redirect') || '/admin';
+        const r = searchParams.get('redirect');
+        const redirectTo = r?.startsWith('/admin') ? r : '/admin';
         router.push(redirectTo);
       }
       router.refresh();

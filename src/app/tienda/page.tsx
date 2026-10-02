@@ -193,6 +193,7 @@ function TiendaInner() {
               placeholder="Buscar productos, marcas, SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Buscar productos"
               className="input pl-11 pr-4"
             />
           </div>
@@ -218,6 +219,7 @@ function TiendaInner() {
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
+                aria-pressed={selectedCategory === cat.id}
                 className={`card-interactive group overflow-hidden text-left ${
                   selectedCategory === cat.id ? 'ring-2 ring-blue' : ''
                 }`}
@@ -312,9 +314,7 @@ function TiendaInner() {
                     : 'Aun no hay productos en el catalogo. El administrador debe cargar productos desde el panel de admin.'}
               </p>
               {!searchTerm && !activeCategory && (
-                <Link href="/admin/productos/nuevo" className="btn-primary mt-6 inline-flex">
-                  Ir al panel de admin
-                </Link>
+                <p className="mt-4 font-body text-caption text-[#8094B4]">Próximamente.</p>
               )}
             </div>
           ) : (

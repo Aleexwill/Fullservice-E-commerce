@@ -39,7 +39,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/trabajos', label: 'Portfolio', icon: FolderOpen },
     { href: '/admin/carousel', label: 'Carrusel hero', icon: ImageIcon },
     { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers },
-    { href: '/admin/banners', label: 'Banners', icon: Megaphone },
+    { href: '/admin/promos', label: 'Banners', icon: Megaphone },
   ]},
   { label: 'Clientes & CRM', items: [
     { href: '/admin/clientes', label: 'Clientes', icon: UserCheck },
@@ -68,6 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingReceipts, setPendingReceipts] = useState(0);
+  const [adminName, setAdminName] = useState('Administrador');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return {};
     try { return JSON.parse(localStorage.getItem('fs-nav-collapsed') ?? '{}'); } catch { return {}; }
@@ -81,6 +82,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
   const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
   const pageLabel = getPageLabel(pathname);
+
+  useEffect(() => {
+    fetch('/api/auth/me').then((r) => r.ok ? r.json() : null).then((d) => { if (d?.name) setAdminName(d.name); }).catch(() => {});
+  }, []);
 
   // Count orders with receipt_submitted for badge on Pedidos
   useEffect(() => {
@@ -167,7 +172,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-muted text-blue-bright">
             <UserCog className="h-3.5 w-3.5" />
           </div>
-          <p className="font-body text-caption font-medium text-arctic">Administrador</p>
+          <p className="font-body text-caption font-medium text-arctic">{adminName}</p>
         </div>
         <div className="grid grid-cols-2 gap-1">
           <Link

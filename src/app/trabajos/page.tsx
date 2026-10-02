@@ -64,7 +64,7 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
   const details = Object.entries(project.technicalDetails || {}).filter(([, v]) => v);
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0B1120]/98 backdrop-blur-md" onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label={project.title} className="fixed inset-0 z-[100] flex flex-col bg-[#0B1120]/98 backdrop-blur-md" onClick={onClose}>
 
       {/* Top bar: title + close — always visible */}
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-[#0B1120] px-4 py-3 md:px-6" onClick={(e) => e.stopPropagation()}>

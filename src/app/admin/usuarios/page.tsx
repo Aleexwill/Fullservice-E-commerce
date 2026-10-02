@@ -45,7 +45,9 @@ export default function UsuariosPage() {
 
   function generatePassword() {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
-    return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const arr = new Uint32Array(10);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, (n) => chars[n % chars.length]).join('');
   }
 
   const load = useCallback(async () => {
@@ -131,12 +133,15 @@ export default function UsuariosPage() {
   }
 
   async function toggleActive(user: User) {
-    await fetch(`/api/usuarios/${user.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: !user.isActive }),
-    });
-    load();
+    try {
+      const res = await fetch(`/api/usuarios/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !user.isActive }),
+      });
+      if (!res.ok) { alert('No se pudo actualizar el estado del usuario'); return; }
+      load();
+    } catch { alert('Error de conexión'); }
   }
 
   async function deleteUser(user: User) {
@@ -195,8 +200,7 @@ export default function UsuariosPage() {
               <div>
                 <label className="mb-1 block font-body text-caption text-steel-400">Correo electrónico</label>
                 <input
-                  type="text"
-                  inputMode="email"
+                  type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="correo@ejemplo.com"

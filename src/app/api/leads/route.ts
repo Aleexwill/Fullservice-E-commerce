@@ -5,6 +5,7 @@ import { getAllLeads, createLead } from '@/lib/leads-store';
 import type { LeadStatus, LeadPriority, LeadSource } from '@/lib/leads-store';
 import { requireAuth, requireRole } from '@/lib/auth';
 import { parseBody, CreateLeadSchema } from '@/lib/schemas';
+import { rateLimit, getIp } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
   const auth = await requireRole('canManageLeads');
@@ -42,6 +43,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rl = rateLimit(getIp(request), 10, 15 * 60 * 1000);
+  if (!rl.allowed) return NextResponse.json({ error: 'Demasiadas solicitudes, intente más tarde' }, { status: 429 });
   try {
     const parsed = await parseBody(request, CreateLeadSchema);
     if (parsed.error) return parsed.error;

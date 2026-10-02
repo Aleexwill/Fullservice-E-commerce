@@ -158,9 +158,12 @@ export default function AdminPedidosPage() {
 
   const deleteOrder = async (id: string) => {
     if (!confirm('¿Eliminar este pedido?')) return;
-    await fetch(`/api/pedidos/${id}`, { method: 'DELETE' });
-    fetchOrders();
-    if (selectedOrder?.id === id) setSelectedOrder(null);
+    try {
+      const res = await fetch(`/api/pedidos/${id}`, { method: 'DELETE' });
+      if (!res.ok) { showToast('No se pudo eliminar el pedido', 'error'); return; }
+      fetchOrders();
+      if (selectedOrder?.id === id) setSelectedOrder(null);
+    } catch { showToast('Error de conexión', 'error'); }
   };
 
   return (
@@ -428,7 +431,7 @@ function CreateOrderModal({ onClose, onCreated }: { onClose: () => void; onCreat
     e.preventDefault();
     setSaving(true);
     try {
-      await fetch('/api/pedidos', {
+      const res = await fetch('/api/pedidos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -440,6 +443,11 @@ function CreateOrderModal({ onClose, onCreated }: { onClose: () => void; onCreat
           discount: 0,
         }),
       });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        showToast(e.error || 'Error al crear el pedido', 'error');
+        return;
+      }
       showToast('Pedido creado', 'success');
       onCreated();
     } catch {
