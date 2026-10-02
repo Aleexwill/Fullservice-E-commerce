@@ -312,9 +312,7 @@ function TiendaInner() {
                     : 'Aun no hay productos en el catalogo. El administrador debe cargar productos desde el panel de admin.'}
               </p>
               {!searchTerm && !activeCategory && (
-                <Link href="/admin/productos/nuevo" className="btn-primary mt-6 inline-flex">
-                  Ir al panel de admin
-                </Link>
+                <p className="mt-4 font-body text-caption text-[#8094B4]">Próximamente.</p>
               )}
             </div>
           ) : (

@@ -39,7 +39,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/trabajos', label: 'Portfolio', icon: FolderOpen },
     { href: '/admin/carousel', label: 'Carrusel hero', icon: ImageIcon },
     { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers },
-    { href: '/admin/banners', label: 'Banners', icon: Megaphone },
+    { href: '/admin/promos', label: 'Banners', icon: Megaphone },
   ]},
   { label: 'Clientes & CRM', items: [
     { href: '/admin/clientes', label: 'Clientes', icon: UserCheck },
