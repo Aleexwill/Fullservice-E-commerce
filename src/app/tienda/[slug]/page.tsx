@@ -44,11 +44,18 @@ export default async function ProductPage({ params }: Props) {
       ? product.compareAtPrice
       : null;
 
-  const related = await prisma.product.findMany({
+  const relatedRaw = await prisma.product.findMany({
     where: { category: product.category, id: { not: product.id }, isActive: true },
     take: 4,
     select: { id: true, name: true, slug: true, price: true, compareAtPrice: true, images: true, promoDiscountPercent: true, promoStartsAt: true, promoEndsAt: true },
   }).catch(() => []);
+  const related = relatedRaw.map((p) => ({
+    ...p,
+    price: Number(p.price),
+    compareAtPrice: p.compareAtPrice != null ? Number(p.compareAtPrice) : null,
+    promoStartsAt: p.promoStartsAt?.toISOString() ?? null,
+    promoEndsAt: p.promoEndsAt?.toISOString() ?? null,
+  }));
 
   const productSchema = {
     '@context': 'https://schema.org',
