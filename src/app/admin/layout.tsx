@@ -84,10 +84,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return next;
     });
   };
+  // Find the single best-matching href across all nav items (longest prefix wins)
+  const bestMatch = navGroups
+    .flatMap((g) => g.items)
+    .filter((item) =>
+      item.exact
+        ? pathname === item.href
+        : pathname === item.href || pathname.startsWith(item.href + '/')
+    )
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
+
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
-    // Match full path segments: /admin/presupuestos must NOT match /admin/presupuestos/solicitudes
-    return pathname === href || pathname.startsWith(href + '/');
+    return href === bestMatch;
   };
   const pageLabel = getPageLabel(pathname);
 
