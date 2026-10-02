@@ -24,7 +24,7 @@ const navGroups: NavGroup[] = [
   { label: 'E-Commerce', items: [
     { href: '/admin/productos', label: 'Productos', icon: Package },
     { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
-    { href: '/admin/promos', label: 'Descuentos', icon: Tag },
+    { href: '/admin/descuentos', label: 'Promos', icon: Tag },
     { href: '/admin/reportes/ecommerce', label: 'Reporte ventas', icon: TrendingUp },
   ]},
   { label: 'Servicios', items: [
