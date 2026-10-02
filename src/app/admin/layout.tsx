@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
@@ -67,6 +67,8 @@ function getPageLabel(pathname: string): string {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const openBtnRef = useRef<HTMLButtonElement>(null);
   const [pendingReceipts, setPendingReceipts] = useState(0);
   const [adminName, setAdminName] = useState('Administrador');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
@@ -86,6 +88,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     fetch('/api/auth/me').then((r) => r.ok ? r.json() : null).then((d) => { if (d?.name) setAdminName(d.name); }).catch(() => {});
   }, []);
+
+  // Move focus into sidebar when it opens, return to trigger when it closes
+  useEffect(() => {
+    if (sidebarOpen) {
+      const first = sidebarRef.current?.querySelector<HTMLElement>('a, button');
+      first?.focus();
+    } else {
+      openBtnRef.current?.focus();
+    }
+  }, [sidebarOpen]);
 
   // Count orders with receipt_submitted for badge on Pedidos
   useEffect(() => {
@@ -207,7 +219,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           aria-hidden="true"
         />
       )}
-      <aside className={cn(
+      <aside id="admin-sidebar" ref={sidebarRef} aria-label="Navegación admin" className={cn(
         'fixed left-0 top-0 z-50 flex h-full w-[220px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200',
         'lg:translate-x-0',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -224,8 +236,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="min-h-screen flex-1 lg:ml-[220px]">
         <div className="sticky top-0 z-40 flex h-[52px] items-center gap-3 border-b border-steel-900/40 bg-carbon-light/95 px-4 backdrop-blur-sm">
           <button
+            ref={openBtnRef}
             onClick={() => setSidebarOpen(true)}
             aria-label="Abrir menú"
+            aria-expanded={sidebarOpen}
+            aria-controls="admin-sidebar"
             className="rounded-md p-2 text-steel-400 hover:bg-steel-900 hover:text-arctic lg:hidden"
           >
             <Menu className="h-5 w-5" />
