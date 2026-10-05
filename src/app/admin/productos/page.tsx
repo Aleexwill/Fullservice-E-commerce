@@ -151,8 +151,8 @@ export default function AdminProductosPage() {
       </div>
 
       {/* Search + filters bar */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px]">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-500" />
           <input
             type="text"
@@ -166,9 +166,9 @@ export default function AdminProductosPage() {
         <select
           value={filterActive}
           onChange={(e) => setFilterActive(e.target.value)}
-          className="input min-w-[140px]"
+          className="input w-auto"
         >
-          <option value="">Todos los estados</option>
+          <option value="">Estado</option>
           <option value="true">Activos</option>
           <option value="false">Inactivos</option>
         </select>
@@ -176,22 +176,22 @@ export default function AdminProductosPage() {
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="input min-w-[160px]"
+          className="input w-auto"
         >
-          <option value="">Todas las categorias</option>
+          <option value="">Categoría</option>
           <option value="herramientas">Herramientas</option>
           <option value="materiales">Materiales</option>
           <option value="equipos">Equipos</option>
           <option value="seguridad">Seguridad</option>
           <option value="electricidad">Electricidad</option>
-          <option value="plomeria">Plomeria</option>
+          <option value="plomeria">Plomería</option>
           <option value="pinturas">Pinturas</option>
           <option value="limpieza">Limpieza</option>
-          <option value="ferreteria">Ferreteria</option>
+          <option value="ferreteria">Ferretería</option>
           <option value="general">General</option>
         </select>
 
-        <button onClick={() => fetchProducts(page)} className="btn-secondary">
+        <button onClick={() => fetchProducts(page)} className="btn-secondary shrink-0">
           <RefreshCw className="h-4 w-4" />
           Actualizar
         </button>

@@ -11,6 +11,7 @@ export interface Product {
   category: string;
   brand: string;
   price: number;
+  costPrice: number | null;
   compareAtPrice: number | null;
   stock: number;
   images: string[];
@@ -41,6 +42,7 @@ function toProduct(p: PrismaProduct): Product {
     category: p.category,
     brand: p.brand,
     price: Number(p.price),
+    costPrice: p.costPrice === null || p.costPrice === undefined ? null : Number(p.costPrice),
     compareAtPrice: p.compareAtPrice === null ? null : Number(p.compareAtPrice),
     stock: p.stock,
     images: p.images,

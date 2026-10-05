@@ -24,7 +24,7 @@ const navGroups: NavGroup[] = [
   { label: 'E-Commerce', items: [
     { href: '/admin/productos', label: 'Productos', icon: Package },
     { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
-    { href: '/admin/promos', label: 'Descuentos', icon: Tag },
+    { href: '/admin/descuentos', label: 'Promos', icon: Tag },
     { href: '/admin/reportes/ecommerce', label: 'Reporte ventas', icon: TrendingUp },
   ]},
   { label: 'Servicios', items: [
@@ -85,7 +85,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return next;
     });
   };
-  const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
+  // Find the single best-matching href across all nav items (longest prefix wins)
+  const bestMatch = navGroups
+    .flatMap((g) => g.items)
+    .filter((item) =>
+      item.exact
+        ? pathname === item.href
+        : pathname === item.href || pathname.startsWith(item.href + '/')
+    )
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
+
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href;
+    return href === bestMatch;
+  };
   const pageLabel = getPageLabel(pathname);
 
   useEffect(() => {

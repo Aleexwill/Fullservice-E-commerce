@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronograma de Obra</title>
+<style>
+  /* ── tokens ── */
+  :root {
+    --bg:        #0E0F14;
+    --bg2:       #181921;
+    --bg3:       #1F2130;
+    --bg4:       #262840;
+    --border:    #2A2D42;
+    --border2:   #353860;
+    --fg:        #E8EAF6;
+    --fg2:       #9097BE;
+    --fg3:       #5A607A;
+    --acc:       #4F7FFA;
+    --acc2:      #7C3AED;
+    --ok:        #22C55E;
+    --warn:      #F59E0B;
+    --danger:    #EF4444;
+    --bar1:      #4F7FFA;
+    --bar2:      #7C3AED;
+    --bar3:      #06B6D4;
+    --bar4:      #10B981;
+    --bar5:      #F59E0B;
+    --bar6:      #EC4899;
+    --bar7:      #8B5CF6;
+    --bar8:      #14B8A6;
+    --r:         6px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
+
+  /* ── layout ── */
+  .app { display: flex; flex-direction: column; height: 100vh; }
+
+  /* ── header ── */
+  .hdr {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: var(--bg2); flex-shrink: 0;
+  }
+  .hdr-title { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--acc); }
+  .hdr-sub { font-size: .72rem; color: var(--fg3); }
+  .hdr-sep { width: 1px; height: 18px; background: var(--border2); }
+  .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  /* form controls */
+  select, input[type="text"], input[type="date"], input[type="number"] {
+    background: var(--bg3); border: 1px solid var(--border2); border-radius: 4px;
+    color: var(--fg); padding: 4px 8px; font-size: .78rem; outline: none;
+    transition: border-color .15s;
+  }
+  select:focus, input:focus { border-color: var(--acc); }
+  label { font-size: .72rem; color: var(--fg2); }
+
+  /* buttons */
+  .btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: .78rem; font-weight: 600; transition: opacity .15s; }
+  .btn:hover { opacity: .85; }
+  .btn-primary { background: var(--acc); color: #fff; }
+  .btn-ghost   { background: transparent; border: 1px solid var(--border2); color: var(--fg2); }
+  .btn-ghost:hover { border-color: var(--acc); color: var(--fg); }
+  .btn-danger  { background: transparent; border: 1px solid #EF444466; color: var(--danger); }
+  .btn-sm { padding: 3px 8px; font-size: .72rem; }
+
+  /* ── toolbar ── */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 16px; border-bottom: 1px solid var(--border);
+    background: var(--bg2); flex-shrink: 0;
+  }
+  .toolbar-group { display: flex; align-items: center; gap: 6px; }
+  .zoom-display { font-size: .72rem; color: var(--fg2); min-width: 30px; text-align: center; }
+
+  /* ── main split ── */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── left panel (table) ── */
+  .panel-left {
+    width: 420px; flex-shrink: 0; display: flex; flex-direction: column;
+    border-right: 1px solid var(--border); overflow: hidden;
+  }
+  .panel-left-hdr {
+    display: grid; grid-template-columns: 28px 1fr 90px 70px 60px; gap: 0;
+    background: var(--bg3); border-bottom: 1px solid var(--border2);
+    flex-shrink: 0;
+  }
+  .ph { padding: 6px 8px; font-size: .65rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--fg3); border-right: 1px solid var(--border); }
+  .ph:last-child { border-right: none; }
+
+  .rows-scroll { overflow-y: auto; flex: 1; }
+  .row-wrap { border-bottom: 1px solid var(--border); }
+
+  .row {
+    display: grid; grid-template-columns: 28px 1fr 90px 70px 60px; gap: 0;
+    align-items: center; min-height: 36px;
+  }
+  .row:hover .rc { background: var(--bg4); }
+  .rc { padding: 6px 8px; border-right: 1px solid var(--border); font-size: .78rem; height: 100%; display: flex; align-items: center; }
+  .rc:last-child { border-right: none; }
+  .rc-num { color: var(--fg3); font-size: .68rem; justify-content: center; }
+  .rc-name { font-weight: 500; color: var(--fg); word-break: break-word; }
+  .rc-name.is-rubro { font-weight: 700; color: var(--acc); font-size: .8rem; }
+  .rc-name.is-sub { padding-left: 20px; font-size: .75rem; }
+  .rc-resp { font-size: .72rem; color: var(--fg2); }
+  .rc-dur  { font-size: .72rem; color: var(--fg2); text-align: right; }
+  .rc-avance { justify-content: center; flex-direction: column; gap: 2px; }
+  .avance-bar { width: 100%; height: 4px; background: var(--bg4); border-radius: 2px; }
+  .avance-fill { height: 100%; border-radius: 2px; background: var(--ok); }
+  .avance-pct  { font-size: .65rem; color: var(--fg3); }
+
+  /* sub-row (tarea) */
+  .tarea-row {
+    display: grid; grid-template-columns: 28px 1fr 90px 70px 60px; gap: 0;
+    align-items: center; min-height: 30px; background: var(--bg);
+  }
+  .tarea-row .rc { padding: 4px 8px; }
+
+  /* ── right panel (gantt) ── */
+  .panel-right { flex: 1; overflow: auto; position: relative; }
+
+  .gantt-inner { position: relative; }
+
+  /* header weeks */
+  .gantt-hdr { position: sticky; top: 0; z-index: 5; background: var(--bg3); border-bottom: 1px solid var(--border2); display: flex; }
+  .week-col { border-right: 1px solid var(--border); flex-shrink: 0; }
+  .week-month { padding: 3px 4px; font-size: .6rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--fg3); border-bottom: 1px solid var(--border); text-align: center; }
+  .week-num { padding: 3px 4px; font-size: .62rem; color: var(--fg2); text-align: center; }
+
+  /* today line */
+  .today-line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--warn); opacity: .6; pointer-events: none; z-index: 4; }
+
+  /* gantt rows */
+  .gantt-row { display: flex; align-items: center; min-height: 36px; border-bottom: 1px solid var(--border); position: relative; }
+  .gantt-row.is-rubro { min-height: 36px; background: var(--bg2); }
+  .gantt-row.is-tarea { min-height: 30px; background: var(--bg); }
+  .gantt-row:hover { background: var(--bg4); }
+  .gantt-cell { border-right: 1px solid var(--border); height: 100%; flex-shrink: 0; min-height: inherit; }
+
+  /* bar */
+  .gantt-bar-wrap { position: absolute; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 2; }
+  .gantt-bar {
+    height: 16px; border-radius: 3px; position: relative; overflow: hidden;
+    box-shadow: 0 1px 4px #0004;
+  }
+  .gantt-bar.is-rubro { height: 18px; }
+  .gantt-bar-done { position: absolute; left: 0; top: 0; bottom: 0; opacity: .5; border-radius: 3px 0 0 3px; }
+  .gantt-bar-label { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 6px; font-size: .65rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ── modal ── */
+  .overlay { position: fixed; inset: 0; background: #000a; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+  .modal-hdr { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-hdr h2 { font-size: .88rem; font-weight: 700; }
+  .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .modal-ftr  { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: .72rem; color: var(--fg2); }
+  .field input, .field select { width: 100%; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .close-btn { background: none; border: none; color: var(--fg3); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+  .close-btn:hover { color: var(--fg); }
+
+  /* ── empty state ── */
+  .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 200px; color: var(--fg3); font-size: .82rem; }
+
+  /* ── scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── kpi strip ── */
+  .kpi-strip { display: flex; gap: 10px; padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--bg2); flex-shrink: 0; flex-wrap: wrap; }
+  .kpi { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 5px 12px; }
+  .kpi .v { font-size: 1.1rem; font-weight: 700; line-height: 1.1; }
+  .kpi .l { font-size: .6rem; text-transform: uppercase; letter-spacing: .06em; color: var(--fg3); margin-top: 1px; }
+  .kpi-ok   .v { color: var(--ok); }
+  .kpi-warn .v { color: var(--warn); }
+  .kpi-acc  .v { color: var(--acc); }
+  .kpi-fg   .v { color: var(--fg); }
+
+  /* color dot */
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <span class="hdr-title">Cronograma de Obra</span>
+    <div class="hdr-sep"></div>
+    <div class="toolbar-group">
+      <label>Proyecto</label>
+      <select id="selPres" style="min-width:200px"></select>
+    </div>
+    <div class="hdr-right">
+      <button class="btn btn-primary btn-sm" onclick="openModal('rubro')">+ Rubro</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+    </div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip" id="kpiStrip">
+    <div class="kpi kpi-fg"><div class="v" id="kpiRubros">0</div><div class="l">Rubros</div></div>
+    <div class="kpi kpi-acc"><div class="v" id="kpiTareas">0</div><div class="l">Tareas</div></div>
+    <div class="kpi kpi-ok"><div class="v" id="kpiAvg">0%</div><div class="l">Avance promedio</div></div>
+    <div class="kpi kpi-warn"><div class="v" id="kpiDias">0</div><div class="l">Días totales</div></div>
+    <div class="kpi kpi-fg"><div class="v" id="kpiInicio">—</div><div class="l">Inicio</div></div>
+    <div class="kpi kpi-fg"><div class="v" id="kpiFin">—</div><div class="l">Fin estimado</div></div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <label>Vista</label>
+      <select id="selZoom" onchange="setZoom(this.value)">
+        <option value="14">Semanal (14px)</option>
+        <option value="20" selected>Normal (20px)</option>
+        <option value="30">Ampliado (30px)</option>
+        <option value="50">Detalle (50px)</option>
+      </select>
+    </div>
+    <div class="toolbar-group">
+      <label>Desde</label>
+      <input type="date" id="inpDesde" onchange="render()">
+      <label>Hasta</label>
+      <input type="date" id="inpHasta" onchange="render()">
+    </div>
+    <div class="toolbar-group">
+      <label>Técnico</label>
+      <select id="selTecnico" onchange="render()">
+        <option value="">Todo el equipo</option>
+      </select>
+    </div>
+    <div class="toolbar-group" style="margin-left:auto">
+      <button class="btn btn-ghost btn-sm" onclick="irHoy()">Ir a hoy</button>
+    </div>
+  </div>
+
+  <!-- MAIN SPLIT -->
+  <div class="main">
+    <!-- LEFT TABLE -->
+    <div class="panel-left">
+      <div class="panel-left-hdr">
+        <div class="ph" style="justify-content:center">#</div>
+        <div class="ph">Rubro / Tarea</div>
+        <div class="ph">Técnico</div>
+        <div class="ph" style="text-align:right">Días</div>
+        <div class="ph" style="text-align:center">Avance</div>
+      </div>
+      <div class="rows-scroll" id="leftRows"></div>
+    </div>
+
+    <!-- RIGHT GANTT -->
+    <div class="panel-right" id="panelRight">
+      <div class="gantt-inner" id="ganttInner"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL RUBRO / TAREA -->
+<div class="overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2 id="modalTitle">Nuevo rubro</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA STORE
+// ─────────────────────────────────────────────
+const COLORS = ['#4F7FFA','#7C3AED','#06B6D4','#10B981','#F59E0B','#EC4899','#8B5CF6','#14B8A6','#EF4444','#F97316'];
+const TECNICOS = ['Rodrigo R.','Miguel A.','Juan P.','Carlos M.','Equipo'];
+
+let presupuestos = [];   // [{id, nro, nombre, rubros:[{id,nombre,inicio,fin,avance,tecnico,color,tareas:[{id,nombre,inicio,fin,avance,tecnico}]}]}]
+let activePres   = null; // presupuesto seleccionado
+let zoomPx       = 20;   // px por día
+let modalMode    = null; // 'rubro' | 'tarea'
+let modalParent  = null; // rubroId when modalMode==='tarea'
+let modalEdit    = null; // {rubroId?, tareaId?} when editing
+
+// ── seed data ──
+function seedData() {
+  const hoy = new Date();
+  const d = (offset) => {
+    const dt = new Date(hoy);
+    dt.setDate(dt.getDate() + offset);
+    return dt.toISOString().slice(0,10);
+  };
+  presupuestos = [
+    {
+      id: 'P-2026-001', nro: 'P-2026-001', nombre: 'Quincho + Salón Ykuakaranday',
+      rubros: [
+        { id: 'r1', nombre: 'Demolición y limpieza', inicio: d(-5), fin: d(3),   avance: 80,  tecnico: 'Miguel A.',  color: COLORS[0],
+          tareas: [
+            { id: 't1', nombre: 'Demolición tabiques', inicio: d(-5), fin: d(-2), avance: 100, tecnico: 'Miguel A.' },
+            { id: 't2', nombre: 'Retiro de escombros', inicio: d(-2), fin: d(3),  avance: 60,  tecnico: 'Miguel A.' },
+          ]
+        },
+        { id: 'r2', nombre: 'Estructura metálica',  inicio: d(2),  fin: d(14),  avance: 30,  tecnico: 'Rodrigo R.', color: COLORS[1],
+          tareas: [
+            { id: 't3', nombre: 'Pilares y vigas',    inicio: d(2),  fin: d(9),  avance: 40,  tecnico: 'Rodrigo R.' },
+            { id: 't4', nombre: 'Correas de techo',   inicio: d(8),  fin: d(14), avance: 10,  tecnico: 'Rodrigo R.' },
+          ]
+        },
+        { id: 'r3', nombre: 'Instalación eléctrica', inicio: d(10), fin: d(22),  avance: 0,   tecnico: 'Carlos M.',  color: COLORS[2],
+          tareas: [
+            { id: 't5', nombre: 'Tendido de cañerías', inicio: d(10), fin: d(16), avance: 0,  tecnico: 'Carlos M.' },
+            { id: 't6', nombre: 'Tablero + bocas',     inicio: d(16), fin: d(22), avance: 0,  tecnico: 'Carlos M.' },
+          ]
+        },
+        { id: 'r4', nombre: 'Revestimientos',        inicio: d(14), fin: d(28),  avance: 0,   tecnico: 'Juan P.',    color: COLORS[3],
+          tareas: [
+            { id: 't7', nombre: 'Pisos cerámicos',    inicio: d(14), fin: d(20), avance: 0,  tecnico: 'Juan P.' },
+            { id: 't8', nombre: 'Pintura exterior',   inicio: d(20), fin: d(28), avance: 0,  tecnico: 'Juan P.' },
+          ]
+        },
+      ]
+    },
+    {
+      id: 'P-2026-015', nro: 'P-2026-015', nombre: 'Instalación eléctrica Shell Bahía',
+      rubros: [
+        { id: 'r5', nombre: 'Relevamiento técnico', inicio: d(-8), fin: d(-4), avance: 100, tecnico: 'Carlos M.', color: COLORS[4],
+          tareas: [
+            { id: 't9', nombre: 'Planos existentes', inicio: d(-8), fin: d(-6), avance: 100, tecnico: 'Carlos M.' },
+            { id: 't10', nombre: 'Medición tableros', inicio: d(-6), fin: d(-4), avance: 100, tecnico: 'Carlos M.' },
+          ]
+        },
+        { id: 'r6', nombre: 'Tablero principal TG', inicio: d(0), fin: d(8), avance: 50, tecnico: 'Rodrigo R.', color: COLORS[5],
+          tareas: [
+            { id: 't11', nombre: 'Montaje tablero', inicio: d(0), fin: d(4), avance: 70, tecnico: 'Rodrigo R.' },
+            { id: 't12', nombre: 'Cableado salidas', inicio: d(3), fin: d(8), avance: 20, tecnico: 'Rodrigo R.' },
+          ]
+        },
+        { id: 'r7', nombre: 'Luminarias y bocas', inicio: d(6), fin: d(16), avance: 0, tecnico: 'Juan P.', color: COLORS[6],
+          tareas: [
+            { id: 't13', nombre: 'Tendido cañería EMT', inicio: d(6), fin: d(11), avance: 0, tecnico: 'Juan P.' },
+            { id: 't14', nombre: 'Instalación artefactos', inicio: d(11), fin: d(16), avance: 0, tecnico: 'Juan P.' },
+          ]
+        },
+      ]
+    },
+  ];
+  activePres = presupuestos[0];
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  seedData();
+  buildTecnicosFilter();
+  buildPresupuestosSelect();
+  setDefaultDates();
+  render();
+});
+
+function buildPresupuestosSelect() {
+  const sel = document.getElementById('selPres');
+  sel.innerHTML = presupuestos.map(p => `<option value="${p.id}">${p.nro} — ${p.nombre}</option>`).join('');
+  sel.addEventListener('change', () => {
+    activePres = presupuestos.find(p => p.id === sel.value) || presupuestos[0];
+    setDefaultDates();
+    render();
+  });
+}
+
+function buildTecnicosFilter() {
+  const sel = document.getElementById('selTecnico');
+  TECNICOS.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t;
+    sel.appendChild(o);
+  });
+}
+
+function setDefaultDates() {
+  if (!activePres) return;
+  const all = activePres.rubros.flatMap(r => [r.inicio, r.fin, ...r.tareas.flatMap(t => [t.inicio, t.fin])]);
+  if (!all.length) return;
+  const min = all.reduce((a,b) => a<b?a:b);
+  const max = all.reduce((a,b) => a>b?a:b);
+  // pad ±7 days
+  const from = new Date(min); from.setDate(from.getDate() - 7);
+  const to   = new Date(max); to.setDate(to.getDate() + 7);
+  document.getElementById('inpDesde').value = from.toISOString().slice(0,10);
+  document.getElementById('inpHasta').value = to.toISOString().slice(0,10);
+}
+
+// ─────────────────────────────────────────────
+//  RENDER
+// ─────────────────────────────────────────────
+function render() {
+  if (!activePres) return;
+  updateKPIs();
+  renderLeft();
+  renderGantt();
+}
+
+function updateKPIs() {
+  if (!activePres) return;
+  const rubros = activePres.rubros;
+  const tareas = rubros.flatMap(r => r.tareas);
+  document.getElementById('kpiRubros').textContent = rubros.length;
+  document.getElementById('kpiTareas').textContent = tareas.length;
+  const avgAvance = rubros.length ? Math.round(rubros.reduce((s,r) => s + r.avance, 0) / rubros.length) : 0;
+  document.getElementById('kpiAvg').textContent = avgAvance + '%';
+  const allInicios = rubros.map(r => r.inicio).filter(Boolean);
+  const allFines   = rubros.map(r => r.fin).filter(Boolean);
+  if (allInicios.length) {
+    const min = allInicios.reduce((a,b) => a<b?a:b);
+    const max = allFines.reduce((a,b) => a>b?a:b);
+    const dias = Math.round((new Date(max) - new Date(min)) / 86400000);
+    document.getElementById('kpiDias').textContent = dias;
+    document.getElementById('kpiInicio').textContent = fmtDate(min);
+    document.getElementById('kpiFin').textContent   = fmtDate(max);
+  }
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y.slice(2)}`;
+}
+
+function getDates() {
+  const desde = document.getElementById('inpDesde').value;
+  const hasta = document.getElementById('inpHasta').value;
+  if (!desde || !hasta) return null;
+  return { from: new Date(desde), to: new Date(hasta) };
+}
+
+function renderLeft() {
+  const tecFilter = document.getElementById('selTecnico').value;
+  const container = document.getElementById('leftRows');
+  container.innerHTML = '';
+  if (!activePres || !activePres.rubros.length) {
+    container.innerHTML = `<div class="empty">Sin rubros. Agregá el primero.</div>`;
+    return;
+  }
+  let rowNum = 1;
+  activePres.rubros.forEach((rubro, ri) => {
+    if (tecFilter && rubro.tecnico !== tecFilter) return;
+    const dias = rubro.inicio && rubro.fin ? Math.round((new Date(rubro.fin) - new Date(rubro.inicio)) / 86400000) : '—';
+    const wrap = document.createElement('div');
+    wrap.className = 'row-wrap';
+
+    // rubro row
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.style.cursor = 'pointer';
+    row.onclick = () => openModal('rubro', null, rubro.id);
+    row.innerHTML = `
+      <div class="rc rc-num">${rowNum++}</div>
+      <div class="rc rc-name is-rubro">
+        <span class="dot" style="background:${rubro.color};margin-right:6px"></span>${rubro.nombre}
+      </div>
+      <div class="rc rc-resp">${rubro.tecnico||'—'}</div>
+      <div class="rc rc-dur">${dias}</div>
+      <div class="rc rc-avance">
+        <div class="avance-bar"><div class="avance-fill" style="width:${rubro.avance}%;background:${rubro.color}"></div></div>
+        <span class="avance-pct">${rubro.avance}%</span>
+      </div>
+    `;
+    wrap.appendChild(row);
+
+    // tarea rows
+    rubro.tareas.forEach((tarea) => {
+      const tdias = tarea.inicio && tarea.fin ? Math.round((new Date(tarea.fin) - new Date(tarea.inicio)) / 86400000) : '—';
+      const tr = document.createElement('div');
+      tr.className = 'tarea-row';
+      tr.style.cursor = 'pointer';
+      tr.onclick = () => openModal('tarea', rubro.id, tarea.id);
+      tr.innerHTML = `
+        <div class="rc rc-num" style="font-size:.62rem">↳</div>
+        <div class="rc rc-name is-sub">${tarea.nombre}</div>
+        <div class="rc rc-resp">${tarea.tecnico||'—'}</div>
+        <div class="rc rc-dur">${tdias}</div>
+        <div class="rc rc-avance">
+          <div class="avance-bar"><div class="avance-fill" style="width:${tarea.avance}%"></div></div>
+          <span class="avance-pct">${tarea.avance}%</span>
+        </div>
+      `;
+      wrap.appendChild(tr);
+    });
+
+    // add tarea button
+    const addBtn = document.createElement('div');
+    addBtn.style.cssText = 'padding:2px 8px 4px 36px;';
+    addBtn.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="openModal('tarea','${rubro.id}')">+ Tarea</button>`;
+    wrap.appendChild(addBtn);
+
+    container.appendChild(wrap);
+  });
+}
+
+function renderGantt() {
+  const dates = getDates();
+  if (!dates) return;
+  const { from, to } = dates;
+  const totalDays = Math.ceil((to - from) / 86400000) + 1;
+  const totalWidth = totalDays * zoomPx;
+
+  const tecFilter = document.getElementById('selTecnico').value;
+  const gantt = document.getElementById('ganttInner');
+  gantt.innerHTML = '';
+  gantt.style.minWidth = totalWidth + 'px';
+
+  // ── header ──
+  const hdr = document.createElement('div');
+  hdr.className = 'gantt-hdr';
+  hdr.style.width = totalWidth + 'px';
+
+  // group days by month/week
+  let d = new Date(from);
+  let weekStart = null;
+  let weekDays  = 0;
+  const weeks = [];
+  for (let i = 0; i < totalDays; i++) {
+    const wd = d.getDay(); // 0=Sun
+    if (weekStart === null || wd === 1) { // Monday
+      if (weekStart !== null) weeks.push({ start: weekStart, days: weekDays });
+      weekStart = new Date(d);
+      weekDays  = 0;
+    }
+    weekDays++;
+    d.setDate(d.getDate() + 1);
+  }
+  if (weekStart !== null) weeks.push({ start: weekStart, days: weekDays });
+
+  weeks.forEach(w => {
+    const col = document.createElement('div');
+    col.className = 'week-col';
+    col.style.width = (w.days * zoomPx) + 'px';
+    const mo = w.start.toLocaleDateString('es-PY', { month: 'short' }).toUpperCase();
+    const wn = `Sem ${Math.ceil(w.start.getDate()/7)} · ${w.start.getDate()}/${w.start.getMonth()+1}`;
+    col.innerHTML = `<div class="week-month">${mo}</div><div class="week-num">${wn}</div>`;
+    hdr.appendChild(col);
+  });
+  gantt.appendChild(hdr);
+
+  // ── today line ──
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayOff = Math.round((today - from) / 86400000);
+  if (todayOff >= 0 && todayOff < totalDays) {
+    const tl = document.createElement('div');
+    tl.className = 'today-line';
+    tl.style.left = (todayOff * zoomPx + zoomPx/2) + 'px';
+    gantt.appendChild(tl);
+  }
+
+  // ── rows ──
+  if (!activePres || !activePres.rubros.length) return;
+
+  activePres.rubros.forEach((rubro) => {
+    if (tecFilter && rubro.tecnico !== tecFilter) return;
+
+    // rubro bar row
+    const rowEl = document.createElement('div');
+    rowEl.className = 'gantt-row is-rubro';
+    rowEl.style.width = totalWidth + 'px';
+    // cells (grid lines)
+    for (let i = 0; i < totalDays; i++) {
+      const c = document.createElement('div');
+      c.className = 'gantt-cell';
+      c.style.width = zoomPx + 'px';
+      rowEl.appendChild(c);
+    }
+    // bar
+    if (rubro.inicio && rubro.fin) {
+      const barWrap = drawBar(rubro.inicio, rubro.fin, rubro.avance, rubro.color, rubro.nombre, from, zoomPx, true);
+      if (barWrap) rowEl.appendChild(barWrap);
+    }
+    gantt.appendChild(rowEl);
+
+    // tarea rows
+    rubro.tareas.forEach(tarea => {
+      const trow = document.createElement('div');
+      trow.className = 'gantt-row is-tarea';
+      trow.style.width = totalWidth + 'px';
+      for (let i = 0; i < totalDays; i++) {
+        const c = document.createElement('div');
+        c.className = 'gantt-cell';
+        c.style.width = zoomPx + 'px';
+        trow.appendChild(c);
+      }
+      if (tarea.inicio && tarea.fin) {
+        const barWrap = drawBar(tarea.inicio, tarea.fin, tarea.avance, rubro.color + 'AA', tarea.nombre, from, zoomPx, false);
+        if (barWrap) trow.appendChild(barWrap);
+      }
+      gantt.appendChild(trow);
+    });
+
+    // add tarea spacer
+    const spacer = document.createElement('div');
+    spacer.style.cssText = `width:${totalWidth}px;height:28px;border-bottom:1px solid var(--border);`;
+    gantt.appendChild(spacer);
+  });
+}
+
+function drawBar(inicio, fin, avance, color, label, from, zpx, isRubro) {
+  const s = new Date(inicio); s.setHours(0,0,0,0);
+  const e = new Date(fin);    e.setHours(0,0,0,0);
+  const f = new Date(from);   f.setHours(0,0,0,0);
+  const startOff = Math.round((s - f) / 86400000);
+  const durDays  = Math.round((e - s) / 86400000) + 1;
+  if (durDays <= 0) return null;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'gantt-bar-wrap';
+  wrap.style.left  = (startOff * zpx + 2) + 'px';
+  wrap.style.width = (durDays * zpx - 4) + 'px';
+
+  const bar = document.createElement('div');
+  bar.className = 'gantt-bar' + (isRubro ? ' is-rubro' : '');
+  bar.style.background = color;
+
+  const done = document.createElement('div');
+  done.className = 'gantt-bar-done';
+  done.style.width = avance + '%';
+  done.style.background = '#fff';
+  bar.appendChild(done);
+
+  if (zpx >= 20) {
+    const lbl = document.createElement('div');
+    lbl.className = 'gantt-bar-label';
+    lbl.textContent = label;
+    bar.appendChild(lbl);
+  }
+  wrap.appendChild(bar);
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+//  ZOOM
+// ─────────────────────────────────────────────
+function setZoom(v) { zoomPx = parseInt(v); render(); }
+
+function irHoy() {
+  const pr = document.getElementById('panelRight');
+  const dates = getDates();
+  if (!dates) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const off = Math.round((today - dates.from) / 86400000);
+  pr.scrollLeft = off * zoomPx - pr.clientWidth / 2;
+}
+
+// ─────────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────────
+function openModal(mode, parentId, editId) {
+  modalMode   = mode;
+  modalParent = parentId || null;
+  modalEdit   = editId   || null;
+
+  let existing = null;
+  if (mode === 'rubro' && editId) {
+    existing = activePres.rubros.find(r => r.id === editId);
+  } else if (mode === 'tarea' && parentId && editId) {
+    const rubro = activePres.rubros.find(r => r.id === parentId);
+    if (rubro) existing = rubro.tareas.find(t => t.id === editId);
+  }
+
+  document.getElementById('modalTitle').textContent =
+    existing ? `Editar ${mode === 'rubro' ? 'rubro' : 'tarea'}` : `Nuevo ${mode === 'rubro' ? 'rubro' : 'tarea'}`;
+
+  const hoy = new Date().toISOString().slice(0,10);
+  const def7 = new Date(); def7.setDate(def7.getDate()+7);
+
+  if (mode === 'rubro') {
+    const colorOpts = COLORS.map((c,i) => `<option value="${c}" ${existing?.color===c?'selected':''}>${['Azul','Violeta','Cian','Verde','Amber','Rosa','Índigo','Teal','Rojo','Naranja'][i]}</option>`).join('');
+    const tecOpts = TECNICOS.map(t => `<option value="${t}" ${existing?.tecnico===t?'selected':''}>${t}</option>`).join('');
+    document.getElementById('modalBody').innerHTML = `
+      <div class="field"><label>Nombre del rubro *</label><input id="mNombre" type="text" value="${existing?.nombre||''}" placeholder="Ej: Estructura metálica"></div>
+      <div class="field-row">
+        <div class="field"><label>Fecha inicio *</label><input id="mInicio" type="date" value="${existing?.inicio||hoy}"></div>
+        <div class="field"><label>Fecha fin *</label><input id="mFin" type="date" value="${existing?.fin||def7.toISOString().slice(0,10)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Técnico responsable</label><select id="mTecnico">${tecOpts}</select></div>
+        <div class="field"><label>Color</label><select id="mColor">${colorOpts}</select></div>
+      </div>
+      <div class="field"><label>Avance % (0–100)</label><input id="mAvance" type="number" min="0" max="100" value="${existing?.avance||0}"></div>
+      ${existing ? `<button class="btn btn-danger btn-sm" onclick="deleteItem('rubro','${editId}')">Eliminar rubro</button>` : ''}
+    `;
+  } else {
+    const tecOpts = TECNICOS.map(t => `<option value="${t}" ${existing?.tecnico===t?'selected':''}>${t}</option>`).join('');
+    const rubroOpts = activePres.rubros.map(r => `<option value="${r.id}" ${parentId===r.id?'selected':''}>${r.nombre}</option>`).join('');
+    document.getElementById('modalBody').innerHTML = `
+      <div class="field"><label>Rubro padre *</label><select id="mRubro">${rubroOpts}</select></div>
+      <div class="field"><label>Nombre de la tarea *</label><input id="mNombre" type="text" value="${existing?.nombre||''}" placeholder="Ej: Montaje tablero eléctrico"></div>
+      <div class="field-row">
+        <div class="field"><label>Fecha inicio *</label><input id="mInicio" type="date" value="${existing?.inicio||hoy}"></div>
+        <div class="field"><label>Fecha fin *</label><input id="mFin" type="date" value="${existing?.fin||def7.toISOString().slice(0,10)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Técnico</label><select id="mTecnico">${tecOpts}</select></div>
+        <div class="field"><label>Avance %</label><input id="mAvance" type="number" min="0" max="100" value="${existing?.avance||0}"></div>
+      </div>
+      ${existing ? `<button class="btn btn-danger btn-sm" onclick="deleteItem('tarea','${editId}','${parentId}')">Eliminar tarea</button>` : ''}
+    `;
+  }
+
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  modalMode = modalParent = modalEdit = null;
+}
+
+function saveModal() {
+  const nombre = document.getElementById('mNombre')?.value.trim();
+  if (!nombre) { alert('El nombre es requerido'); return; }
+  const inicio  = document.getElementById('mInicio')?.value;
+  const fin     = document.getElementById('mFin')?.value;
+  const tecnico = document.getElementById('mTecnico')?.value;
+  const avance  = parseInt(document.getElementById('mAvance')?.value) || 0;
+
+  if (modalMode === 'rubro') {
+    const color = document.getElementById('mColor')?.value || COLORS[activePres.rubros.length % COLORS.length];
+    if (modalEdit) {
+      // edit
+      const r = activePres.rubros.find(r => r.id === modalEdit);
+      if (r) Object.assign(r, { nombre, inicio, fin, tecnico, avance, color });
+    } else {
+      activePres.rubros.push({ id: 'r' + Date.now(), nombre, inicio, fin, tecnico, avance, color, tareas: [] });
+    }
+  } else {
+    const rubroId = document.getElementById('mRubro')?.value;
+    const rubro   = activePres.rubros.find(r => r.id === rubroId);
+    if (!rubro) return;
+    if (modalEdit) {
+      const t = rubro.tareas.find(t => t.id === modalEdit);
+      if (t) Object.assign(t, { nombre, inicio, fin, tecnico, avance });
+    } else {
+      rubro.tareas.push({ id: 't' + Date.now(), nombre, inicio, fin, tecnico, avance });
+    }
+    // update rubro avance as avg of tareas
+    if (rubro.tareas.length) {
+      rubro.avance = Math.round(rubro.tareas.reduce((s,t) => s+t.avance, 0) / rubro.tareas.length);
+    }
+  }
+
+  closeModal();
+  setDefaultDates();
+  render();
+}
+
+function deleteItem(type, id, parentId) {
+  if (!confirm('¿Eliminar este elemento?')) return;
+  if (type === 'rubro') {
+    activePres.rubros = activePres.rubros.filter(r => r.id !== id);
+  } else {
+    const rubro = activePres.rubros.find(r => r.id === parentId);
+    if (rubro) rubro.tareas = rubro.tareas.filter(t => t.id !== id);
+  }
+  closeModal();
+  render();
+}
+
+// ─────────────────────────────────────────────
+//  EXPORT
+// ─────────────────────────────────────────────
+function exportCSV() {
+  if (!activePres) return;
+  const rows = [['Presupuesto','Tipo','Nombre','Inicio','Fin','Técnico','Avance%']];
+  activePres.rubros.forEach(r => {
+    rows.push([activePres.nro, 'RUBRO', r.nombre, r.inicio, r.fin, r.tecnico, r.avance]);
+    r.tareas.forEach(t => {
+      rows.push([activePres.nro, 'TAREA', t.nombre, t.inicio, t.fin, t.tecnico, t.avance]);
+    });
+  });
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `cronograma-${activePres.nro}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>

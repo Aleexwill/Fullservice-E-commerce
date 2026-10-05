@@ -83,7 +83,9 @@ const LIGHT_CSS = `
 .admin-shell[data-theme="light"] [class*="hover:text-arctic"]:hover{color:#0B1120!important}
 
 /* Nav active */
-.admin-shell[data-theme="light"] .bg-blue-muted.text-blue-bright{background-color:#dbeeff!important;color:#1a5d9a!important}
+.admin-shell[data-theme="light"] .bg-blue-muted\/70{background-color:#cce4ff!important}
+.admin-shell[data-theme="light"] .bg-blue-muted.text-blue-bright{background-color:#cce4ff!important;color:#0f4c8a!important}
+.admin-shell[data-theme="light"] .bg-blue-muted\/70.text-blue-bright{background-color:#cce4ff!important;color:#0f4c8a!important}
 
 /* Components */
 .admin-shell[data-theme="light"] .card{background-color:#ffffff!important;border-color:#e2e5ea!important;box-shadow:0 2px 8px rgba(0,0,0,.06)!important}
