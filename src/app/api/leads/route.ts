@@ -6,6 +6,7 @@ import type { LeadStatus, LeadPriority, LeadSource } from '@/lib/leads-store';
 import { requireAuth, requireRole } from '@/lib/auth';
 import { parseBody, CreateLeadSchema } from '@/lib/schemas';
 import { rateLimit, getIp } from '@/lib/rate-limit';
+import { logChange } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   const auth = await requireRole('canManageLeads');
@@ -68,6 +69,12 @@ export async function POST(request: NextRequest) {
       nextFollowUp: '',
       lostReason: '',
       leadType: body.leadType ?? 'general',
+    });
+
+    await logChange({
+      entity: 'Lead', entityId: lead.id, entityName: lead.customer.name,
+      action: 'create',
+      after: { status: lead.status, priority: lead.priority, source: lead.source, subject: lead.subject, estimatedValue: lead.estimatedValue },
     });
 
     return NextResponse.json(lead, { status: 201 });

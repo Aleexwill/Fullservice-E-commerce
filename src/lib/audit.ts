@@ -57,6 +57,17 @@ export const AUDIT_DEFAULTS: Record<string, AuditField[]> = {
     { key: 'phone',   label: 'Teléfono',tracked: false },
     { key: 'address', label: 'Dirección',tracked: false },
   ],
+  Lead: [
+    { key: 'status',         label: 'Etapa',           tracked: true  },
+    { key: 'priority',       label: 'Prioridad',       tracked: true  },
+    { key: 'estimatedValue', label: 'Valor estimado',  tracked: true  },
+    { key: 'assignedTo',     label: 'Asignado a',      tracked: true  },
+    { key: 'source',         label: 'Fuente',          tracked: false },
+    { key: 'subject',        label: 'Asunto',          tracked: false },
+    { key: 'lostReason',     label: 'Motivo pérdida',  tracked: true  },
+    { key: 'nextFollowUp',   label: 'Próx. seguimiento',tracked: false },
+    { key: 'tags',           label: 'Tags',            tracked: false },
+  ],
 };
 
 async function getTrackedFields(entity: string): Promise<Set<string>> {

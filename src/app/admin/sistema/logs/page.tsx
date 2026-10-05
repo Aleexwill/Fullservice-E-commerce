@@ -21,9 +21,9 @@ const ACTION_COLORS = {
 };
 const ACTION_LABELS = { create: 'Creado', update: 'Editado', delete: 'Eliminado' };
 
-const ENTITIES = ['Product', 'Pedido', 'Presupuesto', 'Cliente'];
+const ENTITIES = ['Product', 'Pedido', 'Presupuesto', 'Cliente', 'Lead'];
 const ENTITY_LABELS: Record<string, string> = {
-  Product: 'Producto', Pedido: 'Pedido', Presupuesto: 'Presupuesto', Cliente: 'Cliente',
+  Product: 'Producto', Pedido: 'Pedido', Presupuesto: 'Presupuesto', Cliente: 'Cliente', Lead: 'Lead',
 };
 
 // ── Logs tab ──────────────────────────────────────────────────────────────────

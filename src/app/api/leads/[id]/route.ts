@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, requireRole } from '@/lib/auth';
 import { getLeadById, updateLead, addNoteToLead, addActivityToLead, addTaskToLead, toggleTask, deleteLead } from '@/lib/leads-store';
+import { logChange, getIp } from '@/lib/audit';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireRole('canManageLeads');
@@ -46,8 +47,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json(lead);
     }
 
+    const before = await getLeadById(params.id);
     const lead = await updateLead(params.id, body);
     if (!lead) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    if (before) {
+      await logChange({
+        entity: 'Lead', entityId: lead.id, entityName: lead.customer.name,
+        action: 'update',
+        before: { status: before.status, priority: before.priority, estimatedValue: before.estimatedValue, assignedTo: before.assignedTo, lostReason: before.lostReason, nextFollowUp: before.nextFollowUp, tags: before.tags },
+        after:  { status: lead.status,   priority: lead.priority,   estimatedValue: lead.estimatedValue,   assignedTo: lead.assignedTo,   lostReason: lead.lostReason,   nextFollowUp: lead.nextFollowUp,   tags: lead.tags  },
+        userIp: getIp(request),
+      });
+    }
     return NextResponse.json(lead);
   } catch (error) {
     console.error('Error en PUT /api/leads/[id]:', error);
@@ -56,12 +67,17 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireRole('canManageLeads');
   if (auth instanceof NextResponse) return auth;
   try {
+    const before = await getLeadById(params.id);
     const ok = await deleteLead(params.id);
     if (!ok) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    await logChange({
+      entity: 'Lead', entityId: params.id, entityName: before?.customer.name ?? params.id,
+      action: 'delete', userIp: getIp(req),
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error en DELETE /api/leads/[id]:', error);
