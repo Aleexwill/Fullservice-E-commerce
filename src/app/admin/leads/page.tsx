@@ -202,35 +202,85 @@ function AdminLeadsCRM() {
                     <div className="flex-1 space-y-2 overflow-y-auto p-2">
                       {stageLeads.map((lead) => {
                         const pr = PRIORITY_MAP[lead.priority] || PRIORITY_MAP.medium;
+                        const isExp = expandedLead === lead.id;
                         return (
-                          <div key={lead.id} onClick={() => { setSelected(lead); setDetailTab('timeline'); }} className="cursor-pointer rounded-md border border-steel-900/40 bg-carbon p-3 transition-all hover:border-steel-700 hover:shadow-card">
-                            <div className="mb-2 flex items-center gap-2">
-                              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${getAvatarColor(lead.customer.name)} font-display text-[0.55rem] font-bold text-arctic`}>{getInitials(lead.customer.name)}</div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate font-body text-body-sm font-medium text-arctic">{lead.customer.name}</p>
-                                {lead.customer.company && <p className="truncate font-body text-[0.6rem] text-steel-500">{lead.customer.company}</p>}
+                          <div key={lead.id} className={`rounded-md border bg-carbon transition-all ${isExp ? 'border-blue-bright/40' : 'border-steel-900/40 hover:border-steel-700'}`}>
+                            {/* Card header — click to expand */}
+                            <div className="cursor-pointer p-3" onClick={() => setExpandedLead(isExp ? null : lead.id)}>
+                              <div className="mb-2 flex items-center gap-2">
+                                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${getAvatarColor(lead.customer.name)} font-display text-[0.55rem] font-bold text-arctic`}>{getInitials(lead.customer.name)}</div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate font-body text-body-sm font-medium text-arctic">{lead.customer.name}</p>
+                                  {lead.customer.company && <p className="truncate font-body text-[0.6rem] text-steel-500">{lead.customer.company}</p>}
+                                </div>
+                                <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${pr.dot}`} title={pr.label} />
+                                <ChevronRight className={`h-3.5 w-3.5 shrink-0 text-steel-500 transition-transform duration-150 ${isExp ? 'rotate-90' : ''}`} />
                               </div>
-                              <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${pr.dot}`} title={pr.label} />
+                              <p className="truncate font-body text-caption text-steel-300">{lead.subject}</p>
+                              {!isExp && (
+                                <div className="mt-2 flex items-center justify-between">
+                                  <div className="flex flex-wrap gap-1">
+                                    {lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}
+                                    {lead.estimatedValue ? <span className="rounded bg-success-light px-1.5 py-0.5 font-mono text-[0.6rem] text-success-bright">{formatGs(lead.estimatedValue)}</span> : null}
+                                  </div>
+                                  <span className="font-mono text-[0.6rem] text-steel-500">{timeAgo(lead.updatedAt)}</span>
+                                </div>
+                              )}
                             </div>
-                            <p className="mb-2 truncate font-body text-caption text-steel-300">{lead.subject}</p>
-                            <div className="flex flex-wrap gap-1">
-                              {lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}
-                              {lead.estimatedValue ? <span className="rounded bg-success-light px-1.5 py-0.5 font-mono text-[0.6rem] text-success-bright">{formatGs(lead.estimatedValue)}</span> : null}
-                            </div>
-                            <div className="mt-2 flex items-center justify-between">
-                              <span className="font-mono text-[0.6rem] text-steel-500">{timeAgo(lead.updatedAt)}</span>
-                              <div className="flex items-center gap-1.5">
-                                {lead.tasks?.some((t) => !t.completed) && <CheckSquare className="h-3 w-3 text-yellow-bright" />}
-                                {lead.notes?.length > 0 && <span className="flex items-center gap-0.5 font-mono text-[0.6rem] text-steel-500"><MessageSquare className="h-2.5 w-2.5" />{lead.notes.length}</span>}
-                                {lead.customer.phone && (
-                                  <a href={`https://wa.me/${lead.customer.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="flex h-5 w-5 items-center justify-center rounded bg-[#25D366]/10 text-[#25D366] opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[#25D366]/25" title="WhatsApp">
-                                    <MessageCircle className="h-3 w-3" />
-                                  </a>
-                                )}
+
+                            {/* Expanded inline actions */}
+                            {isExp && (
+                              <div className="border-t border-steel-900/30 p-3 space-y-2.5">
+                                {/* Contact */}
+                                <div className="flex gap-1.5">
+                                  {lead.customer.phone && (
+                                    <a href={`https://wa.me/${lead.customer.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
+                                      onClick={() => api(lead.id, { _addActivity: { type: 'whatsapp', text: 'Mensaje de WhatsApp enviado' } })}
+                                      className="flex flex-1 items-center justify-center gap-1 rounded bg-[#25D366]/10 py-1.5 font-body text-[0.6rem] font-medium text-[#25D366] hover:bg-[#25D366]/20">
+                                      <MessageCircle className="h-3 w-3" />WA
+                                    </a>
+                                  )}
+                                  {lead.customer.email && (
+                                    <a href={`mailto:${lead.customer.email}`}
+                                      onClick={() => api(lead.id, { _addActivity: { type: 'email', text: `Email enviado a ${lead.customer.email}` } })}
+                                      className="flex flex-1 items-center justify-center gap-1 rounded bg-blue-muted py-1.5 font-body text-[0.6rem] font-medium text-blue-bright hover:bg-blue-muted/80">
+                                      <Mail className="h-3 w-3" />Email
+                                    </a>
+                                  )}
+                                  {lead.customer.phone && (
+                                    <a href={`tel:${lead.customer.phone}`}
+                                      onClick={() => api(lead.id, { _addActivity: { type: 'call', text: `Llamada a ${lead.customer.phone}` } })}
+                                      className="flex flex-1 items-center justify-center gap-1 rounded bg-success-light py-1.5 font-body text-[0.6rem] font-medium text-success-bright hover:bg-success-light/80">
+                                      <PhoneCall className="h-3 w-3" />Llamar
+                                    </a>
+                                  )}
+                                </div>
+                                {/* Move stage */}
+                                <div className="flex flex-wrap gap-1">
+                                  {PIPELINE.map((s) => (
+                                    <button key={s.key} onClick={() => moveToStage(lead.id, s.key)}
+                                      className={`rounded-full px-2 py-0.5 font-mono text-[0.52rem] font-medium transition-all ${lead.status === s.key ? `${s.bg} ${s.color} ring-1 ring-current` : 'bg-steel-900 text-steel-500 hover:text-steel-300'}`}>
+                                      {s.label}
+                                    </button>
+                                  ))}
+                                </div>
+                                {/* Secondary */}
+                                <div className="flex gap-1.5">
+                                  <button onClick={() => { setSelected(lead); setDetailTab('timeline'); setExpandedLead(null); }}
+                                    className="flex flex-1 items-center justify-center gap-1 rounded border border-steel-900/40 py-1.5 font-body text-[0.6rem] text-steel-300 hover:bg-steel-900">
+                                    <Eye className="h-3 w-3" />Detalle
+                                  </button>
+                                  <button onClick={() => { const q = new URLSearchParams({ from_lead: lead.id, name: lead.customer.name, email: lead.customer.email, phone: lead.customer.phone, company: lead.customer.company, subject: lead.subject }); router.push(`/admin/presupuestos?${q.toString()}`); }}
+                                    className="flex flex-1 items-center justify-center gap-1 rounded border border-blue-bright/30 bg-blue-bright/10 py-1.5 font-body text-[0.6rem] font-medium text-blue-bright hover:bg-blue-bright/20">
+                                    <Calculator className="h-3 w-3" />Presupuesto
+                                  </button>
+                                  <button onClick={() => del(lead.id)}
+                                    className="flex h-[28px] w-[28px] items-center justify-center rounded border border-danger-bright/20 bg-danger-light/20 text-danger-bright hover:bg-danger-light">
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         );
                       })}
