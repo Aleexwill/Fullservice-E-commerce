@@ -26,6 +26,38 @@ const ENTITY_LABELS: Record<string, string> = {
   Product: 'Producto', Pedido: 'Pedido', Presupuesto: 'Presupuesto', Cliente: 'Cliente', Lead: 'Lead',
 };
 
+// Traducciones de valores almacenados en inglés
+const VALUE_TRANSLATIONS: Record<string, string> = {
+  // Lead stages
+  new: 'Nuevo', contacted: 'Contactado', in_progress: 'En progreso',
+  quoted: 'Cotizado', negotiation: 'Negociación', converted: 'Ganado', lost: 'Perdido',
+  // Priority
+  low: 'Baja', medium: 'Media', high: 'Alta', urgent: 'Urgente',
+  // Lead source
+  contact_form: 'Formulario web', whatsapp: 'WhatsApp', phone: 'Teléfono',
+  referral: 'Referido', walk_in: 'Presencial', social_media: 'Redes sociales',
+  website: 'Sitio web', other: 'Otro',
+  // Lead type
+  general: 'General', ecommerce: 'E-commerce', servicios: 'Servicios',
+  // Pedido status
+  pending: 'Pendiente', confirmed: 'Confirmado', processing: 'En proceso',
+  shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado',
+  returned: 'Devuelto',
+  // Payment status
+  unpaid: 'Sin pagar', paid: 'Pagado', partial: 'Parcial', refunded: 'Reembolsado',
+  // Presupuesto estado
+  borrador: 'Borrador', enviado: 'Enviado', aprobado: 'Aprobado',
+  rechazado: 'Rechazado', vencido: 'Vencido',
+  // Boolean
+  true: 'Sí', false: 'No',
+  // Null / empty
+  '—': '—',
+};
+
+function translateValue(val: string): string {
+  return VALUE_TRANSLATIONS[val] ?? VALUE_TRANSLATIONS[val?.toLowerCase()] ?? val;
+}
+
 // ── Logs tab ──────────────────────────────────────────────────────────────────
 
 function LogsTab() {
@@ -164,8 +196,8 @@ function LogsTab() {
                             {log.changes.map((ch) => (
                               <tr key={ch.field}>
                                 <td className="py-2 pr-4 font-body text-caption font-semibold text-[#0B1120]">{ch.label}</td>
-                                <td className="py-2 pr-4 font-mono text-[0.7rem] text-red-500 line-through">{ch.from}</td>
-                                <td className="py-2 font-mono text-[0.7rem] text-green-600">{ch.to}</td>
+                                <td className="py-2 pr-4 font-mono text-[0.7rem] text-red-500 line-through">{translateValue(ch.from)}</td>
+                                <td className="py-2 font-mono text-[0.7rem] text-green-600">{translateValue(ch.to)}</td>
                               </tr>
                             ))}
                           </tbody>
