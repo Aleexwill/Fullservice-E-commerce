@@ -55,6 +55,9 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
   }
   const phone = settings?.contact.phone || siteConfig.phone;
   const openingHours = settings?.business.openingHours.weekdays || siteConfig.openingHours;
+  const socialFacebook = settings?.social.facebook || siteConfig.social.facebook;
+  const socialInstagram = settings?.social.instagram || siteConfig.social.instagram;
+  const socialLinkedin = settings?.social.linkedin || siteConfig.social.linkedin;
   const navLinks = BASE_NAV_LINKS.filter(
     (l) => l.sectionKey === null || settings?.sections?.[l.sectionKey as keyof typeof settings.sections] !== false
   );
@@ -71,18 +74,18 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
             <span className="font-body text-[0.7rem] font-medium uppercase tracking-[.1em] text-[#B7C5D9]">Envíos a todo el país</span>
             <span className="text-white/20">|</span>
             <div className="flex items-center gap-2">
-              {siteConfig.social.facebook && (
-                <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
+              {socialFacebook && (
+                <a href={socialFacebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
                   <FacebookIcon />
                 </a>
               )}
-              {siteConfig.social.instagram && (
-                <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
+              {socialInstagram && (
+                <a href={socialInstagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
                   <InstagramIcon />
                 </a>
               )}
-              {siteConfig.social.linkedin && (
-                <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
+              {socialLinkedin && (
+                <a href={socialLinkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-[#B7C5D9] transition-colors hover:text-[#6FC3F5]">
                   <LinkedinIcon />
                 </a>
               )}
@@ -176,18 +179,18 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
                   <div className="mt-1 text-[#9AAAC0]">{openingHours}</div>
                 </div>
                 <div className="flex items-center gap-3">
-                  {siteConfig.social.facebook && (
-                    <a href={siteConfig.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
+                  {socialFacebook && (
+                    <a href={socialFacebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
                       <FacebookIcon />
                     </a>
                   )}
-                  {siteConfig.social.instagram && (
-                    <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
+                  {socialInstagram && (
+                    <a href={socialInstagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
                       <InstagramIcon />
                     </a>
                   )}
-                  {siteConfig.social.linkedin && (
-                    <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
+                  {socialLinkedin && (
+                    <a href={socialLinkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-[#B7C5D9] hover:text-[#6FC3F5]">
                       <LinkedinIcon />
                     </a>
                   )}
