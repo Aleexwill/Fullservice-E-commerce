@@ -98,6 +98,7 @@ function AdminLeadsCRM() {
   const [actText, setActText] = useState('');
   const [saving, setSaving] = useState(false);
   const [quickStage, setQuickStage] = useState<string | null>(null); // leadId with open stage picker
+  const [expandedLead, setExpandedLead] = useState<string | null>(null); // leadId expanded inline in list
 
   // Keep URL in sync with search state
   useEffect(() => {
@@ -247,62 +248,87 @@ function AdminLeadsCRM() {
                 {filteredLeads.map((lead) => {
                   const stage = PIPELINE.find((s) => s.key === lead.status) || PIPELINE[0];
                   const pr = PRIORITY_MAP[lead.priority] || PRIORITY_MAP.medium;
-                  const isStageOpen = quickStage === lead.id;
+                  const isExpanded = expandedLead === lead.id;
                   return (
-                    <div key={lead.id} className="group relative rounded-md border border-steel-900/30 bg-carbon-light transition-all hover:border-steel-700">
-                      <div className="flex cursor-pointer items-center gap-3 p-3" onClick={() => { setSelected(lead); setDetailTab('timeline'); if (isStageOpen) setQuickStage(null); }}>
+                    <div key={lead.id} className={`rounded-md border bg-carbon-light transition-all ${isExpanded ? 'border-blue-bright/30' : 'border-steel-900/30 hover:border-steel-700'}`}>
+                      {/* Row header */}
+                      <div className="flex cursor-pointer items-center gap-3 p-3" onClick={() => setExpandedLead(isExpanded ? null : lead.id)}>
                         <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${getAvatarColor(lead.customer.name)} font-display text-caption font-bold text-arctic`}>{getInitials(lead.customer.name)}</div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2"><p className="truncate font-body text-body-sm font-medium text-arctic">{lead.customer.name}</p><div className={`h-1.5 w-1.5 shrink-0 rounded-full ${pr.dot}`} /></div>
+                          <div className="flex items-center gap-2">
+                            <p className="truncate font-body text-body-sm font-medium text-arctic">{lead.customer.name}</p>
+                            <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${pr.dot}`} />
+                          </div>
                           <p className="truncate font-body text-caption text-steel-500">{lead.subject}{lead.customer.company ? ` — ${lead.customer.company}` : ''}</p>
                         </div>
-                        <div className="hidden shrink-0 md:flex md:items-center md:gap-2">{lead.tags?.slice(0, 2).map((t) => <span key={t} className="rounded bg-steel-900 px-1.5 py-0.5 font-mono text-[0.6rem] text-steel-300">{t}</span>)}</div>
-                        {lead.estimatedValue ? <span className="hidden shrink-0 font-mono text-caption text-success-bright md:block">{formatGs(lead.estimatedValue)}</span> : null}
+                        <span className={`shrink-0 rounded-full px-2.5 py-1 font-mono text-[0.55rem] font-medium ${stage.color} ${stage.bg}`}>{stage.label}</span>
+                        {lead.estimatedValue ? <span className="hidden shrink-0 font-mono text-caption text-success-bright sm:block">{formatGs(lead.estimatedValue)}</span> : null}
                         <span className="shrink-0 font-mono text-[0.55rem] text-steel-500">{timeAgo(lead.updatedAt)}</span>
-
-                        {/* Quick actions (visible on hover) */}
-                        <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
-                          {lead.customer.phone && (
-                            <a href={`https://wa.me/${lead.customer.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
-                              className="flex h-7 w-7 items-center justify-center rounded bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/25" title="WhatsApp">
-                              <MessageCircle className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                          {lead.customer.email && (
-                            <a href={`mailto:${lead.customer.email}`}
-                              className="flex h-7 w-7 items-center justify-center rounded bg-blue-muted text-blue-bright hover:bg-blue-muted/80" title="Email">
-                              <Mail className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                          {lead.customer.phone && (
-                            <a href={`tel:${lead.customer.phone}`}
-                              className="flex h-7 w-7 items-center justify-center rounded bg-success-light text-success-bright hover:bg-success-light/80" title="Llamar">
-                              <PhoneCall className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                        </div>
-
-                        {/* Stage pill — click to open inline picker */}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setQuickStage(isStageOpen ? null : lead.id); }}
-                          className={`shrink-0 rounded-full px-2.5 py-1 font-mono text-[0.55rem] font-medium transition-all ${stage.color} ${stage.bg} hover:ring-1 hover:ring-current`}
-                        >
-                          {stage.label}
-                        </button>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-steel-500" />
+                        <ChevronRight className={`h-4 w-4 shrink-0 text-steel-500 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                       </div>
 
-                      {/* Inline stage picker */}
-                      {isStageOpen && (
-                        <div className="border-t border-steel-900/30 px-3 py-2.5 flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          {PIPELINE.map((s) => (
-                            <button key={s.key}
-                              onClick={() => { moveToStage(lead.id, s.key); setQuickStage(null); }}
-                              className={`rounded-full px-2.5 py-1 font-mono text-[0.55rem] font-medium transition-all ${lead.status === s.key ? `${s.bg} ${s.color} ring-1 ring-current` : 'bg-steel-900 text-steel-500 hover:text-steel-300'}`}
-                            >
-                              {s.label}
+                      {/* Expanded inline actions */}
+                      {isExpanded && (
+                        <div className="border-t border-steel-900/30 px-4 py-3 space-y-3">
+                          {/* Contact buttons */}
+                          <div className="flex gap-2">
+                            {lead.customer.phone && (
+                              <a href={`https://wa.me/${lead.customer.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
+                                onClick={() => api(lead.id, { _addActivity: { type: 'whatsapp', text: 'Mensaje de WhatsApp enviado' } })}
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-[#25D366]/10 py-2 font-body text-[0.65rem] font-medium text-[#25D366] hover:bg-[#25D366]/20">
+                                <MessageCircle className="h-3.5 w-3.5" />WhatsApp
+                              </a>
+                            )}
+                            {lead.customer.email && (
+                              <a href={`mailto:${lead.customer.email}`}
+                                onClick={() => api(lead.id, { _addActivity: { type: 'email', text: `Email enviado a ${lead.customer.email}` } })}
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-blue-muted py-2 font-body text-[0.65rem] font-medium text-blue-bright hover:bg-blue-muted/80">
+                                <Mail className="h-3.5 w-3.5" />Email
+                              </a>
+                            )}
+                            {lead.customer.phone && (
+                              <a href={`tel:${lead.customer.phone}`}
+                                onClick={() => api(lead.id, { _addActivity: { type: 'call', text: `Llamada a ${lead.customer.phone}` } })}
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-success-light py-2 font-body text-[0.65rem] font-medium text-success-bright hover:bg-success-light/80">
+                                <PhoneCall className="h-3.5 w-3.5" />Llamar
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Stage selector */}
+                          <div>
+                            <p className="mb-1.5 font-body text-[0.6rem] font-semibold uppercase tracking-wider text-steel-500">Mover etapa</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {PIPELINE.map((s) => (
+                                <button key={s.key}
+                                  onClick={() => { moveToStage(lead.id, s.key); }}
+                                  className={`rounded-full px-2.5 py-1 font-mono text-[0.55rem] font-medium transition-all ${lead.status === s.key ? `${s.bg} ${s.color} ring-1 ring-current` : 'bg-steel-900 text-steel-500 hover:text-steel-300'}`}>
+                                  {s.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Secondary actions */}
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              onClick={() => { setSelected(lead); setDetailTab('timeline'); setExpandedLead(null); }}
+                              className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-steel-900/40 py-2 font-body text-[0.65rem] text-steel-300 hover:bg-steel-900">
+                              <Eye className="h-3.5 w-3.5" />Ver detalle
                             </button>
-                          ))}
+                            <button
+                              onClick={() => {
+                                const q = new URLSearchParams({ from_lead: lead.id, name: lead.customer.name, email: lead.customer.email, phone: lead.customer.phone, company: lead.customer.company, subject: lead.subject });
+                                router.push(`/admin/presupuestos?${q.toString()}`);
+                              }}
+                              className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-blue-bright/30 bg-blue-bright/10 py-2 font-body text-[0.65rem] font-medium text-blue-bright hover:bg-blue-bright/20">
+                              <Calculator className="h-3.5 w-3.5" />Presupuesto
+                            </button>
+                            <button onClick={() => del(lead.id)}
+                              className="flex h-9 w-9 items-center justify-center rounded-md border border-danger-bright/20 bg-danger-light/20 text-danger-bright hover:bg-danger-light">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
