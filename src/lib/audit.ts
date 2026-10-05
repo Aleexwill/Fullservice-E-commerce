@@ -65,7 +65,7 @@ async function getTrackedFields(entity: string): Promise<Set<string>> {
       const defaults = AUDIT_DEFAULTS[entity] ?? [];
       config = await prisma.auditConfig.upsert({
         where: { entity },
-        create: { entity, fields: defaults },
+        create: { entity, fields: defaults as unknown[] },
         update: {},
       });
     }

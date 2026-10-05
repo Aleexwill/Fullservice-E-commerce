@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   if (!config) {
     config = await prisma.auditConfig.upsert({
       where: { entity },
-      create: { entity, fields: AUDIT_DEFAULTS[entity] ?? [] },
+      create: { entity, fields: (AUDIT_DEFAULTS[entity] ?? []) as unknown[] },
       update: {},
     });
   }
@@ -45,8 +45,8 @@ export async function PUT(req: NextRequest) {
 
   const config = await prisma.auditConfig.upsert({
     where: { entity },
-    create: { entity, fields },
-    update: { fields },
+    create: { entity, fields: fields as unknown[] },
+    update: { fields: fields as unknown[] },
   });
   return NextResponse.json(config.fields);
 }
