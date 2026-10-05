@@ -182,7 +182,7 @@ function AdminLeadsCRM() {
       {/* Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Main area */}
-        <div className={`flex-1 overflow-auto ${selected ? 'hidden lg:block' : ''}`}>
+        <div className="flex-1 overflow-auto">
           {loading ? (
             <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-blue-bright" /></div>
           ) : view === 'kanban' ? (
@@ -389,9 +389,14 @@ function AdminLeadsCRM() {
           )}
         </div>
 
-        {/* ====== DETAIL PANEL ====== */}
+        {/* ====== DETAIL PANEL (floating drawer) ====== */}
         {selected && (
-          <div className="w-full border-l border-steel-900/40 bg-carbon-light lg:w-[420px] xl:w-[480px] flex flex-col overflow-hidden">
+          <>
+            <div className="fixed inset-0 z-[100] bg-carbon/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
+          </>
+        )}
+        {selected && (
+          <div className="fixed right-0 top-0 z-[110] h-full w-full max-w-[480px] flex flex-col overflow-hidden border-l border-steel-900/60 bg-carbon-light shadow-2xl transition-transform">
             {/* Header */}
             <div className="shrink-0 border-b border-steel-900/40 px-5 py-4">
               <div className="flex items-start justify-between">
