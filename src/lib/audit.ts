@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 import type { NextRequest } from 'next/server';
 
@@ -65,11 +66,11 @@ async function getTrackedFields(entity: string): Promise<Set<string>> {
       const defaults = AUDIT_DEFAULTS[entity] ?? [];
       config = await prisma.auditConfig.upsert({
         where: { entity },
-        create: { entity, fields: defaults },
+        create: { entity, fields: defaults as unknown as Prisma.InputJsonValue },
         update: {},
       });
     }
-    const fields = config.fields as AuditField[];
+    const fields = config.fields as unknown as AuditField[];
     return new Set(fields.filter((f) => f.tracked).map((f) => f.key));
   } catch {
     // fallback: track all known defaults
@@ -130,7 +131,7 @@ export async function logChange(opts: {
     }
 
     await prisma.auditLog.create({
-      data: { entity, entityId, entityName, action, userId, userName, userIp, changes },
+      data: { entity, entityId, entityName, action, userId, userName, userIp, changes: changes as unknown as Prisma.InputJsonValue },
     });
   } catch (e) {
     // Never crash the main request because of audit failure
