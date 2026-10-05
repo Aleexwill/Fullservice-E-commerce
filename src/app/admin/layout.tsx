@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
-  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Inbox,
+  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Inbox, History,
   Image as ImageIcon, Tag, Wallet, CalendarDays, ClipboardCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -50,6 +50,7 @@ const navGroups: NavGroup[] = [
   ]},
   { label: 'Sistema', items: [
     { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog },
+    { href: '/admin/sistema/logs', label: 'Log de cambios', icon: History },
     { href: '/admin/reportes', label: 'Reporte general', icon: FileText, exact: true },
     { href: '/admin/config', label: 'Configuración', icon: Settings },
   ]},

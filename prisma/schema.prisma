@@ -420,3 +420,31 @@ model Invitation {
   @@index([token])
   @@index([email])
 }
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  entity     String   // "Product" | "Pedido" | "Presupuesto" | etc.
+  entityId   String
+  entityName String   @default("")
+  action     String   // "create" | "update" | "delete"
+  userId     String?
+  userName   String   @default("Sistema")
+  userIp     String   @default("")
+  changes    Json     @default("[]") // [{field, label, from, to}]
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([entity, createdAt])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model AuditConfig {
+  id     String @id @default(cuid())
+  entity String @unique
+  fields Json   @default("[]") // [{key, label, tracked}]
+}
