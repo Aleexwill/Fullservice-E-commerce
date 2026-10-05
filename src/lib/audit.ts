@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 import type { NextRequest } from 'next/server';
 
@@ -65,7 +66,7 @@ async function getTrackedFields(entity: string): Promise<Set<string>> {
       const defaults = AUDIT_DEFAULTS[entity] ?? [];
       config = await prisma.auditConfig.upsert({
         where: { entity },
-        create: { entity, fields: defaults as unknown[] },
+        create: { entity, fields: defaults as unknown as Prisma.InputJsonValue },
         update: {},
       });
     }
