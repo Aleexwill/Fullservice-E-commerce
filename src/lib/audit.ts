@@ -131,7 +131,7 @@ export async function logChange(opts: {
     }
 
     await prisma.auditLog.create({
-      data: { entity, entityId, entityName, action, userId, userName, userIp, changes },
+      data: { entity, entityId, entityName, action, userId, userName, userIp, changes: changes as unknown as Prisma.InputJsonValue },
     });
   } catch (e) {
     // Never crash the main request because of audit failure
