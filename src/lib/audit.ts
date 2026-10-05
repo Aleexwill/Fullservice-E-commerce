@@ -69,7 +69,7 @@ async function getTrackedFields(entity: string): Promise<Set<string>> {
         update: {},
       });
     }
-    const fields = config.fields as AuditField[];
+    const fields = config.fields as unknown as AuditField[];
     return new Set(fields.filter((f) => f.tracked).map((f) => f.key));
   } catch {
     // fallback: track all known defaults

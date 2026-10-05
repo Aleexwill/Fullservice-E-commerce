@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const result: Record<string, AuditField[]> = {};
     for (const [ent, defaults] of Object.entries(AUDIT_DEFAULTS)) {
       const found = configs.find((c) => c.entity === ent);
-      result[ent] = found ? (found.fields as AuditField[]) : defaults;
+      result[ent] = found ? (found.fields as unknown as AuditField[]) : defaults;
     }
     return NextResponse.json(result);
   }
