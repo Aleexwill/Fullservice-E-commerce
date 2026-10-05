@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     if (dbUser && dbUser.isActive) {
       const passOk = await bcrypt.compare(password, dbUser.passwordHash);
       if (passOk) {
-        const token = await createSessionToken(dbUser.email, dbUser.role as Role, dbUser.id, dbUser.mustChangePassword ?? false);
+        const token = await createSessionToken(dbUser.email, dbUser.role as Role, dbUser.id, dbUser.mustChangePassword ?? false, dbUser.name);
         const res = NextResponse.json({
           ok: true,
           role: dbUser.role,
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const token = await createSessionToken(username, 'admin');
+    const token = await createSessionToken(username, 'admin', undefined, undefined, 'Administrador');
     const res = NextResponse.json({ ok: true, role: 'admin', name: 'Administrador' });
     setCookie(res, token);
     return res;

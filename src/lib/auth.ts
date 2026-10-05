@@ -26,13 +26,14 @@ const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
 
 export interface SessionPayload {
   username: string;
+  displayName?: string;
   userId?: string;
   role: Role;
   mustChangePassword?: boolean;
 }
 
-export async function createSessionToken(username: string, role: Role = 'admin', userId?: string, mustChangePassword?: boolean): Promise<string> {
-  const payload = JSON.stringify({ u: username, r: role, uid: userId, mcp: mustChangePassword ?? false, exp: Date.now() + SESSION_TTL_MS });
+export async function createSessionToken(username: string, role: Role = 'admin', userId?: string, mustChangePassword?: boolean, displayName?: string): Promise<string> {
+  const payload = JSON.stringify({ u: username, n: displayName ?? username, r: role, uid: userId, mcp: mustChangePassword ?? false, exp: Date.now() + SESSION_TTL_MS });
   const payloadB64 = Buffer.from(payload).toString('base64url');
   const sig = await hmac(payloadB64);
   return `${payloadB64}.${sig}`;
@@ -85,7 +86,7 @@ export async function verifySessionToken(token: string | undefined | null): Prom
   try {
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf-8'));
     if (typeof payload.exp !== 'number' || Date.now() > payload.exp) return null;
-    return { username: payload.u, role: payload.r ?? 'admin', userId: payload.uid, mustChangePassword: payload.mcp ?? false };
+    return { username: payload.u, displayName: payload.n ?? payload.u, role: payload.r ?? 'admin', userId: payload.uid, mustChangePassword: payload.mcp ?? false };
   } catch {
     return null;
   }

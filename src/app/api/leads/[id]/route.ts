@@ -56,6 +56,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         action: 'update',
         before: { status: before.status, priority: before.priority, estimatedValue: before.estimatedValue, assignedTo: before.assignedTo, lostReason: before.lostReason, nextFollowUp: before.nextFollowUp, tags: before.tags },
         after:  { status: lead.status,   priority: lead.priority,   estimatedValue: lead.estimatedValue,   assignedTo: lead.assignedTo,   lostReason: lead.lostReason,   nextFollowUp: lead.nextFollowUp,   tags: lead.tags  },
+        userId: auth.userId, userName: auth.displayName ?? auth.username,
         userIp: getIp(request),
       });
     }
@@ -76,7 +77,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!ok) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
     await logChange({
       entity: 'Lead', entityId: params.id, entityName: before?.customer.name ?? params.id,
-      action: 'delete', userIp: getIp(req),
+      action: 'delete', userId: auth.userId, userName: auth.displayName ?? auth.username, userIp: getIp(req),
     });
     return NextResponse.json({ success: true });
   } catch (error) {
