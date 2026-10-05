@@ -6,6 +6,7 @@ import { ChevronRight, MapPin, Calendar, ArrowRight, MessageCircle, X, ChevronLe
 import { Isotipo } from '@/components/ui/isotipo';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
+import { useSettings } from '@/lib/settings-context';
 
 type ProjectCategory = 'todos' | 'civil' | 'metalurgica' | 'mantenimiento' | 'limpieza' | 'instalaciones';
 const categories: { id: ProjectCategory; label: string }[] = [
@@ -166,6 +167,8 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
 }
 
 export default function TrabajosDestacadosPage() {
+  const settings = useSettings();
+  const whatsappNum = settings?.contact.whatsapp || siteConfig.whatsapp;
   const [activeCategory, setActiveCategory] = useState<ProjectCategory>('todos');
   const [projects, setProjects] = useState<Project[]>(defaultProjects);
   const [lightbox, setLightbox] = useState<Project | null>(null);
@@ -181,7 +184,7 @@ export default function TrabajosDestacadosPage() {
     ? projects
     : projects.filter((p) => p.category === activeCategory);
 
-  const whatsappUrl = formatWhatsAppUrl(siteConfig.whatsapp, 'Hola, vi sus trabajos y me gustaría consultar sobre un proyecto similar.');
+  const whatsappUrl = formatWhatsAppUrl(whatsappNum, 'Hola, vi sus trabajos y me gustaría consultar sobre un proyecto similar.');
 
   return (
     <>

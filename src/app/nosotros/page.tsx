@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ChevronRight, ArrowRight, MessageCircle, Phone, ShieldCheck, Eye, Target, Users, Star, Lightbulb } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
+import { getCachedSettings } from '@/lib/settings-store';
 
 const valores = [
   { icon: ShieldCheck, title: 'Compromiso', desc: 'Dedicación plena para lograr soluciones eficientes y resultados de calidad.' },
@@ -11,8 +12,10 @@ const valores = [
   { icon: Lightbulb, title: 'Innovación', desc: 'Evolución constante mediante tecnologías y métodos que potencian nuestro impacto.' },
 ];
 
-export default function NosotrosPage() {
-  const whatsappUrl = formatWhatsAppUrl(siteConfig.whatsapp, 'Hola, quiero saber más sobre Full Service & Clean.');
+export default async function NosotrosPage() {
+  const settings = await getCachedSettings();
+  const whatsapp = settings?.contact.whatsapp || siteConfig.whatsapp;
+  const whatsappUrl = formatWhatsAppUrl(whatsapp, 'Hola, quiero saber más sobre Full Service & Clean.');
   return (
     <>
       {/* Breadcrumb */}
