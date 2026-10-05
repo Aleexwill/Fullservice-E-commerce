@@ -148,35 +148,34 @@ function AdminLeadsCRM() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      {/* Top bar */}
-      <div className="shrink-0 border-b border-steel-900/40 bg-carbon-light px-6 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-h1 uppercase text-arctic">CRM Leads</h1>
-            <p className="mt-0.5 font-body text-caption text-steel-500">{leads.length} leads — Pipeline: {formatGs(totalValue)}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="relative"><Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-steel-500" /><input type="text" placeholder="Buscar leads..." value={search} onChange={(e) => setSearch(e.target.value)} className="input h-9 pl-9 text-body-sm" style={{ minWidth: 200 }} /></div>
-            <div className="flex rounded-md border border-steel-900/40">
-              <button onClick={() => setView('kanban')} className={`flex items-center gap-1 px-3 py-1.5 text-caption transition-colors ${view === 'kanban' ? 'bg-blue-muted text-blue-bright' : 'text-steel-500 hover:text-arctic'}`}><LayoutGrid className="h-3.5 w-3.5" />Kanban</button>
-              <button onClick={() => setView('list')} className={`flex items-center gap-1 px-3 py-1.5 text-caption transition-colors ${view === 'list' ? 'bg-blue-muted text-blue-bright' : 'text-steel-500 hover:text-arctic'}`}><List className="h-3.5 w-3.5" />Lista</button>
-            </div>
-            <button onClick={() => setShowCreate(true)} className="btn-primary h-9 text-[0.65rem]"><Plus className="h-3.5 w-3.5" />Nuevo lead</button>
-            <button onClick={fetchLeads} className="rounded-md border border-steel-900/40 p-2 text-steel-500 hover:text-arctic"><RefreshCw className="h-3.5 w-3.5" /></button>
-          </div>
-        </div>
+      {/* Top bar — single compact row */}
+      <div className="shrink-0 border-b border-steel-900/40 bg-carbon-light px-4 py-2">
+        <div className="flex items-center gap-2">
+          {/* Title + total */}
+          <span className="font-display text-[0.75rem] font-bold uppercase tracking-wide text-arctic shrink-0">CRM Leads</span>
+          <span className="font-mono text-[0.6rem] text-steel-500 shrink-0">{leads.length} leads</span>
+          {totalValue > 0 && <span className="hidden font-mono text-[0.6rem] text-success-bright sm:block shrink-0">{formatGs(totalValue)}</span>}
 
-        {/* Pipeline summary bar */}
-        <div className="mt-3 flex gap-1 overflow-x-auto">
-          {pipelineStats.map((s) => (
-            <div key={s.key} className={`flex min-w-0 flex-1 items-center gap-2 rounded-md border ${s.border} px-3 py-2 ${s.bg}`}>
-              <div className="min-w-0 flex-1">
-                <p className={`truncate font-body text-[0.6rem] font-medium ${s.color}`}>{s.label}</p>
-                <p className="font-display text-h4 text-arctic">{s.count}</p>
+          {/* Pipeline chips */}
+          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
+            {pipelineStats.map((s) => (
+              <div key={s.key} className={`flex shrink-0 items-center gap-1.5 rounded-full border ${s.border} ${s.bg} px-2.5 py-1`}>
+                <span className={`font-mono text-[0.6rem] font-bold ${s.color}`}>{s.count}</span>
+                <span className={`hidden font-body text-[0.58rem] font-medium xl:block ${s.color}`}>{s.label}</span>
               </div>
-              {s.value > 0 && <p className="font-mono text-[0.55rem] text-steel-500 whitespace-nowrap">{formatGs(s.value)}</p>}
+            ))}
+          </div>
+
+          {/* Controls */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            <div className="relative"><Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-steel-500" /><input type="text" placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="input h-8 pl-8 text-[0.7rem]" style={{ width: 160 }} /></div>
+            <div className="flex rounded border border-steel-900/40">
+              <button onClick={() => setView('kanban')} title="Kanban" className={`flex items-center px-2 py-1.5 transition-colors ${view === 'kanban' ? 'bg-blue-muted text-blue-bright' : 'text-steel-500 hover:text-arctic'}`}><LayoutGrid className="h-3.5 w-3.5" /></button>
+              <button onClick={() => setView('list')} title="Lista" className={`flex items-center px-2 py-1.5 transition-colors ${view === 'list' ? 'bg-blue-muted text-blue-bright' : 'text-steel-500 hover:text-arctic'}`}><List className="h-3.5 w-3.5" /></button>
             </div>
-          ))}
+            <button onClick={() => setShowCreate(true)} className="btn-primary h-8 text-[0.62rem]"><Plus className="h-3.5 w-3.5" /><span className="hidden sm:inline">Nuevo lead</span></button>
+            <button onClick={fetchLeads} title="Actualizar" className="rounded border border-steel-900/40 p-1.5 text-steel-500 hover:text-arctic"><RefreshCw className="h-3.5 w-3.5" /></button>
+          </div>
         </div>
       </div>
 
