@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "OtpCode" (
+CREATE TABLE IF NOT EXISTS "OtpCode" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "code" TEXT NOT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE "OtpCode" (
 );
 
 -- CreateIndex
-CREATE INDEX "OtpCode_email_idx" ON "OtpCode"("email");
+CREATE INDEX IF NOT EXISTS "OtpCode_email_idx" ON "OtpCode"("email");

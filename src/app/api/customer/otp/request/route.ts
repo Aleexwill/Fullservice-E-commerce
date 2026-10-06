@@ -39,11 +39,15 @@ export async function POST(req: NextRequest) {
       data: { email: account.email, code, expiresAt },
     });
 
-    await sendOtpEmail({ to: account.email, name: account.name, code });
+    // Fire email — don't let a Resend failure block the response
+    sendOtpEmail({ to: account.email, name: account.name, code }).catch((err) =>
+      console.error('[customer/otp/request] sendOtpEmail failed:', err)
+    );
 
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error('[customer/otp/request]', e);
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('[customer/otp/request]', msg);
+    return NextResponse.json({ error: 'Error interno', detail: msg }, { status: 500 });
   }
 }
