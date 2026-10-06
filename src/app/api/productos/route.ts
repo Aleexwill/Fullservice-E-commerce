@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
         { brand: { contains: search, mode: 'insensitive' } },
       ]});
     }
-    if (searchParams.get('category')) andClauses.push({ category: searchParams.get('category') });
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) andClauses.push({ category: { equals: categoryParam, mode: 'insensitive' } });
     const activeParam = searchParams.get('active');
     if (activeParam === 'true') andClauses.push({ isActive: true });
     else if (activeParam === 'false') andClauses.push({ isActive: false });
