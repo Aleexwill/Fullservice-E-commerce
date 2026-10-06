@@ -160,6 +160,67 @@ export async function sendOrderConfirmationEmail({
   });
 }
 
+export async function sendOtpEmail({
+  to,
+  name,
+  code,
+}: {
+  to: string;
+  name: string;
+  code: string;
+}) {
+  const html = `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Código de acceso — Full Service & Clean</title></head>
+<body style="margin:0;padding:0;background:#0B1120;font-family:'IBM Plex Sans',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0B1120;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#131B2E;border-radius:8px;border:1px solid #1A2640;overflow:hidden;">
+        <tr>
+          <td style="background:#1A2640;padding:24px 32px;">
+            <p style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#4A5E80;">Full Service &amp; Clean</p>
+            <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#F4F7FB;">Código de acceso</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <p style="margin:0 0 16px;font-size:15px;color:#C0CEDF;line-height:1.6;">
+              Hola <strong style="color:#F4F7FB;">${name || to}</strong>,
+            </p>
+            <p style="margin:0 0 24px;font-size:15px;color:#C0CEDF;line-height:1.6;">
+              Tu código de acceso al panel administrativo es:
+            </p>
+            <div style="text-align:center;margin:0 0 28px;">
+              <span style="display:inline-block;padding:18px 36px;background:#0B1120;border:2px solid #2D8FCC;border-radius:12px;font-size:36px;font-weight:700;letter-spacing:0.25em;color:#3CAAE0;font-family:'Courier New',monospace;">${code}</span>
+            </div>
+            <p style="margin:0 0 8px;font-size:13px;color:#4A5E80;line-height:1.6;">
+              Este código vence en <strong style="color:#C0CEDF;">10 minutos</strong>.
+            </p>
+            <p style="margin:0;font-size:13px;color:#4A5E80;line-height:1.6;">
+              Si no solicitaste este código, ignorá este email — tu cuenta sigue segura.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#0B1120;padding:16px 32px;border-top:1px solid #1A2640;">
+            <p style="margin:0;font-size:11px;color:#2A3A5C;">Full Service &amp; Clean · Panel Administrativo</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: `${code} — Tu código de acceso al panel`,
+    html,
+  });
+}
+
 export async function sendCustomerActivationEmail({
   to,
   customerName,

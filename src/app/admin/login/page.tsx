@@ -76,7 +76,202 @@ const PAGE_CSS = `
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 `;
 
-function LoginForm() {
+// ── OTP flow (for DB users) ──────────────────────────────────────────────────
+
+function OtpFlow({ onFallback }: { onFallback: () => void }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [countdown, setCountdown] = useState(0);
+  const botRef = useRef<{ loading: () => void; success: (u: string) => void; error: (m: string) => void; reset: () => void } | null>(null);
+  const scriptLoaded = useRef(false);
+
+  useEffect(() => {
+    if (scriptLoaded.current) return;
+    scriptLoaded.current = true;
+    const script = document.createElement('script');
+    script.src = '/fsc-login-bot.js';
+    script.onload = () => {
+      const w = window as Window & { FSCLoginBot?: { mount: (el: string, opts: object) => typeof botRef.current } };
+      if (w.FSCLoginBot) botRef.current = w.FSCLoginBot.mount('#fsc-robot', { username: '#fsc-email' });
+    };
+    document.head.appendChild(script);
+    return () => { if (document.head.contains(script)) document.head.removeChild(script); };
+  }, []);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
+
+  async function requestCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (!email.trim() || !email.includes('@')) {
+      setError('Ingresá un email válido.');
+      botRef.current?.error('Email inválido.');
+      return;
+    }
+    setLoading(true);
+    botRef.current?.loading();
+    try {
+      await fetch('/api/auth/otp/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      // Siempre avanzar (no revelar si el email existe)
+      botRef.current?.reset();
+      setStep('code');
+      setCountdown(60);
+    } catch {
+      setError('Error de conexión. Intentá de nuevo.');
+      botRef.current?.error('Error de conexión.');
+    }
+    setLoading(false);
+  }
+
+  async function verifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (code.trim().length !== 6) {
+      setError('El código tiene 6 dígitos.');
+      return;
+    }
+    setLoading(true);
+    botRef.current?.loading();
+    try {
+      const res = await fetch('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), code: code.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg = data.error || 'Código incorrecto o vencido.';
+        setError(msg);
+        botRef.current?.error(msg);
+        setLoading(false);
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      botRef.current?.success(email.trim());
+      if (data.mustChangePassword) {
+        router.push('/admin/cambiar-password');
+      } else {
+        const r = searchParams.get('redirect');
+        router.push(r?.startsWith('/admin') ? r : '/admin');
+      }
+      router.refresh();
+    } catch {
+      setError('Error de conexión. Intentá de nuevo.');
+      botRef.current?.error('Error de conexión.');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      {/* eslint-disable-next-line react/no-danger */}
+      <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
+      <main className="shell">
+        <section className="stage" aria-label="Asistente de acceso">
+          <div id="fsc-robot" />
+        </section>
+        <section className="side">
+          <span className="secure">Acceso seguro</span>
+          <div className="form-wrap">
+            <p className="eyebrow">Panel administrativo</p>
+            {step === 'email' ? (
+              <>
+                <h1 className="fsc-h1">Bienvenido<br />de nuevo.</h1>
+                <p className="lead">Ingresá tu email y te enviamos un código de acceso de un solo uso.</p>
+                <form onSubmit={requestCode} noValidate>
+                  <label htmlFor="fsc-email">Email</label>
+                  <div className="field">
+                    <input
+                      id="fsc-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      maxLength={254}
+                      placeholder="tu@email.com"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                    />
+                    <span className="ico" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 2-8 5-8-5h16zm0 12H4V9l8 5 8-5v9z"/></svg>
+                    </span>
+                  </div>
+                  {error && <p className="fsc-msg" role="alert">{error}</p>}
+                  <button className="submit" type="submit" disabled={loading}>
+                    {loading ? 'Enviando…' : 'Enviar código →'}
+                  </button>
+                </form>
+                <p style={{ marginTop: '20px', fontSize: '12px', color: 'var(--muted)', textAlign: 'center' }}>
+                  ¿Admin con contraseña?{' '}
+                  <button onClick={onFallback} style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', fontSize: '12px', padding: 0 }}>
+                    Ingresar con contraseña
+                  </button>
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="fsc-h1" style={{ fontSize: 'clamp(32px,5vw,46px)' }}>Revisá<br />tu email.</h1>
+                <p className="lead">Enviamos un código de 6 dígitos a <strong style={{ color: 'var(--text)' }}>{email}</strong>. Vence en 10 minutos.</p>
+                <form onSubmit={verifyCode} noValidate>
+                  <label htmlFor="fsc-code">Código de verificación</label>
+                  <div className="field">
+                    <input
+                      id="fsc-code"
+                      name="code"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="000000"
+                      style={{ letterSpacing: '0.3em', fontSize: '22px', textAlign: 'center' }}
+                      value={code}
+                      onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      autoFocus
+                    />
+                  </div>
+                  {error && <p className="fsc-msg" role="alert">{error}</p>}
+                  <button className="submit" type="submit" disabled={loading || code.length < 6}>
+                    {loading ? 'Verificando…' : 'Ingresar al panel'}
+                  </button>
+                </form>
+                <p style={{ marginTop: '16px', fontSize: '12px', color: 'var(--muted)', textAlign: 'center' }}>
+                  {countdown > 0 ? (
+                    <>Podés reenviar en {countdown}s</>
+                  ) : (
+                    <button onClick={() => { setStep('email'); setCode(''); setError(''); }} style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', fontSize: '12px', padding: 0 }}>
+                      ← Cambiar email o reenviar
+                    </button>
+                  )}
+                </p>
+              </>
+            )}
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
+
+// ── Password fallback (env admin) ────────────────────────────────────────────
+
+function PasswordForm({ onBack }: { onBack: () => void }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
@@ -95,7 +290,7 @@ function LoginForm() {
     script.onload = () => {
       const w = window as Window & { FSCLoginBot?: { mount: (el: string, opts: object) => typeof botRef.current } };
       if (w.FSCLoginBot) {
-        botRef.current = w.FSCLoginBot.mount('#fsc-robot', {
+        botRef.current = w.FSCLoginBot.mount('#fsc-robot-pwd', {
           username: '#fsc-user',
           password: '#fsc-pass',
           toggle: '#fsc-toggle',
@@ -108,14 +303,9 @@ function LoginForm() {
 
   const togglePwd = () => {
     const passEl = document.getElementById('fsc-pass') as HTMLInputElement | null;
-    const toggleEl = document.getElementById('fsc-toggle') as HTMLButtonElement | null;
     const show = !showPwd;
     setShowPwd(show);
     if (passEl) passEl.type = show ? 'text' : 'password';
-    if (toggleEl) {
-      toggleEl.setAttribute('aria-pressed', String(show));
-      toggleEl.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
-    }
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -148,13 +338,12 @@ function LoginForm() {
         router.push('/admin/cambiar-password');
       } else {
         const r = searchParams.get('redirect');
-        const redirectTo = r?.startsWith('/admin') ? r : '/admin';
-        router.push(redirectTo);
+        router.push(r?.startsWith('/admin') ? r : '/admin');
       }
       router.refresh();
     } catch {
       setError('Error de conexión. Intentá de nuevo.');
-      botRef.current?.error('Error de conexión. Intentá de nuevo.');
+      botRef.current?.error('Error de conexión.');
       setLoading(false);
     }
   }
@@ -168,14 +357,14 @@ function LoginForm() {
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
       <main className="shell">
         <section className="stage" aria-label="Asistente de acceso">
-          <div id="fsc-robot" />
+          <div id="fsc-robot-pwd" />
         </section>
         <section className="side">
           <span className="secure">Acceso seguro</span>
           <div className="form-wrap">
             <p className="eyebrow">Panel administrativo</p>
             <h1 className="fsc-h1">Bienvenido<br />de nuevo.</h1>
-            <p className="lead">Ingresá tus credenciales para continuar. El asistente reacciona mientras escribís.</p>
+            <p className="lead">Ingresá tus credenciales para continuar.</p>
             <form onSubmit={handleSubmit} noValidate>
               <label htmlFor="fsc-user">Usuario</label>
               <div className="field">
@@ -206,14 +395,7 @@ function LoginForm() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                 />
-                <button
-                  type="button"
-                  id="fsc-toggle"
-                  className="ico"
-                  aria-label="Mostrar contraseña"
-                  aria-pressed={showPwd}
-                  onClick={togglePwd}
-                >
+                <button type="button" id="fsc-toggle" className="ico" aria-label="Mostrar contraseña" aria-pressed={showPwd} onClick={togglePwd}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/>
                     <circle cx="12" cy="12" r="3"/>
@@ -225,11 +407,22 @@ function LoginForm() {
                 {loading ? 'Verificando…' : 'Ingresar al panel'}
               </button>
             </form>
+            <p style={{ marginTop: '16px', fontSize: '12px', color: 'var(--muted)', textAlign: 'center' }}>
+              <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', fontSize: '12px', padding: 0 }}>
+                ← Usar código por email
+              </button>
+            </p>
           </div>
         </section>
       </main>
     </>
   );
+}
+
+function LoginForm() {
+  const [mode, setMode] = useState<'otp' | 'password'>('otp');
+  if (mode === 'password') return <PasswordForm onBack={() => setMode('otp')} />;
+  return <OtpFlow onFallback={() => setMode('password')} />;
 }
 
 export default function LoginPage() {
