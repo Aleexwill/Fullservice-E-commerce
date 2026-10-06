@@ -55,7 +55,9 @@ export async function GET(request: NextRequest) {
       ]});
     }
     if (searchParams.get('category')) andClauses.push({ category: searchParams.get('category') });
-    if (searchParams.get('active') === 'true') andClauses.push({ isActive: true });
+    const activeParam = searchParams.get('active');
+    if (activeParam === 'true') andClauses.push({ isActive: true });
+    else if (activeParam === 'false') andClauses.push({ isActive: false });
     if (searchParams.get('featured') === 'true') andClauses.push({ isFeatured: true });
     if (searchParams.get('onSale') === 'true') {
       const now = new Date();
