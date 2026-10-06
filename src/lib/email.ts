@@ -189,7 +189,7 @@ export async function sendOtpEmail({
               Hola <strong style="color:#F4F7FB;">${name || to}</strong>,
             </p>
             <p style="margin:0 0 24px;font-size:15px;color:#C0CEDF;line-height:1.6;">
-              Tu código de acceso al panel administrativo es:
+              Tu código de acceso es:
             </p>
             <div style="text-align:center;margin:0 0 28px;">
               <span style="display:inline-block;padding:18px 36px;background:#0B1120;border:2px solid #2D8FCC;border-radius:12px;font-size:36px;font-weight:700;letter-spacing:0.25em;color:#3CAAE0;font-family:'Courier New',monospace;">${code}</span>
@@ -204,7 +204,7 @@ export async function sendOtpEmail({
         </tr>
         <tr>
           <td style="background:#0B1120;padding:16px 32px;border-top:1px solid #1A2640;">
-            <p style="margin:0;font-size:11px;color:#2A3A5C;">Full Service &amp; Clean · Panel Administrativo</p>
+            <p style="margin:0;font-size:11px;color:#2A3A5C;">Full Service &amp; Clean</p>
           </td>
         </tr>
       </table>
@@ -216,7 +216,7 @@ export async function sendOtpEmail({
   return getResend().emails.send({
     from: FROM,
     to,
-    subject: `${code} — Tu código de acceso al panel`,
+    subject: `${code} — Tu código de acceso`,
     html,
   });
 }
