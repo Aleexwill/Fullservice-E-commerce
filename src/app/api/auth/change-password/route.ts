@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { requireAuth, SESSION_COOKIE, verifySessionToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import { requireAuth, SESSION_COOKIE, SESSION_TTL_MS, verifySessionToken, createSessionToken } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
@@ -39,6 +40,22 @@ export async function POST(request: NextRequest) {
   await prisma.user.update({
     where: { id: session.userId },
     data: { passwordHash, mustChangePassword: false },
+  });
+
+  // Reissue session token with mustChangePassword = false
+  const newToken = await createSessionToken(
+    session.username,
+    session.role,
+    session.userId,
+    false,
+    session.displayName,
+  );
+  (await cookies()).set(SESSION_COOKIE, newToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: SESSION_TTL_MS / 1000,
+    path: '/',
   });
 
   return NextResponse.json({ ok: true });

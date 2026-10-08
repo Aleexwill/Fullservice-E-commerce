@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { KeyRound, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { KeyRound, Eye, EyeOff, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export default function CambiarPasswordPage() {
   const router = useRouter();
@@ -13,6 +13,7 @@ export default function CambiarPasswordPage() {
   const [showNext, setShowNext] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,12 +41,26 @@ export default function CambiarPasswordPage() {
         setLoading(false);
         return;
       }
+      setDone(true);
+      await new Promise(r => setTimeout(r, 1200));
       router.push('/admin');
       router.refresh();
     } catch {
       setError('Error de conexión. Intentá de nuevo.');
       setLoading(false);
     }
+  }
+
+  if (done) {
+    return (
+      <div className="min-h-screen bg-carbon flex items-center justify-center p-6">
+        <div className="text-center">
+          <CheckCircle2 className="mx-auto mb-4 w-14 h-14 text-success-bright" />
+          <h2 className="text-h2 font-display text-arctic">¡Contraseña actualizada!</h2>
+          <p className="text-steel-500 text-body-sm mt-2">Redirigiendo al panel...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

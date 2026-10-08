@@ -22,7 +22,7 @@ async function hmac(data: string): Promise<string> {
 }
 
 export const SESSION_COOKIE = 'fsc_admin_session';
-const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
+export const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
 
 export interface SessionPayload {
   username: string;
