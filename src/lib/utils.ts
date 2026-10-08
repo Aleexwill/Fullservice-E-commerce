@@ -41,14 +41,14 @@ export async function fetchJson<T = unknown>(input: RequestInfo | URL, init?: Re
 export async function fetchJsonWithStatus<T = unknown>(
   input: RequestInfo | URL,
   init?: RequestInit,
-): Promise<{ data: T | null; ok: boolean }> {
+): Promise<{ data: T | null; ok: boolean; status: number }> {
   try {
     const res = await fetch(input, init);
-    if (!res.ok) return { data: null, ok: false };
+    if (!res.ok) return { data: null, ok: false, status: res.status };
     const data = (await res.json()) as T;
-    return { data, ok: true };
+    return { data, ok: true, status: res.status };
   } catch {
-    return { data: null, ok: false };
+    return { data: null, ok: false, status: 0 };
   }
 }
 

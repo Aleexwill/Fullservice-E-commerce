@@ -33,7 +33,9 @@ export default function AdminDashboard() {
       fetchJsonWithStatus<LeadStats>('/api/leads/stats'),
       fetchJsonWithStatus<AnalyticsData>('/api/analytics'),
     ]).then(([p, o, pr, l, a]) => {
-      if (!p.ok || !o.ok || !pr.ok || !l.ok || !a.ok) setFetchError(true);
+      // 403 = no permission for this role — treat as null data, not an error
+      const hasRealError = [p, o, pr, l, a].some((r) => !r.ok && r.status !== 403);
+      if (hasRealError) setFetchError(true);
       setProducts(p.data); setOrders(o.data); setPresupuestos(pr.data);
       setLeads(l.data); setAnalytics(a.data); setLoading(false);
     }).catch(() => { setFetchError(true); setLoading(false); });
