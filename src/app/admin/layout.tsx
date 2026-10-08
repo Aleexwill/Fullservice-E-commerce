@@ -15,46 +15,65 @@ import { NotificationBell } from '@/components/admin/notification-bell';
 import { AdminThemeProvider, AdminShell } from '@/components/admin/theme-provider';
 import { ThemeToggle } from '@/components/admin/theme-toggle';
 import { ToastProvider } from '@/components/admin/toast';
+import { ROLE_PERMISSIONS, can } from '@/lib/roles';
+import type { Role } from '@/lib/roles';
 
-interface NavItem { href: string; label: string; icon: any; exact?: boolean; badge?: number }
-interface NavGroup { label: string; items: NavItem[] }
+type Permission = keyof typeof ROLE_PERMISSIONS['admin'];
+
+interface NavItem { href: string; label: string; icon: any; exact?: boolean; badge?: number; permission?: Permission }
+interface NavGroup { label: string; items: NavItem[]; permission?: Permission }
 
 const navGroups: NavGroup[] = [
   { label: '', items: [{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true }] },
   { label: 'E-Commerce', items: [
-    { href: '/admin/productos', label: 'Productos', icon: Package },
-    { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
-    { href: '/admin/descuentos', label: 'Promos', icon: Tag },
-    { href: '/admin/reportes/ecommerce', label: 'Reporte ventas', icon: TrendingUp },
+    { href: '/admin/productos', label: 'Productos', icon: Package, permission: 'canManageProducts' },
+    { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart, permission: 'canManageOrders' },
+    { href: '/admin/descuentos', label: 'Promos', icon: Tag, permission: 'canManageProducts' },
+    { href: '/admin/reportes/ecommerce', label: 'Reporte ventas', icon: TrendingUp, permission: 'canViewReports' },
   ]},
   { label: 'Servicios', items: [
-    { href: '/admin/presupuestos', label: 'Presupuestos', icon: Calculator },
-    { href: '/admin/presupuestos/solicitudes', label: 'Solicitudes web', icon: Inbox },
-    { href: '/admin/agenda', label: 'Agenda de trabajo', icon: CalendarDays },
-    { href: '/admin/informes-tecnicos', label: 'Informes técnicos', icon: ClipboardCheck },
-    { href: '/admin/inventario', label: 'Lista de precios', icon: ClipboardList },
-    { href: '/admin/reportes/servicios', label: 'Reporte servicios', icon: BarChart3 },
+    { href: '/admin/presupuestos', label: 'Presupuestos', icon: Calculator, permission: 'canManagePresupuestos' },
+    { href: '/admin/presupuestos/solicitudes', label: 'Solicitudes web', icon: Inbox, permission: 'canManagePresupuestos' },
+    { href: '/admin/agenda', label: 'Agenda de trabajo', icon: CalendarDays, permission: 'canManagePresupuestos' },
+    { href: '/admin/informes-tecnicos', label: 'Informes técnicos', icon: ClipboardCheck, permission: 'canManagePresupuestos' },
+    { href: '/admin/inventario', label: 'Lista de precios', icon: ClipboardList, permission: 'canManageInventory' },
+    { href: '/admin/reportes/servicios', label: 'Reporte servicios', icon: BarChart3, permission: 'canViewReports' },
   ]},
   { label: 'Sitio Web', items: [
-    { href: '/admin/contenido', label: 'Contenido', icon: PenSquare },
-    { href: '/admin/servicios', label: 'Servicios', icon: Wrench },
-    { href: '/admin/trabajos', label: 'Portfolio', icon: FolderOpen },
-    { href: '/admin/carousel', label: 'Carrusel hero', icon: ImageIcon },
-    { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers },
-    { href: '/admin/promos', label: 'Banners & Promos', icon: Megaphone },
+    { href: '/admin/contenido', label: 'Contenido', icon: PenSquare, permission: 'canManageContent' },
+    { href: '/admin/servicios', label: 'Servicios', icon: Wrench, permission: 'canManageContent' },
+    { href: '/admin/trabajos', label: 'Portfolio', icon: FolderOpen, permission: 'canManageContent' },
+    { href: '/admin/carousel', label: 'Carrusel hero', icon: ImageIcon, permission: 'canManageContent' },
+    { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers, permission: 'canManageContent' },
+    { href: '/admin/promos', label: 'Banners & Promos', icon: Megaphone, permission: 'canManageContent' },
   ]},
   { label: 'Clientes & CRM', items: [
-    { href: '/admin/clientes', label: 'Clientes', icon: UserCheck },
-    { href: '/admin/leads', label: 'Leads', icon: Inbox },
-    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/admin/clientes', label: 'Clientes', icon: UserCheck, permission: 'canManageClients' },
+    { href: '/admin/leads', label: 'Leads', icon: Inbox, permission: 'canManageLeads' },
+    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, permission: 'canViewAnalytics' },
   ]},
   { label: 'Sistema', items: [
-    { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog },
-    { href: '/admin/sistema/logs', label: 'Log de cambios', icon: History },
-    { href: '/admin/reportes', label: 'Reporte general', icon: FileText, exact: true },
-    { href: '/admin/config', label: 'Configuración', icon: Settings },
+    { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, permission: 'canManageUsers' },
+    { href: '/admin/sistema/logs', label: 'Log de cambios', icon: History, permission: 'canManageUsers' },
+    { href: '/admin/reportes', label: 'Reporte general', icon: FileText, exact: true, permission: 'canViewReports' },
+    { href: '/admin/config', label: 'Configuración', icon: Settings, permission: 'canManageConfig' },
   ]},
 ];
+
+function filterNavForRole(role: Role | null): NavGroup[] {
+  if (!role) return navGroups; // loading state — show all temporarily
+  const isBuiltIn = role in ROLE_PERMISSIONS;
+  return navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (!item.permission) return true;
+        if (isBuiltIn) return can(role, item.permission);
+        return true; // custom roles: show all, API enforces access
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
+}
 
 function getPageLabel(pathname: string): string {
   for (const group of navGroups) {
@@ -74,6 +93,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const openBtnRef = useRef<HTMLButtonElement>(null);
   const [pendingReceipts, setPendingReceipts] = useState(0);
   const [adminName, setAdminName] = useState('Administrador');
+  const [userRole, setUserRole] = useState<Role | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return {};
     try { return JSON.parse(localStorage.getItem('fs-nav-collapsed') ?? '{}'); } catch { return {}; }
@@ -102,7 +122,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pageLabel = getPageLabel(pathname);
 
   useEffect(() => {
-    fetch('/api/auth/me').then((r) => r.ok ? r.json() : null).then((d) => { if (d?.name) setAdminName(d.name); }).catch(() => {});
+    fetch('/api/auth/me').then((r) => r.ok ? r.json() : null).then((d) => {
+      if (d?.name || d?.username) setAdminName(d.name ?? d.username);
+      if (d?.role) setUserRole(d.role as Role);
+    }).catch(() => {});
   }, []);
 
   // Move focus into sidebar when it opens, return to trigger when it closes
@@ -130,8 +153,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (pathname === '/admin/login') return <>{children}</>;
 
+  const filteredNavGroups = filterNavForRole(userRole);
+
   // Inject badge into Pedidos nav item
-  const navGroupsWithBadges = navGroups.map((g) => ({
+  const navGroupsWithBadges = filteredNavGroups.map((g) => ({
     ...g,
     items: g.items.map((item) =>
       item.href === '/admin/pedidos' ? { ...item, badge: pendingReceipts } : item

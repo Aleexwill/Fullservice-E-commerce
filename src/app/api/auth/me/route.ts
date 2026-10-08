@@ -12,6 +12,7 @@ export async function GET() {
 
   return NextResponse.json({
     username: session.username,
+    name: session.displayName ?? session.username,
     userId: session.userId ?? null,
     role: session.role,
     canAprobarPresupuestos: perms?.canAprobarPresupuestos ?? false,
