@@ -15,10 +15,11 @@ import { NotificationBell } from '@/components/admin/notification-bell';
 import { AdminThemeProvider, AdminShell } from '@/components/admin/theme-provider';
 import { ThemeToggle } from '@/components/admin/theme-toggle';
 import { ToastProvider } from '@/components/admin/toast';
-import { ROLE_PERMISSIONS, can } from '@/lib/roles';
+import { ROLE_PERMISSIONS } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 
 type Permission = keyof typeof ROLE_PERMISSIONS['admin'];
+type PermissionsMap = typeof ROLE_PERMISSIONS['admin'];
 
 interface NavItem { href: string; label: string; icon: any; exact?: boolean; badge?: number; permission?: Permission }
 interface NavGroup { label: string; items: NavItem[]; permission?: Permission }
@@ -60,16 +61,14 @@ const navGroups: NavGroup[] = [
   ]},
 ];
 
-function filterNavForRole(role: Role | null): NavGroup[] {
-  if (!role) return navGroups; // loading state — show all temporarily
-  const isBuiltIn = role in ROLE_PERMISSIONS;
+function filterNavForPermissions(perms: PermissionsMap | null): NavGroup[] {
+  if (!perms) return [navGroups[0]]; // loading — show only Dashboard
   return navGroups
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
         if (!item.permission) return true;
-        if (isBuiltIn) return can(role, item.permission);
-        return true; // custom roles: show all, API enforces access
+        return !!perms[item.permission];
       }),
     }))
     .filter((group) => group.items.length > 0);
@@ -93,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const openBtnRef = useRef<HTMLButtonElement>(null);
   const [pendingReceipts, setPendingReceipts] = useState(0);
   const [adminName, setAdminName] = useState('Administrador');
-  const [userRole, setUserRole] = useState<Role | null>(null);
+  const [userPerms, setUserPerms] = useState<PermissionsMap | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return {};
     try { return JSON.parse(localStorage.getItem('fs-nav-collapsed') ?? '{}'); } catch { return {}; }
@@ -124,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     fetch('/api/auth/me').then((r) => r.ok ? r.json() : null).then((d) => {
       if (d?.name || d?.username) setAdminName(d.name ?? d.username);
-      if (d?.role) setUserRole(d.role as Role);
+      if (d?.permissions) setUserPerms(d.permissions);
     }).catch(() => {});
   }, []);
 
@@ -153,7 +152,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (pathname === '/admin/login') return <>{children}</>;
 
-  const filteredNavGroups = filterNavForRole(userRole);
+  const filteredNavGroups = filterNavForPermissions(userPerms);
 
   // Inject badge into Pedidos nav item
   const navGroupsWithBadges = filteredNavGroups.map((g) => ({
