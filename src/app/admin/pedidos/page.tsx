@@ -31,6 +31,7 @@ import {
   BadgeCheck,
   Receipt,
   Printer,
+  ImageIcon,
 } from 'lucide-react';
 
 interface Order {
@@ -85,6 +86,8 @@ export default function AdminPedidosPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [adminReceiptUrl, setAdminReceiptUrl] = useState('');
+  const [adminReceiptFile, setAdminReceiptFile] = useState<File | null>(null);
+  const [adminReceiptPreview, setAdminReceiptPreview] = useState('');
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [savingReceipt, setSavingReceipt] = useState(false);
 
@@ -146,17 +149,36 @@ export default function AdminPedidosPage() {
     finally { setConfirmingPayment(false); }
   };
 
+  const handleAdminReceiptFile = (file: File | null) => {
+    setAdminReceiptFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setAdminReceiptPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setAdminReceiptPreview('');
+    }
+  };
+
   const saveAdminReceipt = async (id: string) => {
-    if (!adminReceiptUrl.trim()) return;
+    if (!adminReceiptFile) return;
     setSavingReceipt(true);
     try {
+      const formData = new FormData();
+      formData.append('file', adminReceiptFile);
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok) { showToast(uploadData.error || 'Error al subir imagen', 'error'); return; }
+
       const res = await fetch(`/api/pedidos/${id}/admin-receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ receiptUrl: adminReceiptUrl.trim() }),
+        body: JSON.stringify({ receiptUrl: uploadData.url }),
       });
       if (!res.ok) { showToast('Error al guardar comprobante', 'error'); return; }
       showToast('Comprobante guardado', 'success');
+      setAdminReceiptFile(null);
+      setAdminReceiptPreview('');
       setAdminReceiptUrl('');
       fetchOrders();
       if (selectedOrder?.id === id) setSelectedOrder({ ...selectedOrder, adminReceiptUrl: adminReceiptUrl.trim() });
@@ -393,23 +415,38 @@ export default function AdminPedidosPage() {
                     />
                   </a>
                 )}
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    className="input min-w-0 flex-1"
-                    placeholder="URL del comprobante (imagen)"
-                    value={adminReceiptUrl}
-                    onChange={(e) => setAdminReceiptUrl(e.target.value)}
-                  />
-                  <button
-                    onClick={() => saveAdminReceipt(selectedOrder.id)}
-                    disabled={savingReceipt || !adminReceiptUrl.trim()}
-                    className="btn-secondary shrink-0 gap-1.5"
-                  >
-                    {savingReceipt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    Guardar
-                  </button>
-                </div>
+                {adminReceiptPreview ? (
+                  <div className="relative overflow-hidden rounded-lg border border-steel-900/40">
+                    <img src={adminReceiptPreview} alt="Vista previa" className="max-h-40 w-full object-contain bg-carbon" />
+                    <button
+                      type="button"
+                      onClick={() => handleAdminReceiptFile(null)}
+                      className="absolute right-2 top-2 rounded-full bg-carbon/80 p-1 text-steel-400 hover:text-red-400"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border-2 border-dashed border-steel-900/50 px-4 py-5 transition hover:border-blue-bright/50 hover:bg-blue-muted/10">
+                    <ImageIcon className="h-6 w-6 text-steel-600" />
+                    <span className="font-body text-body-sm text-steel-400">Arrastrá o tocá para seleccionar imagen</span>
+                    <span className="font-body text-caption text-steel-600">JPG, PNG o WEBP · máx 5MB</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={(e) => handleAdminReceiptFile(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                )}
+                <button
+                  onClick={() => saveAdminReceipt(selectedOrder.id)}
+                  disabled={savingReceipt || !adminReceiptFile}
+                  className="btn-secondary w-full justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {savingReceipt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  {savingReceipt ? 'Subiendo...' : 'Guardar comprobante'}
+                </button>
               </div>
             </div>
           </div>
