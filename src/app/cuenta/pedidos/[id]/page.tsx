@@ -168,7 +168,7 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
               <h2 className="font-body text-body-sm font-semibold text-[#0B1120]">Productos</h2>
             </div>
             <div className="divide-y divide-gray-100">
-              {order.items.map((item, i) => (
+              {(order.items ?? []).map((item, i) => (
                 <div key={i} className="flex items-center gap-3 px-4 py-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#F4F7FB]">
                     <Package className="h-5 w-5 text-[#C0CEDF]" />
@@ -295,11 +295,11 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
           <div className="card p-5">
             <h2 className="mb-3 font-body text-body-sm font-semibold text-[#0B1120]">Datos de entrega</h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 font-body text-caption">
-              <div><dt className="text-[#8094B4]">Nombre</dt><dd className="text-[#0B1120]">{order.customer.name}</dd></div>
-              <div><dt className="text-[#8094B4]">Email</dt><dd className="break-all text-[#0B1120]">{order.customer.email}</dd></div>
-              {order.customer.phone && <div><dt className="text-[#8094B4]">Teléfono</dt><dd className="text-[#0B1120]">{order.customer.phone}</dd></div>}
-              {order.customer.city && <div><dt className="text-[#8094B4]">Ciudad</dt><dd className="text-[#0B1120]">{order.customer.city}</dd></div>}
-              {order.customer.address && <div className="col-span-2"><dt className="text-[#8094B4]">Dirección</dt><dd className="text-[#0B1120]">{order.customer.address}</dd></div>}
+              <div><dt className="text-[#8094B4]">Nombre</dt><dd className="text-[#0B1120]">{order.customer?.name}</dd></div>
+              <div><dt className="text-[#8094B4]">Email</dt><dd className="break-all text-[#0B1120]">{order.customer?.email}</dd></div>
+              {order.customer?.phone && <div><dt className="text-[#8094B4]">Teléfono</dt><dd className="text-[#0B1120]">{order.customer.phone}</dd></div>}
+              {order.customer?.city && <div><dt className="text-[#8094B4]">Ciudad</dt><dd className="text-[#0B1120]">{order.customer.city}</dd></div>}
+              {order.customer?.address && <div className="col-span-2"><dt className="text-[#8094B4]">Dirección</dt><dd className="text-[#0B1120]">{order.customer.address}</dd></div>}
             </dl>
           </div>
 
