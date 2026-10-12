@@ -3,6 +3,9 @@ import { Resend } from 'resend';
 const FROM = process.env.RESEND_FROM_EMAIL || 'noreply@fullserviceclean.com.py';
 
 function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[email] RESEND_API_KEY no está configurada — los emails no se enviarán. Configurala en Vercel → Settings → Environment Variables.');
+  }
   return new Resend(process.env.RESEND_API_KEY);
 }
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
