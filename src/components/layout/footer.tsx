@@ -18,7 +18,7 @@ const footerLinks = {
 
 export function Footer({ settings, showStore = true }: { settings?: SiteSettings; showStore?: boolean }) {
   const description = settings?.general.siteDescription || siteConfig.description;
-  const social = { facebook: settings?.social.facebook || siteConfig.social.facebook, instagram: settings?.social.instagram || siteConfig.social.instagram, linkedin: settings?.social.linkedin || siteConfig.social.linkedin };
+  const social = { facebook: settings?.social.facebook || '', instagram: settings?.social.instagram || '', linkedin: settings?.social.linkedin || '' };
   const address = settings?.contact.address ? `${settings.contact.address}, ${settings.contact.city}` : `${siteConfig.address.street}, ${siteConfig.address.city}`;
   const phone = settings?.contact.phone || siteConfig.phone;
   const email = settings?.contact.email || siteConfig.email;
@@ -44,7 +44,7 @@ export function Footer({ settings, showStore = true }: { settings?: SiteSettings
             <p className="mt-5 max-w-sm font-body text-body-sm leading-relaxed text-[#9AAAC0]">{description}</p>
             <div className="mt-5 flex gap-2">{[
               { href: social.facebook, label: 'Facebook', icon: Facebook }, { href: social.instagram, label: 'Instagram', icon: Instagram }, { href: social.linkedin, label: 'LinkedIn', icon: Linkedin },
-            ].map(({ href, label, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="rounded-lg border border-white/15 p-2.5 text-[#B7C5D9] transition hover:border-[#6FC3F5]/60 hover:bg-white/5 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#6FC3F5]"><Icon className="h-4 w-4" /></a>)}</div>
+            ].filter(({ href }) => !!href).map(({ href, label, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="rounded-lg border border-white/15 p-2.5 text-[#B7C5D9] transition hover:border-[#6FC3F5]/60 hover:bg-white/5 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#6FC3F5]"><Icon className="h-4 w-4" /></a>)}</div>
           </div>
 
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Servicios</h3><ul className="space-y-2.5">{footerLinks.servicios.map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>

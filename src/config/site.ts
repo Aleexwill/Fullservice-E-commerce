@@ -16,9 +16,9 @@ export const siteConfig = {
     country: 'PY',
   },
   social: {
-    facebook: 'https://facebook.com/fullserviceclean',
-    instagram: 'https://instagram.com/fullserviceclean',
-    linkedin: 'https://linkedin.com/company/fullserviceclean',
+    facebook: '',
+    instagram: '',
+    linkedin: '',
   },
   openingHours: 'Lun-Vie 08:00-18:00, Sáb 08:00-13:00',
 };

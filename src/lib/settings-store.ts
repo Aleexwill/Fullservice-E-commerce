@@ -93,8 +93,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
     mapUrl: '',
   },
   social: {
-    facebook: 'https://facebook.com/fullserviceandclean',
-    instagram: 'https://instagram.com/fullserviceandclean',
+    facebook: '',
+    instagram: '',
     linkedin: '',
     youtube: '',
     tiktok: '',

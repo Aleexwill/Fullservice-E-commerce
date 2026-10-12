@@ -55,9 +55,9 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
   }
   const phone = settings?.contact.phone || siteConfig.phone;
   const openingHours = settings?.business.openingHours.weekdays || siteConfig.openingHours;
-  const socialFacebook = settings?.social.facebook || siteConfig.social.facebook;
-  const socialInstagram = settings?.social.instagram || siteConfig.social.instagram;
-  const socialLinkedin = settings?.social.linkedin || siteConfig.social.linkedin;
+  const socialFacebook = settings?.social.facebook || '';
+  const socialInstagram = settings?.social.instagram || '';
+  const socialLinkedin = settings?.social.linkedin || '';
   const navLinks = BASE_NAV_LINKS.filter(
     (l) => l.sectionKey === null || settings?.sections?.[l.sectionKey as keyof typeof settings.sections] !== false
   );
