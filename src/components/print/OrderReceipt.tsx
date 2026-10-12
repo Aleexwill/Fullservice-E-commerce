@@ -100,8 +100,8 @@ export default function OrderReceipt({ order, autoPrint }: Props) {
             <Image
               src="/logo-full-service.png"
               alt={siteConfig.name}
-              width={180}
-              height={60}
+              width={260}
+              height={90}
               className="mb-2 object-contain"
               unoptimized
             />
