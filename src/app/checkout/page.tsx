@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ChevronRight, CheckCircle2, Copy } from 'lucide-react';
+import { ChevronRight, CheckCircle2, Copy, Upload, ImageIcon, X, AlertCircle } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { formatPrice, formatWhatsAppUrl } from '@/lib/utils';
 import { siteConfig } from '@/config/site';
@@ -11,6 +11,7 @@ import type { SiteSettings } from '@/lib/settings-store';
 type PaymentMethod = 'transferencia' | 'efectivo';
 
 interface ConfirmedOrder {
+  orderId: string;
   orderNumber: string;
   total: number;
   paymentMethod: PaymentMethod;
@@ -25,6 +26,11 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState<ConfirmedOrder | null>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState('');
+  const [receiptUploading, setReceiptUploading] = useState(false);
+  const [receiptDone, setReceiptDone] = useState(false);
+  const [receiptError, setReceiptError] = useState('');
 
   useEffect(() => {
     setHydrated(true);
@@ -59,12 +65,50 @@ export default function CheckoutPage() {
         return;
       }
       const order = await res.json();
-      setConfirmedOrder({ orderNumber: order.orderNumber, total: order.total, paymentMethod });
+      setConfirmedOrder({ orderId: order.id, orderNumber: order.orderNumber, total: order.total, paymentMethod });
       clear();
     } catch {
       setError('Error de conexión, intentá de nuevo');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function handleReceiptFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setReceiptFile(file);
+    setReceiptError('');
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setReceiptPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setReceiptPreview('');
+    }
+  }
+
+  async function uploadReceipt() {
+    if (!receiptFile || !confirmedOrder) return;
+    setReceiptUploading(true);
+    setReceiptError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', receiptFile);
+      const upRes = await fetch('/api/customer/upload', { method: 'POST', body: fd });
+      const upData = await upRes.json().catch(() => ({}));
+      if (!upRes.ok) { setReceiptError(upData.error || 'Error al subir la imagen'); return; }
+
+      const res = await fetch(`/api/customer/orders/${confirmedOrder.orderId}/receipt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiptUrl: upData.url }),
+      });
+      if (!res.ok) { setReceiptError('No se pudo guardar el comprobante'); return; }
+      setReceiptDone(true);
+    } catch {
+      setReceiptError('Error de conexión');
+    } finally {
+      setReceiptUploading(false);
     }
   }
 
@@ -110,24 +154,69 @@ export default function CheckoutPage() {
             </div>
           )}
 
+          {confirmedOrder.paymentMethod === 'transferencia' && (
+            <div className="card mt-6 p-5 text-left">
+              <h3 className="mb-3 font-display text-h4 uppercase text-[#0B1120]">Subir comprobante</h3>
+              {receiptDone ? (
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle2 className="h-5 w-5 shrink-0" />
+                  <p className="font-body text-body-sm font-medium">¡Comprobante recibido! Lo revisaremos a la brevedad.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="font-body text-caption text-[#4A5E80]">
+                    Adjuntá la foto o captura de tu transferencia para agilizar la confirmación.
+                  </p>
+                  {receiptPreview ? (
+                    <div className="relative overflow-hidden rounded-lg border border-gray-200">
+                      <img src={receiptPreview} alt="Vista previa" className="max-h-48 w-full object-contain" />
+                      <button
+                        type="button"
+                        onClick={() => { setReceiptFile(null); setReceiptPreview(''); setReceiptError(''); }}
+                        className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-gray-600 shadow hover:bg-white hover:text-red-500"
+                        aria-label="Quitar imagen"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-gray-200 px-4 py-5 transition hover:border-[#2D8FCC] hover:bg-[#F4F9FF]">
+                      <ImageIcon className="h-7 w-7 text-[#C0CEDF]" />
+                      <span className="font-body text-body-sm text-[#4A5E80]">Tocá para seleccionar imagen</span>
+                      <span className="font-body text-caption text-[#8094B4]">JPG, PNG o WEBP · máx 8MB</span>
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleReceiptFile} />
+                    </label>
+                  )}
+                  {receiptError && (
+                    <div className="flex items-center gap-2 text-red-600">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <p className="font-body text-caption">{receiptError}</p>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={uploadReceipt}
+                    disabled={!receiptFile || receiptUploading}
+                    className="btn-primary w-full justify-center disabled:opacity-50"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {receiptUploading ? 'Subiendo...' : 'Enviar comprobante'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {confirmedOrder.paymentMethod === 'efectivo' && (
             <p className="mt-8 font-body text-body-sm text-[#4A5E80]">
               Pagás en efectivo al recibir tu pedido. Nos pondremos en contacto para coordinar la entrega.
             </p>
           )}
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            {confirmedOrder.paymentMethod === 'transferencia' && (
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
-                Enviar comprobante por WhatsApp
-              </a>
-            )}
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href="/cuenta" className="btn-secondary">Ver mis pedidos</Link>
             <Link href="/tienda" className="btn-ghost">Seguir comprando</Link>
           </div>
-          <p className="mt-4 font-body text-caption text-[#8094B4]">
-            Te llegará un email para activar tu cuenta y adjuntar el comprobante desde el portal.
-          </p>
         </div>
       </section>
     );

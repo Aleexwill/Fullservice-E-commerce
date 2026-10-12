@@ -7,6 +7,8 @@ import { can, RESTRICTED_ROUTES, RESTRICTED_API_ROUTES } from '@/lib/roles';
 function isPublicApi(pathname: string, method: string): boolean {
   if (pathname.startsWith('/api/auth/')) return true;
   if (pathname.startsWith('/api/invitaciones/')) return true; // token lookup + activation
+  // Customer portal routes manage their own auth via requireCustomerAuth
+  if (pathname.startsWith('/api/customer/')) return true;
 
   if (method === 'POST' && ['/api/leads', '/api/pedidos', '/api/presupuestos', '/api/analytics'].includes(pathname)) {
     return true;

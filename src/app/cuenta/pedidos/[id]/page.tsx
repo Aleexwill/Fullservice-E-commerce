@@ -4,7 +4,7 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Upload, CheckCircle2, Package, AlertCircle, Printer } from 'lucide-react';
+import { ChevronRight, Upload, CheckCircle2, Package, AlertCircle, Printer, ImageIcon, X } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
 interface OrderItem {
@@ -55,7 +55,8 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
   const router = useRouter();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [receiptUrl, setReceiptUrl] = useState('');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [receiptError, setReceiptError] = useState('');
   const [receiptDone, setReceiptDone] = useState(false);
@@ -70,21 +71,48 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
     }).catch(() => { router.push('/cuenta/login'); });
   }, [id, router]);
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setReceiptFile(file);
+    setReceiptError('');
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setReceiptPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setReceiptPreview('');
+    }
+  }
+
+  function clearFile() {
+    setReceiptFile(null);
+    setReceiptPreview('');
+    setReceiptError('');
+  }
+
   async function submitReceipt(e: React.FormEvent) {
     e.preventDefault();
     setReceiptError('');
-    if (!receiptUrl.trim()) { setReceiptError('Ingresá la URL de la imagen'); return; }
+    if (!receiptFile) { setReceiptError('Seleccioná una imagen del comprobante'); return; }
     setSubmitting(true);
     try {
+      // 1) Upload image
+      const formData = new FormData();
+      formData.append('file', receiptFile);
+      const uploadRes = await fetch('/api/customer/upload', { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok) { setReceiptError(uploadData.error || 'Error al subir la imagen'); return; }
+
+      // 2) Save URL on order
       const res = await fetch(`/api/customer/orders/${id}/receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ receiptUrl: receiptUrl.trim() }),
+        body: JSON.stringify({ receiptUrl: uploadData.url }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { setReceiptError(data.error || 'No se pudo guardar'); return; }
       setReceiptDone(true);
-      setOrder((prev) => prev ? { ...prev, paymentStatus: data.paymentStatus, transferReceiptUrl: receiptUrl.trim() } : prev);
+      setOrder((prev) => prev ? { ...prev, paymentStatus: data.paymentStatus, transferReceiptUrl: uploadData.url } : prev);
     } catch {
       setReceiptError('Error de conexión');
     } finally {
@@ -210,28 +238,50 @@ export default function PedidoDetailPage({ params }: { params: Promise<{ id: str
                   ) : (
                     <form onSubmit={submitReceipt} className="space-y-3">
                       <p className="font-body text-caption text-[#4A5E80]">
-                        Pegá el link de la imagen de tu comprobante (Google Drive, Imgur, etc.)
+                        Subí la foto o captura de pantalla de tu transferencia.
                       </p>
-                      <div className="flex gap-2">
-                        <input
-                          type="url"
-                          required
-                          className="input-field min-w-0 flex-1"
-                          placeholder="https://..."
-                          value={receiptUrl}
-                          onChange={(e) => setReceiptUrl(e.target.value)}
-                        />
-                        <button type="submit" disabled={submitting} className="btn-primary flex shrink-0 items-center gap-2">
-                          <Upload className="h-4 w-4" />
-                          {submitting ? 'Enviando...' : 'Enviar'}
-                        </button>
-                      </div>
+
+                      {receiptPreview ? (
+                        <div className="relative overflow-hidden rounded-lg border border-gray-200">
+                          <img src={receiptPreview} alt="Vista previa del comprobante" className="max-h-56 w-full object-contain" />
+                          <button
+                            type="button"
+                            onClick={clearFile}
+                            className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-gray-600 shadow hover:bg-white hover:text-red-500"
+                            aria-label="Quitar imagen"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-gray-200 px-4 py-6 transition hover:border-[#2D8FCC] hover:bg-[#F4F9FF]">
+                          <ImageIcon className="h-8 w-8 text-[#C0CEDF]" />
+                          <span className="font-body text-body-sm text-[#4A5E80]">Tocá para seleccionar imagen</span>
+                          <span className="font-body text-caption text-[#8094B4]">JPG, PNG o WEBP · máx 8MB</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="sr-only"
+                            onChange={handleFileChange}
+                          />
+                        </label>
+                      )}
+
                       {receiptError && (
                         <div className="flex items-center gap-2 text-red-600">
                           <AlertCircle className="h-4 w-4" />
                           <p className="font-body text-caption">{receiptError}</p>
                         </div>
                       )}
+
+                      <button
+                        type="submit"
+                        disabled={submitting || !receiptFile}
+                        className="btn-primary w-full justify-center disabled:opacity-50"
+                      >
+                        <Upload className="h-4 w-4" />
+                        {submitting ? 'Subiendo...' : 'Enviar comprobante'}
+                      </button>
                     </form>
                   )}
                 </div>
