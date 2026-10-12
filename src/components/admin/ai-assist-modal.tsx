@@ -20,7 +20,7 @@ interface AISuggestion {
   shortDescription: string;
   description: string;
   tags: string[];
-  source: 'ai' | 'template';
+  source: 'ai' | 'ai-vision' | 'template';
 }
 
 interface AIAssistModalProps {
@@ -35,6 +35,7 @@ interface AIAssistModalProps {
     specifications: Record<string, string>;
     tags: string[];
     price: string;
+    images?: string[];
   };
   onApply: (fields: {
     shortDescription?: string;
@@ -162,6 +163,12 @@ export default function AIAssistModal({
                   {Object.keys(productContext.specifications).length} atributos
                 </span>
               </div>
+              {productContext.images && productContext.images.length > 0 && (
+                <div>
+                  <span className="text-steel-500">Imágenes: </span>
+                  <span className="text-arctic">{productContext.images.length} foto{productContext.images.length > 1 ? 's' : ''} disponible{productContext.images.length > 1 ? 's' : ''}</span>
+                </div>
+              )}
               {productContext.shortDescription && (
                 <div className="col-span-2">
                   <span className="text-steel-500">Desc. actual: </span>
@@ -200,7 +207,9 @@ export default function AIAssistModal({
                   : 'Listo para generar'}
               </p>
               <p className="mb-6 max-w-md text-center font-body text-body-sm text-steel-500">
-                {productContext.shortDescription
+                {productContext.images && productContext.images.length > 0
+                  ? 'La IA analizará la imagen del producto para extraer características reales y generar descripciones precisas.'
+                  : productContext.shortDescription
                   ? 'La IA tomara tu descripcion actual y la optimizara para maximizar las conversiones en tu tienda.'
                   : 'La IA analizara los datos del producto y generara descripciones profesionales optimizadas para SEO y conversiones.'}
               </p>
@@ -226,7 +235,9 @@ export default function AIAssistModal({
               </div>
               <p className="mt-4 font-display text-h4 text-arctic">Generando contenido...</p>
               <p className="mt-1 font-body text-caption text-steel-500">
-                Analizando producto y optimizando para e-commerce
+                {productContext.images && productContext.images.length > 0
+                  ? 'Analizando imagen y extrayendo características del producto'
+                  : 'Analizando producto y optimizando para e-commerce'}
               </p>
             </div>
           )}
@@ -252,7 +263,12 @@ export default function AIAssistModal({
             <div className="space-y-4">
               {/* Source badge */}
               <div className="flex items-center gap-2">
-                {suggestion.source === 'ai' ? (
+                {suggestion.source === 'ai-vision' ? (
+                  <span className="badge-blue flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    IA Vision — características extraídas de la imagen
+                  </span>
+                ) : suggestion.source === 'ai' ? (
                   <span className="badge-blue flex items-center gap-1">
                     <Sparkles className="h-3 w-3" />
                     Generado por IA
@@ -260,7 +276,7 @@ export default function AIAssistModal({
                 ) : (
                   <span className="badge-yellow flex items-center gap-1">
                     <FileText className="h-3 w-3" />
-                    Generado por plantilla (configura OPENAI_API_KEY para IA completa)
+                    Generado por plantilla (configura ANTHROPIC_API_KEY para IA completa)
                   </span>
                 )}
                 <button

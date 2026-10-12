@@ -777,6 +777,7 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
           specifications: form.specifications,
           tags: form.tags,
           price: form.price,
+          images: form.images,
         }}
         onApply={handleAIApply}
       />
