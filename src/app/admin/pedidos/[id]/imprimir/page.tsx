@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import OrderReceipt, { type PrintOrder } from '@/components/print/OrderReceipt';
 
-export default function AdminPrintPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function AdminPrintPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const router = useRouter();
   const [order, setOrder] = useState<PrintOrder | null>(null);
   const [loading, setLoading] = useState(true);
