@@ -6,7 +6,8 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import {
   Search, Star, ShoppingCart, ChevronRight, Truck, ShieldCheck, CreditCard,
-  Package, Wrench, Zap, Droplets, Paintbrush, Hammer, Lock, type LucideIcon,
+  Package, Wrench, Zap, Droplets, Paintbrush, Hammer, Lock, Tag, MapPin, X,
+  type LucideIcon,
 } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { BrandsCarousel } from '@/components/sections/brands-carousel';
@@ -45,12 +46,13 @@ export function TiendaClient({ initialProducts }: { initialProducts: Product[] }
     const cat = searchParams.get('categoria');
     return categorias.find((c) => c.id === cat) ? cat : null;
   });
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(() => searchParams.get('marca') ?? null);
   const addItem = useCartStore((s) => s.addItem);
   const gridRef = useRef<HTMLElement>(null);
   const didAutoScroll = useRef(false);
 
   useEffect(() => {
-    if (!didAutoScroll.current && (searchParams.get('q') || searchParams.get('categoria'))) {
+    if (!didAutoScroll.current && (searchParams.get('q') || searchParams.get('categoria') || searchParams.get('marca'))) {
       didAutoScroll.current = true;
       setTimeout(() => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 600);
     }
@@ -86,7 +88,8 @@ export function TiendaClient({ initialProducts }: { initialProducts: Product[] }
       p.sku.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter((p) => !onlyOnSale || getEffectivePrice(p).isOnSale)
-    .filter((p) => !activeCategory || activeCategory.match.some((kw) => p.category.toLowerCase().includes(kw)));
+    .filter((p) => !activeCategory || activeCategory.match.some((kw) => p.category.toLowerCase().includes(kw)))
+    .filter((p) => !selectedBrand || p.brand.toLowerCase() === selectedBrand.toLowerCase());
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === 'price-asc') return getEffectivePrice(a).price - getEffectivePrice(b).price;
@@ -129,6 +132,18 @@ export function TiendaClient({ initialProducts }: { initialProducts: Product[] }
               className="input pl-11 pr-4"
             />
           </div>
+          {selectedBrand && (
+            <div className="mt-4 flex items-center gap-2">
+              <span className="font-body text-body-sm text-[#4A5E80]">Filtrando por marca:</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#2D8FCC]/30 bg-[#EBF5FB] px-3 py-1 font-body text-body-sm font-semibold text-[#2D8FCC]">
+                <Tag className="h-3.5 w-3.5" />
+                {selectedBrand}
+                <button onClick={() => setSelectedBrand(null)} aria-label="Quitar filtro de marca" className="ml-0.5 rounded-full hover:text-[#0B6FA0]">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -296,6 +311,38 @@ export function TiendaClient({ initialProducts }: { initialProducts: Product[] }
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Quick links */}
+      <section className="border-t border-gray-200 bg-white">
+        <div className="container-main grid gap-4 py-10 sm:grid-cols-2">
+          <Link
+            href="/marcas"
+            className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#2D8FCC]/40 hover:shadow-md"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EBF5FB] text-[#2D8FCC]">
+              <Tag className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-display text-base font-bold uppercase text-[#0B1120] group-hover:text-[#2D8FCC]">Busca por Marcas</p>
+              <p className="font-body text-body-sm text-[#4A5E80]">Explorá el catálogo completo ordenado por fabricante</p>
+            </div>
+            <ChevronRight className="ml-auto h-5 w-5 shrink-0 text-[#C0CEDF] group-hover:text-[#2D8FCC]" />
+          </Link>
+          <Link
+            href="/envios"
+            className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#2D8FCC]/40 hover:shadow-md"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EBF5FB] text-[#2D8FCC]">
+              <MapPin className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-display text-base font-bold uppercase text-[#0B1120] group-hover:text-[#2D8FCC]">Zonas de Entrega</p>
+              <p className="font-body text-body-sm text-[#4A5E80]">Consultá costos y ciudades de cobertura para tu pedido</p>
+            </div>
+            <ChevronRight className="ml-auto h-5 w-5 shrink-0 text-[#C0CEDF] group-hover:text-[#2D8FCC]" />
+          </Link>
         </div>
       </section>
 
