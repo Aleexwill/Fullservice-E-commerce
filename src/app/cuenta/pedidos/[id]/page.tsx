@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, Upload, CheckCircle2, Package, AlertCircle, Printer, ImageIcon, X } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
@@ -50,8 +50,8 @@ const PAYMENT_COLOR: Record<string, string> = {
   failed: 'bg-red-100 text-red-600',
 };
 
-export default function PedidoDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function PedidoDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const router = useRouter();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
