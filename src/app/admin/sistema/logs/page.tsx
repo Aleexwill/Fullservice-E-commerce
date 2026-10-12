@@ -15,9 +15,9 @@ interface AuditLog {
 interface AuditField { key: string; label: string; tracked: boolean }
 
 const ACTION_COLORS = {
-  create: 'bg-green-50 text-green-700 border-green-200',
-  update: 'bg-blue-50 text-blue-700 border-blue-200',
-  delete: 'bg-red-50 text-red-700 border-red-200',
+  create: 'bg-success-light/10 text-success-bright border-success-bright/20',
+  update: 'bg-blue-muted/50 text-blue-bright border-blue/20',
+  delete: 'bg-danger-light/10 text-danger-bright border-danger-bright/20',
 };
 const ACTION_LABELS = { create: 'Creado', update: 'Editado', delete: 'Eliminado' };
 
@@ -147,19 +147,19 @@ function LogsTab() {
           {visible.map((log) => {
             const isOpen = expanded.has(log.id);
             return (
-              <div key={log.id} className="overflow-hidden rounded-xl border border-steel-900/30 bg-white">
+              <div key={log.id} className="overflow-hidden rounded-xl border border-steel-900/30 bg-carbon-light">
                 <button
                   onClick={() => toggleExpand(log.id)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[#F4F7FB]/60 transition-colors"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-steel-900/20 transition-colors"
                 >
                   {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-steel-500" /> : <ChevronRight className="h-4 w-4 shrink-0 text-steel-500" />}
                   <span className={`shrink-0 rounded-full border px-2 py-0.5 font-body text-[0.65rem] font-semibold ${ACTION_COLORS[log.action]}`}>
                     {ACTION_LABELS[log.action]}
                   </span>
-                  <span className="shrink-0 rounded-md bg-[#EBF5FB] px-1.5 py-0.5 font-body text-[0.65rem] text-blue">
+                  <span className="shrink-0 rounded-md bg-blue-muted/30 px-1.5 py-0.5 font-body text-[0.65rem] text-blue-bright">
                     {ENTITY_LABELS[log.entity] ?? log.entity}
                   </span>
-                  <span className="flex-1 font-body text-body-sm font-semibold text-[#0B1120] truncate">
+                  <span className="flex-1 font-body text-body-sm font-semibold text-arctic truncate">
                     {log.entityName || log.entityId}
                   </span>
                   <span className="shrink-0 font-body text-caption text-steel-500">{log.userName}</span>
@@ -167,7 +167,7 @@ function LogsTab() {
                     {new Date(log.createdAt).toLocaleString('es-PY', { dateStyle: 'short', timeStyle: 'short' })}
                   </span>
                   {log.changes.length > 0 && (
-                    <span className="shrink-0 rounded-full bg-[#EBF5FB] px-1.5 py-0.5 font-mono text-[0.65rem] text-blue">
+                    <span className="shrink-0 rounded-full bg-blue-muted/30 px-1.5 py-0.5 font-mono text-[0.65rem] text-blue-bright">
                       {log.changes.length} campo{log.changes.length !== 1 ? 's' : ''}
                     </span>
                   )}
@@ -179,7 +179,7 @@ function LogsTab() {
                       <p className="mb-3 font-mono text-[0.65rem] text-steel-500">IP: {log.userIp}</p>
                     )}
                     {log.action === 'delete' ? (
-                      <p className="font-body text-body-sm text-red-600">Registro eliminado</p>
+                      <p className="font-body text-body-sm text-danger-bright">Registro eliminado</p>
                     ) : log.changes.length === 0 ? (
                       <p className="font-body text-caption text-steel-500">Sin campos rastreados modificados</p>
                     ) : (
@@ -195,9 +195,9 @@ function LogsTab() {
                           <tbody className="divide-y divide-steel-900/10">
                             {log.changes.map((ch) => (
                               <tr key={ch.field}>
-                                <td className="py-2 pr-4 font-body text-caption font-semibold text-[#0B1120]">{ch.label}</td>
-                                <td className="py-2 pr-4 font-mono text-[0.7rem] text-red-500 line-through">{translateValue(ch.from)}</td>
-                                <td className="py-2 font-mono text-[0.7rem] text-green-600">{translateValue(ch.to)}</td>
+                                <td className="py-2 pr-4 font-body text-caption font-semibold text-arctic">{ch.label}</td>
+                                <td className="py-2 pr-4 font-mono text-[0.7rem] text-danger-bright line-through">{translateValue(ch.from)}</td>
+                                <td className="py-2 font-mono text-[0.7rem] text-success-bright">{translateValue(ch.to)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -277,7 +277,7 @@ function ConfigTab() {
       {Object.entries(configs).map(([entity, fields]) => (
         <div key={entity} className="card p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-h3 text-[#0B1120]">{ENTITY_LABELS[entity] ?? entity}</h3>
+            <h3 className="font-display text-h3 text-arctic">{ENTITY_LABELS[entity] ?? entity}</h3>
             <button onClick={() => save(entity)} disabled={saving === entity} className="btn-primary py-1.5 px-4 text-body-sm">
               <Save className="h-3.5 w-3.5" />
               {saving === entity ? 'Guardando…' : 'Guardar'}
@@ -285,14 +285,14 @@ function ConfigTab() {
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {fields.map((f) => (
-              <label key={f.key} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 transition-colors ${f.tracked ? 'border-blue/40 bg-[#EBF5FB]' : 'border-steel-900/20 bg-white hover:bg-[#F4F7FB]'}`}>
+              <label key={f.key} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 transition-colors ${f.tracked ? 'border-blue/40 bg-blue-muted/30' : 'border-steel-900/20 bg-carbon hover:bg-steel-900/30'}`}>
                 <input
                   type="checkbox"
                   checked={f.tracked}
                   onChange={() => toggle(entity, f.key)}
                   className="h-3.5 w-3.5 accent-blue"
                 />
-                <span className="font-body text-caption text-[#0B1120]">{f.label}</span>
+                <span className="font-body text-caption text-arctic">{f.label}</span>
               </label>
             ))}
           </div>
@@ -324,17 +324,17 @@ export default function AuditLogsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 rounded-xl border border-steel-900/30 bg-[#F4F7FB] p-1 w-fit">
+      <div className="mb-6 flex gap-1 rounded-xl border border-steel-900/30 bg-steel-900/40 p-1 w-fit">
         <button
           onClick={() => setTab('logs')}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 font-body text-body-sm font-semibold transition-all ${tab === 'logs' ? 'bg-white shadow text-[#0B1120]' : 'text-steel-500 hover:text-[#0B1120]'}`}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 font-body text-body-sm font-semibold transition-all ${tab === 'logs' ? 'bg-carbon-light shadow text-arctic' : 'text-steel-500 hover:text-arctic'}`}
         >
           <History className="h-4 w-4" />
           Registros
         </button>
         <button
           onClick={() => setTab('config')}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 font-body text-body-sm font-semibold transition-all ${tab === 'config' ? 'bg-white shadow text-[#0B1120]' : 'text-steel-500 hover:text-[#0B1120]'}`}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 font-body text-body-sm font-semibold transition-all ${tab === 'config' ? 'bg-carbon-light shadow text-arctic' : 'text-steel-500 hover:text-arctic'}`}
         >
           <Settings2 className="h-4 w-4" />
           Configurar campos

@@ -17,9 +17,9 @@ interface User {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  admin: 'bg-blue-muted text-blue-bright',
-  vendedor: 'bg-green-900/40 text-green-400',
-  tecnico: 'bg-amber-900/40 text-amber-400',
+  admin:    'bg-blue-muted text-blue-bright',
+  vendedor: 'bg-success-light/10 text-success-bright',
+  tecnico:  'bg-yellow-muted/50 text-yellow-bright',
 };
 
 export default function UsuariosPage() {
@@ -151,7 +151,7 @@ export default function UsuariosPage() {
   }
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -170,7 +170,7 @@ export default function UsuariosPage() {
 
       {/* Success toast */}
       {formMsg && (
-        <div className="mb-4 flex items-start gap-2 rounded-md bg-green-900/30 px-4 py-3 font-body text-body-sm text-green-400">
+        <div className="mb-4 flex items-start gap-2 rounded-md bg-success-light/10 px-4 py-3 font-body text-body-sm text-success-bright">
           <span className="mt-0.5 shrink-0">✓</span>
           <span>{formMsg}</span>
           <button onClick={() => setFormMsg('')} className="ml-auto shrink-0 opacity-60 hover:opacity-100"><X className="h-4 w-4" /></button>
@@ -376,7 +376,7 @@ export default function UsuariosPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 font-body text-[0.65rem] font-semibold ${user.isActive ? 'bg-green-900/30 text-green-400' : 'bg-steel-900 text-steel-500'}`}>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 font-body text-[0.65rem] font-semibold ${user.isActive ? 'bg-success-light/10 text-success-bright' : 'bg-steel-900 text-steel-500'}`}>
                       {user.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
