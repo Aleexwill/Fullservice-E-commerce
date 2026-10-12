@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect } from 'react';
 import { siteConfig } from '@/config/site';
 
@@ -66,6 +67,7 @@ export default function OrderReceipt({ order, autoPrint }: Props) {
           body { margin: 0; }
           .no-print { display: none !important; }
           .print-page { box-shadow: none !important; border: none !important; }
+          #fsc-assistant { display: none !important; }
         }
         @page { size: A4; margin: 18mm 16mm; }
       `}</style>
@@ -95,9 +97,14 @@ export default function OrderReceipt({ order, autoPrint }: Props) {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between border-b border-gray-200 pb-6">
           <div>
-            <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-[#0B1120]">
-              {siteConfig.name}
-            </h1>
+            <Image
+              src="/logo-full-service.png"
+              alt={siteConfig.name}
+              width={180}
+              height={60}
+              className="mb-2 object-contain"
+              unoptimized
+            />
             <p className="mt-1 text-sm text-[#8094B4]">{siteConfig.address.street}, {siteConfig.address.city}</p>
             <p className="text-sm text-[#8094B4]">{siteConfig.phone} · {siteConfig.email}</p>
           </div>
