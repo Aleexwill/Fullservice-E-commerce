@@ -67,11 +67,14 @@ const PAGE_LINKS = {
     contacto:     '/contacto',
     presupuesto:  '/contacto?tipo=presupuesto',
     nosotros:     '/nosotros',
+    pagos:        '/pagos',
+    envios:       '/envios',
+    marcas:       '/marcas',
 };
 
 function lookupOrder() { return null; }
 
-const MENU = ['🔧 Nuestros servicios', '🏪 Ver tienda', '📋 Solicitar presupuesto', '🕒 Horarios', '📍 Ubicación'];
+const MENU = ['🏪 Ver tienda', '🔧 Nuestros servicios', '💳 Formas de pago', '🚚 Zonas de envío', '📋 Solicitar presupuesto', '📍 Ubicación'];
 const WAVE_LINES = ['¡Hola! 👋', '¿En qué te ayudamos?', '¡A tu servicio! 🔧'];
 
 /* Lee opciones desde los atributos data-* del <script> */
@@ -617,6 +620,9 @@ const RX = {
     booking: /(agend|turno|cita|reserv|servicio|limpieza|mantenimi|obra|construcc|metal|herreria)/,
     tienda:  /(tienda|producto|comprar|catalogo|herramienta|material|articulo|marca|precio de|tienen|venden)/,
     trabajos:/(trabajo|proyecto|portafolio|referencia|ejemplo|cliente|hicieron)/,
+    pagos:   /(pago|pagar|forma de pago|transferencia|tarjeta|debito|credito|efectivo|como pago|metodo de pago|banco|deposito|qr)/,
+    envios:  /(envio|enviar|entrega|despacho|flete|llega|zona de entrega|domicilio|retiro|pickup|interior del pais|costo de envio|cuanto sale el envio)/,
+    marcas:  /(marcas|que marcas|marcas disponibles|buscar por marca|todas las marcas)/,
     hours:   /(horario|a que hora|abren|abierto|cierran|atienden)/,
     place:   /(ubicacion|direccion|donde|mapa|llegar|quedan)/,
     contact: /(contacto|whatsapp|telefono|llamar|asesor|humano|persona|hablar)/,
@@ -645,6 +651,9 @@ async function handleIntent(raw, t) {
     if (RX.presup.test(t)) return showPresupuesto();
     const productIntent = detectProductIntent(t);
     if (productIntent) return showTiendaFiltrada(productIntent);
+    if (RX.pagos.test(t)) return showPagos();
+    if (RX.envios.test(t)) return showEnvios();
+    if (RX.marcas.test(t)) return showMarcas();
     if (RX.tienda.test(t)) return showTienda();
     if (RX.trabajos.test(t)) return showTrabajos();
     if (RX.booking.test(t)) return showServicios(t);
@@ -668,7 +677,7 @@ async function handleIntent(raw, t) {
     }
     if (RX.thanks.test(t)) return bot('¡Un placer! 🔧 Si necesitás algo más, aquí estoy.', { mood: 'thumbs', chips: MENU });
     if (RX.hello.test(t)) {
-        return bot('¡Hola! 😊 Soy <b>' + esc(CONFIG.botName) + '</b>, el asistente de <b>' + esc(CONFIG.businessName) + '</b>. Te ayudo con información sobre nuestros servicios, presupuestos y tienda. ¿Qué necesitás?',
+        return bot('¡Hola! 😊 Soy <b>' + esc(CONFIG.botName) + '</b>, el asistente de <b>' + esc(CONFIG.businessName) + '</b>. Puedo ayudarte con la tienda, buscar productos por marca, ver zonas de envío, formas de pago y solicitar presupuestos. ¿Qué necesitás?',
             { chips: MENU, mood: 'wave', say: '¡Hola! ¿En qué te ayudo?' });
     }
     if (RX.help.test(t)) return sayMenu('Esto es lo que puedo hacer por vos:');
@@ -701,30 +710,39 @@ function showPresupuesto() {
 }
 
 /* ---------- Tienda ---------- */
-/* Marcas y palabras clave conocidas. Cada entrada: { re, q, label }
-   re   = regex para detectar el mensaje del usuario
-   q    = valor que se pasa a /tienda?q= (se urlencodea)
-   label= nombre amigable para mostrar en el mensaje */
+/* Entradas de producto: { re, type, param, label }
+   type 'brand'    → /tienda?marca=X  (filtro exacto de marca)
+   type 'cat'      → /tienda?categoria=X  (filtro de categoría)
+   type 'keyword'  → /tienda?q=X  (búsqueda por texto) */
 const PRODUCT_INTENTS = [
-    { re: /karcher|karche|hidrolav/,       q: 'Karcher',       label: 'Kärcher' },
-    { re: /stanley|stanle/,                q: 'Stanley',       label: 'Stanley' },
-    { re: /bosch/,                         q: 'Bosch',         label: 'Bosch' },
-    { re: /makita/,                        q: 'Makita',        label: 'Makita' },
-    { re: /dewalt|de walt/,               q: 'DeWalt',        label: 'DeWalt' },
-    { re: /3m\b|scotch/,                  q: '3M',            label: '3M' },
-    { re: /sika\b/,                        q: 'Sika',          label: 'Sika' },
-    { re: /wurth|würth/,                   q: 'Wurth',         label: 'Würth' },
-    { re: /hierro|acero|varilla/,          q: 'hierro',        label: 'hierro / acero' },
-    { re: /pintura|latex|esmalte|rodillo/, q: 'pintura',       label: 'pinturas' },
-    { re: /hidrolimpiadora|hidrolavadora/, q: 'hidrolimpiadora', label: 'hidrolimpiadoras' },
-    { re: /taladro/,                       q: 'taladro',       label: 'taladros' },
-    { re: /amoladora|esmeril/,             q: 'amoladora',     label: 'amoladoras' },
-    { re: /sierra|caladora|circular/,      q: 'sierra',        label: 'sierras' },
-    { re: /cable|extension|enchufe/,       q: 'cable',         label: 'cables y extensiones' },
-    { re: /casco|guante|proteccion|epp/,   q: 'seguridad',     label: 'EPP / seguridad' },
-    { re: /cemento|hormigon|mezcla/,       q: 'cemento',       label: 'cemento y mezclas' },
-    { re: /tornillo|bulón|tuerca|fijacion/,q: 'tornillo',      label: 'fijaciones y tornillería' },
-    { re: /cano|tubo|plomeria|grifo|canilla/, q: 'plomeria',   label: 'plomería' },
+    /* ── Marcas conocidas ── */
+    { re: /karcher|karche/,                type:'brand',   param:'Karcher',       label:'Kärcher' },
+    { re: /stanley|stanle/,                type:'brand',   param:'Stanley',       label:'Stanley' },
+    { re: /bosch/,                         type:'brand',   param:'Bosch',         label:'Bosch' },
+    { re: /makita/,                        type:'brand',   param:'Makita',        label:'Makita' },
+    { re: /dewalt|de walt/,                type:'brand',   param:'DeWalt',        label:'DeWalt' },
+    { re: /3m\b|scotch/,                   type:'brand',   param:'3M',            label:'3M' },
+    { re: /sika\b/,                        type:'brand',   param:'Sika',          label:'Sika' },
+    { re: /wurth|würth/,                   type:'brand',   param:'Wurth',         label:'Würth' },
+    { re: /truper/,                        type:'brand',   param:'Truper',        label:'Truper' },
+    { re: /total\s*tools|total\b/,         type:'brand',   param:'Total',         label:'Total Tools' },
+    /* ── Categorías de tienda ── */
+    { re: /taladro|rotomartillo|percutor/, type:'cat',     param:'herramientas',  label:'taladros y herramientas' },
+    { re: /amoladora|esmeril|pulidora/,    type:'cat',     param:'herramientas',  label:'amoladoras' },
+    { re: /sierra|caladora|circular|serrucho/, type:'cat', param:'herramientas',  label:'sierras' },
+    { re: /hidrolimpiadora|hidrolavadora|hidrolav/, type:'cat', param:'herramientas', label:'hidrolimpiadoras' },
+    { re: /pintura|latex|esmalte|rodillo|brocha/, type:'cat', param:'pinturas',   label:'pinturas' },
+    { re: /cable|extension|enchufe|interruptor|tablero/, type:'cat', param:'electricidad', label:'electricidad' },
+    { re: /cano|tubo|grifo|canilla|llave de paso|sanitario/, type:'cat', param:'plomeria', label:'plomería' },
+    { re: /casco|guante|proteccion|epp|anteojos|chaleco/, type:'cat', param:'seguridad', label:'EPP / seguridad' },
+    { re: /tornillo|bulón|bulon|tuerca|fijacion|taco|anclaje/, type:'cat', param:'fijaciones', label:'fijaciones y tornillería' },
+    /* ── Búsquedas genéricas ── */
+    { re: /cemento|hormigon|mezcla/,       type:'keyword', param:'cemento',       label:'cemento y mezclas' },
+    { re: /hierro|acero|varilla/,          type:'keyword', param:'hierro',        label:'hierro / acero' },
+    { re: /limpiador|desengrasante|detergente|lavandina/, type:'keyword', param:'limpieza', label:'productos de limpieza' },
+    { re: /impermeabilizante|membrana|techo|cubierta/, type:'keyword', param:'impermeabilizante', label:'impermeabilización' },
+    { re: /soldadora|electrodo|soldadura/, type:'keyword', param:'soldadura',     label:'soldadura' },
+    { re: /nivel|plomada|cinta metrica|metro/, type:'keyword', param:'medicion',  label:'medición y nivelación' },
 ];
 
 function detectProductIntent(t) {
@@ -732,19 +750,66 @@ function detectProductIntent(t) {
 }
 
 function showTiendaFiltrada(intent) {
-    const url = PAGE_LINKS.tienda + '?q=' + encodeURIComponent(intent.q);
+    let url;
+    if (intent.type === 'brand') {
+        url = PAGE_LINKS.tienda + '?marca=' + encodeURIComponent(intent.param);
+    } else if (intent.type === 'cat') {
+        url = PAGE_LINKS.tienda + '?categoria=' + encodeURIComponent(intent.param);
+    } else {
+        url = PAGE_LINKS.tienda + '?q=' + encodeURIComponent(intent.param);
+    }
+    const intro = intent.type === 'brand'
+        ? '¡Tenemos productos de la marca <b>' + esc(intent.label) + '</b> en nuestra tienda! 🛒'
+        : '¡Tenemos <b>' + esc(intent.label) + '</b> disponibles en nuestra tienda! 🛒';
     return bot(
-        '¡Tenemos productos de <b>' + esc(intent.label) + '</b> en nuestra tienda! 🛒 ' +
-        'Hacé clic para ver todos los resultados:<br>' +
-        '<a href="' + url + '" style="color:#6FC3F5;text-decoration:underline;font-weight:600">Ver ' + esc(intent.label) + ' en la tienda →</a>',
-        { chips: ['🏪 Ver toda la tienda', '📋 Solicitar presupuesto', 'Menú principal'], say: 'Productos ' + intent.label + ' 🏪' }
+        intro + ' Hacé clic para ver todos:<br>' +
+        '<a href="' + url + '" style="color:#6FC3F5;text-decoration:underline;font-weight:600">Ver ' + esc(intent.label) + ' →</a>',
+        { chips: ['🏪 Ver toda la tienda', '🚚 Zonas de envío', '💳 Formas de pago', 'Menú principal'], say: intent.label + ' en tienda 🏪' }
     );
 }
 
 function showTienda() {
-    return bot('En nuestra <b>tienda online</b> encontrás herramientas y materiales de las mejores marcas, con envío a domicilio. 🛒' +
-        '<br><a href="' + PAGE_LINKS.tienda + '" style="color:#6FC3F5;text-decoration:underline">Ver toda la tienda →</a>',
-        { chips: ['📋 Solicitar presupuesto', 'Menú principal'], say: 'Tienda online 🏪' });
+    return bot('En nuestra <b>tienda online</b> encontrás herramientas, pinturas, plomería, electricidad y más, con envío a domicilio. 🛒' +
+        '<br><a href="' + PAGE_LINKS.tienda + '" style="color:#6FC3F5;text-decoration:underline">Ver toda la tienda →</a>' +
+        '<br><a href="' + PAGE_LINKS.marcas + '" style="color:#6FC3F5;text-decoration:underline">Buscar por marca →</a>',
+        { chips: ['🚚 Zonas de envío', '💳 Formas de pago', '📋 Solicitar presupuesto', 'Menú principal'], say: 'Tienda online 🏪' });
+}
+
+/* ---------- Pagos ---------- */
+function showPagos() {
+    return bot(
+        '<b>Métodos de pago aceptados:</b><br>' +
+        '<b>Asunción y alrededores:</b><br>' +
+        '• Transferencia / depósito bancario<br>' +
+        '• Tarjeta de crédito o débito (llevamos el POS)<br>' +
+        '• Efectivo (solo guaraníes)<br><br>' +
+        '<b>Interior del país:</b><br>' +
+        '• Transferencia / depósito bancario<br><br>' +
+        '<a href="' + PAGE_LINKS.pagos + '" style="color:#6FC3F5;text-decoration:underline;font-weight:600">Ver datos bancarios completos →</a>',
+        { chips: ['🚚 Zonas de envío', '🏪 Ver tienda', 'Hablar con un asesor', 'Menú principal'], say: 'Formas de pago 💳' }
+    );
+}
+
+/* ---------- Envíos ---------- */
+function showEnvios() {
+    return bot(
+        '<b>Zonas de entrega:</b><br>' +
+        '• <b>Retiro en local</b> — GRATIS 🎉<br>' +
+        '• <b>Asunción y Gran Asunción</b> — Gs. 30.000<br>' +
+        '• <b>Gran Asunción extendida</b> — Transportadora externa (consultar)<br>' +
+        '• <b>Interior del país</b> — Empresa de encomiendas (consultar)<br><br>' +
+        '<a href="' + PAGE_LINKS.envios + '" style="color:#6FC3F5;text-decoration:underline;font-weight:600">Ver todas las zonas de entrega →</a>',
+        { chips: ['💳 Formas de pago', '🏪 Ver tienda', 'Hablar con un asesor', 'Menú principal'], say: 'Zonas de envío 🚚' }
+    );
+}
+
+/* ---------- Marcas ---------- */
+function showMarcas() {
+    return bot(
+        'Trabajamos con las mejores marcas del rubro: <b>Kärcher, Stanley, Bosch, Makita, DeWalt, 3M, Sika, Würth, Truper</b> y muchas más. 🏷️<br>' +
+        '<a href="' + PAGE_LINKS.marcas + '" style="color:#6FC3F5;text-decoration:underline;font-weight:600">Ver todas las marcas →</a>',
+        { chips: ['🏪 Ver tienda', '🚚 Zonas de envío', '💳 Formas de pago', 'Menú principal'], say: 'Marcas disponibles 🏷️' }
+    );
 }
 
 /* ---------- Trabajos ---------- */
