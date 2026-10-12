@@ -69,17 +69,17 @@ export default function AdminInventarioPage() {
         <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="card animate-pulse p-4"><div className="h-10 rounded bg-steel-900" /></div>)}</div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-steel-900/40">
-          <div className="grid min-w-[640px] grid-cols-[40px_1fr_80px_80px_130px_120px_80px] gap-2 bg-carbon-light border-b border-steel-900/40 px-4 py-2.5 font-body text-caption font-semibold uppercase tracking-wider text-steel-500">
+          <div className="grid min-w-[640px] grid-cols-[40px_1fr_80px_90px_140px_120px_72px] gap-x-3 bg-carbon-light border-b border-steel-900/40 px-4 py-2.5 font-body text-caption font-semibold uppercase tracking-wider text-steel-500">
             <span>#</span><span>Descripción</span><span>Unidad</span><span>Categoría</span><span className="text-right">Precio Unit.</span><span>Proveedor</span><span />
           </div>
           {items.map((m) => (
-            <div key={m.id} className={`grid min-w-[640px] grid-cols-[40px_1fr_80px_80px_130px_120px_80px] gap-2 border-t border-steel-900/20 px-4 py-3 items-center hover:bg-steel-900/20 transition-colors ${!m.isActive ? 'opacity-40' : ''}`}>
+            <div key={m.id} className={`grid min-w-[640px] grid-cols-[40px_1fr_80px_90px_140px_120px_72px] gap-x-3 border-t border-steel-900/20 px-4 py-2.5 items-center hover:bg-steel-900/20 transition-colors ${!m.isActive ? 'opacity-40' : ''}`}>
               <span className="font-mono text-caption text-steel-500">{m.code}</span>
-              <span className="font-body text-body-sm text-arctic">{m.description}</span>
+              <span className="font-body text-body-sm text-arctic truncate" title={m.description}>{m.description}</span>
               <span className="font-mono text-caption text-steel-400">{m.unit}</span>
               <span className="font-body text-caption text-steel-500">{CATEGORIES[m.category] || m.category}</span>
-              <span className="text-right font-mono text-body-sm text-arctic">{gs(m.unitPrice)}</span>
-              <span className="font-body text-caption text-steel-500 truncate">{m.provider}</span>
+              <span className="text-right font-mono text-body-sm font-semibold text-blue-bright">{gs(m.unitPrice)}</span>
+              <span className="font-body text-caption text-steel-400 truncate" title={m.provider}>{m.provider}</span>
               <div className="flex items-center gap-1">
                 <button onClick={() => setEditing(m)} title="Editar" className="rounded p-1 text-steel-500 hover:bg-steel-900 hover:text-arctic"><Pencil className="h-3.5 w-3.5" /></button>
                 <button onClick={() => del(m.id)} title="Eliminar" className="rounded p-1 text-steel-500 hover:bg-danger-light/10 hover:text-danger-bright"><Trash2 className="h-3.5 w-3.5" /></button>
