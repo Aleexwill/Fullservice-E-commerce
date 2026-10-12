@@ -11,6 +11,9 @@ const footerLinks = {
   tienda: [
     { label: 'Herramientas', href: '/tienda' }, { label: 'Electricidad', href: '/tienda' }, { label: 'Plomería', href: '/tienda' }, { label: 'Productos de limpieza', href: '/tienda' },
   ],
+  ayuda: [
+    { label: 'Busca por Marcas', href: '/marcas' }, { label: 'Formas de Pago', href: '/pagos' }, { label: 'Entregas', href: '/envios' },
+  ],
   empresa: [
     { label: 'Trabajos', href: '/trabajos' }, { label: 'Clientes', href: '/clientes' }, { label: 'Contacto', href: '/contacto' }, { label: 'Privacidad', href: '/privacidad' }, { label: 'Términos', href: '/terminos' },
   ],
@@ -48,7 +51,13 @@ export function Footer({ settings, showStore = true }: { settings?: SiteSettings
           </div>
 
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Servicios</h3><ul className="space-y-2.5">{footerLinks.servicios.map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
-          <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">{showStore ? 'Tienda & empresa' : 'Empresa'}</h3><ul className="space-y-2.5">{[...(showStore ? footerLinks.tienda.slice(0, 2) : []), ...footerLinks.empresa].map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}</ul></div>
+          <div>
+            <h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Ayuda</h3>
+            <ul className="space-y-2.5">
+              {footerLinks.ayuda.map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}
+              {footerLinks.empresa.slice(0, 2).map((link) => <li key={link.label}><Link href={link.href} className={`font-body text-body-sm ${secondary} transition hover:text-white`}>{link.label}</Link></li>)}
+            </ul>
+          </div>
           <div><h3 className="mb-4 font-body text-xs font-bold uppercase tracking-[.12em] text-white">Contacto</h3><ul className="space-y-3.5">
             <li>
               <a

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import {
   Search, Star, ShoppingCart, ChevronRight, Truck, ShieldCheck, CreditCard,
-  Package, Wrench, Zap, Droplets, Paintbrush, Hammer, Lock, Tag, MapPin, X,
+  Package, Wrench, Zap, Droplets, Paintbrush, Hammer, Lock, Tag, MapPin, X, Banknote,
   type LucideIcon,
 } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
@@ -316,7 +316,7 @@ export function TiendaClient({ initialProducts }: { initialProducts: Product[] }
 
       {/* Quick links */}
       <section className="border-t border-gray-200 bg-white">
-        <div className="container-main grid gap-4 py-10 sm:grid-cols-2">
+        <div className="container-main grid gap-4 py-10 sm:grid-cols-3">
           <Link
             href="/marcas"
             className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#2D8FCC]/40 hover:shadow-md"
@@ -340,6 +340,19 @@ export function TiendaClient({ initialProducts }: { initialProducts: Product[] }
             <div>
               <p className="font-display text-base font-bold uppercase text-[#0B1120] group-hover:text-[#2D8FCC]">Zonas de Entrega</p>
               <p className="font-body text-body-sm text-[#4A5E80]">Consultá costos y ciudades de cobertura para tu pedido</p>
+            </div>
+            <ChevronRight className="ml-auto h-5 w-5 shrink-0 text-[#C0CEDF] group-hover:text-[#2D8FCC]" />
+          </Link>
+          <Link
+            href="/pagos"
+            className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#2D8FCC]/40 hover:shadow-md"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EBF5FB] text-[#2D8FCC]">
+              <Banknote className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-display text-base font-bold uppercase text-[#0B1120] group-hover:text-[#2D8FCC]">Formas de Pago</p>
+              <p className="font-body text-body-sm text-[#4A5E80]">Métodos aceptados y datos para transferencias</p>
             </div>
             <ChevronRight className="ml-auto h-5 w-5 shrink-0 text-[#C0CEDF] group-hover:text-[#2D8FCC]" />
           </Link>
