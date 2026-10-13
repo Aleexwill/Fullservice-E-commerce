@@ -208,7 +208,7 @@ export function NotificationBell() {
               </p>
             ) : (
               items.map((item) => {
-                const Icon = ICONS[item.type];
+                const Icon = ICONS[item.type] ?? Bell;
                 return (
                   <div key={`${item.type}-${item.id}`} className="group relative border-b border-steel-900/30 last:border-0">
                     <Link
