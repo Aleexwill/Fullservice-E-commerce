@@ -460,3 +460,35 @@ model AuditConfig {
   entity String @unique
   fields Json   @default("[]") // [{key, label, tracked}]
 }
+
+// ============================================================
+// FLUJO DE APROBACIÓN (configuración del proceso de aprobación)
+// ============================================================
+
+model ApprovalFlow {
+  id          String   @id @default(cuid())
+  name        String   @default("Flujo de Aprobacion")
+  description String   @default("")
+  isActive    Boolean  @default(true)
+  // [{order: 1, role: "comercial", label: "Aprobacion Comercial", required: true}]
+  steps       Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model ApprovalRequest {
+  id            String    @id @default(cuid())
+  presupuestoId String
+  flowId        String?
+  currentStep   Int       @default(1)
+  status        String    @default("pending") // pending | approved | rejected
+  // [{step, role, approverName, approverId, status, comment, decidedAt}]
+  history       Json      @default("[]")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([presupuestoId])
+  @@index([status])
+}

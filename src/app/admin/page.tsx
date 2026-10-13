@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   Package, DollarSign, AlertTriangle, Star, TrendingUp, Plus, ArrowRight, Layers, Tag,
   ShoppingCart, Calculator, Users, Wrench, CheckCircle2, Clock, FileText, Eye,
+  ClipboardCheck,
 } from 'lucide-react';
 import { fetchJsonWithStatus } from '@/lib/utils';
 
@@ -13,6 +14,7 @@ interface OrderStats { total: number; byStatus: Record<string, number>; totalRev
 interface PresupuestoStats { total: number; nuevos: number; enEjecucion: number; completedCount: number; approvedCount: number; conversionRate: number; totalEstimated: number; totalFinal: number; totalAprobado: number; totalFacturado: number; byStatus: Record<string, number>; }
 interface LeadStats { total: number; newLeads: number; converted: number; conversionRate: number; totalEstimated: number; }
 interface AnalyticsData { totalViews: number; todayViews: number; weekViews: number; }
+interface PendingApprovalItem { id: string; code: string; serviceTitle: string; customer: { name?: string } | null; estimatedValue: string | null; assignedTo: string; updatedAt: string; }
 
 const formatGs = (n: number) => 'Gs. ' + n.toLocaleString('es-PY');
 
@@ -22,6 +24,7 @@ export default function AdminDashboard() {
   const [presupuestos, setPresupuestos] = useState<PresupuestoStats | null>(null);
   const [leads, setLeads] = useState<LeadStats | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApprovalItem[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
@@ -32,12 +35,15 @@ export default function AdminDashboard() {
       fetchJsonWithStatus<PresupuestoStats>('/api/presupuestos/stats'),
       fetchJsonWithStatus<LeadStats>('/api/leads/stats'),
       fetchJsonWithStatus<AnalyticsData>('/api/analytics'),
-    ]).then(([p, o, pr, l, a]) => {
+      fetchJsonWithStatus<{ items: PendingApprovalItem[] }>('/api/presupuestos/pendientes-aprobacion'),
+    ]).then(([p, o, pr, l, a, pa]) => {
       // 403 = no permission for this role — treat as null data, not an error
       const hasRealError = [p, o, pr, l, a].some((r) => !r.ok && r.status !== 403);
       if (hasRealError) setFetchError(true);
       setProducts(p.data); setOrders(o.data); setPresupuestos(pr.data);
-      setLeads(l.data); setAnalytics(a.data); setLoading(false);
+      setLeads(l.data); setAnalytics(a.data);
+      if (pa.ok && pa.data) setPendingApprovals(pa.data.items);
+      setLoading(false);
     }).catch(() => { setFetchError(true); setLoading(false); });
   }, []);
 
@@ -87,6 +93,45 @@ export default function AdminDashboard() {
           </div>
         ); })}
       </div>
+
+      {/* Pending Approvals Widget — only visible when user has permission and there are items */}
+      {pendingApprovals && pendingApprovals.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 border-b border-steel-900/40 pb-2 mb-4">
+            <ClipboardCheck className="h-5 w-5 text-yellow-bright" />
+            <h2 className="font-display text-h2 uppercase text-arctic">Pendientes de Aprobación</h2>
+            <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-muted px-1.5 font-mono text-[0.65rem] font-bold text-yellow-bright">
+              {pendingApprovals.length}
+            </span>
+            <Link href="/admin/presupuestos?status=pendiente_aprobacion" className="ml-auto font-body text-caption text-blue-bright hover:underline">
+              Ver todos
+            </Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {pendingApprovals.slice(0, 6).map((item) => (
+              <Link
+                key={item.id}
+                href={`/admin/presupuestos/${item.id}`}
+                className="card-interactive flex items-start gap-3 p-4"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-yellow-muted text-yellow-bright">
+                  <ClipboardCheck className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-body text-body-sm font-semibold text-arctic">{item.code}</p>
+                  <p className="truncate font-body text-caption text-steel-400">{item.customer?.name || item.serviceTitle}</p>
+                  {item.estimatedValue && (
+                    <p className="font-mono text-caption text-blue-bright">
+                      Gs. {Number(item.estimatedValue).toLocaleString('es-PY')}
+                    </p>
+                  )}
+                </div>
+                <ArrowRight className="mt-1 h-3.5 w-3.5 shrink-0 text-steel-600" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Two columns: E-Commerce & Servicios */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
