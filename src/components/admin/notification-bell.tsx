@@ -2,16 +2,17 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Bell, ShoppingCart, Calculator, Users, X, Trash2 } from 'lucide-react';
+import { Bell, ShoppingCart, Calculator, Users, X, Trash2, ClipboardCheck } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 
 interface NotificationItem {
   id: string;
-  type: 'pedido' | 'presupuesto' | 'lead';
+  type: 'pedido' | 'presupuesto' | 'lead' | 'aprobacion';
   title: string;
   subtitle: string;
   href: string;
   createdAt: string;
+  urgent?: boolean;
 }
 
 const LAST_SEEN_KEY = 'fsc-admin-notifications-last-seen';
@@ -23,6 +24,7 @@ const ICONS: Record<NotificationItem['type'], typeof ShoppingCart> = {
   pedido: ShoppingCart,
   presupuesto: Calculator,
   lead: Users,
+  aprobacion: ClipboardCheck,
 };
 
 function getDismissed(): Set<string> {
@@ -212,9 +214,9 @@ export function NotificationBell() {
                     <Link
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-start gap-3 px-4 py-3 pr-8 transition-colors hover:bg-steel-900/50"
+                      className={`flex items-start gap-3 px-4 py-3 pr-8 transition-colors hover:bg-steel-900/50 ${item.urgent ? 'bg-yellow-muted/10' : ''}`}
                     >
-                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-muted text-blue-bright">
+                      <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${item.urgent ? 'bg-yellow-muted text-yellow-bright' : 'bg-blue-muted text-blue-bright'}`}>
                         <Icon className="h-3.5 w-3.5" />
                       </div>
                       <div className="min-w-0 flex-1">

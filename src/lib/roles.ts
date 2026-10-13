@@ -1,10 +1,13 @@
-export type Role = 'admin' | 'vendedor' | 'tecnico' | 'comercial';
+export type Role = 'admin' | 'gerencia' | 'administracion' | 'comercial' | 'planner' | 'vendedor' | 'tecnico';
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: 'Administrador',
+  gerencia: 'Gerencia',
+  administracion: 'Administración',
+  comercial: 'Comercial',
+  planner: 'Planner',
   vendedor: 'Vendedor',
   tecnico: 'Técnico',
-  comercial: 'Comercial',
 };
 
 // Qué puede ver/usar cada rol en el admin
@@ -15,7 +18,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
   canManageProducts: boolean;
   canManageOrders: boolean;
   canManagePresupuestos: boolean;
-  canAprobarPresupuestos: boolean; // solo admin puede aprobar internamente
+  canAprobarPresupuestos: boolean;
   canManageLeads: boolean;
   canManageClients: boolean;
   canManageInventory: boolean;
@@ -28,6 +31,27 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: true, canManageClients: true, canManageInventory: true,
     canViewReports: true, canViewAnalytics: true,
+  },
+  gerencia: {
+    canManageUsers: false, canManageConfig: false, canManageContent: false,
+    canManageProducts: false, canManageOrders: false, canManagePresupuestos: true,
+    canAprobarPresupuestos: true,
+    canManageLeads: true, canManageClients: true, canManageInventory: false,
+    canViewReports: true, canViewAnalytics: true,
+  },
+  administracion: {
+    canManageUsers: true, canManageConfig: true, canManageContent: false,
+    canManageProducts: false, canManageOrders: true, canManagePresupuestos: true,
+    canAprobarPresupuestos: true,
+    canManageLeads: false, canManageClients: true, canManageInventory: false,
+    canViewReports: true, canViewAnalytics: false,
+  },
+  planner: {
+    canManageUsers: false, canManageConfig: false, canManageContent: false,
+    canManageProducts: false, canManageOrders: false, canManagePresupuestos: true,
+    canAprobarPresupuestos: true,
+    canManageLeads: false, canManageClients: false, canManageInventory: true,
+    canViewReports: true, canViewAnalytics: false,
   },
   vendedor: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -62,6 +86,7 @@ type RouteRestriction = { path: string; requiredPermission: keyof typeof ROLE_PE
 export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/usuarios', requiredPermission: 'canManageUsers' },
   { path: '/admin/config', requiredPermission: 'canManageConfig' },
+  { path: '/admin/configuracion', requiredPermission: 'canManageConfig' },
   { path: '/admin/contenido', requiredPermission: 'canManageContent' },
   { path: '/admin/carousel', requiredPermission: 'canManageContent' },
   { path: '/admin/promos', requiredPermission: 'canManageContent' },
@@ -81,6 +106,7 @@ export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/usuarios', requiredPermission: 'canManageUsers' },
   { path: '/api/roles', requiredPermission: 'canManageUsers' },
   { path: '/api/config', requiredPermission: 'canManageConfig' },
+  { path: '/api/approval-flows', requiredPermission: 'canManageConfig' },
   { path: '/api/contenido', requiredPermission: 'canManageContent' },
   { path: '/api/carousel-slides', requiredPermission: 'canManageContent' },
   { path: '/api/promo-banners', requiredPermission: 'canManageContent' },

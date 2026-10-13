@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
   TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Inbox, History,
-  Image as ImageIcon, Tag, Wallet, CalendarDays, ClipboardCheck,
+  Image as ImageIcon, Tag, Wallet, CalendarDays, ClipboardCheck, GitBranch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/admin/notification-bell';
@@ -57,6 +57,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, permission: 'canManageUsers' },
     { href: '/admin/sistema/logs', label: 'Log de cambios', icon: History, permission: 'canManageUsers' },
     { href: '/admin/reportes', label: 'Reporte general', icon: FileText, exact: true, permission: 'canViewReports' },
+    { href: '/admin/configuracion/flujo-aprobacion', label: 'Flujo de Aprobación', icon: GitBranch, permission: 'canManageConfig' },
     { href: '/admin/config', label: 'Configuración', icon: Settings, permission: 'canManageConfig' },
   ]},
 ];
