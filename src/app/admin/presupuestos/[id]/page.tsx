@@ -2,8 +2,19 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { CheckCircle2, XCircle, RefreshCw, MessageSquare, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import {
+  CheckCircle2, XCircle, RefreshCw, MessageSquare,
+  ChevronDown, ChevronUp, Loader2, History, AlertCircle,
+} from 'lucide-react';
 import { useToast } from '@/components/admin/toast';
+
+interface ApprovalNote {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
+  type: string;
+}
 
 interface PresupuestoBasic {
   id: string;
@@ -11,11 +22,11 @@ interface PresupuestoBasic {
   serviceTitle: string;
   status: string;
   customer: { name?: string } | null;
+  notes?: ApprovalNote[];
 }
 
 interface UserPerms {
   canAprobarPresupuestos: boolean;
-  displayName?: string;
 }
 
 type ApprovalAction = 'aprobar' | 'rechazar' | 'solicitar_cambios';
@@ -58,6 +69,35 @@ const ACTION_CONFIG: Record<ApprovalAction, {
   },
 };
 
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return 'ahora';
+  if (min < 60) return `hace ${min} min`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `hace ${hrs} h`;
+  return `hace ${Math.floor(hrs / 24)} d`;
+}
+
+function ApprovalHistory({ notes }: { notes: ApprovalNote[] }) {
+  const approvalNotes = notes.filter((n) => n.type === 'aprobacion');
+  if (approvalNotes.length === 0) return null;
+  return (
+    <div className="mt-3 space-y-1.5">
+      <p className="flex items-center gap-1.5 font-body text-[0.65rem] font-semibold uppercase tracking-wider text-steel-500">
+        <History className="h-3 w-3" />
+        Historial de revisión
+      </p>
+      {approvalNotes.map((n) => (
+        <div key={n.id} className="rounded-md border border-steel-900/40 bg-carbon/60 px-3 py-2">
+          <p className="font-body text-body-sm text-arctic">{n.text}</p>
+          <p className="mt-0.5 font-body text-[0.6rem] text-steel-600">{timeAgo(n.createdAt)}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function PresupuestoDetalle() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -85,17 +125,22 @@ export default function PresupuestoDetalle() {
     }).catch(() => setLoadingPerms(false));
   }, [id]);
 
-  // Focus comment area when action selected
   useEffect(() => {
-    if (activeAction) {
-      setTimeout(() => commentRef.current?.focus(), 50);
-    }
+    if (activeAction) setTimeout(() => commentRef.current?.focus(), 50);
   }, [activeAction]);
 
-  const showBanner =
+  const status = presupuesto?.status;
+  const notes = presupuesto?.notes ?? [];
+  const approvalNotes = notes.filter((n) => n.type === 'aprobacion');
+  const lastApprovalNote = approvalNotes[approvalNotes.length - 1];
+
+  const showApprovalBanner =
     !loadingPerms &&
-    presupuesto?.status === 'pendiente_aprobacion' &&
+    status === 'pendiente_aprobacion' &&
     perms?.canAprobarPresupuestos;
+
+  const showRevisionBanner = !loadingPerms && status === 'en_revision' && !!lastApprovalNote;
+  const showRejectedBanner = !loadingPerms && status === 'de_baja' && !!lastApprovalNote;
 
   async function handleSubmit() {
     if (!activeAction) return;
@@ -124,9 +169,12 @@ export default function PresupuestoDetalle() {
         showToast(labels[activeAction], 'success');
         setActiveAction(null);
         setComment('');
-        // Update local status so banner disappears
-        setPresupuesto((prev) => prev ? { ...prev, status: data.status } : prev);
-        // Refresh iframe
+        // Update full presupuesto so notes are reflected immediately
+        if (data.presupuesto) {
+          setPresupuesto(data.presupuesto);
+        } else {
+          setPresupuesto((prev) => prev ? { ...prev, status: data.status } : prev);
+        }
         router.refresh();
       }
     } catch {
@@ -138,10 +186,52 @@ export default function PresupuestoDetalle() {
 
   return (
     <div className="flex flex-col" style={{ height: '100vh' }}>
-      {/* Approval banner */}
-      {showBanner && (
+
+      {/* Banner: cambios solicitados (en_revision) */}
+      {showRevisionBanner && (
+        <div className="shrink-0 border-b border-yellow/30 bg-yellow-muted/10 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-muted text-yellow-bright">
+              <RefreshCw className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-body text-body-sm font-semibold text-yellow-bright">
+                Se solicitaron cambios
+              </p>
+              <p className="mt-0.5 font-body text-body-sm text-arctic">{lastApprovalNote.text}</p>
+              <p className="mt-1 font-body text-[0.6rem] text-steel-600">{timeAgo(lastApprovalNote.createdAt)}</p>
+              {approvalNotes.length > 1 && (
+                <ApprovalHistory notes={notes} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner: rechazado (de_baja) */}
+      {showRejectedBanner && (
+        <div className="shrink-0 border-b border-danger-bright/30 bg-danger-light/10 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-danger-light text-danger-bright">
+              <AlertCircle className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-body text-body-sm font-semibold text-danger-bright">
+                Presupuesto rechazado
+              </p>
+              <p className="mt-0.5 font-body text-body-sm text-arctic">{lastApprovalNote.text}</p>
+              <p className="mt-1 font-body text-[0.6rem] text-steel-600">{timeAgo(lastApprovalNote.createdAt)}</p>
+              {approvalNotes.length > 1 && (
+                <ApprovalHistory notes={notes} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner: pendiente de aprobación */}
+      {showApprovalBanner && (
         <div className="shrink-0 border-b border-yellow/30 bg-yellow-muted/15">
-          {/* Banner header */}
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-muted text-yellow-bright">
@@ -166,11 +256,15 @@ export default function PresupuestoDetalle() {
             </button>
           </div>
 
-          {/* Action buttons + comment — collapsible */}
           {bannerExpanded && (
             <div className="border-t border-yellow/20 px-4 pb-4 pt-3">
+              {/* Previous approval history (e.g. prior change requests) */}
+              {approvalNotes.length > 0 && (
+                <ApprovalHistory notes={notes} />
+              )}
+
               {/* Action selector */}
-              <div className="flex flex-wrap gap-2">
+              <div className={`flex flex-wrap gap-2 ${approvalNotes.length > 0 ? 'mt-3' : ''}`}>
                 {(Object.keys(ACTION_CONFIG) as ApprovalAction[]).map((action) => {
                   const cfg = ACTION_CONFIG[action];
                   const Icon = cfg.icon;
@@ -184,9 +278,7 @@ export default function PresupuestoDetalle() {
                         setComment('');
                       }}
                       className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-body text-body-sm font-medium transition-all ${
-                        isActive
-                          ? `${cfg.colorClass} ring-2 ring-current/40`
-                          : cfg.colorClass
+                        isActive ? `${cfg.colorClass} ring-2 ring-current/40` : cfg.colorClass
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -196,47 +288,47 @@ export default function PresupuestoDetalle() {
                 })}
               </div>
 
-              {/* Comment + confirm — shown when action selected */}
+              {/* Comment + confirm */}
               {activeAction && (() => {
                 const ConfirmIcon = ACTION_CONFIG[activeAction].icon;
                 return (
-                <div className="mt-3 space-y-2">
-                  <textarea
-                    ref={commentRef}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder={ACTION_CONFIG[activeAction].commentPlaceholder}
-                    rows={2}
-                    className="input w-full resize-none"
-                  />
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleSubmit}
-                      disabled={submitting || (ACTION_CONFIG[activeAction].requireComment && !comment.trim())}
-                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 font-body text-body-sm font-semibold transition-all disabled:opacity-50 ${ACTION_CONFIG[activeAction].confirmColorClass}`}
-                    >
-                      {submitting
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
-                        : <ConfirmIcon className="h-4 w-4" />
-                      }
-                      {submitting ? 'Procesando…' : ACTION_CONFIG[activeAction].confirmLabel}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setActiveAction(null); setComment(''); }}
-                      className="rounded-lg px-3 py-2 font-body text-body-sm text-steel-400 hover:text-arctic transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    {ACTION_CONFIG[activeAction].requireComment && !comment.trim() && (
-                      <p className="font-body text-caption text-yellow-bright">
-                        El comentario es requerido
-                      </p>
-                    )}
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      ref={commentRef}
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder={ACTION_CONFIG[activeAction].commentPlaceholder}
+                      rows={2}
+                      className="input w-full resize-none"
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={submitting || (ACTION_CONFIG[activeAction].requireComment && !comment.trim())}
+                        className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 font-body text-body-sm font-semibold transition-all disabled:opacity-50 ${ACTION_CONFIG[activeAction].confirmColorClass}`}
+                      >
+                        {submitting
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <ConfirmIcon className="h-4 w-4" />
+                        }
+                        {submitting ? 'Procesando…' : ACTION_CONFIG[activeAction].confirmLabel}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setActiveAction(null); setComment(''); }}
+                        className="rounded-lg px-3 py-2 font-body text-body-sm text-steel-400 hover:text-arctic transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      {ACTION_CONFIG[activeAction].requireComment && !comment.trim() && (
+                        <p className="font-body text-caption text-yellow-bright">
+                          El comentario es requerido
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
+                );
               })()}
             </div>
           )}
