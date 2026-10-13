@@ -111,6 +111,7 @@ export default function PresupuestoDetalle() {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [bannerExpanded, setBannerExpanded] = useState(true);
+  const [infoBannerExpanded, setInfoBannerExpanded] = useState(true);
 
   const commentRef = useRef<HTMLTextAreaElement>(null);
 
@@ -189,43 +190,73 @@ export default function PresupuestoDetalle() {
 
       {/* Banner: cambios solicitados (en_revision) */}
       {showRevisionBanner && (
-        <div className="shrink-0 border-b border-yellow/30 bg-yellow-muted/10 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-muted text-yellow-bright">
-              <RefreshCw className="h-3.5 w-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
+        <div className="shrink-0 border-b border-yellow/30 bg-yellow-muted/10">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-yellow-muted text-yellow-bright">
+                <RefreshCw className="h-3 w-3" />
+              </div>
               <p className="font-body text-body-sm font-semibold text-yellow-bright">
                 Se solicitaron cambios
               </p>
-              <p className="mt-0.5 font-body text-body-sm text-arctic">{lastApprovalNote.text}</p>
-              <p className="mt-1 font-body text-[0.6rem] text-steel-600">{timeAgo(lastApprovalNote.createdAt)}</p>
-              {approvalNotes.length > 1 && (
-                <ApprovalHistory notes={notes} />
+              {!infoBannerExpanded && (
+                <p className="truncate max-w-xs font-body text-caption text-steel-400">
+                  {lastApprovalNote.text}
+                </p>
               )}
             </div>
+            <button
+              type="button"
+              onClick={() => setInfoBannerExpanded((v) => !v)}
+              className="rounded p-1 text-steel-500 hover:bg-steel-900/50 hover:text-arctic transition-colors"
+              title={infoBannerExpanded ? 'Minimizar' : 'Expandir'}
+            >
+              {infoBannerExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
           </div>
+          {infoBannerExpanded && (
+            <div className="border-t border-yellow/20 px-4 pb-3 pt-2">
+              <p className="font-body text-body-sm text-arctic">{lastApprovalNote.text}</p>
+              <p className="mt-1 font-body text-[0.6rem] text-steel-600">{timeAgo(lastApprovalNote.createdAt)}</p>
+              {approvalNotes.length > 1 && <ApprovalHistory notes={notes} />}
+            </div>
+          )}
         </div>
       )}
 
       {/* Banner: rechazado (de_baja) */}
       {showRejectedBanner && (
-        <div className="shrink-0 border-b border-danger-bright/30 bg-danger-light/10 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-danger-light text-danger-bright">
-              <AlertCircle className="h-3.5 w-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
+        <div className="shrink-0 border-b border-danger-bright/30 bg-danger-light/10">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-danger-light text-danger-bright">
+                <AlertCircle className="h-3 w-3" />
+              </div>
               <p className="font-body text-body-sm font-semibold text-danger-bright">
                 Presupuesto rechazado
               </p>
-              <p className="mt-0.5 font-body text-body-sm text-arctic">{lastApprovalNote.text}</p>
-              <p className="mt-1 font-body text-[0.6rem] text-steel-600">{timeAgo(lastApprovalNote.createdAt)}</p>
-              {approvalNotes.length > 1 && (
-                <ApprovalHistory notes={notes} />
+              {!infoBannerExpanded && (
+                <p className="truncate max-w-xs font-body text-caption text-steel-400">
+                  {lastApprovalNote.text}
+                </p>
               )}
             </div>
+            <button
+              type="button"
+              onClick={() => setInfoBannerExpanded((v) => !v)}
+              className="rounded p-1 text-steel-500 hover:bg-steel-900/50 hover:text-arctic transition-colors"
+              title={infoBannerExpanded ? 'Minimizar' : 'Expandir'}
+            >
+              {infoBannerExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
           </div>
+          {infoBannerExpanded && (
+            <div className="border-t border-danger-bright/20 px-4 pb-3 pt-2">
+              <p className="font-body text-body-sm text-arctic">{lastApprovalNote.text}</p>
+              <p className="mt-1 font-body text-[0.6rem] text-steel-600">{timeAgo(lastApprovalNote.createdAt)}</p>
+              {approvalNotes.length > 1 && <ApprovalHistory notes={notes} />}
+            </div>
+          )}
         </div>
       )}
 
