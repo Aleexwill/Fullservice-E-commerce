@@ -363,6 +363,15 @@ export default function AdminConfigPage() {
                 <QrUploadField
                   value={settings.payment.qrImageUrl}
                   onChange={(v) => update('payment', 'qrImageUrl', v)}
+                  onUploaded={async (url) => {
+                    update('payment', 'qrImageUrl', url);
+                    // auto-save so customers see the QR immediately without requiring a manual Save click
+                    await fetch('/api/config', {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ payment: { qrImageUrl: url } }),
+                    });
+                  }}
                   paymentData={{
                     bankName: settings.payment.bankName,
                     accountHolder: settings.payment.accountHolder,
@@ -458,7 +467,7 @@ interface QrPaymentData {
   accountType: string;
 }
 
-function QrUploadField({ value, onChange, paymentData }: { value: string; onChange: (v: string) => void; paymentData: QrPaymentData }) {
+function QrUploadField({ value, onChange, onUploaded, paymentData }: { value: string; onChange: (v: string) => void; onUploaded?: (url: string) => void; paymentData: QrPaymentData }) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -476,19 +485,23 @@ function QrUploadField({ value, onChange, paymentData }: { value: string; onChan
       const res = await fetch('/api/upload', { method: 'POST', body: form });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Error al subir imagen'); return; }
-      onChange(data.url);
       // release local blob URL once permanent URL is set
       if (localPreviewRef.current) {
         URL.revokeObjectURL(localPreviewRef.current);
         localPreviewRef.current = '';
         setLocalPreview('');
       }
+      if (onUploaded) {
+        await onUploaded(data.url);
+      } else {
+        onChange(data.url);
+      }
     } catch {
       setError('Error de conexión al subir');
     } finally {
       setUploading(false);
     }
-  }, [onChange]);
+  }, [onChange, onUploaded]);
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
