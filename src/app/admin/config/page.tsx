@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { fetchJson } from '@/lib/utils';
 import {
   Save,
@@ -23,6 +23,9 @@ import {
   RefreshCw,
   HardDrive,
   Eye,
+  Upload,
+  QrCode,
+  Trash2,
 } from 'lucide-react';
 
 interface DbStats {
@@ -357,7 +360,16 @@ export default function AdminConfigPage() {
                   <Field label="Numero de cuenta" value={settings.payment.accountNumber} onChange={(v) => update('payment', 'accountNumber', v)} />
                   <Field label="Tipo de cuenta" value={settings.payment.accountType} onChange={(v) => update('payment', 'accountType', v)} placeholder="Ahorro / Corriente" />
                 </div>
-                <Field label="URL de imagen QR" value={settings.payment.qrImageUrl} onChange={(v) => update('payment', 'qrImageUrl', v)} placeholder="https://..." />
+                <QrUploadField
+                  value={settings.payment.qrImageUrl}
+                  onChange={(v) => update('payment', 'qrImageUrl', v)}
+                  paymentData={{
+                    bankName: settings.payment.bankName,
+                    accountHolder: settings.payment.accountHolder,
+                    accountNumber: settings.payment.accountNumber,
+                    accountType: settings.payment.accountType,
+                  }}
+                />
                 <div>
                   <label className="label mb-1.5 block">Instrucciones para el cliente</label>
                   <textarea
@@ -436,5 +448,146 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
         <div className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-arctic transition-transform shadow ${checked ? 'translate-x-5' : ''}`} />
       </div>
     </label>
+  );
+}
+
+interface QrPaymentData {
+  bankName: string;
+  accountHolder: string;
+  accountNumber: string;
+  accountType: string;
+}
+
+function QrUploadField({ value, onChange, paymentData }: { value: string; onChange: (v: string) => void; paymentData: QrPaymentData }) {
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFile = useCallback(async (file: File) => {
+    setError('');
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Error al subir imagen'); return; }
+      onChange(data.url);
+    } catch {
+      setError('Error de conexión al subir');
+    } finally {
+      setUploading(false);
+    }
+  }, [onChange]);
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
+    e.target.value = '';
+  }
+
+  async function generateQr() {
+    const { bankName, accountHolder, accountNumber, accountType } = paymentData;
+    if (!accountNumber.trim()) { setError('Ingresa el número de cuenta antes de generar el QR'); return; }
+    setError('');
+    setGenerating(true);
+    try {
+      const QRCode = (await import('qrcode')).default;
+      const text = [
+        bankName && `Banco: ${bankName}`,
+        accountHolder && `Titular: ${accountHolder}`,
+        `Cuenta: ${accountNumber}`,
+        accountType && `Tipo: ${accountType}`,
+      ].filter(Boolean).join('\n');
+
+      const canvas = document.createElement('canvas');
+      await QRCode.toCanvas(canvas, text, { width: 400, margin: 2, color: { dark: '#000000', light: '#ffffff' } });
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob((b) => b ? resolve(b) : reject(new Error('canvas error')), 'image/png')
+      );
+      const file = new File([blob], 'qr-transferencia.png', { type: 'image/png' });
+      await uploadFile(file);
+    } catch {
+      setError('Error al generar el QR');
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  const busy = uploading || generating;
+
+  return (
+    <div>
+      <label className="label mb-1.5 block">Imagen QR</label>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+        {/* Drop zone */}
+        <div
+          onDragEnter={() => setDragging(true)}
+          onDragLeave={() => setDragging(false)}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          onClick={() => !busy && inputRef.current?.click()}
+          className={`relative flex min-h-[96px] flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-colors ${
+            dragging ? 'border-blue bg-blue/5' : 'border-steel-700 hover:border-steel-500'
+          } ${busy ? 'pointer-events-none opacity-60' : ''}`}
+        >
+          {busy ? (
+            <Loader2 className="h-5 w-5 animate-spin text-steel-400" />
+          ) : (
+            <>
+              <Upload className="h-5 w-5 text-steel-500" />
+              <p className="text-center font-body text-caption text-steel-500">
+                Arrastra una imagen<br />o haz clic para seleccionar
+              </p>
+            </>
+          )}
+          <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleFileChange} />
+        </div>
+
+        {/* Preview + actions */}
+        <div className="flex flex-col gap-2">
+          {value ? (
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-steel-700 bg-steel-900">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={value} alt="QR actual" className="h-full w-full object-contain" />
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="absolute right-1 top-1 rounded bg-carbon/80 p-0.5 text-danger transition-colors hover:bg-carbon"
+                title="Quitar imagen"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg border border-dashed border-steel-800 bg-steel-900/50">
+              <QrCode className="h-8 w-8 text-steel-700" />
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={generateQr}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-blue/30 bg-blue/10 px-3 py-1.5 font-body text-caption font-medium text-blue-bright transition-colors hover:bg-blue/20 disabled:opacity-50"
+          >
+            {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
+            Generar QR
+          </button>
+        </div>
+      </div>
+      {error && <p className="mt-1.5 font-body text-caption text-danger-bright">{error}</p>}
+      {value && (
+        <p className="mt-1 truncate font-mono text-[0.6rem] text-steel-600">{value}</p>
+      )}
+    </div>
   );
 }
