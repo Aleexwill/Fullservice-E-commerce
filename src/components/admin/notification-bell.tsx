@@ -78,7 +78,8 @@ export function NotificationBell() {
 
   const isVisible = useCallback((i: NotificationItem) => {
     if (dismissed.has(`${i.type}-${i.id}`)) return false;
-    if (clearedBefore.current && new Date(i.createdAt) <= clearedBefore.current) return false;
+    // Urgent items (pending approvals) are never hidden by "clear all" — they require action
+    if (!i.urgent && clearedBefore.current && new Date(i.createdAt) <= clearedBefore.current) return false;
     return true;
   }, [dismissed]);
 
@@ -158,14 +159,16 @@ export function NotificationBell() {
 
   function dismissAll(e: React.MouseEvent) {
     e.preventDefault();
-    // Save cleared-before timestamp so ALL items up to now are hidden across sessions
     const now = new Date();
     saveClearedBefore(now);
     clearedBefore.current = now;
-    // Also clear individual dismissed keys to avoid unbounded growth
+    // Update lastSeen so unread count resets correctly
+    localStorage.setItem(LAST_SEEN_KEY, now.toISOString());
+    // Clear individual dismissed keys to avoid unbounded growth
     saveDismissed(new Set());
     setDismissed(new Set());
-    setAllItems([]);
+    // Keep urgent items (pending approvals) visible — remove only non-urgent
+    setAllItems((prev) => prev.filter((i) => i.urgent));
     setUnreadCount(0);
   }
 
@@ -194,7 +197,7 @@ export function NotificationBell() {
                 type="button"
                 onClick={dismissAll}
                 className="flex items-center gap-1 rounded px-2 py-1 font-body text-[0.65rem] text-steel-500 transition-colors hover:bg-steel-900/50 hover:text-danger"
-                title="Limpiar todas"
+                title="Limpiar notificaciones (mantiene aprobaciones pendientes)"
               >
                 <Trash2 className="h-3 w-3" />
                 Limpiar todo
