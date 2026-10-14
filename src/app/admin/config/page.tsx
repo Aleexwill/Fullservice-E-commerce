@@ -462,8 +462,10 @@ function QrUploadField({ value, onChange, paymentData }: { value: string; onChan
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [localPreview, setLocalPreview] = useState('');
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const localPreviewRef = useRef('');
 
   const uploadFile = useCallback(async (file: File) => {
     setError('');
@@ -475,6 +477,12 @@ function QrUploadField({ value, onChange, paymentData }: { value: string; onChan
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Error al subir imagen'); return; }
       onChange(data.url);
+      // release local blob URL once permanent URL is set
+      if (localPreviewRef.current) {
+        URL.revokeObjectURL(localPreviewRef.current);
+        localPreviewRef.current = '';
+        setLocalPreview('');
+      }
     } catch {
       setError('Error de conexión al subir');
     } finally {
@@ -511,19 +519,29 @@ function QrUploadField({ value, onChange, paymentData }: { value: string; onChan
 
       const canvas = document.createElement('canvas');
       await QRCode.toCanvas(canvas, text, { width: 400, margin: 2, color: { dark: '#000000', light: '#ffffff' } });
+
+      // Show preview immediately via blob URL
       const blob = await new Promise<Blob>((resolve, reject) =>
         canvas.toBlob((b) => b ? resolve(b) : reject(new Error('canvas error')), 'image/png')
       );
+      const previewUrl = URL.createObjectURL(blob);
+      if (localPreviewRef.current) URL.revokeObjectURL(localPreviewRef.current);
+      localPreviewRef.current = previewUrl;
+      setLocalPreview(previewUrl);
+
+      // Upload in background — onChange will set the permanent URL
       const file = new File([blob], 'qr-transferencia.png', { type: 'image/png' });
       await uploadFile(file);
     } catch {
       setError('Error al generar el QR');
+      setLocalPreview('');
     } finally {
       setGenerating(false);
     }
   }
 
   const busy = uploading || generating;
+  const previewSrc = value || localPreview;
 
   return (
     <div>
@@ -555,13 +573,25 @@ function QrUploadField({ value, onChange, paymentData }: { value: string; onChan
 
         {/* Preview + actions */}
         <div className="flex flex-col gap-2">
-          {value ? (
+          {previewSrc ? (
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-steel-700 bg-steel-900">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={value} alt="QR actual" className="h-full w-full object-contain" />
+              <img src={previewSrc} alt="QR actual" className="h-full w-full object-contain" />
+              {uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-carbon/60">
+                  <Loader2 className="h-4 w-4 animate-spin text-arctic" />
+                </div>
+              )}
               <button
                 type="button"
-                onClick={() => onChange('')}
+                onClick={() => {
+                  onChange('');
+                  if (localPreviewRef.current) {
+                    URL.revokeObjectURL(localPreviewRef.current);
+                    localPreviewRef.current = '';
+                    setLocalPreview('');
+                  }
+                }}
                 className="absolute right-1 top-1 rounded bg-carbon/80 p-0.5 text-danger transition-colors hover:bg-carbon"
                 title="Quitar imagen"
               >
