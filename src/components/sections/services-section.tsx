@@ -1,11 +1,10 @@
 import Link from 'next/link';
-import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, Clock, Users, FileText, ArrowRight, Phone, MessageCircle } from 'lucide-react';
+import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, Clock, Users, FileText, Phone, MessageCircle } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 import { getAllServices } from '@/lib/services-store';
 import { ServicesParallax } from './services-parallax';
-
-const ICON_MAP: Record<string, any> = { Zap, Droplets, Paintbrush, Wrench, HardHat, Factory, ShieldCheck, Thermometer };
+import { ServiceFlipGrid } from './service-flip-grid';
 
 const trustItems = [
   { icon: Clock, title: 'Respuesta en 24 h', description: 'Respondemos tu consulta en menos de 24 horas' },
@@ -34,8 +33,6 @@ export async function ServicesSection() {
     featured = fallbackServices;
   }
 
-  const cols = featured.length === 4 ? 4 : featured.length === 3 ? 3 : featured.length === 2 ? 2 : 1;
-
   return (
     <section className="fs-services">
       <div className="container-main">
@@ -47,31 +44,13 @@ export async function ServicesSection() {
           <p className="fs-section-description">Del mantenimiento cotidiano a una nueva obra. Encontrá el servicio que necesita tu espacio.</p>
         </div>
         <ServicesParallax />
-        <div className="fs-services-grid">
-          {featured.map((service, i) => {
-            const Icon = ICON_MAP[service.icon] || Wrench;
-            const href = service.category === 'limpieza'
-              ? '/contacto?tipo=presupuesto&servicio=Limpieza%20profesional'
-              : `/servicios?categoria=${encodeURIComponent(service.category)}`;
-            return (
-              <Link key={service.id} href={href} className={`fs-service${service.image ? ' fs-service--photo' : ''}`}>
-                {service.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={service.image} alt="" aria-hidden="true" className="fs-service-bg" loading="lazy" decoding="async" />
-                )}
-                <div className="fs-service-inner">
-                  <div className="fs-service-icon"><Icon size={26} /></div>
-                  <h3>{service.title}</h3>
-                  <p>{service.description}</p>
-                  <span className="fs-service-link">
-                    {service.category === 'limpieza' ? 'Consultar' : 'Explorar servicio'}
-                    <ArrowRight size={16} />
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        <ServiceFlipGrid services={featured.map(s => ({
+          id: s.id,
+          icon: s.icon,
+          title: s.title,
+          description: s.description,
+          category: s.category,
+        }))} />
       </div>
     </section>
   );
