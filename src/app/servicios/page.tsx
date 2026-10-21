@@ -57,7 +57,7 @@ function FlipCard({ service, whatsappNum }: { service: any; whatsappNum: string 
 
   return (
     <div
-      className="h-[300px] cursor-pointer select-none"
+      className="h-[220px] cursor-pointer select-none"
       style={{ perspective: '1200px' }}
       onMouseEnter={() => setFlipped(true)}
       onMouseLeave={() => setFlipped(false)}
@@ -67,30 +67,30 @@ function FlipCard({ service, whatsappNum }: { service: any; whatsappNum: string 
         className="relative h-full w-full"
         style={{
           transformStyle: 'preserve-3d',
-          transition: 'transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1)',
+          transition: 'transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1)',
           transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
         }}
       >
         {/* ——— FRENTE ——— */}
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-2xl border border-gray-100 bg-white px-6 shadow-sm"
+          className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 rounded-xl border border-gray-100 bg-white px-5 shadow-sm"
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl"
+            className="flex h-10 w-10 items-center justify-center rounded-xl"
             style={{ backgroundColor: color.bg, color: color.text }}
           >
-            <Icon className="h-8 w-8" />
+            <Icon className="h-5 w-5" />
           </div>
-          <h2 className="text-center font-display text-h3 leading-tight text-[#0B1120]">{service.title}</h2>
+          <h2 className="text-center font-display text-[0.9rem] font-semibold leading-tight text-[#0B1120]">{service.title}</h2>
           <span
-            className="rounded-full px-3 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-wider"
+            className="rounded-full px-2.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wider"
             style={{ backgroundColor: color.bg, color: color.text }}
           >
             {categoryLabel}
           </span>
-          <div className="flex items-center gap-1.5 font-body text-[0.65rem] text-[#8094B4]">
-            <RotateCw className="h-3 w-3" />
+          <div className="flex items-center gap-1 font-body text-[0.6rem] text-[#8094B4]">
+            <RotateCw className="h-2.5 w-2.5" />
             <span className="hidden md:inline">Pasá el cursor</span>
             <span className="md:hidden">Tocá para ver más</span>
           </div>
@@ -98,42 +98,41 @@ function FlipCard({ service, whatsappNum }: { service: any; whatsappNum: string 
 
         {/* ——— DORSO ——— */}
         <div
-          className="absolute inset-0 flex flex-col rounded-2xl bg-[#0B1120] px-6 py-5 shadow-sm"
+          className="absolute inset-0 flex flex-col rounded-xl bg-[#0B1120] px-5 py-4 shadow-sm"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
           }}
         >
-          {/* Línea de acento arriba */}
-          <div className="mb-4 h-0.5 w-10 rounded-full" style={{ backgroundColor: color.text }} />
-          <h2 className="font-display text-[1rem] font-bold leading-tight text-white">{service.title}</h2>
-          <p className="mt-2 flex-1 font-body text-[0.78rem] leading-relaxed text-white/70">{service.description}</p>
+          <div className="mb-2.5 h-px w-8 rounded-full" style={{ backgroundColor: color.text }} />
+          <h2 className="font-display text-[0.85rem] font-bold leading-tight text-white">{service.title}</h2>
+          <p className="mt-1.5 flex-1 font-body text-[0.72rem] leading-relaxed text-white/65 line-clamp-2">{service.description}</p>
           {service.features?.length > 0 && (
-            <ul className="mt-3 space-y-1">
-              {service.features.slice(0, 4).map((f: string) => (
-                <li key={f} className="flex items-center gap-2 font-body text-[0.7rem] text-white/60">
+            <ul className="mt-2 space-y-0.5">
+              {service.features.slice(0, 2).map((f: string) => (
+                <li key={f} className="flex items-center gap-1.5 font-body text-[0.65rem] text-white/55">
                   <span className="h-1 w-1 shrink-0 rounded-full" style={{ backgroundColor: color.text }} />
                   {f}
                 </li>
               ))}
             </ul>
           )}
-          <div className="mt-4 flex gap-2" onClick={e => e.stopPropagation()}>
+          <div className="mt-3 flex gap-2" onClick={e => e.stopPropagation()}>
             <Link
               href={`/contacto?tipo=presupuesto&servicio=${encodeURIComponent(service.title)}&categoria=${encodeURIComponent(service.category)}`}
-              className="btn-primary flex-1 justify-center text-sm"
+              className="btn-primary flex-1 justify-center text-xs py-2"
             >
-              Cotizar <ArrowRight className="h-3.5 w-3.5" />
+              Cotizar <ArrowRight className="h-3 w-3" />
             </Link>
             <a
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Consultar ${service.title} por WhatsApp`}
-              className="btn-whatsapp px-3"
+              className="btn-whatsapp px-2.5"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-3.5 w-3.5" />
             </a>
           </div>
         </div>
@@ -220,7 +219,7 @@ function ServiciosPageInner() {
           <span className="overline">Servicios profesionales</span>
           <span className="font-body text-body-sm text-[#8094B4]">{filtered.length} servicio{filtered.length !== 1 ? 's' : ''}</span>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((service: any) => (
             <FlipCard key={service.id} service={service} whatsappNum={whatsappNum} />
           ))}
