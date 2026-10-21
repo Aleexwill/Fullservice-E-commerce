@@ -46,6 +46,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/trabajos', label: 'Portfolio', icon: FolderOpen, permission: 'canManageContent' },
     { href: '/admin/carousel', label: 'Carrusel hero', icon: ImageIcon, permission: 'canManageContent' },
     { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers, permission: 'canManageContent' },
+    { href: '/admin/innovacion', label: 'Innovación', icon: TrendingUp, permission: 'canManageContent' },
     { href: '/admin/promos', label: 'Banners & Promos', icon: Megaphone, permission: 'canManageContent' },
   ]},
   { label: 'Clientes & CRM', items: [

@@ -212,7 +212,7 @@ export default function TrabajosDestacadosPage() {
             Obras y servicios ejecutados con foco en calidad, seguridad y cumplimiento de plazos. Hacé clic en cualquier trabajo para ver la galería completa y los detalles técnicos.
           </p>
           <div className="mt-8 flex gap-3">
-            <Link href="/clientes" className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 font-body text-sm font-semibold text-white hover:bg-white/15 transition-colors">
+            <Link href="/innovacion" className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 font-body text-sm font-semibold text-white hover:bg-white/15 transition-colors">
               Ver nuestros clientes <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

@@ -15,7 +15,7 @@ const footerLinks = {
     { label: 'Busca por Marcas', href: '/marcas' }, { label: 'Formas de Pago', href: '/pagos' }, { label: 'Entregas', href: '/envios' },
   ],
   empresa: [
-    { label: 'Trabajos', href: '/trabajos' }, { label: 'Clientes', href: '/clientes' }, { label: 'Contacto', href: '/contacto' }, { label: 'Privacidad', href: '/privacidad' }, { label: 'Términos', href: '/terminos' },
+    { label: 'Trabajos', href: '/trabajos' }, { label: 'Innovación', href: '/innovacion' }, { label: 'Contacto', href: '/contacto' }, { label: 'Privacidad', href: '/privacidad' }, { label: 'Términos', href: '/terminos' },
   ],
 };
 
