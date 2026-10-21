@@ -42,32 +42,80 @@ const defaultServices = [
   {id:'6',icon:Factory,title:'Herrería y soldadura',description:'Portones, rejas, escaleras, barandas y trabajos a medida con materiales de acero de alta resistencia.',category:'metalurgica' as ServiceCategory,features:['Portones automáticos','Rejas de seguridad','Escaleras']},
 ];
 
-function ServiceCard({ service, index }: { service: any; index: number }) {
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  mantenimiento: { bg: '#EBF5FB', text: '#2D8FCC' },
+  civil:         { bg: '#FEF3E9', text: '#E8862B' },
+  metalurgica:   { bg: '#F0F0F0', text: '#4A5E80' },
+};
+
+function FlipCard({ service }: { service: any }) {
+  const [flipped, setFlipped] = useState(false);
   const Icon = service.icon || Wrench;
+  const color = CATEGORY_COLORS[service.category] || CATEGORY_COLORS.mantenimiento;
+  const categoryLabel = service.category === 'civil' ? 'Civil' : service.category === 'metalurgica' ? 'Metalúrgica' : 'Mantenimiento';
+
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-      <div className="flex items-center gap-3">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E8862B] font-body text-[0.7rem] font-bold text-white">
-          {index + 1}
-        </span>
-        <Icon className="h-5 w-5 shrink-0 text-[#E8862B]" />
+    <div
+      className="h-[220px] cursor-pointer select-none"
+      style={{ perspective: '1200px' }}
+      onMouseEnter={() => setFlipped(true)}
+      onMouseLeave={() => setFlipped(false)}
+      onClick={() => setFlipped(f => !f)}
+    >
+      <div
+        className="relative h-full w-full"
+        style={{
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1)',
+          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
+      >
+        {/* FRENTE */}
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl border border-gray-100 bg-white px-5 shadow-sm"
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+        >
+          <div
+            className="flex h-11 w-11 items-center justify-center rounded-xl"
+            style={{ backgroundColor: color.bg, color: color.text }}
+          >
+            <Icon className="h-5 w-5" />
+          </div>
+          <h2 className="text-center font-display text-[0.85rem] font-semibold leading-tight text-[#0B1120]">
+            {service.title}
+          </h2>
+          <span
+            className="rounded-full px-2.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wider"
+            style={{ backgroundColor: color.bg, color: color.text }}
+          >
+            {categoryLabel}
+          </span>
+        </div>
+
+        {/* DORSO */}
+        <div
+          className="absolute inset-0 flex flex-col rounded-xl bg-[#0B1120] px-5 py-5 shadow-sm"
+          style={{
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+          }}
+        >
+          <div className="mb-3 h-px w-8 rounded-full" style={{ backgroundColor: color.text }} />
+          <h2 className="font-display text-[0.85rem] font-bold leading-tight text-white">{service.title}</h2>
+          <p className="mt-2 flex-1 font-body text-[0.72rem] leading-relaxed text-white/65">{service.description}</p>
+          {service.features?.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {service.features.slice(0, 3).map((f: string) => (
+                <li key={f} className="flex items-center gap-1.5 font-body text-[0.65rem] text-white/50">
+                  <span className="h-1 w-1 shrink-0 rounded-full" style={{ backgroundColor: color.text }} />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
-      <h2 className="font-display text-[0.8rem] font-bold uppercase leading-snug tracking-wide text-[#0B1120]">
-        {service.title}
-      </h2>
-      <p className="font-body text-[0.72rem] leading-relaxed text-[#4A5E80]">
-        {service.description}
-      </p>
-      {service.features?.length > 0 && (
-        <ul className="mt-1 space-y-1">
-          {service.features.slice(0, 3).map((f: string) => (
-            <li key={f} className="flex items-center gap-1.5 font-body text-[0.65rem] text-[#8094B4]">
-              <span className="h-1 w-1 shrink-0 rounded-full bg-[#E8862B]" />
-              {f}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
@@ -151,8 +199,8 @@ function ServiciosPageInner() {
           <span className="font-body text-body-sm text-[#8094B4]">{filtered.length} servicio{filtered.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((service: any, i: number) => (
-            <ServiceCard key={service.id} service={service} index={i} />
+          {filtered.map((service: any) => (
+            <FlipCard key={service.id} service={service} />
           ))}
         </div>
       </div>
