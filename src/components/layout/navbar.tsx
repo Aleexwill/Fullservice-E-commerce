@@ -97,7 +97,7 @@ export function Navbar({ settings }: { settings?: SiteSettings }) {
       <nav className="container-main">
         <div className="flex h-[68px] items-center justify-between gap-3 sm:h-[72px] lg:h-[76px] lg:gap-6">
           <Link href="/" className="min-w-0 shrink rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6FC3F5]" aria-label="Full Service & Clean — inicio">
-            <Image src="/logo.png" alt="Full Service & Clean" width={220} height={88} className="h-auto w-[160px] object-contain sm:w-[185px] lg:w-[210px]" priority />
+            <Image src="/logo.png" alt="Full Service & Clean" width={280} height={112} className="h-auto w-[200px] object-contain sm:w-[230px] lg:w-[260px]" priority />
           </Link>
 
           <div className="hidden items-center gap-0.5 lg:flex">

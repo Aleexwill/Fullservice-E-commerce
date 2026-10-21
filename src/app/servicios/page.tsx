@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, ArrowRight, MessageCircle, Phone, ChevronRight, RotateCw } from 'lucide-react';
+import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, MessageCircle, Phone, ChevronRight, RotateCw } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 import { useSettings } from '@/lib/settings-context';
@@ -48,10 +48,9 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   metalurgica:   { bg: '#F0F0F0', text: '#4A5E80' },
 };
 
-function FlipCard({ service, whatsappNum }: { service: any; whatsappNum: string }) {
+function FlipCard({ service }: { service: any }) {
   const [flipped, setFlipped] = useState(false);
   const Icon = service.icon || Wrench;
-  const wa = formatWhatsAppUrl(whatsappNum, `Hola, quiero solicitar información sobre ${service.title}.`);
   const categoryLabel = service.category === 'civil' ? 'Civil' : service.category === 'metalurgica' ? 'Metalúrgica' : 'Mantenimiento';
   const color = CATEGORY_COLORS[service.category] || CATEGORY_COLORS.mantenimiento;
 
@@ -107,10 +106,10 @@ function FlipCard({ service, whatsappNum }: { service: any; whatsappNum: string 
         >
           <div className="mb-2.5 h-px w-8 rounded-full" style={{ backgroundColor: color.text }} />
           <h2 className="font-display text-[0.85rem] font-bold leading-tight text-white">{service.title}</h2>
-          <p className="mt-1.5 flex-1 font-body text-[0.72rem] leading-relaxed text-white/65 line-clamp-2">{service.description}</p>
+          <p className="mt-1.5 flex-1 font-body text-[0.72rem] leading-relaxed text-white/65">{service.description}</p>
           {service.features?.length > 0 && (
             <ul className="mt-2 space-y-0.5">
-              {service.features.slice(0, 2).map((f: string) => (
+              {service.features.slice(0, 3).map((f: string) => (
                 <li key={f} className="flex items-center gap-1.5 font-body text-[0.65rem] text-white/55">
                   <span className="h-1 w-1 shrink-0 rounded-full" style={{ backgroundColor: color.text }} />
                   {f}
@@ -118,23 +117,6 @@ function FlipCard({ service, whatsappNum }: { service: any; whatsappNum: string 
               ))}
             </ul>
           )}
-          <div className="mt-3 flex gap-2" onClick={e => e.stopPropagation()}>
-            <Link
-              href={`/contacto?tipo=presupuesto&servicio=${encodeURIComponent(service.title)}&categoria=${encodeURIComponent(service.category)}`}
-              className="btn-primary flex-1 justify-center text-xs py-2"
-            >
-              Cotizar <ArrowRight className="h-3 w-3" />
-            </Link>
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Consultar ${service.title} por WhatsApp`}
-              className="btn-whatsapp px-2.5"
-            >
-              <MessageCircle className="h-3.5 w-3.5" />
-            </a>
-          </div>
         </div>
       </div>
     </div>
@@ -221,7 +203,7 @@ function ServiciosPageInner() {
         </div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((service: any) => (
-            <FlipCard key={service.id} service={service} whatsappNum={whatsappNum} />
+            <FlipCard key={service.id} service={service} />
           ))}
         </div>
       </div>
