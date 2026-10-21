@@ -2,118 +2,159 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronRight, ArrowRight, MessageCircle, Zap, HardHat, Factory, Wrench, MapPin, Calendar, ZoomIn } from 'lucide-react';
+import { ChevronRight, ArrowRight, MessageCircle, Play, ZoomIn, X } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 import { useSettings } from '@/lib/settings-context';
 
-interface Project {
+interface InnovacionItem {
   id: string;
   title: string;
   description: string;
-  category: string;
-  location: string;
-  duration: string;
-  year: string;
-  client: string;
-  image: string;
-  badge: string;
+  mediaUrl: string;
+  mediaType: string;
+  thumbnail: string;
   isActive: boolean;
-  isFeatured: boolean;
+  order: number;
 }
 
-const defaultProjects: Project[] = [
-  { id: '1', title: 'Fabricación y Montaje de Estructuras Metálicas', description: 'Diseño, fabricación y montaje de estructura metálica para nave industrial con tecnología de corte por plasma y soldadura TIG.', category: 'metalurgica', location: 'Lambaré', duration: '4 meses', year: '2025', client: 'Industria alimenticia', image: '', badge: 'green', isActive: true, isFeatured: true },
-  { id: '2', title: 'Refuerzo Estructural y Restauración Integral', description: 'Intervención con técnicas de refuerzo estructural con fibra de carbono y sistemas de impermeabilización de última generación.', category: 'civil', location: 'Lambaré', duration: '3 meses', year: '2025', client: 'Empresa comercial', image: '', badge: 'blue', isActive: true, isFeatured: true },
-  { id: '3', title: 'Sistema Eléctrico Industrial Automatizado', description: 'Instalación de tableros inteligentes con monitoreo remoto y automatización de circuitos para planta industrial.', category: 'mantenimiento', location: 'Asunción', duration: '2 meses', year: '2025', client: 'Empresa multinacional', image: '', badge: 'yellow', isActive: true, isFeatured: true },
-];
+function isYoutube(url: string) {
+  return /youtube\.com|youtu\.be/.test(url);
+}
+function isVimeo(url: string) {
+  return /vimeo\.com/.test(url);
+}
+function getYoutubeEmbed(url: string) {
+  const m = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+  return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1` : url;
+}
+function getVimeoEmbed(url: string) {
+  const m = url.match(/vimeo\.com\/(\d+)/);
+  return m ? `https://player.vimeo.com/video/${m[1]}?autoplay=1` : url;
+}
 
-const CATEGORY_ICON: Record<string, any> = {
-  metalurgica: Factory,
-  civil: HardHat,
-  mantenimiento: Zap,
-  instalaciones: Zap,
-  limpieza: Wrench,
-};
+function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => void }) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
-const CATEGORY_COLOR: Record<string, { bg: string; text: string; label: string }> = {
-  metalurgica:   { bg: '#F0F0F0',  text: '#4A5E80', label: 'Metalúrgica' },
-  civil:         { bg: '#FEF3E9',  text: '#E8862B', label: 'Construcción civil' },
-  mantenimiento: { bg: '#EBF5FB',  text: '#2D8FCC', label: 'Mantenimiento' },
-  instalaciones: { bg: '#EBF5FB',  text: '#2D8FCC', label: 'Instalaciones' },
-  limpieza:      { bg: '#EDF7F0',  text: '#2E9E5B', label: 'Limpieza' },
-};
+  const isVideo = item.mediaType === 'video';
 
-function ProjectCard({ project }: { project: Project }) {
-  const cat = CATEGORY_COLOR[project.category] || CATEGORY_COLOR.mantenimiento;
-  const Icon = CATEGORY_ICON[project.category] || Wrench;
+  let embedUrl = item.mediaUrl;
+  if (isVideo) {
+    if (isYoutube(item.mediaUrl)) embedUrl = getYoutubeEmbed(item.mediaUrl);
+    else if (isVimeo(item.mediaUrl)) embedUrl = getVimeoEmbed(item.mediaUrl);
+  }
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      {/* Image / placeholder */}
-      <div className="relative flex h-52 items-center justify-center overflow-hidden bg-gradient-to-br from-[#EBF5FB] to-white">
-        {project.image ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={project.image} alt={project.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120]/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 font-body text-sm font-semibold text-[#0B1120] shadow-lg">
-                <ZoomIn className="h-4 w-4 text-[#2D8FCC]" />Ver detalle
-              </div>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+        aria-label="Cerrar"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      <div
+        className="w-full max-w-4xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {isVideo ? (
+          (isYoutube(item.mediaUrl) || isVimeo(item.mediaUrl)) ? (
+            <div className="aspect-video w-full overflow-hidden rounded-xl">
+              <iframe
+                src={embedUrl}
+                className="h-full w-full"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+              />
             </div>
-          </>
+          ) : (
+            <video
+              src={item.mediaUrl}
+              controls
+              autoPlay
+              className="w-full rounded-xl"
+            />
+          )
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.mediaUrl} alt={item.title} className="w-full rounded-xl object-contain max-h-[80vh]" />
+        )}
+        {(item.title || item.description) && (
+          <div className="mt-4 text-center">
+            <p className="font-display text-lg font-bold text-white">{item.title}</p>
+            {item.description && <p className="mt-1 font-body text-sm text-white/70">{item.description}</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MediaCard({ item, onClick }: { item: InnovacionItem; onClick: () => void }) {
+  const isVideo = item.mediaType === 'video';
+  const thumb = item.thumbnail || (isVideo ? '' : item.mediaUrl);
+
+  return (
+    <button
+      onClick={onClick}
+      className="group relative overflow-hidden rounded-2xl bg-[#0B1120] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#2D8FCC] w-full text-left"
+    >
+      <div className="relative flex h-52 items-center justify-center overflow-hidden bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
+        {thumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumb} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <Isotipo size={80} color="#2D8FCC15" />
         )}
-        {/* Category badge */}
-        <div className="absolute left-4 top-4">
-          <span
-            className="flex items-center gap-1.5 rounded-full px-3 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-wider"
-            style={{ backgroundColor: cat.bg, color: cat.text }}
-          >
-            <Icon className="h-3 w-3" />
-            {cat.label}
-          </span>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120]/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 font-body text-sm font-semibold text-[#0B1120] shadow-lg">
+            {isVideo ? <Play className="h-4 w-4 text-[#2D8FCC]" /> : <ZoomIn className="h-4 w-4 text-[#2D8FCC]" />}
+            {isVideo ? 'Ver video' : 'Ver imagen'}
+          </div>
         </div>
+        {isVideo && (
+          <div className="absolute bottom-3 left-3">
+            <span className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 font-body text-[0.65rem] font-semibold text-white backdrop-blur-sm">
+              <Play className="h-3 w-3" /> Video
+            </span>
+          </div>
+        )}
       </div>
-
-      {/* Content */}
-      <div className="p-5">
-        <h2 className="font-display text-[0.95rem] font-bold leading-tight text-[#0B1120]">{project.title}</h2>
-        <p className="mt-2 line-clamp-2 font-body text-[0.78rem] leading-relaxed text-[#4A5E80]">{project.description}</p>
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-gray-100 pt-3">
-          {project.location && (
-            <span className="flex items-center gap-1.5 font-body text-caption text-[#8094B4]">
-              <MapPin className="h-3 w-3 text-[#2D8FCC]" />{project.location}
-            </span>
-          )}
-          {project.year && (
-            <span className="flex items-center gap-1.5 font-body text-caption text-[#8094B4]">
-              <Calendar className="h-3 w-3 text-[#2D8FCC]" />{project.duration} · {project.year}
-            </span>
+      {(item.title || item.description) && (
+        <div className="bg-white p-4">
+          <p className="font-display text-[0.92rem] font-bold leading-tight text-[#0B1120] line-clamp-1">{item.title}</p>
+          {item.description && (
+            <p className="mt-1 font-body text-[0.78rem] text-[#4A5E80] line-clamp-2">{item.description}</p>
           )}
         </div>
-      </div>
-    </article>
+      )}
+    </button>
   );
 }
 
 export default function InnovacionPage() {
   const settings = useSettings();
   const whatsappNum = settings?.contact.whatsapp || siteConfig.whatsapp;
-  const [projects, setProjects] = useState<Project[]>(defaultProjects);
+  const [items, setItems] = useState<InnovacionItem[]>([]);
+  const [selected, setSelected] = useState<InnovacionItem | null>(null);
 
   useEffect(() => {
-    fetch('/api/trabajos?active=true')
+    fetch('/api/innovacion?active=true')
       .then((r) => r.json())
-      .then((d) => { if (d.projects?.length > 0) setProjects(d.projects); })
+      .then((d) => { if (d.items?.length > 0) setItems(d.items); })
       .catch(() => {});
   }, []);
 
   const whatsappUrl = formatWhatsAppUrl(whatsappNum, 'Hola, quiero consultar sobre proyectos de innovación.');
-  const featured = projects.filter((p) => p.isActive).slice(0, 6);
 
   return (
     <>
@@ -136,7 +177,7 @@ export default function InnovacionPage() {
             Innovación
           </h1>
           <p className="mt-6 max-w-2xl font-body text-body-lg leading-relaxed text-[#C0CEDF]">
-            Proyectos ejecutados con tecnología, métodos modernos y soluciones que hacen la diferencia. De la ingeniería a la entrega final.
+            Conocé los proyectos, tecnologías y procesos innovadores que aplicamos en nuestros trabajos. De la ingeniería a la entrega final.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/contacto?tipo=presupuesto" className="btn-primary">
@@ -149,35 +190,26 @@ export default function InnovacionPage() {
         </div>
       </section>
 
-      {/* Projects grid */}
+      {/* Gallery */}
       <section className="section bg-[#F4F7FB]">
         <div className="container-main">
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
-              <span className="overline">Lo que hacemos</span>
-              <h2 className="mt-1 font-display text-h2 text-[#0B1120]">Proyectos destacados</h2>
-            </div>
-            <Link href="/trabajos" className="hidden shrink-0 items-center gap-1.5 font-body text-body-sm font-semibold text-[#2D8FCC] hover:underline sm:flex">
-              Ver todos <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+          <div className="mb-8">
+            <span className="overline">Galería</span>
+            <h2 className="mt-1 font-display text-h2 text-[#0B1120]">Innovaciones en acción</h2>
           </div>
 
-          {featured.length === 0 ? (
+          {items.length === 0 ? (
             <div className="py-20 text-center">
               <Isotipo size={72} color="#2D8FCC18" />
-              <p className="mt-4 font-body text-body text-[#8094B4]">Próximamente publicaremos nuestros proyectos de innovación.</p>
+              <p className="mt-4 font-body text-body text-[#8094B4]">Próximamente publicaremos contenido de innovación.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featured.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+              {items.map((item) => (
+                <MediaCard key={item.id} item={item} onClick={() => setSelected(item)} />
               ))}
             </div>
           )}
-
-          <div className="mt-8 flex justify-center sm:hidden">
-            <Link href="/trabajos" className="btn-secondary">Ver todos los trabajos <ArrowRight className="h-4 w-4" /></Link>
-          </div>
         </div>
       </section>
 
@@ -195,6 +227,9 @@ export default function InnovacionPage() {
           </div>
         </div>
       </section>
+
+      {/* Lightbox modal */}
+      {selected && <MediaModal item={selected} onClose={() => setSelected(null)} />}
     </>
   );
 }
