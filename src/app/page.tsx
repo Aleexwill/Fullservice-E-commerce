@@ -3,6 +3,7 @@ import NextImage from 'next/image';
 import { ArrowRight, Target, Eye } from 'lucide-react';
 import { HeroSection } from '@/components/sections/hero-section';
 import { ServicesSection, CtaSection } from '@/components/sections/services-section';
+import { ClientLogosMarquee } from '@/components/sections/client-logos-marquee';
 import { getAllProjects, type Project } from '@/lib/portfolio-store';
 import '@/styles/public-refresh.css';
 import { Isotipo } from '@/components/ui/isotipo';
@@ -64,6 +65,7 @@ export default async function HomePage() {
       <HeroSection />
       <ServicesSection />
       <PortfolioPreview projects={projects} />
+      <ClientLogosMarquee />
       <ProcessSection />
       <AboutSection about={content.about} />
       <CtaSection whatsapp={settings.contact.whatsapp} />

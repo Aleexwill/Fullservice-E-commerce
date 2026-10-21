@@ -7,6 +7,7 @@ import { Isotipo } from '@/components/ui/isotipo';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 import { useSettings } from '@/lib/settings-context';
+import { ClientLogosMarquee } from '@/components/sections/client-logos-marquee';
 
 type ProjectCategory = 'todos' | 'civil' | 'metalurgica' | 'mantenimiento' | 'limpieza' | 'instalaciones';
 const categories: { id: ProjectCategory; label: string }[] = [
@@ -316,6 +317,9 @@ export default function TrabajosDestacadosPage() {
           )}
         </div>
       </section>
+
+      {/* Client logos marquee */}
+      <ClientLogosMarquee />
 
       {/* CTA */}
       <section className="border-t border-gray-200 bg-white py-16">
