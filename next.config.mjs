@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [
+      { source: '/clientes', destination: '/innovacion', permanent: true },
+    ];
+  },
   trailingSlash: false,
   images: {
     formats: ['image/avif', 'image/webp'],

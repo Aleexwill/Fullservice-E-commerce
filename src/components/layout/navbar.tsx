@@ -22,7 +22,7 @@ import type { SiteSettings } from '@/lib/settings-store';
 const BASE_NAV_LINKS = [
   { href: '/servicios', label: 'Servicios', sectionKey: 'showServicios' },
   { href: '/trabajos', label: 'Trabajos', sectionKey: 'showPortfolio' },
-  { href: '/clientes', label: 'Clientes', sectionKey: null },
+  { href: '/innovacion', label: 'Innovación', sectionKey: null },
   { href: '/nosotros', label: 'Nosotros', sectionKey: null },
   { href: '/contacto', label: 'Contacto', sectionKey: null },
 ];

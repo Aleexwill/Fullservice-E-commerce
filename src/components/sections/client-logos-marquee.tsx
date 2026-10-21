@@ -138,7 +138,7 @@ export function ClientLogosMarquee() {
     <section className="border-t border-gray-200 bg-white py-10">
       <div className="container-main mb-7">
         <span className="mb-1 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Clientes</span>
-        <h2 className="font-display text-h2 uppercase text-[#0B1120]">Confían en nosotros</h2>
+        <h2 className="font-display text-h2 uppercase text-[#0B1120]">Clientes que confían en nosotros</h2>
         <div className="mt-3 h-[3px] w-12 rounded-sm bg-gradient-to-r from-[#2D8FCC] to-[#E8862B]" />
       </div>
 
