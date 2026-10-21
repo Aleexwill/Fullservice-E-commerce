@@ -35,7 +35,7 @@ function FlipCard({ service }: { service: ServiceItem }) {
 
   return (
     <div
-      className="h-[300px] cursor-pointer select-none"
+      className="h-[220px] cursor-pointer select-none"
       style={{ perspective: '1200px' }}
       onMouseEnter={() => setFlipped(true)}
       onMouseLeave={() => setFlipped(false)}
@@ -45,30 +45,30 @@ function FlipCard({ service }: { service: ServiceItem }) {
         className="relative h-full w-full"
         style={{
           transformStyle: 'preserve-3d',
-          transition: 'transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1)',
+          transition: 'transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1)',
           transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
         }}
       >
         {/* FRENTE */}
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-2xl border border-gray-100 bg-white px-6 shadow-sm"
+          className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 rounded-xl border border-gray-100 bg-white px-5 shadow-sm"
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' } as React.CSSProperties}
         >
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl"
+            className="flex h-10 w-10 items-center justify-center rounded-xl"
             style={{ backgroundColor: color.bg, color: color.text }}
           >
-            <Icon className="h-8 w-8" />
+            <Icon className="h-5 w-5" />
           </div>
-          <h3 className="text-center font-display text-h3 leading-tight text-[#0B1120]">{service.title}</h3>
+          <h3 className="text-center font-display text-[0.9rem] font-semibold leading-tight text-[#0B1120]">{service.title}</h3>
           <span
-            className="rounded-full px-3 py-1 font-body text-[0.65rem] font-semibold uppercase tracking-wider"
+            className="rounded-full px-2.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wider"
             style={{ backgroundColor: color.bg, color: color.text }}
           >
             {categoryLabel}
           </span>
-          <div className="flex items-center gap-1.5 font-body text-[0.65rem] text-[#8094B4]">
-            <RotateCw className="h-3 w-3" />
+          <div className="flex items-center gap-1 font-body text-[0.6rem] text-[#8094B4]">
+            <RotateCw className="h-2.5 w-2.5" />
             <span className="hidden md:inline">Pasá el cursor</span>
             <span className="md:hidden">Tocá para ver más</span>
           </div>
@@ -76,23 +76,23 @@ function FlipCard({ service }: { service: ServiceItem }) {
 
         {/* DORSO */}
         <div
-          className="absolute inset-0 flex flex-col rounded-2xl bg-[#0B1120] px-6 py-5 shadow-sm"
+          className="absolute inset-0 flex flex-col rounded-xl bg-[#0B1120] px-5 py-4 shadow-sm"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
           } as React.CSSProperties}
         >
-          <div className="mb-4 h-0.5 w-10 rounded-full" style={{ backgroundColor: color.text }} />
-          <h3 className="font-display text-[1rem] font-bold leading-tight text-white">{service.title}</h3>
-          <p className="mt-2 flex-1 font-body text-[0.78rem] leading-relaxed text-white/70">{service.description}</p>
-          <div className="mt-4" onClick={e => e.stopPropagation()}>
+          <div className="mb-2.5 h-px w-8 rounded-full" style={{ backgroundColor: color.text }} />
+          <h3 className="font-display text-[0.85rem] font-bold leading-tight text-white">{service.title}</h3>
+          <p className="mt-1.5 flex-1 font-body text-[0.72rem] leading-relaxed text-white/65 line-clamp-3">{service.description}</p>
+          <div className="mt-3" onClick={e => e.stopPropagation()}>
             <Link
               href={href}
-              className="btn-primary w-full justify-center text-sm"
+              className="btn-primary w-full justify-center text-xs py-2"
             >
               {service.category === 'limpieza' ? 'Consultar' : 'Explorar servicio'}
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
         </div>
@@ -103,7 +103,7 @@ function FlipCard({ service }: { service: ServiceItem }) {
 
 export function ServiceFlipGrid({ services }: { services: ServiceItem[] }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
       {services.map(service => (
         <FlipCard key={service.id} service={service} />
       ))}
