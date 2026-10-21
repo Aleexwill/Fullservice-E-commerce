@@ -81,7 +81,6 @@ function FlipCard({ service }: { service: any }) {
           >
             <Icon className="h-5 w-5" />
           </div>
-          <h2 className="text-center font-display text-[0.9rem] font-semibold leading-tight text-[#0B1120]">{service.title}</h2>
           <span
             className="rounded-full px-2.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wider"
             style={{ backgroundColor: color.bg, color: color.text }}

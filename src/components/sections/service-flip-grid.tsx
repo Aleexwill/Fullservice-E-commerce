@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, ArrowRight, RotateCw } from 'lucide-react';
+import { Wrench, HardHat, Factory, Zap, Droplets, Paintbrush, ShieldCheck, Thermometer, RotateCw } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = { Zap, Droplets, Paintbrush, Wrench, HardHat, Factory, ShieldCheck, Thermometer };
 
@@ -60,7 +59,6 @@ function FlipCard({ service }: { service: ServiceItem }) {
           >
             <Icon className="h-5 w-5" />
           </div>
-          <h3 className="text-center font-display text-[0.9rem] font-semibold leading-tight text-[#0B1120]">{service.title}</h3>
           <span
             className="rounded-full px-2.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wider"
             style={{ backgroundColor: color.bg, color: color.text }}
@@ -85,16 +83,7 @@ function FlipCard({ service }: { service: ServiceItem }) {
         >
           <div className="mb-2.5 h-px w-8 rounded-full" style={{ backgroundColor: color.text }} />
           <h3 className="font-display text-[0.85rem] font-bold leading-tight text-white">{service.title}</h3>
-          <p className="mt-1.5 flex-1 font-body text-[0.72rem] leading-relaxed text-white/65 line-clamp-3">{service.description}</p>
-          <div className="mt-3" onClick={e => e.stopPropagation()}>
-            <Link
-              href={href}
-              className="btn-primary w-full justify-center text-xs py-2"
-            >
-              {service.category === 'limpieza' ? 'Consultar' : 'Explorar servicio'}
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+          <p className="mt-1.5 flex-1 font-body text-[0.72rem] leading-relaxed text-white/65">{service.description}</p>
         </div>
       </div>
     </div>
