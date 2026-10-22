@@ -35,8 +35,6 @@ function getVimeoEmbed(url: string) {
 }
 
 function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => void }) {
-  const [expanded, setExpanded] = useState(false);
-
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
     document.addEventListener('keydown', onKey);
@@ -50,8 +48,6 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
     if (isYoutube(item.mediaUrl)) embedUrl = getYoutubeEmbed(item.mediaUrl);
     else if (isVimeo(item.mediaUrl)) embedUrl = getVimeoEmbed(item.mediaUrl);
   }
-
-  const isLong = item.description.length > 300;
 
   return (
     <div
@@ -103,24 +99,14 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
 
         {/* Info */}
         {(item.title || item.description) && (
-          <div className="flex-shrink-0 px-5 py-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             {item.title && (
               <p className="font-display text-base font-bold leading-snug text-white">{item.title}</p>
             )}
             {item.description && (
-              <div className="mt-2">
-                <p className={`font-body text-[0.8rem] leading-relaxed text-white/60 ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
-                  {item.description}
-                </p>
-                {isLong && (
-                  <button
-                    onClick={() => setExpanded((v) => !v)}
-                    className="mt-1.5 font-body text-[0.75rem] font-medium text-[#7CC4EF] hover:text-white transition-colors"
-                  >
-                    {expanded ? 'Ver menos' : 'Ver más'}
-                  </button>
-                )}
-              </div>
+              <p className="mt-2 font-body text-[0.8rem] leading-relaxed text-white/60">
+                {item.description}
+              </p>
             )}
           </div>
         )}
