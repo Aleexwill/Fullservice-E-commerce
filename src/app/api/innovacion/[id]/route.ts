@@ -24,6 +24,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       mediaUrl: body.mediaUrl,
       mediaType: body.mediaType,
       thumbnail: body.thumbnail,
+      images: Array.isArray(body.images) ? body.images : undefined,
       isActive: body.isActive,
       order: body.order,
     });

@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       mediaUrl: body.mediaUrl || '',
       mediaType: body.mediaType || 'image',
       thumbnail: body.thumbnail || '',
+      images: Array.isArray(body.images) ? body.images : [],
       isActive: body.isActive !== false,
       order: body.order ?? 0,
     });
