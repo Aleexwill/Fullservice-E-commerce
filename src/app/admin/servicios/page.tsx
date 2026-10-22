@@ -19,7 +19,6 @@ interface Service {
   features: string[]; image: string; isActive: boolean; isFeatured: boolean; order: number;
 }
 
-const CATEGORIES = ['mantenimiento', 'civil', 'metalurgica'];
 const CAT_LABELS: Record<string, string> = { mantenimiento: 'Mantenimiento', civil: 'Construccion civil', metalurgica: 'Metalurgica' };
 const ICONS = ['Zap', 'Droplets', 'Paintbrush', 'ShieldCheck', 'Thermometer', 'Wrench', 'HardHat', 'Factory', 'Hammer', 'Cog', 'Flame', 'Ruler'];
 
@@ -28,6 +27,14 @@ export default function AdminServiciosPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Service | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [categories, setCategories] = useState<string[]>(['mantenimiento', 'civil', 'metalurgica']);
+
+  useEffect(() => {
+    fetch('/api/categorias?scope=servicios&active=true')
+      .then((r) => r.json())
+      .then((d) => { if (d.items?.length > 0) setCategories(d.items.map((c: any) => c.slug)); })
+      .catch(() => {});
+  }, []);
   const [newFeature, setNewFeature] = useState('');
 
   const fetch_ = useCallback(() => {
@@ -153,7 +160,7 @@ export default function AdminServiciosPage() {
               <div><label className="label mb-1 block">Titulo *</label><input type="text" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="input" /></div>
               <div><label className="label mb-1 block">Descripcion</label><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="input min-h-[80px]" rows={3} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="label mb-1 block">Categoria</label><select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="input">{CATEGORIES.map((c) => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}</select></div>
+                <div><label className="label mb-1 block">Categoria</label><select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="input">{categories.map((c) => <option key={c} value={c}>{CAT_LABELS[c] ?? c}</option>)}</select></div>
                 <div><label className="label mb-1 block">Icono</label><select value={editing.icon} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} className="input font-mono">{ICONS.map((i) => <option key={i} value={i}>{i}</option>)}</select></div>
               </div>
               <div>
