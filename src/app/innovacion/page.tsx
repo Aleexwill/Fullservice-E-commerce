@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronRight, ArrowRight, MessageCircle, Play, ZoomIn, X } from 'lucide-react';
+import { ChevronRight, ArrowRight, MessageCircle, Play, ZoomIn, X, Leaf } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
@@ -105,36 +105,37 @@ function MediaCard({ item, onClick }: { item: InnovacionItem; onClick: () => voi
   return (
     <button
       onClick={onClick}
-      className="group relative overflow-hidden rounded-2xl bg-[#0B1120] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#2D8FCC] w-full text-left"
+      className="group relative overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#2D8FCC] w-full text-left"
     >
-      <div className="relative flex h-52 items-center justify-center overflow-hidden bg-gradient-to-br from-[#EBF5FB] to-[#F4F7FB]">
+      <div className="relative flex h-60 items-center justify-center overflow-hidden bg-[#EBF5FB]">
         {thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thumb} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
-          <Isotipo size={80} color="#2D8FCC15" />
+          <Isotipo size={64} color="#2D8FCC20" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120]/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 font-body text-sm font-semibold text-[#0B1120] shadow-lg">
+          <div className="flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 font-body text-sm font-semibold text-[#0B1120] shadow">
             {isVideo ? <Play className="h-4 w-4 text-[#2D8FCC]" /> : <ZoomIn className="h-4 w-4 text-[#2D8FCC]" />}
             {isVideo ? 'Ver video' : 'Ver imagen'}
           </div>
         </div>
-        {isVideo && (
-          <div className="absolute bottom-3 left-3">
-            <span className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 font-body text-[0.65rem] font-semibold text-white backdrop-blur-sm">
-              <Play className="h-3 w-3" /> Video
-            </span>
-          </div>
-        )}
+        <div className="absolute left-3 top-3">
+          <span className="flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 font-body text-[0.6rem] font-semibold uppercase tracking-wide text-white backdrop-blur-sm">
+            {isVideo ? <Play className="h-2.5 w-2.5" /> : <ZoomIn className="h-2.5 w-2.5" />}
+            {isVideo ? 'Video' : 'Imagen'}
+          </span>
+        </div>
+        <div className="absolute right-3 top-3">
+          <span className="flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/20 px-2.5 py-1 font-body text-[0.6rem] font-semibold uppercase tracking-wide text-emerald-200 backdrop-blur-sm">
+            <Leaf className="h-2.5 w-2.5" /> Eco
+          </span>
+        </div>
       </div>
-      {(item.title || item.description) && (
-        <div className="bg-white p-4">
-          <p className="font-display text-[0.92rem] font-bold leading-tight text-[#0B1120] line-clamp-1">{item.title}</p>
-          {item.description && (
-            <p className="mt-1 font-body text-[0.78rem] text-[#4A5E80] line-clamp-2">{item.description}</p>
-          )}
+      {item.title && (
+        <div className="px-4 py-3">
+          <p className="font-display text-[0.88rem] font-semibold leading-snug text-[#0B1120] line-clamp-1">{item.title}</p>
         </div>
       )}
     </button>
@@ -194,8 +195,7 @@ export default function InnovacionPage() {
       <section className="section bg-[#F4F7FB]">
         <div className="container-main">
           <div className="mb-8">
-            <span className="overline">Galería</span>
-            <h2 className="mt-1 font-display text-h2 text-[#0B1120]">Innovaciones en acción</h2>
+            <h2 className="font-display text-h2 text-[#0B1120]">Innovaciones en acción</h2>
           </div>
 
           {items.length === 0 ? (
