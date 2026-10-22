@@ -36,18 +36,22 @@ function getVimeoEmbed(url: string) {
 }
 
 function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => void }) {
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const extraImages = item.images || [];
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') { if (lightbox) setLightbox(null); else onClose(); }
+      if (lightboxIdx !== null) {
+        if (e.key === 'Escape') setLightboxIdx(null);
+        else if (e.key === 'ArrowRight') setLightboxIdx((i) => (i! + 1) % extraImages.length);
+        else if (e.key === 'ArrowLeft') setLightboxIdx((i) => (i! - 1 + extraImages.length) % extraImages.length);
+      } else if (e.key === 'Escape') onClose();
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose, lightbox]);
+  }, [onClose, lightboxIdx, extraImages.length]);
 
   const isVideo = item.mediaType === 'video';
-  const extraImages = item.images || [];
 
   let embedUrl = item.mediaUrl;
   if (isVideo) {
@@ -121,7 +125,7 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
                 {extraImages.map((url, i) => (
                   <button
                     key={i}
-                    onClick={() => setLightbox(url)}
+                    onClick={() => setLightboxIdx(i)}
                     className="group relative overflow-hidden rounded-lg bg-black/30 focus:outline-none focus:ring-2 focus:ring-[#7CC4EF]"
                     style={{ aspectRatio: extraImages.length === 1 ? '16/9' : '1' }}
                   >
@@ -142,21 +146,52 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
         )}
 
         {/* Lightbox overlay */}
-        {lightbox && (
+        {lightboxIdx !== null && (
           <div
             className="absolute inset-0 z-10 flex items-center justify-center bg-black/95"
-            onClick={() => setLightbox(null)}
+            onClick={() => setLightboxIdx(null)}
           >
+            {/* Close button — prominent */}
             <button
-              onClick={() => setLightbox(null)}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+              onClick={() => setLightboxIdx(null)}
+              className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#0B1120] shadow-lg hover:bg-white/90 transition"
               aria-label="Cerrar imagen"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-5 w-5" />
             </button>
+
+            {/* Prev arrow */}
+            {extraImages.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i! - 1 + extraImages.length) % extraImages.length); }}
+                className="absolute left-3 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#0B1120] shadow-lg hover:bg-white/90 transition"
+                aria-label="Anterior"
+              >
+                <ChevronRight className="h-5 w-5 rotate-180" />
+              </button>
+            )}
+
+            {/* Next arrow */}
+            {extraImages.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i! + 1) % extraImages.length); }}
+                className="absolute right-3 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#0B1120] shadow-lg hover:bg-white/90 transition"
+                aria-label="Siguiente"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
+
+            {/* Counter */}
+            {extraImages.length > 1 && (
+              <span className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 font-body text-xs text-white">
+                {lightboxIdx + 1} / {extraImages.length}
+              </span>
+            )}
+
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={lightbox}
+              src={extraImages[lightboxIdx]}
               alt=""
               className="max-h-full max-w-full object-contain"
               onClick={(e) => e.stopPropagation()}
