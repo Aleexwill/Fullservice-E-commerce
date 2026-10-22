@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Save,
@@ -48,7 +48,7 @@ interface ProductFormProps {
   mode: 'create' | 'edit';
 }
 
-const CATEGORIES = [
+const CATEGORIES_FALLBACK = [
   'Herramientas Manuales',
   'Herramientas Electricas',
   'Materiales de Construccion',
@@ -89,6 +89,15 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Dynamic categories
+  const [categories, setCategories] = useState<string[]>(CATEGORIES_FALLBACK);
+  useEffect(() => {
+    fetch('/api/categorias?scope=productos&active=true')
+      .then((r) => r.json())
+      .then((d) => { if (d.items?.length > 0) setCategories(d.items.map((c: any) => c.name)); })
+      .catch(() => {});
+  }, []);
 
   // Tags
   const [newTag, setNewTag] = useState('');
@@ -641,7 +650,7 @@ export default function ProductForm({ initialData, productId, mode }: ProductFor
                   onChange={(e) => updateField('category', e.target.value)}
                   className="input"
                 >
-                  {CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>

@@ -48,6 +48,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/clientes-logo', label: 'Logos clientes', icon: Layers, permission: 'canManageContent' },
     { href: '/admin/innovacion', label: 'Innovación', icon: TrendingUp, permission: 'canManageContent' },
     { href: '/admin/promos', label: 'Banners & Promos', icon: Megaphone, permission: 'canManageContent' },
+    { href: '/admin/categorias', label: 'Categorías', icon: Tag, permission: 'canManageContent' },
   ]},
   { label: 'Clientes & CRM', items: [
     { href: '/admin/clientes', label: 'Clientes', icon: UserCheck, permission: 'canManageClients' },

@@ -13,7 +13,6 @@ interface Project {
   badge: string; size: string; isActive: boolean; isFeatured: boolean; order: number;
 }
 
-const CATEGORIES = ['civil', 'metalurgica', 'mantenimiento'];
 const CAT_LABELS: Record<string, string> = { civil: 'Construccion civil', metalurgica: 'Metalurgica', mantenimiento: 'Mantenimiento' };
 
 export default function AdminPortfolioPage() {
@@ -21,6 +20,14 @@ export default function AdminPortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [categories, setCategories] = useState<string[]>(['civil', 'metalurgica', 'mantenimiento']);
+
+  useEffect(() => {
+    fetch('/api/categorias?scope=trabajos&active=true')
+      .then((r) => r.json())
+      .then((d) => { if (d.items?.length > 0) setCategories(d.items.map((c: any) => c.slug)); })
+      .catch(() => {});
+  }, []);
 
   const fetch_ = useCallback(() => {
     setLoading(true);
@@ -112,7 +119,7 @@ export default function AdminPortfolioPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2"><label className="label mb-1 block">Titulo *</label><input type="text" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="input" /></div>
                 <div className="col-span-2"><label className="label mb-1 block">Descripcion</label><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="input min-h-[80px]" rows={3} /></div>
-                <div><label className="label mb-1 block">Categoria</label><select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="input">{CATEGORIES.map((c) => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}</select></div>
+                <div><label className="label mb-1 block">Categoria</label><select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="input">{categories.map((c) => <option key={c} value={c}>{CAT_LABELS[c] ?? c}</option>)}</select></div>
                 <div><label className="label mb-1 block">Color badge</label><select value={editing.badge} onChange={(e) => setEditing({ ...editing, badge: e.target.value })} className="input"><option value="blue">Azul</option><option value="green">Verde</option><option value="yellow">Amarillo</option><option value="neutral">Neutro</option></select></div>
                 <div><label className="label mb-1 block">Cliente</label><input type="text" value={editing.client} onChange={(e) => setEditing({ ...editing, client: e.target.value })} className="input" /></div>
                 <div><label className="label mb-1 block">Ubicacion</label><input type="text" value={editing.location} onChange={(e) => setEditing({ ...editing, location: e.target.value })} className="input" /></div>

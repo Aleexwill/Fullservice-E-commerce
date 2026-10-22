@@ -8,7 +8,7 @@ interface Material {
   provider: string; category: string; isActive: boolean; notes: string;
 }
 
-const CATEGORIES: Record<string, string> = {
+const CATEGORIES_FALLBACK: Record<string, string> = {
   metalurgica: 'Metalúrgica', chapas: 'Chapas', policarbonato: 'Policarbonato',
   civil: 'Civil', pinturas: 'Pinturas', electrica: 'Eléctrica', plomeria: 'Plomería',
   carpinteria: 'Carpintería', mano_obra: 'Mano de obra', consumibles: 'Consumibles', general: 'General',
@@ -24,6 +24,20 @@ export default function AdminInventarioPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [CATEGORIES, setCategories] = useState<Record<string, string>>(CATEGORIES_FALLBACK);
+
+  useEffect(() => {
+    fetch('/api/categorias?scope=inventario&active=true')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.items?.length > 0) {
+          const map: Record<string, string> = {};
+          d.items.forEach((c: any) => { map[c.slug] = c.name; });
+          setCategories(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const fetchData = useCallback(() => {
     setLoading(true);

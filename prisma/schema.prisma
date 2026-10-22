@@ -511,3 +511,21 @@ model InnovacionItem {
 
   @@index([isActive, order])
 }
+
+// ============================================================
+// CATEGORÍAS (dinámicas por sección)
+// ============================================================
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String
+  scope     String   // "productos" | "trabajos" | "servicios" | "inventario"
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([scope, slug])
+  @@index([scope, isActive, order])
+}
