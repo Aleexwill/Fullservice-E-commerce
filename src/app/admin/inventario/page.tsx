@@ -106,6 +106,7 @@ export default function AdminInventarioPage() {
       {(showAdd || editing) && (
         <MaterialModal
           material={editing}
+          categories={CATEGORIES}
           onClose={() => { setShowAdd(false); setEditing(null); }}
           onSaved={() => { setShowAdd(false); setEditing(null); fetchData(); }}
         />
@@ -329,7 +330,7 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
 
 // ── Material Modal ─────────────────────────────────────────────────
 
-function MaterialModal({ material, onClose, onSaved }: { material: Material | null; onClose: () => void; onSaved: () => void }) {
+function MaterialModal({ material, categories, onClose, onSaved }: { material: Material | null; categories: Record<string, string>; onClose: () => void; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
   const [f, setF] = useState({
     description: material?.description || '', unit: material?.unit || 'un',
@@ -365,7 +366,7 @@ function MaterialModal({ material, onClose, onSaved }: { material: Material | nu
           <div className="grid grid-cols-2 gap-3">
             <div><label className="label mb-1 block">Categoría</label>
               <select className="input" value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>
-                {Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                {Object.entries(categories).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div><label className="label mb-1 block">Proveedor</label><input className="input" value={f.provider} onChange={(e) => setF({ ...f, provider: e.target.value })} /></div>
