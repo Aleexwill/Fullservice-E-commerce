@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Eye, EyeOff, Save, X, Video, ImageIcon, Film, Link2, Upload, Loader2 } from 'lucide-react';
-import { ImageUploader } from '@/components/admin/image-uploader';
+import { ImageUploader, MultiImageUploader } from '@/components/admin/image-uploader';
 
 interface InnovacionItem {
   id: string;
@@ -11,6 +11,7 @@ interface InnovacionItem {
   mediaUrl: string;
   mediaType: string;
   thumbnail: string;
+  images: string[];
   isActive: boolean;
   order: number;
 }
@@ -185,7 +186,7 @@ function ItemEditor({
   onClose: () => void;
 }) {
   const [form, setForm] = useState<Partial<InnovacionItem>>(
-    item ?? { title: '', description: '', mediaUrl: '', mediaType: 'image', thumbnail: '', isActive: true }
+    item ?? { title: '', description: '', mediaUrl: '', mediaType: 'image', thumbnail: '', images: [], isActive: true }
   );
 
   const isVideo = form.mediaType === 'video';
@@ -266,6 +267,14 @@ function ItemEditor({
                 placeholder="Breve descripción que aparece en el lightbox..."
               />
             </div>
+
+            {/* Extra images gallery */}
+            <MultiImageUploader
+              label="Galería de imágenes adicionales (opcional)"
+              value={form.images || []}
+              onChange={(urls) => setForm((f) => ({ ...f, images: urls }))}
+              max={12}
+            />
 
             {/* Order + Active */}
             <div className="flex items-center gap-4">

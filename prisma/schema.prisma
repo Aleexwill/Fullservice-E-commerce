@@ -504,6 +504,7 @@ model InnovacionItem {
   mediaUrl    String   @default("")
   mediaType   String   @default("image") // "image" | "video"
   thumbnail   String   @default("")
+  images      String   @default("[]") @db.Text // JSON array of extra image URLs
   isActive    Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())

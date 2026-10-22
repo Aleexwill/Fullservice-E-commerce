@@ -8,6 +8,7 @@ export interface InnovacionItem {
   mediaUrl: string;
   mediaType: string;
   thumbnail: string;
+  images: string[];
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -15,6 +16,8 @@ export interface InnovacionItem {
 }
 
 function toItem(i: PrismaInnovacionItem): InnovacionItem {
+  let images: string[] = [];
+  try { images = JSON.parse((i as any).images || '[]'); } catch {}
   return {
     id: i.id,
     title: i.title,
@@ -22,6 +25,7 @@ function toItem(i: PrismaInnovacionItem): InnovacionItem {
     mediaUrl: i.mediaUrl,
     mediaType: i.mediaType,
     thumbnail: i.thumbnail,
+    images,
     isActive: i.isActive,
     order: i.order,
     createdAt: i.createdAt.toISOString(),
@@ -45,7 +49,10 @@ export async function getInnovacionById(id: string): Promise<InnovacionItem | nu
 export async function createInnovacion(
   data: Omit<InnovacionItem, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<InnovacionItem> {
-  const item = await prisma.innovacionItem.create({ data });
+  const { images, ...rest } = data;
+  const item = await prisma.innovacionItem.create({
+    data: { ...rest, images: JSON.stringify(images ?? []) } as any,
+  });
   return toItem(item);
 }
 
@@ -54,7 +61,10 @@ export async function updateInnovacion(
   data: Partial<Omit<InnovacionItem, 'id' | 'createdAt' | 'updatedAt'>>
 ): Promise<InnovacionItem | null> {
   try {
-    const item = await prisma.innovacionItem.update({ where: { id }, data });
+    const { images, ...rest } = data;
+    const payload: any = { ...rest };
+    if (images !== undefined) payload.images = JSON.stringify(images);
+    const item = await prisma.innovacionItem.update({ where: { id }, data: payload });
     return toItem(item);
   } catch {
     return null;

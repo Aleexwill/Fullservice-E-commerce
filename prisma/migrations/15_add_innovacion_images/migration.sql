@@ -1,0 +1,1 @@
+ALTER TABLE "InnovacionItem" ADD COLUMN IF NOT EXISTS "images" TEXT NOT NULL DEFAULT '[]';

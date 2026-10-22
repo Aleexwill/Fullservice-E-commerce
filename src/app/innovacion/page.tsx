@@ -15,6 +15,7 @@ interface InnovacionItem {
   mediaUrl: string;
   mediaType: string;
   thumbnail: string;
+  images: string[];
   isActive: boolean;
   order: number;
 }
@@ -35,13 +36,18 @@ function getVimeoEmbed(url: string) {
 }
 
 function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => void }) {
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
   useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') { if (lightbox) setLightbox(null); else onClose(); }
+    }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [onClose, lightbox]);
 
   const isVideo = item.mediaType === 'video';
+  const extraImages = item.images || [];
 
   let embedUrl = item.mediaUrl;
   if (isVideo) {
@@ -63,7 +69,7 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
       </button>
 
       <div
-        className="flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-[#0d1525]"
+        className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-[#0d1525]"
         style={{ maxHeight: 'calc(100dvh - 2rem)' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -97,8 +103,8 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
           )}
         </div>
 
-        {/* Info */}
-        {(item.title || item.description) && (
+        {/* Info + gallery */}
+        {(item.title || item.description || extraImages.length > 0) && (
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             {item.title && (
               <p className="font-display text-base font-bold leading-snug text-white">{item.title}</p>
@@ -108,6 +114,53 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
                 {item.description}
               </p>
             )}
+
+            {/* Image collage */}
+            {extraImages.length > 0 && (
+              <div className={`mt-4 grid gap-1.5 ${extraImages.length === 1 ? 'grid-cols-1' : extraImages.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                {extraImages.map((url, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setLightbox(url)}
+                    className="group relative overflow-hidden rounded-lg bg-black/30 focus:outline-none focus:ring-2 focus:ring-[#7CC4EF]"
+                    style={{ aspectRatio: extraImages.length === 1 ? '16/9' : '1' }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt=""
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/40">
+                      <ZoomIn className="h-5 w-5 text-white opacity-0 drop-shadow-lg transition-opacity group-hover:opacity-100" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Lightbox overlay */}
+        {lightbox && (
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center bg-black/95"
+            onClick={() => setLightbox(null)}
+          >
+            <button
+              onClick={() => setLightbox(null)}
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+              aria-label="Cerrar imagen"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightbox}
+              alt=""
+              className="max-h-full max-w-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         )}
       </div>
