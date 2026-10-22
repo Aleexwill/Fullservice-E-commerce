@@ -35,6 +35,8 @@ function getVimeoEmbed(url: string) {
 }
 
 function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
     document.addEventListener('keydown', onKey);
@@ -49,48 +51,77 @@ function MediaModal({ item, onClose }: { item: InnovacionItem; onClose: () => vo
     else if (isVimeo(item.mediaUrl)) embedUrl = getVimeoEmbed(item.mediaUrl);
   }
 
+  const isLong = item.description.length > 300;
+
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/92 p-4"
       onClick={onClose}
     >
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
         aria-label="Cerrar"
       >
-        <X className="h-5 w-5" />
+        <X className="h-4 w-4" />
       </button>
+
       <div
-        className="w-full max-w-4xl"
+        className="flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-[#0d1525]"
+        style={{ maxHeight: 'calc(100dvh - 2rem)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {isVideo ? (
-          (isYoutube(item.mediaUrl) || isVimeo(item.mediaUrl)) ? (
-            <div className="aspect-video w-full overflow-hidden rounded-xl">
-              <iframe
-                src={embedUrl}
-                className="h-full w-full"
-                allow="autoplay; fullscreen"
-                allowFullScreen
+        {/* Media */}
+        <div className="relative flex-shrink-0 bg-black">
+          {isVideo ? (
+            (isYoutube(item.mediaUrl) || isVimeo(item.mediaUrl)) ? (
+              <div className="aspect-video w-full">
+                <iframe
+                  src={embedUrl}
+                  className="h-full w-full"
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <video
+                src={item.mediaUrl}
+                controls
+                autoPlay
+                className="max-h-[60vh] w-full object-contain"
               />
-            </div>
+            )
           ) : (
-            <video
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               src={item.mediaUrl}
-              controls
-              autoPlay
-              className="w-full rounded-xl"
+              alt={item.title}
+              className="max-h-[65vh] w-full object-contain"
             />
-          )
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.mediaUrl} alt={item.title} className="w-full rounded-xl object-contain max-h-[80vh]" />
-        )}
+          )}
+        </div>
+
+        {/* Info */}
         {(item.title || item.description) && (
-          <div className="mt-4 text-center">
-            <p className="font-display text-lg font-bold text-white">{item.title}</p>
-            {item.description && <p className="mt-1 font-body text-sm text-white/70">{item.description}</p>}
+          <div className="flex-shrink-0 px-5 py-4">
+            {item.title && (
+              <p className="font-display text-base font-bold leading-snug text-white">{item.title}</p>
+            )}
+            {item.description && (
+              <div className="mt-2">
+                <p className={`font-body text-[0.8rem] leading-relaxed text-white/60 ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
+                  {item.description}
+                </p>
+                {isLong && (
+                  <button
+                    onClick={() => setExpanded((v) => !v)}
+                    className="mt-1.5 font-body text-[0.75rem] font-medium text-[#7CC4EF] hover:text-white transition-colors"
+                  >
+                    {expanded ? 'Ver menos' : 'Ver más'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
