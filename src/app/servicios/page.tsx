@@ -66,7 +66,7 @@ function FlipCard({ service }: { service: any }) {
         className="relative h-full w-full"
         style={{
           transformStyle: 'preserve-3d',
-          transition: 'transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1)',
+          transition: 'transform 0.35s cubic-bezier(0.4, 0.2, 0.2, 1)',
           transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
         }}
       >
@@ -85,7 +85,7 @@ function FlipCard({ service }: { service: any }) {
             {service.title}
           </h2>
           <span
-            className="rounded-full px-2.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wider"
+            className="rounded-full px-2.5 py-0.5 font-body text-[0.7rem] font-semibold uppercase tracking-wider"
             style={{ backgroundColor: color.bg, color: color.text }}
           >
             {categoryLabel}
@@ -150,7 +150,7 @@ function ServiciosPageInner() {
   return <>
     {/* Breadcrumb */}
     <div className="border-b border-gray-200 bg-white">
-      <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+      <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#4A5E80]">
         <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
         <ChevronRight className="h-3 w-3" />
         <span className="font-medium text-[#0B1120]">Servicios</span>
@@ -196,7 +196,7 @@ function ServiciosPageInner() {
       <div className="container-main">
         <div className="mb-7 flex items-center justify-between">
           <span className="overline">Servicios profesionales</span>
-          <span className="font-body text-body-sm text-[#8094B4]">{filtered.length} servicio{filtered.length !== 1 ? 's' : ''}</span>
+          <span className="font-body text-body-sm text-[#4A5E80]">{filtered.length} servicio{filtered.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((service: any) => (

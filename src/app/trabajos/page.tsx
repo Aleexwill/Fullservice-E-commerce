@@ -194,7 +194,7 @@ export default function TrabajosDestacadosPage() {
 
       {/* Breadcrumb */}
       <div className="border-b border-gray-200 bg-white">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#4A5E80]">
           <Link href="/" className="hover:text-[#2D8FCC]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
           <span className="font-medium text-[#0B1120]">Trabajos Destacados</span>
@@ -293,12 +293,12 @@ export default function TrabajosDestacadosPage() {
                       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-gray-100 pt-3">
                         {Object.entries(project.technicalDetails).slice(0, 2).map(([k, v]) => (
                           <div key={k} className="flex flex-col">
-                            <span className="text-[0.6rem] font-bold uppercase tracking-wide text-[#8094B4]">{k}</span>
+                            <span className="text-[0.7rem] font-bold uppercase tracking-wide text-[#4A5E80]">{k}</span>
                             <span className="text-[0.72rem] font-semibold text-[#0B1120]">{v}</span>
                           </div>
                         ))}
                         {Object.keys(project.technicalDetails).length > 2 && (
-                          <span className="self-end text-[0.65rem] text-[#8094B4]">+{Object.keys(project.technicalDetails).length - 2} más</span>
+                          <span className="self-end text-[0.7rem] text-[#4A5E80]">+{Object.keys(project.technicalDetails).length - 2} más</span>
                         )}
                       </div>
                     )}

@@ -25,7 +25,7 @@ export default async function NosotrosPage() {
     <>
       {/* Breadcrumb */}
       <div className="border-b border-gray-200 bg-white">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-[.75rem] text-[#8094B4]">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-[.75rem] text-[#4A5E80]">
           <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
           <span className="font-medium text-[#0B1120]">Nosotros</span>
@@ -41,7 +41,7 @@ export default async function NosotrosPage() {
           <h1 className="mt-4 font-display text-[clamp(2.2rem,5vw,3.5rem)] font-bold leading-[1.05] tracking-tight text-white">
             Full Service &amp; Clean
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl font-body text-[1.05rem] leading-relaxed text-[#8094B4]">
+          <p className="mx-auto mt-5 max-w-2xl font-body text-[1.05rem] leading-relaxed text-[#C0CEDF]">
             {about.description || 'Empresa paraguaya especializada en mantenimiento, construcción y metalúrgica. Trabajamos con compromiso, confianza y excelencia para transformar cada proyecto en un resultado duradero.'}
           </p>
         </div>
