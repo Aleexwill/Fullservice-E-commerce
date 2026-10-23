@@ -3,19 +3,24 @@ import { ChevronRight, ArrowRight, MessageCircle, Phone, ShieldCheck, Eye, Targe
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 import { getCachedSettings } from '@/lib/settings-store';
+import { getCachedContent } from '@/lib/content-store';
 
-const valores = [
-  { icon: ShieldCheck, title: 'Compromiso', desc: 'Dedicación plena para lograr soluciones eficientes y resultados de calidad.' },
-  { icon: Users, title: 'Confianza', desc: 'Relaciones sólidas basadas en la transparencia, el cumplimiento y la satisfacción.' },
-  { icon: Star, title: 'Excelencia', desc: 'Mejora continua para optimizar los entornos y servicios ofrecidos.' },
-  { icon: Users, title: 'Trabajo en equipo', desc: 'Colaboración y respeto que fortalecen al equipo y al servicio.' },
-  { icon: Lightbulb, title: 'Innovación', desc: 'Evolución constante mediante tecnologías y métodos que potencian nuestro impacto.' },
-];
+const VALUE_ICONS = [ShieldCheck, Users, Star, Users, Lightbulb, Target, Star, ShieldCheck];
 
 export default async function NosotrosPage() {
-  const settings = await getCachedSettings();
+  const [settings, content] = await Promise.all([getCachedSettings(), getCachedContent()]);
   const whatsapp = settings?.contact.whatsapp || siteConfig.whatsapp;
   const whatsappUrl = formatWhatsAppUrl(whatsapp, 'Hola, quiero saber más sobre Full Service & Clean.');
+  const about = content.about;
+  const valores = about.values.length > 0
+    ? about.values.map((v, i) => ({ icon: VALUE_ICONS[i % VALUE_ICONS.length], title: v.title, desc: v.description }))
+    : [
+        { icon: ShieldCheck, title: 'Compromiso', desc: 'Dedicación plena para lograr soluciones eficientes y resultados de calidad.' },
+        { icon: Users, title: 'Confianza', desc: 'Relaciones sólidas basadas en la transparencia, el cumplimiento y la satisfacción.' },
+        { icon: Star, title: 'Excelencia', desc: 'Mejora continua para optimizar los entornos y servicios ofrecidos.' },
+        { icon: Users, title: 'Trabajo en equipo', desc: 'Colaboración y respeto que fortalecen al equipo y al servicio.' },
+        { icon: Lightbulb, title: 'Innovación', desc: 'Evolución constante mediante tecnologías y métodos que potencian nuestro impacto.' },
+      ];
   return (
     <>
       {/* Breadcrumb */}
@@ -37,7 +42,7 @@ export default async function NosotrosPage() {
             Full Service &amp; Clean
           </h1>
           <p className="mx-auto mt-5 max-w-2xl font-body text-[1.05rem] leading-relaxed text-[#8094B4]">
-            Empresa paraguaya especializada en mantenimiento, construcción y metalúrgica. Trabajamos con compromiso, confianza y excelencia para transformar cada proyecto en un resultado duradero.
+            {about.description || 'Empresa paraguaya especializada en mantenimiento, construcción y metalúrgica. Trabajamos con compromiso, confianza y excelencia para transformar cada proyecto en un resultado duradero.'}
           </p>
         </div>
       </section>
@@ -53,7 +58,7 @@ export default async function NosotrosPage() {
             <span className="font-body text-[.7rem] font-bold uppercase tracking-[.14em] text-[#2D8FCC]">Misión</span>
             <h2 className="mt-2 font-display text-[1.6rem] font-bold leading-tight text-[#0B1120]">Lo que nos mueve cada día</h2>
             <p className="mt-4 font-body text-[.95rem] leading-relaxed text-[#4A5E80]">
-              Impulsamos el desarrollo de proyectos ofreciendo soluciones integrales que garantizan el óptimo funcionamiento de los bienes de nuestros clientes. Con un enfoque en la calidad y la eficiencia, fomentamos relaciones de confianza duraderas.
+              {about.mission || 'Impulsamos el desarrollo de proyectos ofreciendo soluciones integrales que garantizan el óptimo funcionamiento de los bienes de nuestros clientes. Con un enfoque en la calidad y la eficiencia, fomentamos relaciones de confianza duraderas.'}
             </p>
             {/* Accent bar */}
             <div className="absolute bottom-0 left-0 h-1 w-full" style={{ background: 'linear-gradient(90deg,#2D8FCC,#E8862B)' }} />
@@ -67,7 +72,7 @@ export default async function NosotrosPage() {
             <span className="font-body text-[.7rem] font-bold uppercase tracking-[.14em] text-[#7CC4EF]">Visión</span>
             <h2 className="mt-2 font-display text-[1.6rem] font-bold leading-tight text-white">Hacia dónde vamos</h2>
             <p className="mt-4 font-body text-[.95rem] leading-relaxed text-[#8094B4]">
-              Ser la empresa líder en soluciones integrales de mantenimiento y construcción, reconocida por nuestra calidad, eficiencia y compromiso. Buscamos transformar y optimizar entornos mediante servicios que garanticen su funcionalidad y desarrollo, fortaleciendo relaciones de confianza y generando un impacto positivo en cada proyecto.
+              {about.vision || 'Ser la empresa líder en soluciones integrales de mantenimiento y construcción, reconocida por nuestra calidad, eficiencia y compromiso. Buscamos transformar y optimizar entornos mediante servicios que garanticen su funcionalidad y desarrollo, fortaleciendo relaciones de confianza y generando un impacto positivo en cada proyecto.'}
             </p>
             <div className="absolute bottom-0 left-0 h-1 w-full" style={{ background: 'linear-gradient(90deg,#2D8FCC,#E8862B)' }} />
           </div>
