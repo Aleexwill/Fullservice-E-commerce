@@ -215,7 +215,7 @@ function MediaCard({ item, onClick }: { item: InnovacionItem; onClick: () => voi
       <div className="relative flex h-60 items-center justify-center overflow-hidden bg-[#EBF5FB]">
         {thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={thumb} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
         ) : (
           <Isotipo size={64} color="#2D8FCC20" />
         )}
@@ -266,7 +266,7 @@ export default function InnovacionPage() {
     <>
       {/* Breadcrumb */}
       <div className="border-b border-gray-200 bg-white">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#4A5E80]">
           <Link href="/" className="hover:text-[#2D8FCC]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
           <span className="font-medium text-[#0B1120]">Innovación</span>
