@@ -165,7 +165,7 @@ function ServiciosPageInner() {
         <div className="max-w-2xl">
           <span className="overline text-[#7CC4EF]">Lo que hacemos</span>
           <h1 className="mt-4 font-display text-[clamp(2rem,4.5vw,3.25rem)] font-bold leading-[1.05] tracking-tight text-white">Soluciones para<br/>cada proyecto</h1>
-          <p className="mt-5 font-body text-body-lg leading-relaxed text-[#8094B4]">Mantenimiento, obras civiles y metalúrgica para empresas y hogares.<br className="hidden md:block"/> Presupuesto detallado sin compromiso.</p>
+          <p className="mt-5 font-body text-body-lg leading-relaxed text-[#C0CEDF]">Mantenimiento, obras civiles y metalúrgica para empresas y hogares.<br className="hidden md:block"/> Presupuesto detallado sin compromiso.</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/contacto?tipo=presupuesto" className="btn-primary">Pedir presupuesto <ArrowRight className="h-4 w-4"/></Link>
             <a href={formatWhatsAppUrl(whatsappNum, 'Hola, quiero consultar sobre sus servicios.')} target="_blank" rel="noopener noreferrer" className="btn-whatsapp"><MessageCircle className="h-4 w-4"/> WhatsApp</a>

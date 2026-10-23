@@ -53,7 +53,7 @@ export function MarcasClient({ brands }: { brands: Brand[] }) {
     <>
       {/* Breadcrumb */}
       <div className="border-b border-gray-200">
-        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#8094B4]">
+        <div className="container-main flex items-center gap-2 py-3 font-body text-caption text-[#4A5E80]">
           <Link href="/" className="hover:text-[#0B1120]">Inicio</Link>
           <ChevronRight className="h-3 w-3" />
           <Link href="/tienda" className="hover:text-[#0B1120]">Tienda</Link>
