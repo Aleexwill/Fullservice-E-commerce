@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronRight, MapPin, Calendar, ArrowRight, MessageCircle, X, ChevronLeft, ChevronRight as ChevRight, ZoomIn } from 'lucide-react';
+import { ChevronRight, MapPin, Calendar, ArrowRight, MessageCircle, X, ChevronLeft, ChevronRight as ChevRight, ZoomIn, Star } from 'lucide-react';
 import { Isotipo } from '@/components/ui/isotipo';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
@@ -75,6 +75,7 @@ function Lightbox({ project, onClose }: { project: Project; onClose: () => void 
             {categoryLabel[project.category] || project.category}
           </span>
           <h2 className="truncate font-display text-base font-bold text-white md:text-lg">{project.title}</h2>
+          {project.isFeatured && <Star className="h-4 w-4 shrink-0 text-amber-400" fill="currentColor" />}
         </div>
         <button onClick={onClose} className="shrink-0 rounded-xl bg-white/10 p-2.5 text-white/70 hover:bg-white/20 hover:text-white">
           <X className="h-5 w-5" />
@@ -262,6 +263,13 @@ export default function TrabajosDestacadosPage() {
                         Ver galería
                       </div>
                     </div>
+                    {project.isFeatured && (
+                      <div className="absolute left-3 top-3">
+                        <span className="flex items-center gap-1 rounded-full bg-amber-400/95 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-amber-900 shadow-sm">
+                          <Star className="h-2.5 w-2.5" fill="currentColor" /> Destacado
+                        </span>
+                      </div>
+                    )}
                     <div className="absolute right-4 top-4">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badgeColors[project.badge] || badgeColors.neutral}`}>
                         {categoryLabel[project.category] || project.category}
