@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ClienteLogo {
   id: string;
@@ -98,9 +98,6 @@ function LogoTile({ client }: { client: ClienteLogo }) {
 
 export function ClientLogosMarquee() {
   const [logos, setLogos] = useState<ClienteLogo[]>(FALLBACK);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const animRef = useRef<number | null>(null);
-  const posRef = useRef(0);
 
   useEffect(() => {
     fetch('/api/clientes-logo')
@@ -116,26 +113,20 @@ export function ClientLogosMarquee() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    posRef.current = 0;
-    if (animRef.current) cancelAnimationFrame(animRef.current);
-    const step = () => {
-      posRef.current += 0.5;
-      const halfWidth = track.scrollWidth / 2;
-      if (posRef.current >= halfWidth) posRef.current = 0;
-      track.style.transform = `translateX(-${posRef.current}px)`;
-      animRef.current = requestAnimationFrame(step);
-    };
-    animRef.current = requestAnimationFrame(step);
-    return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-  }, [logos]);
-
   const doubled = [...logos, ...logos];
+  const duration = Math.max(logos.length * 3, 20);
 
   return (
     <section className="border-t border-gray-200 bg-white py-10">
+      <style>{`
+        @keyframes logos-marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .logos-track { animation-play-state: paused !important; }
+        }
+      `}</style>
       <div className="container-main mb-7">
         <span className="mb-1 block font-body text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-[#2D8FCC]">Clientes</span>
         <h2 className="font-display text-h2 uppercase text-[#0B1120]">Clientes que confían en nosotros</h2>
@@ -146,7 +137,10 @@ export function ClientLogosMarquee() {
         <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-white to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-white to-transparent" />
 
-        <div ref={trackRef} className="flex items-center gap-6 whitespace-nowrap will-change-transform">
+        <div
+          className="logos-track flex items-center gap-6 will-change-transform"
+          style={{ width: 'max-content', animation: `logos-marquee ${duration}s linear infinite` }}
+        >
           {doubled.map((logo, i) => (
             <div
               key={`${logo.id}-${i}`}
