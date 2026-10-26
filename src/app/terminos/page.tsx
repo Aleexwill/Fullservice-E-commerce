@@ -5,6 +5,7 @@ import { siteConfig } from '@/config/site';
 export const metadata = {
   title: 'Términos y Condiciones',
   description: `Términos y condiciones de uso del sitio y la tienda online de ${siteConfig.name}.`,
+  alternates: { canonical: '/terminos' },
 };
 
 const sections = [
