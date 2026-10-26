@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const uniqueRoutes = new Map<string, MetadataRoute.Sitemap[number]>();
   for (const route of [...staticRoutes, ...productRoutes]) {
     // Only publish absolute HTTP(S) URLs and avoid duplicate sitemap entries.
-    if (/^https?:\\/\\//i.test(route.url)) uniqueRoutes.set(route.url, route);
+    if (route.url.startsWith('https://') || route.url.startsWith('http://')) uniqueRoutes.set(route.url, route);
   }
   return [...uniqueRoutes.values()];
 }
