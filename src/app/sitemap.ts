@@ -14,6 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/trabajos`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${base}/clientes`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/contacto`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${base}/envios`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/marcas`, lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${base}/pagos`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/innovacion`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/privacidad`, lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${base}/terminos`, lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
   ];
@@ -31,5 +35,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
   } catch {}
 
-  return [...staticRoutes, ...productRoutes];
+  const uniqueRoutes = new Map<string, MetadataRoute.Sitemap[number]>();
+  for (const route of [...staticRoutes, ...productRoutes]) {
+    // Only publish absolute HTTP(S) URLs and avoid duplicate sitemap entries.
+    if (/^https?:\\/\\//i.test(route.url)) uniqueRoutes.set(route.url, route);
+  }
+  return [...uniqueRoutes.values()];
 }
