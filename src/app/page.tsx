@@ -12,8 +12,6 @@ import { getCachedSettings } from '@/lib/settings-store';
 import { getCachedContent, type SiteContent } from '@/lib/content-store';
 
 export const metadata: Metadata = {
-  title: 'Full Service & Clean | Mantenimiento, limpieza y construcción',
-  description: 'Soluciones integrales de mantenimiento, limpieza, construcción civil, metalúrgica y ferretería en Paraguay. Solicitá un presupuesto para tu proyecto.',
   alternates: { canonical: '/' },
 };
 
