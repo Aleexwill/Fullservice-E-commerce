@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Marcas — Full Service & Clean',
   description: 'Explorá todas las marcas disponibles en nuestra tienda, ordenadas alfabéticamente.',
+  alternates: { canonical: '/marcas' },
 };
 
 async function getBrands() {
