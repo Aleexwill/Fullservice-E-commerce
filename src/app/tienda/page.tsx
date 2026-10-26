@@ -1,12 +1,16 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
+import { siteConfig } from '@/config/site';
 import { prisma } from '@/lib/prisma';
 import { TiendaClient } from './tienda-client';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Tienda — Full Service & Clean',
   description: 'Comprá herramientas, electricidad, plomería y más. Envío a todo el país.',
+  alternates: { canonical: '/tienda' },
+  openGraph: { url: `${siteConfig.url}/tienda` },
 };
 
 async function getInitialProducts() {

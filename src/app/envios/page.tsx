@@ -5,6 +5,7 @@ import { siteConfig } from '@/config/site';
 export const metadata = {
   title: 'Envíos y Entregas — Full Service & Clean',
   description: 'Conocé nuestras zonas de entrega, costos y tiempos estimados para tu pedido.',
+  alternates: { canonical: '/envios' },
 };
 
 const zones = [

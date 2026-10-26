@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { ArrowRight, Target, Eye } from 'lucide-react';
@@ -9,6 +10,10 @@ import '@/styles/public-refresh.css';
 import { Isotipo } from '@/components/ui/isotipo';
 import { getCachedSettings } from '@/lib/settings-store';
 import { getCachedContent, type SiteContent } from '@/lib/content-store';
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
 
 /* ============================================================
    QUIÉNES SOMOS (misión, visión, valores)

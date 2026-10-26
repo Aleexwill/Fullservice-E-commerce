@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = {
   title: '¿Cómo y cuándo pago? — Full Service & Clean',
   description: 'Conocé todos los métodos de pago aceptados y los datos para transferencias bancarias.',
+  alternates: { canonical: '/pagos' },
 };
 
 export default async function PagosPage() {
