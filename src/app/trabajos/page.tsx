@@ -182,9 +182,13 @@ export default function TrabajosDestacadosPage() {
       .catch(() => {});
   }, []);
 
-  const filtered = activeCategory === 'todos'
+  const filtered = (activeCategory === 'todos'
     ? projects
-    : projects.filter((p) => p.category === activeCategory);
+    : projects.filter((p) => p.category === activeCategory)
+  ).sort((a, b) => {
+    if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+    return a.order - b.order;
+  });
 
   const whatsappUrl = formatWhatsAppUrl(whatsappNum, 'Hola, vi sus trabajos y me gustaría consultar sobre un proyecto similar.');
 
