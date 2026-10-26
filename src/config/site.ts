@@ -3,7 +3,7 @@ export const siteConfig = {
   shortName: 'FS&C',
   description:
     'Soluciones integrales de mantenimiento, limpieza, construcción civil, metalúrgica y ferretería online. Presupuesto claro, seguimiento del trabajo y garantía.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+  url: (process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://fullservice.com.py').replace(/\\/+$/, ''),
   ogImage: '/og-image.jpg',
   phone: '+595 971 528800',
   email: 'info@fullservice.com.py',
