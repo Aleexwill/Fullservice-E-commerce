@@ -1,9 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight, ArrowRight, MessageCircle, Phone, ShieldCheck, Eye, Target, Users, Star, Lightbulb } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { formatWhatsAppUrl } from '@/lib/utils';
 import { getCachedSettings } from '@/lib/settings-store';
 import { getCachedContent } from '@/lib/content-store';
+
+export const metadata: Metadata = {
+  title: 'Sobre Full Service & Clean',
+  description: 'Conocé al equipo, la misión y la visión de Full Service & Clean y cómo acompañamos proyectos de mantenimiento, construcción y servicios.',
+  alternates: { canonical: '/nosotros' },
+};
 
 const VALUE_ICONS = [ShieldCheck, Users, Star, Users, Lightbulb, Target, Star, ShieldCheck];
 
