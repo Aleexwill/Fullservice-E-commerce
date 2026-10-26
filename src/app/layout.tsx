@@ -46,7 +46,6 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${siteName}`,
     },
     description,
-    alternates: { canonical: siteConfig.url },
     openGraph: {
       type: 'website',
       locale: 'es_PY',
@@ -97,14 +96,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     },
     geo: {
       '@type': 'GeoCoordinates',
-      latitude: '-25.3477',
-      longitude: '-57.6009',
     },
     openingHoursSpecification: [
-      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '07:00', closes: '18:00' },
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '08:00', closes: '18:00' },
       { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Saturday'], opens: '08:00', closes: '13:00' },
     ],
-    priceRange: '$$',
     image: `${siteConfig.url}/opengraph-image`,
     sameAs: Object.values(settings.social).filter(Boolean),
   };
