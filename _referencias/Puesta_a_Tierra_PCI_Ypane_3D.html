@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Puesta a tierra · Tanque PCI · Petropar Ypané</title>
+<style>html,body{margin:0;height:100%;background:#eeece8;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif}#v{position:absolute;inset:0}
+#hd{position:absolute;left:12px;top:10px;background:rgba(255,255,255,.95);border:1px solid #dedbd5;border-radius:8px;padding:10px 12px;font-size:11.5px;display:flex;flex-direction:column;gap:4px;max-width:320px}
+#hd b.t{font-size:13.5px}#hd label{display:flex;align-items:center;gap:6px;cursor:pointer}#hd i{width:12px;height:12px;border-radius:2px;flex:none;border:1px solid rgba(0,0,0,.2);display:inline-block}
+#esp{display:none;position:absolute;right:12px;top:48px;z-index:3;background:rgba(255,255,255,.95);border:1px solid #dedbd5;border-radius:8px;padding:10px 12px;font-size:11px;max-width:300px;line-height:1.5}
+#esp div{display:grid;grid-template-columns:120px 1fr;gap:6px;border-top:1px solid #f1efeb;padding:3px 0}#esp div:first-child{border-top:0}#esp span:first-child{color:#6f6b64}
+#tip{position:absolute;pointer-events:none;background:#1b1a18;color:#fff;font-size:11.5px;line-height:1.45;padding:6px 9px;border-radius:5px;display:none;white-space:nowrap}
+#bt{position:absolute;right:12px;top:10px;display:flex;gap:4px}#bt button{font:600 11.5px system-ui;padding:6px 10px;border:1px solid #c9c5bd;background:#fff;border-radius:5px;cursor:pointer}
+#ayu{position:absolute;left:12px;bottom:8px;font-size:11px;color:#6f6b64;background:rgba(255,255,255,.88);padding:3px 8px;border-radius:5px;white-space:nowrap}
+.lb{font:700 11px 'IBM Plex Mono',monospace;color:#1b1a18;background:rgba(255,255,255,.92);border:1px solid #c9c5bd;border-radius:4px;padding:1px 6px;white-space:nowrap}
+.lb.c{background:#b87333;color:#fff;border-color:#8a5424}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body><div id="v"></div><div id="hd"></div><div id="esp"></div><div id="tip"></div>
+<div id="bt"><button data-v="iso">Isométrica</button><button data-v="planta">Planta</button><button data-v="corte">Corte</button><button data-v="tanque">Conexión al tanque</button><button id="bEsp" style="background:#1f4e79;color:#fff;border-color:#1f4e79">Especificaciones</button></div>
+<div id="ayu">Girar: clic izq. · Acercar: rueda · Mover: clic der. · Pasá el mouse sobre cada elemento</div>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = (i) => document.getElementById(i);
+const ren = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); $('v').appendChild(ren.domElement);
+ren.localClippingEnabled = true; ren.toneMapping = T.ACESFilmicToneMapping;
+const lr = new CSS2DRenderer(); lr.domElement.style.cssText = 'position:absolute;inset:0;pointer-events:none'; $('v').appendChild(lr.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#eeece8'); { const pm = new T.PMREMGenerator(ren); sc.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; }
+sc.add(new T.HemisphereLight('#ffffff', '#8f8a83', 0.8)); const dl = new T.DirectionalLight('#ffffff', 1.1); dl.position.set(12, 20, 8); sc.add(dl);
+const cam = new T.PerspectiveCamera(42, 1, 0.02, 500), ctl = new OrbitControls(cam, ren.domElement); ctl.enableDamping = true; ctl.zoomToCursor = true; ctl.screenSpacePanning = true;
+ctl.mouseButtons = { LEFT: T.MOUSE.ROTATE, MIDDLE: T.MOUSE.DOLLY, RIGHT: T.MOUSE.PAN }; ren.domElement.addEventListener('contextmenu', e => e.preventDefault());
+const fit = () => { ren.setSize(innerWidth, innerHeight); lr.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }; addEventListener('resize', fit); fit();
+// coordenadas: x este, y norte (planta), z cota (0 = terreno)
+const V = (x, y, z) => new T.Vector3(x, z, -y);
+const pick = [], G = new T.Group(); sc.add(G);
+const grp = () => { const g = new T.Group(); G.add(g); return g; };
+const gTan = grp(), gCob = grp(), gJab = grp(), gCam = grp(), gSue = grp(), gOpc = grp(), gCot = grp();
+const M = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.55, metalness: 0.3 }, o || {}));
+const reg = (m, n, d) => { m.userData.n = n; m.userData.d = d || ''; pick.push(m); return m; };
+const add = (geo, mat, p, par, n, d, rot) => { const m = new T.Mesh(geo, mat); m.position.copy(p); if (rot) m.rotation.set(...rot); (par || G).add(m); if (n) reg(m, n, d); return m; };
+const tubo = (a, b, r, mat, par, n, d) => { const A = V(...a), B = V(...b), dd = B.clone().sub(A), L = dd.length(); const m = new T.Mesh(new T.CylinderGeometry(r, r, L, 12), mat); m.position.copy(A.clone().add(B).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dd.normalize()); par.add(m); if (n) reg(m, n, d); return m; };
+const etiqueta = (p, txt, cls, par) => { const d = document.createElement('div'); d.className = 'lb ' + (cls || ''); d.textContent = txt; const o = new CSS2DObject(d); o.position.copy(p); (par || G).add(o); return o; };
+const mCu = M('#b87333', { metalness: 0.95, roughness: 0.28 }), mAce = M('#8d97a1', { metalness: 0.75, roughness: 0.4 }), mTan = M('#c8261c', { metalness: 0.45, roughness: 0.4 }), mHor = M('#b9b3a8', { metalness: 0, roughness: 0.95 }), mTapa = M('#6f7780', { metalness: 0.6, roughness: 0.45 });
+// --- terreno con corte (suelo semitransparente)
+{ const sup = add(new T.BoxGeometry(18, 0.04, 22), M('#9aa07a', { roughness: 1, metalness: 0, transparent: true, opacity: 0.55 }), V(0, 5, -0.02), gSue, 'Terreno natural', 'Cota ±0,00');
+  const cuerpo = add(new T.BoxGeometry(18, 3.4, 22), M('#a0714f', { roughness: 1, metalness: 0, transparent: true, opacity: 0.18, depthWrite: false }), V(0, 5, -1.72), gSue, 'Suelo', 'Corte esquemático · relleno de zanja con tierra cribada');
+  const pis = add(new T.BoxGeometry(6, 0.1, 6), M('#c9c5bd', { roughness: 0.9, metalness: 0 }), V(0, 0, 0.05), gTan, 'Platea de hormigón del tanque', '6,00 × 6,00 m'); }
+// --- tanque PCI sobre estructura metálica
+const LEG = [[-1.1, -1.1], [1.1, -1.1], [1.1, 1.1], [-1.1, 1.1]], HE = 2.2, RT = 1.35, HT = 3.2;
+LEG.forEach(([x, y], k) => { tubo([x, y, 0.1], [x, y, HE], 0.06, mAce, gTan, 'Pilar de la estructura del tanque', 'Caño estructural · pata ' + (k + 1));
+  add(new T.BoxGeometry(0.35, 0.02, 0.35), mAce, V(x, y, 0.11), gTan, 'Placa base con anclajes', 'Pata ' + (k + 1)); });
+[[0, 1], [1, 2], [2, 3], [3, 0]].forEach(([a, b]) => { tubo([...LEG[a], HE], [...LEG[b], HE], 0.05, mAce, gTan, 'Viga de apoyo del tanque', ''); tubo([...LEG[a], 0.4], [...LEG[b], HE - 0.2], 0.02, mAce, gTan, 'Arriostramiento en cruz', ''); });
+add(new T.CylinderGeometry(RT, RT, HT, 48), mTan, V(0, 0, HE + HT / 2), gTan, 'Tanque de agua PCI', 'Estructura metálica · Ø 2,70 m × 3,20 m');
+add(new T.CylinderGeometry(RT * 0.98, RT, 0.25, 48), mTan, V(0, 0, HE + HT + 0.12), gTan, 'Tapa del tanque', '');
+for (let k = 1; k < 4; k++) add(new T.TorusGeometry(RT + 0.01, 0.02, 6, 48), M('#9e1e16'), V(0, 0, HE + k * HT / 4), gTan, null, null, [Math.PI / 2, 0, 0]);
+etiqueta(V(0, 0, HE + HT + 0.7), 'TANQUE DE AGUA PCI');
+// --- cámaras y jabalinas
+const S = 4.8, h3 = S * Math.sin(Math.PI / 3);
+const CAM = [[-2.4, -3.6], [2.4, -3.6], [0, -3.6 - h3], [0, -3.6 - h3 - S]];
+const camara = (p, i, par) => { const [x, y] = p, w = 0.4, d = 0.4, prof = 0.45, e = 0.06;
+  [[0, d / 2 - e / 2, w, e], [0, -d / 2 + e / 2, w, e], [w / 2 - e / 2, 0, e, d], [-w / 2 + e / 2, 0, e, d]].forEach(([dx, dy, ww, dd]) => add(new T.BoxGeometry(ww, prof, dd), mHor, V(x + dx, y + dy, -prof / 2 + 0.03), par, 'Cámara de inspección PAT ' + i, 'Hormigón 40 × 40 × 45 cm · fondo de grava'));
+  add(new T.BoxGeometry(w + 0.04, 0.04, d + 0.04), mTapa, V(x, y, 0.05), par, 'Tapa de cámara PAT ' + i, 'Tapa metálica con asa · rótulo "PAT ' + i + '"');
+  add(new T.BoxGeometry(w - 0.12, 0.05, d - 0.12), M('#8f8a83', { roughness: 1, metalness: 0 }), V(x, y, -prof + 0.06), par, 'Grava de drenaje', 'Fondo de cámara');
+  tubo([x, y, -0.15], [x, y, -0.15 - 2.4], 0.008, mCu, gJab, 'Jabalina ' + i, 'Cobre-acero 5/8" × 2,40 m (L) · hincada desde el fondo de la cámara');
+  add(new T.ConeGeometry(0.012, 0.06, 10), mCu, V(x, y, -2.58), gJab, null, null, [Math.PI, 0, 0]);
+  add(new T.CylinderGeometry(0.03, 0.03, 0.07, 14), M('#d4a054', { metalness: 0.9, roughness: 0.3 }), V(x, y, -0.2), par, 'Conector jabalina–cable', 'Soldadura exotérmica / grampa de bronce');
+  etiqueta(V(x + (x < 0 ? -0.9 : x > 0 ? 0.9 : 0), y - (x === 0 ? 0.7 : 0), 0.45), 'PAT ' + i, 'c', par); };
+CAM.forEach((p, k) => camara(p, k + 1, k === 3 ? gOpc : gCam));
+// --- conductor de cobre desnudo 35 mm² enterrado a -0,60 m
+const ZC = -0.6, RC = 0.012, cab = (pts, par, n, d) => { for (let i = 1; i < pts.length; i++) tubo(pts[i - 1], pts[i], RC, mCu, par, n, d); };
+const conexTanque = (leg, cm, k) => { const [lx, ly] = LEG[leg];
+  add(new T.BoxGeometry(0.08, 0.1, 0.04), M('#d4a054', { metalness: 0.9, roughness: 0.3 }), V(lx, ly - 0.08, 0.5), gCob, 'Punto de conexión ' + k + ' al tanque', 'Terminal de compresión 35 mm² abulonado a la pata');
+  cab([[lx, ly - 0.09, 0.5], [lx, ly - 0.09, ZC], [cm[0], cm[1] + 0.3, ZC], [cm[0], cm[1], -0.2]], gCob, 'Conductor de cobre desnudo 35 mm²', 'Tanque → cámara PAT ' + k + ' · enterrado a 0,60 m'); };
+conexTanque(0, CAM[0], 1); conexTanque(1, CAM[1], 2);
+cab([[CAM[0][0], CAM[0][1], ZC], [CAM[2][0], CAM[2][1], ZC]], gCob, 'Conductor de cobre desnudo 35 mm²', 'Cámara PAT 1 → PAT 3 · 4,80 m');
+cab([[CAM[1][0], CAM[1][1], ZC], [CAM[2][0], CAM[2][1], ZC]], gCob, 'Conductor de cobre desnudo 35 mm²', 'Cámara PAT 2 → PAT 3 · 4,80 m');
+cab([[CAM[0][0], CAM[0][1], ZC], [CAM[1][0], CAM[1][1], ZC]], gCob, 'Conductor de cobre desnudo 35 mm² (anillo)', 'Cámara PAT 1 → PAT 2 · cierra el triángulo · 4,80 m');
+cab([[CAM[2][0], CAM[2][1], ZC], [CAM[3][0], CAM[3][1], ZC]], gOpc, 'Conductor de cobre desnudo 35 mm² (expansión)', 'Cámara PAT 3 → PAT 4 · opcional · 4,80 m');
+CAM.slice(0, 3).forEach(([x, y], k) => tubo([x, y, ZC], [x, y, -0.2], RC, mCu, gCob, 'Bajada a cámara PAT ' + (k + 1), ''));
+tubo([CAM[3][0], CAM[3][1], ZC], [CAM[3][0], CAM[3][1], -0.2], RC, mCu, gOpc, 'Bajada a cámara PAT 4', '');
+// --- cotas
+const cota = (a, b, txt, par) => { const z = 0.08; const mL = new T.LineBasicMaterial({ color: '#1f4e79' }); const g = new T.BufferGeometry().setFromPoints([V(a[0], a[1], z), V(b[0], b[1], z)]); (par || gCot).add(new T.Line(g, mL)); const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, cx0 = 0, cy0 = -3.6 - h3 / 3; let dx = mx - cx0, dy = my - cy0; const L0 = Math.hypot(dx, dy) || 1; dx /= L0; dy /= L0;
+  const o = txt.includes('opcional') ? 1.6 : 1.2; etiqueta(V(mx + (txt.includes('opcional') ? 1.4 : dx * o), my + (txt.includes('opcional') ? 0 : dy * o), 0.25), txt, '', par || gCot); };
+cota(CAM[0], CAM[1], '4,80 m'); cota(CAM[0], CAM[2], '4,80 m = 2L'); cota(CAM[1], CAM[2], '4,80 m = 2L'); cota(CAM[2], CAM[3], '4,80 m · opcional', gOpc);
+{ const z = (v) => V(CAM[2][0] - 0.9, CAM[2][1] + 0.3, v); const g = new T.BufferGeometry().setFromPoints([z(0), z(-2.55)]); gCot.add(new T.Line(g, new T.LineBasicMaterial({ color: '#1f4e79' }))); etiqueta(z(-1.3), 'L = 2,40 m'); etiqueta(V(CAM[0][0] - 0.9, CAM[0][1], ZC), '−0,60 m', '', gCot); }
+// --- paneles
+const CAPAS = [['Tanque y estructura', gTan, '#c8261c'], ['Conductor Cu 35 mm²', gCob, '#b87333'], ['Jabalinas', gJab, '#d4a054'], ['Cámaras PAT 1–3', gCam, '#b9b3a8'], ['PAT 4 (opcional / expansión)', gOpc, '#e0a050'], ['Suelo (corte)', gSue, '#a0714f'], ['Cotas', gCot, '#1f4e79']];
+$('hd').innerHTML = '<b class="t">Puesta a tierra · Tanque PCI</b><span style="color:#6f6b64">Petropar Ypané · esquema 3D, sin escala exacta</span>' + CAPAS.map((c, i) => '<label><input type="checkbox" data-c="' + i + '" checked style="margin:0"><i style="background:' + c[2] + '"></i>' + c[0] + '</label>').join('');
+document.querySelectorAll('#hd input[data-c]').forEach(el => el.onchange = () => { CAPAS[+el.dataset.c][1].visible = el.checked; });
+$('esp').innerHTML = [['Configuración', 'Triángulo de 3 jabalinas + 1 de expansión'], ['Jabalinas', 'Cobre-acero 5/8" × 2,40 m (L)'], ['Separación', '4,80 m = 2 × L entre jabalinas'], ['Conductor', 'Cobre desnudo 35 mm², enterrado a 0,60 m'], ['Conexión tanque', '2 puntos · terminal de compresión'], ['Conexión jabalina', 'Soldadura exotérmica o grampa de bronce'], ['Cámaras', '40 × 40 × 45 cm con tapa y grava'], ['Valor objetivo', '≤ 10 Ω · medir con telurímetro'], ['Si no da', 'Habilitar PAT 4 y tratar el suelo']].map(([a, b]) => '<div><span>' + a + '</span><span>' + b + '</span></div>').join('');
+// --- vistas
+const C0 = V(0, -6, -0.6);
+const vista = (k) => { const P = { iso: [15, -21, 12], planta: [0.01, -6, 26], corte: [14, -6.5, -0.4], tanque: [-3.2, -4.2, 1.6] }[k], Tg = { iso: [0, -5, 1.2], planta: [0, -6.01, 0], corte: [0, -6.5, 0.6], tanque: [-1.1, -1.4, 0.3] }[k];
+  cam.position.copy(V(...P)); ctl.target.copy(V(...Tg)); ctl.update(); };
+document.querySelectorAll('#bt button[data-v]').forEach(b => b.onclick = () => vista(b.dataset.v)); vista('iso');
+$('bEsp').onclick = () => { const e = $('esp'), on = e.style.display !== 'block'; e.style.display = on ? 'block' : 'none'; $('bEsp').textContent = on ? 'Ocultar especificaciones' : 'Especificaciones'; };
+const ray = new T.Raycaster(), mo = new T.Vector2(); let hv = 0;
+const vis = (o) => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
+ren.domElement.addEventListener('pointermove', (e) => { const tip = $('tip'); if (e.buttons) { tip.style.display = 'none'; return; } const now = performance.now(); if (now - hv < 40) return; hv = now;
+  const r = ren.domElement.getBoundingClientRect(); mo.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(mo, cam);
+  const h = ray.intersectObjects(pick, false).find(x => vis(x.object) && !/^Suelo$|^Terreno/.test(x.object.userData.n)) || ray.intersectObjects(pick, false).find(x => vis(x.object));
+  if (!h) { tip.style.display = 'none'; return; } tip.innerHTML = '<b>' + h.object.userData.n + '</b>' + (h.object.userData.d ? '<br>' + h.object.userData.d : ''); tip.style.display = 'block'; tip.style.left = (e.clientX - r.left + 14) + 'px'; tip.style.top = (e.clientY - r.top + 10) + 'px'; });
+(function loop() { requestAnimationFrame(loop); ctl.update(); ren.render(sc, cam); lr.render(sc, cam); })();
+</script></body></html>

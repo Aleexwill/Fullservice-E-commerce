@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  a { color: #1b1a18; } a:hover { color: #6f6b64; }
+  @media print { [data-noprint] { display: none !important; } body { background: #fff; } }
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f4f3f0; font-family: 'IBM Plex Sans', sans-serif; color: #1b1a18;">
+  <div style="background: #1b1a18; color: #f4f3f0; padding: 18px 26px 0;">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <img src="./logo-full-service.png" alt="Full Service" style="height: 34px; width: auto; background: #fff; padding: 4px 8px; border-radius: 4px;" />
+        <div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto;">
+          <div style="font-size: 19px; font-weight: 700;">Tablero de control por departamento</div>
+          <div style="font-size: 12px; color: #b4aea5;">Cumplimiento ponderado por tarea · puntaje de cada encargado</div>
+        </div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #c9c5bd;">Hoy {{ hoyTxt }}</div>
+        <button data-noprint="1" onClick="{{ onPrint }}" style="padding: 7px 14px; font-size: 12.5px; font-weight: 600; color: #1b1a18; background: #f4f3f0; border: 0; border-radius: 6px; cursor: pointer;">Imprimir</button>
+      </div>
+      <div data-noprint="1" style="display: flex; gap: 4px; flex-wrap: wrap;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="8">
+          <button onClick="{{ t.on }}" style="padding: 9px 14px; border: 0; border-radius: 6px 6px 0 0; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; background: {{ t.bg }}; color: {{ t.fg }};">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width: 1240px; margin: 0 auto; padding: 22px 26px 40px; display: flex; flex-direction: column; gap: 16px;">
+
+    <sc-if value="{{ esRes }}" hint-placeholder-val="{{ true }}">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <sc-for list="{{ resumen }}" as="d" hint-placeholder-count="5">
+          <button onClick="{{ d.on }}" style="text-align: left; background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; font-family: inherit; color: inherit;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">{{ d.nombre }}</div>
+            <div style="font-size: 12.5px; color: #33312e;">{{ d.enc }}</div>
+            <div style="display: flex; align-items: baseline; gap: 8px;"><span style="font-size: 30px; font-weight: 700; color: {{ d.color }};">{{ d.scoreTxt }}</span><span style="font-size: 12px; font-weight: 600; color: {{ d.color }};">{{ d.nivel }}</span></div>
+            <div style="height: 6px; background: #efedea; border-radius: 3px; overflow: hidden;"><div style="height: 100%; width: {{ d.w }}; background: {{ d.color }};"></div></div>
+            <div style="font-size: 11.5px; color: #6f6b64;">{{ d.cuenta }}</div>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start;">
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Ranking de encargados</div>
+          <sc-for list="{{ ranking }}" as="r" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr) 110px 52px; gap: 10px; align-items: center; font-size: 13px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; color: #86817b;">{{ r.pos }}</span>
+              <div style="display: flex; flex-direction: column; min-width: 0;"><span style="font-weight: 600;">{{ r.enc }}</span><span style="font-size: 11px; color: #86817b;">{{ r.deps }}</span></div>
+              <div style="height: 6px; background: #efedea; border-radius: 3px; overflow: hidden;"><div style="height: 100%; width: {{ r.w }}; background: {{ r.color }};"></div></div>
+              <span style="text-align: right; font-weight: 700; color: {{ r.color }};">{{ r.scoreTxt }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ sinRanking }}" hint-placeholder-val="{{ false }}"><div style="font-size: 12.5px; color: #86817b;">Todavía no hay tareas vencidas o cumplidas para puntuar.</div></sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ esCum }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px 26px;">
+          <div style="display: flex; flex-direction: column; gap: 3px; margin-right: auto;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Cumplimiento del cierre</div>
+            <div style="font-size: 17px; font-weight: 700;">{{ cierreN }}</div>
+            <div style="font-size: 12px; color: #6f6b64;">{{ cierreModo }}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end;"><span style="font-size: 36px; font-weight: 700; line-height: 1; color: {{ cumColor }};">{{ cumTotal }}</span><span style="font-size: 12.5px; font-weight: 600; color: {{ cumColor }};">{{ cumNivel }}</span></div>
+        </div>
+        <sc-if value="{{ hayCierre }}" hint-placeholder-val="{{ false }}">
+          <div style="overflow-x: auto; overflow-y: hidden; flex-shrink: 0;"><div style="min-width: 760px; display: flex; flex-direction: column;">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 80px 90px 110px 90px 90px; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; font-size: 9px;"><span>Obra cerrada</span><span>Cierre</span><span style="text-align: right;">Cumplim.</span><span style="text-align: right;">Ponderación %</span><span style="text-align: right;">Peso real</span><span style="text-align: right;">Aporte</span></div>
+            <sc-for list="{{ cierreRows }}" as="r" hint-placeholder-count="2">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 80px 90px 110px 90px 90px; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid #efedea; font-size: 12.5px;">
+                <div style="display: flex; flex-direction: column; min-width: 0;"><span style="font-weight: 600;">{{ r.nombre }}</span><span style="font-size: 11px; color: #86817b;">{{ r.det }}</span></div>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;">{{ r.fecha }}</span>
+                <span style="text-align: right; font-weight: 700; color: {{ r.color }};">{{ r.scoreTxt }}</span>
+                <input value="{{ r.pond }}" onChange="{{ r.onPond }}" placeholder="{{ r.pondPh }}" inputMode="decimal" title="Vacío: se reparte en partes iguales" style="padding: 5px 7px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; text-align: right; font-family: 'IBM Plex Mono', monospace;" />
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12px;">{{ r.pondTxt }}</span>
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700;">{{ r.aporte }}</span>
+              </div>
+            </sc-for>
+          </div></div>
+          <div data-noprint="1" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: #6f6b64;"><button onClick="{{ onIguales }}" style="padding: 7px 14px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer; font-family: inherit; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5;">Repartir en partes iguales</button>Ponderación vacía = partes iguales. Si cargás valores, se ajustan para que la suma dé 100%.</div>
+        </sc-if>
+        <sc-if value="{{ sinCierre }}" hint-placeholder-val="{{ true }}"><div style="font-size: 12.5px; color: #6f6b64;">Todavía no hay obras cerradas. Entrá a una obra y tocá "Dar cierre".</div></sc-if>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+        <sc-for list="{{ obrasCards }}" as="o" hint-placeholder-count="3">
+          <button onClick="{{ o.on }}" style="text-align: left; background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 7px; cursor: pointer; font-family: inherit; color: inherit;">
+            <span style="align-self: flex-start; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; color: {{ o.estFg }}; background: {{ o.estBg }};">{{ o.estado }}</span>
+            <span style="font-size: 14px; font-weight: 700; line-height: 1.3;">{{ o.nombre }}</span>
+            <span style="font-size: 11.5px; color: #6f6b64;">{{ o.det }}</span>
+            <span style="font-size: 11px; color: #86817b; font-family: 'IBM Plex Mono', monospace;">{{ o.fechas }}</span>
+            <div style="display: flex; align-items: baseline; gap: 8px;"><span style="font-size: 24px; font-weight: 700; color: {{ o.color }};">{{ o.scoreTxt }}</span><span style="font-size: 12px; font-weight: 600; color: {{ o.color }};">{{ o.nivel }}</span></div>
+            <div style="height: 6px; background: #efedea; border-radius: 3px; overflow: hidden;"><div style="height: 100%; width: {{ o.w }}; background: {{ o.color }};"></div></div>
+          </button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ sinObrasCum }}" hint-placeholder-val="{{ false }}"><div style="font-size: 13px; color: #6f6b64;">No hay presupuestos aprobados todavía. Cuando un presupuesto pase a APROBADO se crea su página acá.</div></sc-if>
+    </sc-if>
+
+    <sc-if value="{{ esDet }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: center;">
+        <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 280px;">
+          <button data-noprint="1" onClick="{{ onVolver }}" style="align-self: flex-start; padding: 0; border: 0; background: transparent; font-size: 12px; color: #6f6b64; cursor: pointer; font-family: inherit;">← Control por obra</button>
+          <div style="font-size: 19px; font-weight: 700; line-height: 1.3;">{{ detNombre }}</div>
+          <div style="font-size: 12.5px; color: #6f6b64;">{{ detInfo }}</div>
+          <div data-noprint="1" style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #6f6b64;">
+            <label style="display: flex; align-items: center; gap: 6px;">Inicio <input type="date" value="{{ detInicio }}" onChange="{{ onInicioDet }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" /></label>
+            <label style="display: flex; align-items: center; gap: 6px;">Fin <input type="date" value="{{ detFin }}" onChange="{{ onFinDet }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" /></label>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+          <span style="font-size: 36px; font-weight: 700; line-height: 1; color: {{ detColor }};">{{ detScore }}</span>
+          <span style="font-size: 12.5px; font-weight: 600; color: {{ detColor }};">{{ detNivel }}</span>
+          <sc-if value="{{ detAbierta }}" hint-placeholder-val="{{ true }}"><button data-noprint="1" onClick="{{ onCierre }}" style="padding: 7px 14px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer; font-family: inherit; color: #fff; background: #1b1a18; border: 0;">Dar cierre</button></sc-if>
+          <sc-if value="{{ detCerrada }}" hint-placeholder-val="{{ false }}"><div data-noprint="1" style="display: flex; align-items: center; gap: 8px; font-size: 12px;">Cerrada <input type="date" value="{{ detCierre }}" onChange="{{ onCierreFecha }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" /><button onClick="{{ onReabrir }}" style="padding: 7px 14px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer; font-family: inherit; padding: 5px 10px; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5;">Reabrir</button></div></sc-if>
+        </div>
+      </div>
+      <sc-for list="{{ detDeps }}" as="dp" hint-placeholder-count="5">
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; overflow: hidden; break-inside: avoid;">
+          <div style="display: flex; align-items: center; gap: 14px; padding: 11px 18px; background: #faf9f7; border-bottom: 1px solid #ece9e4;">
+            <span style="font-size: 14px; font-weight: 700;">{{ dp.nombre }}</span><span style="font-size: 12px; color: #6f6b64; margin-right: auto;">{{ dp.enc }}</span>
+            <span style="font-size: 18px; font-weight: 700; color: {{ dp.color }};">{{ dp.scoreTxt }}</span>
+          </div>
+          <div style="overflow-x: auto; overflow-y: hidden; flex-shrink: 0;"><div style="min-width: 420px;">
+            <sc-for list="{{ dp.tareas }}" as="x" hint-placeholder-count="5">
+              <sc-if value="{{ x.hayCab }}" hint-placeholder-val="{{ false }}"><div style="padding: 10px 18px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: oklch(0.42 0.10 250);">{{ x.cab }}</div></sc-if>
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px 72px 26px; gap: 12px; align-items: center; padding: 8px 18px 8px 30px; border-bottom: 1px solid #f1efeb; font-size: 13px;">
+                <span style="text-wrap: pretty; opacity: {{ x.rowOp }};">{{ x.t }}</span>
+                <label title="Desmarcá si la tarea no aplica en esta obra: su % se reparte entre las demás" style="justify-self: center; display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #86817b; cursor: pointer;"><input type="checkbox" checked="{{ x.aplica }}" onChange="{{ x.onAplica }}" style="width: 15px; height: 15px; margin: 0; cursor: pointer; accent-color: #6f6b64;" />Aplica</label>
+                <span style="justify-self: end; padding: 2px 10px; border-radius: 999px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600; color: {{ x.pctFg }}; background: {{ x.pctBg }};">{{ x.pctTxt }}</span>
+                <input type="checkbox" checked="{{ x.ok }}" onChange="{{ x.onCheck }}" disabled="{{ x.noAp }}" title="Validar: suma su porcentaje" style="width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: oklch(0.42 0.12 150); opacity: {{ x.rowOp }};" />
+              </div>
+            </sc-for>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 10px 18px 10px 30px; background: #faf9f7; font-size: 13px;">
+              <span style="font-weight: 700; margin-right: auto;">Total <span style="font-weight: 500; font-size: 12px; color: {{ dp.totalColor }};">· {{ dp.notaTxt }}</span></span>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6f6b64;">Plus por cargo Gs.<input value="{{ dp.plusVal }}" onChange="{{ dp.onPlus }}" inputMode="numeric" placeholder="0" style="width: 110px; padding: 5px 7px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; text-align: right; background: #fff; font-family: 'IBM Plex Mono', monospace;" /></label>
+              <span style="display: flex; flex-direction: column; align-items: flex-end; min-width: 130px;"><span style="font-size: 10px; color: #86817b;">Conseguido según cumplimiento</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700; color: oklch(0.40 0.12 150);">{{ dp.ganadoTxt }}</span></span>
+              <span style="min-width: 56px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; color: {{ dp.totalColor }};">{{ dp.totalTxt }}</span>
+            </div>
+            </div></div>
+        </div>
+      </sc-for>
+    </sc-if>
+
+    <sc-if value="{{ esDep }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: center;">
+        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 260px;">
+          <div style="font-size: 20px; font-weight: 700;">{{ depNombre }}</div>
+          <div style="font-size: 12.5px; color: #6f6b64; text-wrap: pretty;">{{ depRol }}</div>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6f6b64;">Encargado <input value="{{ depEnc }}" onChange="{{ onDepEnc }}" style="flex: 1; max-width: 260px; padding: 6px 8px; border: 1px solid #d6d2ca; border-radius: 5px; font-size: 13px; font-weight: 600; font-family: inherit;" /></label>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+          <span style="font-size: 38px; font-weight: 700; line-height: 1; color: {{ depColor }};">{{ depScore }}</span>
+          <span style="font-size: 13px; font-weight: 600; color: {{ depColor }};">{{ depNivel }}</span>
+          <span style="font-size: 11.5px; color: #6f6b64;">{{ depCuenta }}</span>
+          <span style="font-size: 12.5px; font-weight: 700; color: oklch(0.40 0.12 150);">{{ depPlus }}</span>
+        </div>
+      </div>
+
+      <sc-if value="{{ esOpe }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+            <div style="font-size: 14px; font-weight: 700;">Pendientes del taller</div>
+            <div style="font-size: 11.5px; color: #6f6b64; margin-right: auto;">Sin programación de clientes, el personal avanza con estas tareas según directrices del planner. {{ tallerTxt }}</div>
+            <button data-noprint="1" onClick="{{ onAddTaller }}" style="padding: 6px 12px; font-size: 12px; font-weight: 600; background: #1b1a18; color: #fff; border: 0; border-radius: 5px; cursor: pointer;">+ Tarea de taller</button>
+          </div>
+          <div style="overflow-x: auto; overflow-y: hidden; flex-shrink: 0;"><div style="min-width: 900px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: grid; grid-template-columns: minmax(160px, 2fr) 128px 128px minmax(140px, 2fr) 128px 100px 26px; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b; padding-top: 4px;"><span>Tarea</span><span>Inicio</span><span>Fin</span><span>Reporte</span><span>Terminada</span><span>Estado</span><span></span></div>
+          <sc-for list="{{ taller }}" as="x" hint-placeholder-count="0">
+            <div style="display: grid; grid-template-columns: minmax(160px, 2fr) 128px 128px minmax(140px, 2fr) 128px 100px 26px; gap: 8px; align-items: center;">
+              <input value="{{ x.t }}" onChange="{{ x.onT }}" placeholder="Descripción" style="padding: 5px 7px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; font-family: inherit;" />
+              <input type="date" value="{{ x.ini }}" onChange="{{ x.onIni }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" />
+              <input type="date" value="{{ x.fin }}" onChange="{{ x.onFin }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" />
+              <input value="{{ x.rep }}" onChange="{{ x.onRep }}" placeholder="Qué se hizo, quiénes" style="padding: 5px 7px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; font-family: inherit;" />
+              <input type="date" value="{{ x.hecho }}" onChange="{{ x.onHecho }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" />
+              <span style="justify-self: start; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; color: {{ x.fg }}; background: {{ x.bg }};">{{ x.lab }}</span>
+              <button data-noprint="1" onClick="{{ x.onDel }}" title="Quitar" style="border: 0; background: transparent; color: #a09a92; cursor: pointer; font-size: 15px;">×</button>
+            </div>
+          </sc-for>
+          </div></div>
+        </div>
+      </sc-if>
+
+      <sc-for list="{{ depObras }}" as="o" hint-placeholder-count="1">
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; overflow: hidden; break-inside: avoid;">
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 18px; background: #faf9f7; border-bottom: 1px solid #ece9e4;">
+            <div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto; min-width: 0;">
+              <span style="font-size: 14px; font-weight: 700;">{{ o.nombre }}</span>
+              <span style="font-size: 11.5px; color: #6f6b64;">{{ o.cliente }} · {{ o.fechas }}</span>
+            </div>
+            <span style="font-size: 20px; font-weight: 700; color: {{ o.color }};">{{ o.scoreTxt }}</span>
+          </div>
+          <div style="overflow-x: auto; overflow-y: hidden; flex-shrink: 0;"><div style="min-width: 420px;">
+          <sc-for list="{{ o.tareas }}" as="x" hint-placeholder-count="5">
+              <sc-if value="{{ x.hayCab }}" hint-placeholder-val="{{ false }}"><div style="padding: 10px 18px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: oklch(0.42 0.10 250);">{{ x.cab }}</div></sc-if>
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px 72px 26px; gap: 12px; align-items: center; padding: 8px 18px 8px 30px; border-bottom: 1px solid #f1efeb; font-size: 13px;">
+                <span style="text-wrap: pretty; opacity: {{ x.rowOp }};">{{ x.t }}</span>
+                <label title="Desmarcá si la tarea no aplica en esta obra: su % se reparte entre las demás" style="justify-self: center; display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #86817b; cursor: pointer;"><input type="checkbox" checked="{{ x.aplica }}" onChange="{{ x.onAplica }}" style="width: 15px; height: 15px; margin: 0; cursor: pointer; accent-color: #6f6b64;" />Aplica</label>
+                <span style="justify-self: end; padding: 2px 10px; border-radius: 999px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600; color: {{ x.pctFg }}; background: {{ x.pctBg }};">{{ x.pctTxt }}</span>
+                <input type="checkbox" checked="{{ x.ok }}" onChange="{{ x.onCheck }}" disabled="{{ x.noAp }}" title="Validar: suma su porcentaje" style="width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: oklch(0.42 0.12 150); opacity: {{ x.rowOp }};" />
+              </div>
+            </sc-for>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 10px 18px 10px 30px; background: #faf9f7; font-size: 13px;">
+              <span style="font-weight: 700; margin-right: auto;">Total <span style="font-weight: 500; font-size: 12px; color: {{ o.totalColor }};">· {{ o.notaTxt }}</span></span>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6f6b64;">Plus por cargo Gs.<input value="{{ o.plusVal }}" onChange="{{ o.onPlus }}" inputMode="numeric" placeholder="0" style="width: 110px; padding: 5px 7px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; text-align: right; background: #fff; font-family: 'IBM Plex Mono', monospace;" /></label>
+              <span style="display: flex; flex-direction: column; align-items: flex-end; min-width: 130px;"><span style="font-size: 10px; color: #86817b;">Conseguido según cumplimiento</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700; color: oklch(0.40 0.12 150);">{{ o.ganadoTxt }}</span></span>
+              <span style="min-width: 56px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; color: {{ o.totalColor }};">{{ o.totalTxt }}</span>
+            </div>
+          </div></div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ sinObras }}" hint-placeholder-val="{{ false }}"><div style="font-size: 13px; color: #6f6b64;">No hay obras cargadas. Agregalas en la pestaña Obras.</div></sc-if>
+
+      <div data-noprint="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <button onClick="{{ onCfg }}" style="padding: 6px 12px; font-size: 12.5px; font-weight: 600; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">{{ cfgLab }}</button>
+          <span style="font-size: 12px; color: {{ pesoColor }};">Ponderación total: {{ pesoTotal }}</span>
+        </div>
+        <sc-if value="{{ cfg }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(200px, 1fr) 64px 140px 64px 110px 26px; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;"><span>Tarea</span><span>Peso</span><span>Vence desde</span><span>± días</span><span>Solo tercerizado</span><span></span></div>
+          <sc-for list="{{ cfgRows }}" as="c" hint-placeholder-count="5">
+            <div style="display: grid; grid-template-columns: minmax(200px, 1fr) 64px 140px 64px 110px 26px; gap: 8px; align-items: center;">
+              <input value="{{ c.t }}" onChange="{{ c.onT }}" style="padding: 5px 7px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; font-family: inherit;" />
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6f6b64; text-align: right;">auto</span>
+              <select value="{{ c.base }}" onChange="{{ c.onBase }}" style="padding: 5px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; background: #fff;">
+                <option value="venta">Venta</option><option value="inicio">Inicio de obra</option><option value="mitad">Mitad de obra</option><option value="fin">Fin de obra</option>
+              </select>
+              <input value="{{ c.off }}" onChange="{{ c.onOff }}" inputMode="numeric" style="padding: 5px 7px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; text-align: right; font-family: 'IBM Plex Mono', monospace;" />
+              <input type="checkbox" checked="{{ c.terc }}" onChange="{{ c.onTerc }}" style="justify-self: center; width: 16px; height: 16px; margin: 0; accent-color: #1b1a18;" />
+              <button onClick="{{ c.onDel }}" title="Quitar tarea" style="border: 0; background: transparent; color: #a09a92; cursor: pointer; font-size: 15px;">×</button>
+            </div>
+          </sc-for>
+          <div><button onClick="{{ onAddTask }}" style="padding: 6px 12px; font-size: 12px; font-weight: 600; background: #1b1a18; color: #fff; border: 0; border-radius: 5px; cursor: pointer;">+ Agregar tarea</button></div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ esObras }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="font-size: 15px; font-weight: 700; margin-right: auto;">Obras vendidas</div>
+          <button onClick="{{ onAddObra }}" style="padding: 7px 14px; font-size: 12.5px; font-weight: 600; background: #1b1a18; color: #fff; border: 0; border-radius: 5px; cursor: pointer;">+ Agregar obra</button>
+        </div>
+        <div style="font-size: 12px; color: #6f6b64;">Con la fecha de venta, inicio y fin, cada departamento recibe sus tareas con vencimiento automático.</div>
+        <div style="overflow-x: auto; overflow-y: hidden; flex-shrink: 0;"><div style="min-width: 980px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: grid; grid-template-columns: minmax(180px, 2fr) minmax(140px, 1.3fr) 100px 128px 128px 128px 86px 26px; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b; padding-top: 6px;"><span>Obra</span><span>Cliente</span><span>N° ptto.</span><span>Venta</span><span>Inicio</span><span>Fin</span><span>Tercerizado</span><span></span></div>
+        <sc-for list="{{ obrasRows }}" as="o" hint-placeholder-count="1">
+          <div style="display: grid; grid-template-columns: minmax(180px, 2fr) minmax(140px, 1.3fr) 100px 128px 128px 128px 86px 26px; gap: 8px; align-items: center;">
+            <input value="{{ o.nombre }}" onChange="{{ o.onNombre }}" placeholder="Trabajo" style="padding: 6px 8px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; font-family: inherit;" />
+            <input value="{{ o.cliente }}" onChange="{{ o.onCliente }}" placeholder="Cliente" style="padding: 6px 8px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12.5px; font-family: inherit;" />
+            <input value="{{ o.nro }}" onChange="{{ o.onNro }}" placeholder="P-2026-" style="padding: 6px 8px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px; font-family: 'IBM Plex Mono', monospace;" />
+            <input type="date" value="{{ o.venta }}" onChange="{{ o.onVenta }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" />
+            <input type="date" value="{{ o.inicio }}" onChange="{{ o.onInicio }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" />
+            <input type="date" value="{{ o.fin }}" onChange="{{ o.onFin }}" style="padding: 4px 6px; border: 1px solid #d6d2ca; border-radius: 4px; font-size: 12px;" />
+            <input type="checkbox" checked="{{ o.terc }}" onChange="{{ o.onTerc }}" style="justify-self: center; width: 16px; height: 16px; margin: 0; accent-color: #1b1a18;" />
+            <button onClick="{{ o.onDel }}" title="Quitar obra" style="border: 0; background: transparent; color: #a09a92; cursor: pointer; font-size: 15px;">×</button>
+          </div>
+        </sc-for>
+        </div></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ esPlan }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 10px; padding: 22px 26px; display: flex; flex-direction: column; gap: 18px; font-size: 13.5px; line-height: 1.6;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="font-size: 20px; font-weight: 700;">Plan estratégico · circuito de cada trabajo</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; font-weight: 600;">
+            <span style="padding: 4px 10px; background: #1b1a18; color: #fff; border-radius: 4px;">Comercial vende</span><span style="color: #86817b;">→</span>
+            <span style="padding: 4px 10px; background: #efedea; border-radius: 4px;">Planificación</span><span style="color: #86817b;">→</span>
+            <span style="padding: 4px 10px; background: #efedea; border-radius: 4px;">Programación 16:00</span><span style="color: #86817b;">→</span>
+            <span style="padding: 4px 10px; background: #efedea; border-radius: 4px;">Operarios ejecutan</span><span style="color: #86817b;">→</span>
+            <span style="padding: 4px 10px; background: #efedea; border-radius: 4px;">Acta u hoja de servicio</span><span style="color: #86817b;">→</span>
+            <span style="padding: 4px 10px; background: #1b1a18; color: #fff; border-radius: 4px;">Administración factura</span>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 28px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><div style="font-weight: 700;">0 · Comercial</div><div>Vende y hace el traspaso digital a planner y administración.</div><div>– Al planner: planos, listado de materiales, cronograma.</div><div>– A administración: trabajos, cronogramas y, si hay un tercerizado para ejecutar el trabajo, el acuerdo para que regularice el acuerdo y programe los pagos.</div><div>– Mantiene la conversación con el cliente, pasa avances y novedades.</div></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><div style="font-weight: 700;">1-A · Planificación (planner)</div><div>– Planificar; preparar herramientas e insumos.</div><div>– Objetivo, cronograma, logística, directrices, planos, lista de materiales.</div><div>– Al finalizar los trabajos hace el cierre con acta de entrega de obra u hoja de servicio y la entrega a administración.</div></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><div style="font-weight: 700;">1-B · Programación (planner, a las 16:00)</div><div>– Designación del personal para la ejecución.</div><div>– Proyección y porcentaje de avance con informes fotográficos.</div><div>– Seguimiento y cumplimiento.</div></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><div style="font-weight: 700;">2 · Administración</div><div>– Cerrar salario de los personales contratados y fijos con un acuerdo en formato estándar y horarios de trabajo pactados.</div><div>– Pagos de salarios: pactar antes del inicio y cumplir.</div><div>– Asegurar el cumplimiento o alertar si varía lo pactado.</div><div>– Facturar el trabajo con el acta final que entrega el planner o con la hoja de servicio.</div></div>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><div style="font-weight: 700;">3 · Operarios</div><div>– Al recibir la designación, confirmar con un recibido y alertar si falta algún punto.</div><div>– Cumplir el horario previsto de salida y avisar el inicio con un reporte corto con los nombres del personal; cualquiera de los involucrados lo puede hacer.</div><div>– Informar posibles inconvenientes.</div><div>– Sin programación para clientes: avanzar con los pendientes del taller según directrices del planner, siempre con inicio, fin y reporte.</div><div>– Al finalizar, realizar el acta de entrega de obra u hoja de servicio.</div></div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: #faf9f7; border: 1px solid #ece9e4; border-radius: 8px;">
+            <div style="font-weight: 700;">Cómo se puntúa</div>
+            <div>Cada tarea tiene un peso en % dentro de su departamento y vence sola según la fecha de venta, inicio o fin de la obra.</div>
+            <div>A tiempo: 100% · hasta 2 días tarde: 60% · más de 2 días: 30% · vencida sin cumplir: 0%. Lo pendiente no resta hasta que vence.</div>
+            <div>Nivel del encargado: Excelente desde 90% · Bueno desde 75% · Regular desde 60% · Crítico por debajo.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KEY = "tablero-dptos-v1";
+const T = (id, t, peso, base, off, terc) => ({ id, t, peso: String(peso), base, off: String(off), terc: !!terc });
+const DEF = [
+  { k: "com", nombre: "Comercial", rol: "Vende, hace el traspaso digital y mantiene la conversación con el cliente.", enc: "Ing. Edgar Mendez", tareas: [
+    { ...T("c1", "Entrega de planos", "", "venta", 1), grupo: "Para el planner" },
+    { ...T("c2", "Lista de materiales", "", "venta", 1), grupo: "Para el planner" },
+    { ...T("c3", "Cronograma", "", "venta", 1), grupo: "Para el planner" },
+    { ...T("c4", "Entrega de cronograma", "", "venta", 1), grupo: "Para administración" },
+    { ...T("c5", "Alcance del trabajo", "", "venta", 1), grupo: "Para administración" },
+    { ...T("c6", "Acuerdo con el tercerizado", "", "venta", 1, true), grupo: "Para administración" }] },
+  { k: "pla", nombre: "Planificación", rol: "Planner: planifica, prepara herramientas e insumos y cierra con el acta.", enc: "Planner", tareas: [
+    { ...T("p1", "Objetivo del trabajo definido", "", "inicio", -2), grupo: "Planificación" },
+    { ...T("p2", "Cronograma elaborado", "", "inicio", -2), grupo: "Planificación" },
+    { ...T("p3", "Directrices para el personal", "", "inicio", -2), grupo: "Planificación" },
+    { ...T("p4", "Logística definida", "", "inicio", -1), grupo: "Planificación" },
+    { ...T("p5", "Planos", "", "inicio", -2), grupo: "Documentación" },
+    { ...T("p6", "Lista de materiales", "", "inicio", -2), grupo: "Documentación" },
+    { ...T("p7", "Herramientas preparadas", "", "inicio", -1), grupo: "Preparación" },
+    { ...T("p8", "Insumos preparados", "", "inicio", -1), grupo: "Preparación" },
+    { ...T("p9", "Acta de entrega de obra u hoja de servicio", "", "fin", 0), grupo: "Cierre" },
+    { ...T("p10", "Acta entregada a administración", "", "fin", 1), grupo: "Cierre" }] },
+  { k: "pro", nombre: "Programación", rol: "Planner: programa a las 16:00, designa al personal y sigue el avance.", enc: "Planner", tareas: [
+    { ...T("g1", "Programación enviada antes de las 16:00", "", "inicio", -1), grupo: "Antes del inicio" },
+    { ...T("g2", "Personal designado para la ejecución", "", "inicio", -1), grupo: "Antes del inicio" },
+    { ...T("g3", "Proyección de avance", "", "mitad", 0), grupo: "Durante la obra" },
+    { ...T("g4", "Porcentaje de avance informado", "", "mitad", 0), grupo: "Durante la obra" },
+    { ...T("g5", "Informe fotográfico", "", "mitad", 0), grupo: "Durante la obra" },
+    { ...T("g6", "Seguimiento realizado", "", "fin", 0), grupo: "Cierre" },
+    { ...T("g7", "Trabajo cumplido en el plazo", "", "fin", 0), grupo: "Cierre" }] },
+  { k: "adm", nombre: "Administración", rol: "Acuerdos y pagos del personal, control de lo pactado y facturación.", enc: "Administración", tareas: [
+    { ...T("a1", "Salario del personal contratado cerrado", "", "inicio", -1), grupo: "Acuerdos con el personal" },
+    { ...T("a2", "Salario del personal fijo cerrado", "", "inicio", -1), grupo: "Acuerdos con el personal" },
+    { ...T("a3", "Acuerdo en formato estándar firmado", "", "inicio", -1), grupo: "Acuerdos con el personal" },
+    { ...T("a4", "Horario de trabajo pactado", "", "inicio", -1), grupo: "Acuerdos con el personal" },
+    { ...T("a5", "Pagos pactados antes del inicio", "", "inicio", -1), grupo: "Pagos" },
+    { ...T("a6", "Salarios pagados en la fecha pactada", "", "fin", 2), grupo: "Pagos" },
+    { ...T("a7", "Acuerdo del tercerizado regularizado", "", "inicio", -1, true), grupo: "Tercerizado" },
+    { ...T("a8", "Pagos del tercerizado programados", "", "inicio", -1, true), grupo: "Tercerizado" },
+    { ...T("a9", "Cumplimiento de lo pactado verificado", "", "mitad", 0), grupo: "Control" },
+    { ...T("a10", "Desvíos alertados a tiempo o sin desvíos", "", "mitad", 0), grupo: "Control" },
+    { ...T("a11", "Acta u hoja de servicio recibida del planner", "", "fin", 1), grupo: "Facturación" },
+    { ...T("a12", "Trabajo facturado", "", "fin", 3), grupo: "Facturación" }] },
+  { k: "ope", nombre: "Operarios", rol: "Confirman la designación, reportan el inicio y cierran con el acta.", enc: "Jefe de cuadrilla", tareas: [
+    { ...T("o1", "Recibido de la designación confirmado", "", "inicio", -1), grupo: "Al recibir la designación" },
+    { ...T("o2", "Faltantes alertados o sin faltantes", "", "inicio", -1), grupo: "Al recibir la designación" },
+    { ...T("o3", "Horario de salida cumplido", "", "inicio", 0), grupo: "Inicio de trabajos" },
+    { ...T("o4", "Reporte de inicio enviado", "", "inicio", 0), grupo: "Inicio de trabajos" },
+    { ...T("o5", "Nombres del personal informados", "", "inicio", 0), grupo: "Inicio de trabajos" },
+    { ...T("o6", "Inconvenientes informados", "", "mitad", 0), grupo: "Durante la obra" },
+    { ...T("o7", "Acta de entrega de obra u hoja de servicio realizada", "", "fin", 0), grupo: "Cierre" }] }
+];
+const OBRAS0 = [{ id: "o1", nombre: "Reparación de tapas metálicas antideslizantes", cliente: "Tigre · Sector Planta", nro: "P-2026-075", venta: "2026-09-28", inicio: "2026-10-01", fin: "2026-10-03", terc: false, done: {} }];
+const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const pd = (s) => { const [y, m, d] = String(s || "").split("-").map(Number); return y ? new Date(y, m - 1, d) : null; };
+const add = (s, n) => { const d = pd(s); if (!d) return ""; d.setDate(d.getDate() + n); return iso(d); };
+const diff = (a, b) => Math.round((pd(a) - pd(b)) / 864e5);
+const dm = (s) => { const d = pd(s); return d ? String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") : "—"; };
+const baseDate = (o, b) => b === "venta" ? o.venta : b === "inicio" ? o.inicio : b === "fin" ? o.fin : (o.inicio && o.fin ? add(o.inicio, Math.floor(diff(o.fin, o.inicio) / 2)) : o.inicio);
+const BASES = { venta: "Venta", inicio: "Inicio", mitad: "Mitad", fin: "Fin" };
+const EST = {
+  ok: ["A tiempo", "oklch(0.42 0.12 150)", "oklch(0.94 0.05 150)"], tarde: ["Con retraso", "oklch(0.45 0.11 75)", "oklch(0.95 0.06 85)"],
+  muy: ["Fuera de plazo", "oklch(0.47 0.15 50)", "oklch(0.94 0.05 55)"], venc: ["Vencida", "oklch(0.48 0.18 27)", "oklch(0.94 0.04 27)"],
+  prox: ["Vence pronto", "oklch(0.44 0.13 250)", "oklch(0.94 0.04 250)"], pend: ["Pendiente", "#6f6b64", "#efedea"], sinreg: ["Sin registro", "#86817b", "#f4f3f0"]
+};
+function evalTask(o, t, hoy, done) {
+  const due = add(baseDate(o, t.base), +t.off || 0);
+  if (!due) return { k: "pend", due: "", f: null };
+  if (!done && o.importado && due < o.importado) return { k: "sinreg", due, f: null };
+  if (done) { const d = diff(done, due); return d <= 0 ? { k: "ok", due, f: 1 } : d <= 2 ? { k: "tarde", due, f: 0.6 } : { k: "muy", due, f: 0.3 }; }
+  const r = diff(due, hoy);
+  return r < 0 ? { k: "venc", due, f: 0 } : r <= 2 ? { k: "prox", due, f: null } : { k: "pend", due, f: null };
+}
+const nivel = (s) => s === null ? ["Sin datos", "#86817b"] : s >= 90 ? ["Excelente", "oklch(0.42 0.12 150)"] : s >= 75 ? ["Bueno", "oklch(0.46 0.10 205)"] : s >= 60 ? ["Regular", "oklch(0.52 0.12 75)"] : ["Crítico", "oklch(0.50 0.18 27)"];
+const fIso = (s) => { const m = String(s || "").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0") : ""; };
+function pesosCierre(cerr) {
+  const man = cerr.filter(o => String(o.pond ?? "").trim() !== "" && !isNaN(+o.pond));
+  const sumM = man.reduce((a, o) => a + Math.max(0, +o.pond), 0), rest = cerr.length - man.length;
+  const auto = rest ? Math.max(0, 100 - sumM) / rest : 0;
+  const raw = cerr.map(o => man.includes(o) ? Math.max(0, +o.pond) : auto), tot = raw.reduce((a, b) => a + b, 0) || 1;
+  return { w: raw.map(x => x / tot * 100), auto, manual: man.length > 0 };
+}
+const nota = (s) => s === null ? "" : "Nota " + (s >= 90 ? 5 : s >= 75 ? 4 : s >= 60 ? 3 : s >= 40 ? 2 : 1);
+const gs = (n) => "Gs. " + String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const fmtS = (x) => x === null ? "—" : Math.round(x) + "%";
+
+class Component extends DCLogic {
+  state = (() => { let d = null; try { d = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {} let deps = (d && d.deps) || DEF; deps = deps.map(x => { const nd = DEF.find(y => y.k === x.k); return nd && !x.tareas.some(t => t.grupo) ? { ...nd, enc: x.enc } : x; });
+    return { tab: "res", cfg: false, deps, obras: (d && d.obras) || OBRAS0, taller: (d && d.taller) || [] }; })();
+  componentDidMount() {
+    const com = this.state.deps.find(x => x.k === "com");
+    let v = 0; try { v = (JSON.parse(localStorage.getItem(KEY) || "{}") || {}).depsV || 0; } catch (e) {}
+    if (v < 3) this.put({ deps: this.state.deps.map(x => { const nd = DEF.find(y => y.k === x.k); return nd && !x.tareas.some(t => t.grupo) ? { ...nd, enc: x.enc } : x; }) });
+    this.sync(); this._t = setInterval(() => this.sync(), 4000); }
+  componentWillUnmount() { clearInterval(this._t); }
+  // Cada presupuesto APROBADO o FINALIZADO del archivo se vuelve una obra con su página de control.
+  sync() {
+    let raw = ""; try { raw = localStorage.getItem("twg-archivo-presupuestos-v1") || ""; } catch (e) {}
+    if (raw === this._sig) return; this._sig = raw;
+    let items = []; try { items = (JSON.parse(raw) || {}).items || []; } catch (e) {}
+    let cr = {}; try { cr = JSON.parse(localStorage.getItem("cielite-crono-v1") || "{}"); } catch (e) {}
+    const ok = items.filter(it => it.estado === "APROBADO" || it.estado === "FINALIZADO"), ids = new Set(ok.map(it => "p:" + it.id));
+    let obras = this.state.obras.slice(), ch = false;
+    ok.forEach(it => {
+      const oid = "p:" + it.id, d = it.datos || {}, venta = fIso(it.fecha) || iso(new Date()), c = cr[it.id] || {};
+      const base = { nombre: d.obra || it.nro || "", cliente: d.cliente || "", nro: it.nro || "", total: it.total || "", estadoPpto: it.estado, auto: true };
+      const i = obras.findIndex(x => x.id === oid);
+      if (i < 0) { const ini = c.inicio || add(venta, 3), hoyI = iso(new Date()); obras.push({ id: oid, ...base, venta, inicio: ini, fin: add(ini, 5), terc: false, done: {}, cierre: it.estado === "FINALIZADO" ? hoyI : "", pond: "", importado: hoyI }); ch = true; }
+      else { const n = { ...obras[i], ...base }; if (JSON.stringify(n) !== JSON.stringify(obras[i])) { obras[i] = n; ch = true; } }
+    });
+    const hoyM = iso(new Date());
+    obras = obras.map(o => { if (o.auto && !o.importado) { ch = true; return { ...o, importado: hoyM, cierre: o.cierre || (o.estadoPpto === "FINALIZADO" ? hoyM : "") }; } return o; });
+    obras = obras.map(o => { if (o.auto && !ids.has(o.id) && o.estadoPpto !== "BAJA") { ch = true; return { ...o, estadoPpto: "BAJA" }; } return o; });
+    if (ch) this.put({ obras });
+  }
+  put(p) { this.setState(p, () => { try { localStorage.setItem(KEY, JSON.stringify({ deps: this.state.deps, obras: this.state.obras, taller: this.state.taller, depsV: 3 })); } catch (e) {} }); }
+  setNA(oid, key, v) { this.put({ obras: this.state.obras.map(o => o.id !== oid ? o : { ...o, na: { ...(o.na || {}), [key]: v } }) }); }
+  setPlus(oid, dk, v) { this.put({ obras: this.state.obras.map(o => o.id !== oid ? o : { ...o, plus: { ...(o.plus || {}), [dk]: v } }) }); }
+  setDone(oid, key, v) { this.put({ obras: this.state.obras.map(o => o.id !== oid ? o : { ...o, done: { ...(o.done || {}), [key]: v } }) }); }
+  editDep(fn) { const deps = this.state.deps.map(d => d.k !== this.state.tab ? d : JSON.parse(JSON.stringify(d))); fn(deps.find(x => x.k === this.state.tab)); this.put({ deps }); }
+  editObra(i, p) { const obras = this.state.obras.slice(); obras[i] = { ...obras[i], ...p }; this.put({ obras }); }
+  editTaller(i, p) { const taller = this.state.taller.slice(); taller[i] = { ...taller[i], ...p }; this.put({ taller }); }
+  depCalc(dep, hoy) {
+    const s = this.state; let num = 0, den = 0, venc = 0, prox = 0;
+    const obras = s.obras.filter(o => o.estadoPpto !== "BAJA").map(o => {
+      const ap = dep.tareas.filter(t => !t.terc || o.terc), na = o.na || {}, act = ap.filter(t => !na[dep.k + "." + t.id]), w = act.length ? 100 / act.length : 0;
+      let n = 0, alguno = false;
+      const tareas = ap.map(t => {
+        const key = dep.k + "." + t.id, noAp = !!na[key], done = (o.done || {})[key] || "", e = evalTask(o, t, hoy, done);
+        if (done && !noAp) { n += w; alguno = true; }
+        if (!noAp && e.k === "venc") venc++; if (!noAp && e.k === "prox") prox++;
+        return { t, key, done: noAp ? "" : done, e, w: noAp ? 0 : w, noAp };
+      });
+      const evaluable = alguno || (!!o.cierre && !(o.importado && o.cierre <= o.importado)) || (!!o.fin && o.fin < hoy && (!o.importado || o.fin >= o.importado));
+      if (evaluable) { num += n; den += 100; }
+      return { o, tareas, score: evaluable ? n : null, pct: n };
+    });
+    let score = den ? num / den * 100 : null, tall = null;
+    if (dep.k === "ope" && s.taller.length) {
+      let tn = 0, td = 0;
+      s.taller.forEach(x => { const e = evalTask({ fin: x.fin }, { base: "fin", off: 0 }, hoy, x.hecho); if (e.f !== null) { tn += e.f * (String(x.rep || "").trim() ? 1 : 0.5); td++; } if (e.k === "venc") venc++; if (e.k === "prox") prox++; });
+      if (td) { tall = tn / td * 100; score = score === null ? tall : score * 0.8 + tall * 0.2; }
+    }
+    return { obras, score, venc, prox, tall };
+  }
+  renderVals() {
+    const s = this.state, hoy = iso(new Date());
+    const calcs = s.deps.map(d => ({ d, c: this.depCalc(d, hoy) }));
+    const TABS = [["res", "Resumen"], ["cum", "Control por obra"]].concat(s.deps.map(d => [d.k, d.nombre]), [["obras", "Obras"], ["plan", "Plan estratégico"]]);
+    const tabs = TABS.map(([k, l]) => ({ label: l, on: () => this.setState({ tab: k, cfg: false }), bg: (s.tab === k || (k === "cum" && s.tab === "det")) ? "#f4f3f0" : "transparent", fg: (s.tab === k || (k === "cum" && s.tab === "det")) ? "#1b1a18" : "#c9c5bd" }));
+    const mkTareas = (ob) => ob.tareas.map((x, q) => { const [lab, fg, bg] = EST[x.e.k], off = +x.t.off || 0, g = x.t.grupo || "", gPrev = q ? (ob.tareas[q - 1].t.grupo || "") : null; return {
+      cab: g && g !== gPrev ? g : "", hayCab: !!(g && g !== gPrev), ok: !!x.done, pctTxt: x.noAp ? "N/A" : (Math.round(x.w * 10) / 10) + "%",
+      aplica: !x.noAp, noAp: !!x.noAp, rowOp: x.noAp ? 0.45 : 1, onAplica: (e) => this.setNA(ob.o.id, x.key, !e.target.checked), pctFg: x.done ? "oklch(0.40 0.12 150)" : "#86817b", pctBg: x.done ? "oklch(0.93 0.06 150)" : "#f1efeb",
+      onCheck: (e) => this.setDone(ob.o.id, x.key, e.target.checked ? hoy : ""),
+      t: x.t.t, peso: (Math.round(x.w * 10) / 10) + "%", vence: BASES[x.t.base] + (off ? (off > 0 ? " +" : " −") + Math.abs(off) + " d" : "") + " · " + dm(x.e.due), lab, fg, bg, done: x.done,
+      onDone: (e) => this.setDone(ob.o.id, x.key, e.target.value), onHoy: () => this.setDone(ob.o.id, x.key, x.done ? "" : hoy), hoyLab: x.done ? "Deshacer" : "Hecho hoy" }; });
+    const vivas = s.obras.filter(o => o.estadoPpto !== "BAJA");
+    const scoreObra = (oid) => { const v = calcs.map(({ c }) => (c.obras.find(x => x.o.id === oid) || {}).score).filter(x => x !== null && x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+    const cerr = vivas.filter(o => o.cierre), conDatos = cerr.filter(o => scoreObra(o.id) !== null), P = pesosCierre(conDatos);
+    let cumTot = 0;
+    const cierreRows = cerr.map(o => { const sc = scoreObra(o.id), k = conDatos.indexOf(o), w = k >= 0 ? P.w[k] : null, ap = w === null ? null : sc * w / 100; if (ap !== null) cumTot += ap; const idx = s.obras.indexOf(o);
+      return { nombre: o.nombre || "Obra", det: (o.cliente || "—") + (o.nro ? " · " + o.nro : "") + (w === null ? " · sin registro, no pondera" : ""), fecha: dm(o.cierre), scoreTxt: fmtS(sc), color: nivel(sc)[1],
+        pond: o.pond ?? "", pondPh: w === null ? "—" : (Math.round(P.auto * 10) / 10) + "", pondTxt: w === null ? "—" : (Math.round(w * 10) / 10) + "%", aporte: ap === null ? "—" : (Math.round(ap * 10) / 10) + "%",
+        onPond: (e) => this.editObra(idx, { pond: e.target.value.replace(/[^\d.,]/g, "").replace(",", ".") }) }; });
+    const [cnv, ccol] = nivel(conDatos.length ? cumTot : null);
+    const cum = {
+      obrasCards: vivas.map(o => { const sc = scoreObra(o.id), [nv, col] = nivel(sc); return { nombre: o.nombre || "Obra sin nombre", det: (o.cliente || "—") + (o.nro ? " · " + o.nro : "") + (o.total ? " · " + o.total : ""),
+        estado: o.cierre ? "Cerrada " + dm(o.cierre) : (o.estadoPpto || "Manual"), estFg: o.cierre ? "#fff" : "#33312e", estBg: o.cierre ? "#1b1a18" : "#efedea",
+        fechas: "Inicio " + dm(o.inicio) + " · Fin " + dm(o.fin), scoreTxt: fmtS(sc), nivel: nv, color: col, w: (sc || 0) + "%", on: () => this.setState({ tab: "det", obraSel: o.id }) }; }),
+      sinObrasCum: !vivas.length, hayCierre: cerr.length > 0, sinCierre: !cerr.length, cierreRows,
+      cierreN: cerr.length + (cerr.length === 1 ? " obra cerrada" : " obras cerradas"), cierreModo: !conDatos.length ? "Ninguna obra cerrada tiene tareas registradas todavía" : (P.manual ? "Ponderación manual (se ajusta para sumar 100%)" : "Repartida en partes iguales: " + (Math.round(100 / conDatos.length * 10) / 10) + "% cada una") + (cerr.length > conDatos.length ? " · " + (cerr.length - conDatos.length) + " sin registro no ponderan" : ""),
+      cumTotal: conDatos.length ? (Math.round(cumTot * 10) / 10) + "%" : "—", cumNivel: conDatos.length ? cnv : (cerr.length ? "Sin datos" : "Sin cierres"), cumColor: ccol,
+      onIguales: () => this.put({ obras: s.obras.map(o => o.cierre ? { ...o, pond: "" } : o) })
+    };
+    let det = {};
+    const so = s.tab === "det" && s.obras.find(o => o.id === s.obraSel);
+    if (so) { const sc = scoreObra(so.id), [nv, col] = nivel(sc), idx = s.obras.indexOf(so);
+      det = { detNombre: so.nombre || "Obra", detInfo: (so.cliente || "—") + (so.nro ? " · " + so.nro : "") + (so.total ? " · " + so.total : ""), detFechas: "Venta " + dm(so.venta) + " · Inicio " + dm(so.inicio) + " · Fin " + dm(so.fin),
+        detScore: fmtS(sc), detNivel: nv, detColor: col, detCerrada: !!so.cierre, detAbierta: !so.cierre, detCierre: so.cierre || "",
+        onCierre: () => this.editObra(idx, { cierre: hoy }), onCierreFecha: (e) => this.editObra(idx, { cierre: e.target.value }), onReabrir: () => this.editObra(idx, { cierre: "", pond: "" }),
+        onInicioDet: (e) => this.editObra(idx, { inicio: e.target.value }), onFinDet: (e) => this.editObra(idx, { fin: e.target.value }), detInicio: so.inicio, detFin: so.fin,
+        detDeps: calcs.map(({ d, c }) => { const ob = c.obras.find(x => x.o.id === so.id); return { nombre: d.nombre, enc: d.enc, scoreTxt: fmtS(ob ? ob.score : null), color: nivel(ob ? ob.score : null)[1], tareas: ob ? mkTareas(ob) : [], ...(ob ? { plusVal: ((ob.o.plus || {})[d.k] || "") ? gs(+((ob.o.plus || {})[d.k])).replace("Gs. ", "") : "", ganadoTxt: gs((+((ob.o.plus || {})[d.k]) || 0) * ob.pct / 100), onPlus: (e) => this.setPlus(ob.o.id, d.k, e.target.value.replace(/[^\d]/g, "")) } : { plusVal: "", ganadoTxt: gs(0), onPlus: () => {} }), totalTxt: ob ? (Math.round(ob.pct * 10) / 10) + "%" : "—", notaTxt: !ob ? "" : ob.score === null ? "En curso" : nota(ob.pct) + " · " + nivel(ob.pct)[0], totalColor: nivel(ob ? ob.score : null)[1] }; }),
+        onVolver: () => this.setState({ tab: "cum" }) }; }
+    const cuenta = (c) => c.venc + (c.venc === 1 ? " vencida" : " vencidas") + " · " + c.prox + " por vencer";
+    const resumen = calcs.map(({ d, c }) => { const [nv, col] = nivel(c.score); return { nombre: d.nombre, enc: d.enc, scoreTxt: fmtS(c.score), nivel: c.score === null ? nv : nota(c.score) + " · " + nv, color: col, w: (c.score || 0) + "%", cuenta: cuenta(c), on: () => this.setState({ tab: d.k }) }; });
+    const m = {};
+    calcs.forEach(({ d, c }) => { if (c.score === null) return; const x = m[d.enc] = m[d.enc] || { enc: d.enc, deps: [], sum: 0, n: 0 }; x.deps.push(d.nombre); x.sum += c.score; x.n++; });
+    const ranking = Object.values(m).map(x => ({ ...x, sc: x.sum / x.n })).sort((a, b) => b.sc - a.sc).map((x, i) => { const [nv, col] = nivel(x.sc); return { pos: String(i + 1), enc: x.enc, deps: x.deps.join(" · ") + " · " + nv, scoreTxt: fmtS(x.sc), color: col, w: x.sc + "%" }; });
+    const alertas = [];
+    calcs.forEach(({ d, c }) => c.obras.forEach(ob => ob.tareas.forEach(x => { if (x.noAp || (x.e.k !== "venc" && x.e.k !== "prox")) return; const [lab, fg, bg] = EST[x.e.k]; alertas.push({ due: x.e.due, lab, fg, bg, det: d.nombre + " · " + x.t.t, obra: ob.o.nombre + (ob.o.cliente ? " · " + ob.o.cliente : ""), vence: dm(x.e.due), on: () => this.setState({ tab: d.k }) }); })));
+    s.taller.forEach(x => { const e = evalTask({ fin: x.fin }, { base: "fin", off: 0 }, hoy, x.hecho); if (e.k !== "venc" && e.k !== "prox") return; const [lab, fg, bg] = EST[e.k]; alertas.push({ due: e.due, lab, fg, bg, det: "Operarios · " + (x.t || "Tarea de taller"), obra: "Taller", vence: dm(e.due), on: () => this.setState({ tab: "ope" }) }); });
+    alertas.sort((a, b) => a.due < b.due ? -1 : 1);
+    const cur = calcs.find(x => x.d.k === s.tab);
+    let dep = {};
+    if (cur) {
+      const { d, c } = cur, [nv, col] = nivel(c.score), tot = d.tareas.reduce((a, t) => a + (+t.peso || 0), 0);
+      dep = {
+        depNombre: d.nombre, depRol: d.rol, depEnc: d.enc, depPlus: (() => { let p = 0, g = 0; c.obras.forEach(ob => { const v = +((ob.o.plus || {})[d.k]) || 0; p += v; g += v * ob.pct / 100; }); return p ? "Plus acumulado " + gs(g) + " de " + gs(p) : ""; })(),
+        depScore: fmtS(c.score), depNivel: c.score === null ? nv : nota(c.score) + " · " + nv, depColor: col, depCuenta: cuenta(c),
+        onDepEnc: (e) => { const v = e.target.value; this.editDep(x => { x.enc = v; }); },
+        esOpe: d.k === "ope",
+        depObras: c.obras.map(ob => ({
+          nombre: ob.o.nombre || "Obra sin nombre", cliente: (ob.o.cliente || "—") + (ob.o.nro ? " · " + ob.o.nro : ""),
+          fechas: "Venta " + dm(ob.o.venta) + " · Inicio " + dm(ob.o.inicio) + " · Fin " + dm(ob.o.fin),
+          scoreTxt: fmtS(ob.score), color: nivel(ob.score)[1],
+          tareas: mkTareas(ob), plusVal: ((ob.o.plus || {})[d.k] || "") ? gs(+((ob.o.plus || {})[d.k])).replace("Gs. ", "") : "", ganadoTxt: gs((+((ob.o.plus || {})[d.k]) || 0) * ob.pct / 100), onPlus: (e) => this.setPlus(ob.o.id, d.k, e.target.value.replace(/[^\d]/g, "")), totalTxt: (Math.round(ob.pct * 10) / 10) + "%", notaTxt: ob.score === null ? "En curso" : nota(ob.pct) + " · " + nivel(ob.pct)[0], totalColor: nivel(ob.score)[1]
+        })),
+        cfg: s.cfg, cfgLab: s.cfg ? "Cerrar edición" : "Editar tareas y ponderación", onCfg: () => this.setState({ cfg: !s.cfg }),
+        pesoTotal: "automática, " + d.tareas.length + " tareas: cada una vale 100% ÷ tareas de la obra", pesoColor: "#6f6b64",
+        cfgRows: d.tareas.map((t, j) => ({ t: t.t, peso: t.peso, base: t.base, off: t.off, terc: t.terc,
+          onT: (e) => { const v = e.target.value; this.editDep(x => { x.tareas[j].t = v; }); },
+          onPeso: (e) => { const v = e.target.value.replace(/[^\d]/g, ""); this.editDep(x => { x.tareas[j].peso = v; }); },
+          onBase: (e) => { const v = e.target.value; this.editDep(x => { x.tareas[j].base = v; }); },
+          onOff: (e) => { const v = e.target.value.replace(/[^\d-]/g, ""); this.editDep(x => { x.tareas[j].off = v; }); },
+          onTerc: (e) => { const v = e.target.checked; this.editDep(x => { x.tareas[j].terc = v; }); },
+          onDel: () => this.editDep(x => { x.tareas.splice(j, 1); }) })),
+        onAddTask: () => this.editDep(x => { x.tareas.push(T("x" + Date.now(), "Nueva tarea", 0, "fin", 0)); }),
+        tallerTxt: c.tall === null ? "" : "Cumplimiento del taller: " + fmtS(c.tall) + ", pesa 20% del puntaje.",
+        taller: s.taller.map((x, i) => { const e = evalTask({ fin: x.fin }, { base: "fin", off: 0 }, hoy, x.hecho), [lab, fg, bg] = EST[e.k]; return {
+          t: x.t, ini: x.ini, fin: x.fin, rep: x.rep, hecho: x.hecho, lab, fg, bg,
+          onT: (ev) => this.editTaller(i, { t: ev.target.value }), onIni: (ev) => this.editTaller(i, { ini: ev.target.value }), onFin: (ev) => this.editTaller(i, { fin: ev.target.value }),
+          onRep: (ev) => this.editTaller(i, { rep: ev.target.value }), onHecho: (ev) => this.editTaller(i, { hecho: ev.target.value }),
+          onDel: () => this.put({ taller: s.taller.filter((_, q) => q !== i) }) }; }),
+        onAddTaller: () => this.put({ taller: s.taller.concat([{ t: "", ini: hoy, fin: add(hoy, 1), rep: "", hecho: "" }]) })
+      };
+    }
+    const f = (i, k) => (e) => this.editObra(i, { [k]: e.target.value });
+    return {
+      hoyTxt: dm(hoy) + "/" + hoy.slice(0, 4), onPrint: () => window.print(), tabs,
+      esRes: s.tab === "res", esCum: s.tab === "cum", esDet: !!so, ...cum, ...det, esDep: !!cur, esObras: s.tab === "obras", esPlan: s.tab === "plan",
+      resumen, ranking, sinRanking: !ranking.length, alertas: alertas.slice(0, 14), sinAlertas: !alertas.length,
+      sinObras: !s.obras.length, ...dep,
+      obrasRows: s.obras.map((o, i) => ({ ...o, onNombre: f(i, "nombre"), onCliente: f(i, "cliente"), onNro: f(i, "nro"), onVenta: f(i, "venta"), onInicio: f(i, "inicio"), onFin: f(i, "fin"),
+        onTerc: (e) => this.editObra(i, { terc: e.target.checked }), onDel: () => this.put({ obras: s.obras.filter((_, q) => q !== i) }) })),
+      onAddObra: () => this.put({ obras: s.obras.concat([{ id: "o" + Date.now(), nombre: "", cliente: "", nro: "", venta: hoy, inicio: add(hoy, 3), fin: add(hoy, 5), terc: false, done: {} }]) })
+    };
+  }
+}
+</script>
+</body>
+</html>

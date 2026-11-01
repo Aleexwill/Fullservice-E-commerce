@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Diseño 3D del presupuesto</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#dfe4e8;font-family:system-ui,sans-serif;color:#1b1a18}
+#v{position:absolute;inset:0}
+#hd{position:absolute;left:12px;top:12px;background:rgba(255,255,255,.95);border:1px solid #d2d8dc;border-radius:10px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;z-index:3;max-width:300px;max-height:calc(100% - 60px);overflow:auto}
+#hd b{font-size:13.5px}#hd label{display:flex;gap:6px;align-items:center;cursor:pointer}
+#bt{position:absolute;right:12px;top:12px;display:flex;gap:6px;z-index:3;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
+#bt button{font:600 12px system-ui;padding:6px 10px;border:1px solid #c9c5bd;background:#fff;border-radius:6px;cursor:pointer}
+#bt button.on{background:#14382f;color:#fff;border-color:#14382f}
+#tip{position:absolute;pointer-events:none;background:rgba(16,36,30,.95);color:#fff;font-size:12px;line-height:1.45;padding:7px 10px;border-radius:7px;max-width:300px;display:none;z-index:5}
+#tip b{display:block;font-size:13px;margin-bottom:2px}
+#e{position:absolute;right:12px;bottom:10px;font-size:11px;color:#3f3b35;background:rgba(255,255,255,.9);padding:4px 8px;border-radius:5px}
+#vacio{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:15px;color:#4a463f;text-align:center;padding:24px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="v"></div><div id="hd"></div><div id="tip"></div><div id="vacio">Todavía no hay diseño 3D para este presupuesto.<br>Generalo desde la pestaña «Diseño 3D» de la planilla.</div>
+<div id="bt"><button id="b1" class="on">Perspectiva</button><button id="b2">Frente</button><button id="b3">Lateral</button><button id="b4">Desde arriba</button><button id="bC">Ocultar cotas</button><button id="bI">Descargar imagen</button></div>
+<div id="e">Arrastrá para girar · rueda para acercar · clic derecho para mover · pasá el cursor sobre cada parte</div>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = (i) => document.getElementById(i);
+const QS = new URLSearchParams(location.search), NRO = QS.get('nro') || '', KEY = 'twg-disenos-3d-v1';
+const r = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+r.toneMapping = T.ACESFilmicToneMapping; r.outputColorSpace = T.SRGBColorSpace; $('v').appendChild(r.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#dfe4e8');
+sc.environment = new T.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+const cam = new T.PerspectiveCamera(40, 1, 0.02, 800);
+sc.add(new T.HemisphereLight('#ffffff', '#7d8a80', 0.7));
+const sun = new T.DirectionalLight('#fff6e8', 1.6); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sc.add(sun, sun.target);
+const ctl = new OrbitControls(cam, r.domElement); ctl.enableDamping = true; ctl.screenSpacePanning = true;
+const fit = () => { const w = innerWidth || 800, h = innerHeight || 560; r.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+addEventListener('resize', fit); fit();
+(function loop() { requestAnimationFrame(loop); ctl.update(); r.render(sc, cam); })();
+
+const MAT = { hormigon: ['#bfbab0', 0.9, 0], metal: ['#5d6266', 0.4, 0.7], acero: ['#5d6266', 0.4, 0.7], hierro: ['#7a4a2a', 0.45, 0.6], madera: ['#b98b55', 0.8, 0], vidrio: ['#bcd7e6', 0.1, 0, 0.35], policarbonato: ['#d9ecf5', 0.2, 0, 0.45], agua: ['#6f8a8f', 0.1, 0, 0.4], tierra: ['#9a6b45', 1, 0], pasto: ['#7a9450', 1, 0], ladrillo: ['#a65a3a', 0.9, 0], chapa: ['#9aa3a8', 0.45, 0.6], pvc: ['#e8e3d4', 0.35, 0], tela: ['#2f3a33', 0.95, 0, 0.85], pintura: ['#2b2b2b', 0.5, 0.3] };
+const mats = {}; const matDe = (o) => { const k = (o.material || '').toLowerCase(); const b = MAT[k] || ['#b8b4ab', 0.8, 0]; const c = o.color || b[0], op = o.opacidad != null ? +o.opacidad : (b[3] != null ? b[3] : 1); const key = c + '|' + k + '|' + op; return mats[key] || (mats[key] = new T.MeshStandardMaterial({ color: c, roughness: b[1], metalness: b[2], transparent: op < 1, opacity: op, side: op < 1 ? T.DoubleSide : T.FrontSide, depthWrite: op >= 0.6 })); };
+const V = (a, d) => Array.isArray(a) && a.length === 3 ? new T.Vector3(+a[0] || 0, +a[1] || 0, +a[2] || 0) : (d || new T.Vector3());
+const raiz = new T.Group(); sc.add(raiz); const grupos = {}, pick = []; const gCot = new T.Group(); sc.add(gCot);
+const grp = (n) => { const k = n || 'General'; if (!grupos[k]) { grupos[k] = new T.Group(); raiz.add(grupos[k]); } return grupos[k]; };
+const entre = (geo, A, B) => { const m = new T.Mesh(geo); const v = B.clone().sub(A); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v.clone().normalize()); return m; };
+function objeto(o) {
+  let m; const t = (o.tipo || 'caja').toLowerCase();
+  if (t === 'cilindro') { m = new T.Mesh(new T.CylinderGeometry(+o.radio || 0.1, +o.radio || 0.1, +o.alto || 1, 28)); m.position.copy(V(o.pos)); }
+  else if (t === 'esfera') { m = new T.Mesh(new T.SphereGeometry(+o.radio || 0.1, 24, 16)); m.position.copy(V(o.pos)); }
+  else if (t === 'tubo' || t === 'perfil') { const A = V(o.desde), B = V(o.hasta), L = Math.max(0.001, A.distanceTo(B));
+    m = entre(t === 'tubo' ? new T.CylinderGeometry(+o.radio || 0.02, +o.radio || 0.02, L, 16) : new T.BoxGeometry(+o.ancho || 0.04, L, +o.alto || o.ancho || 0.04), A, B); }
+  else { const s = V(o.tam, new T.Vector3(1, 1, 1)); m = new T.Mesh(new T.BoxGeometry(Math.max(0.002, s.x), Math.max(0.002, s.y), Math.max(0.002, s.z))); m.position.copy(V(o.pos)); }
+  if (Array.isArray(o.rot) && t !== 'tubo' && t !== 'perfil') m.rotation.set(...o.rot.map(g => (+g || 0) * Math.PI / 180));
+  m.material = matDe(o); m.castShadow = m.material.opacity >= 0.6; m.receiveShadow = true; m.userData = { n: o.nombre || '', d: o.desc || '' };
+  if (m.userData.n) pick.push(m); grp(o.grupo).add(m);
+}
+const etiq = (txt, p) => { const c = document.createElement('canvas'); const w = 64 + txt.length * 28; c.width = w; c.height = 64; const g = c.getContext('2d'); g.fillStyle = 'rgba(255,255,255,.95)'; g.fillRect(0, 0, w, 64); g.strokeStyle = '#c8102e'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, w - 3, 61); g.fillStyle = '#9b0d23'; g.font = 'bold 36px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, w / 2, 34); const tx = new T.CanvasTexture(c); tx.colorSpace = T.SRGBColorSpace; const s = new T.Sprite(new T.SpriteMaterial({ map: tx, depthTest: false })); s.userData.w = w; s.position.copy(p); s.renderOrder = 11; gCot.add(s); return s; };
+const mCot = new T.LineBasicMaterial({ color: '#c8102e', depthTest: false });
+let ESC = 1; const sprites = [];
+function cota(c) { const A = V(c.desde), B = V(c.hasta); const g = new T.BufferGeometry().setFromPoints([A, B]); const l = new T.Line(g, mCot); l.renderOrder = 10; gCot.add(l);
+  [A, B].forEach(P => { const k = new T.Mesh(new T.SphereGeometry(1, 8, 6), new T.MeshBasicMaterial({ color: '#c8102e', depthTest: false })); k.position.copy(P); k.renderOrder = 10; k.userData.punto = true; gCot.add(k); sprites.push(k); });
+  const s = etiq(String(c.texto || (A.distanceTo(B).toFixed(2).replace('.', ',') + ' m')), A.clone().add(B).multiplyScalar(0.5)); sprites.push(s); }
+
+let spec = null;
+try { const all = JSON.parse(localStorage.getItem(KEY) || '{}'); spec = all[NRO] && all[NRO].spec; } catch (x) {}
+if (!spec || !Array.isArray(spec.objetos) || !spec.objetos.length) { $('vacio').style.display = 'flex'; ['hd', 'bt', 'e'].forEach(i => $(i).style.display = 'none'); }
+else {
+  spec.objetos.forEach(o => { try { objeto(o); } catch (x) {} });
+  const box = new T.Box3().setFromObject(raiz), size = box.getSize(new T.Vector3()), ctr = box.getCenter(new T.Vector3()); const R = Math.max(size.x, size.y, size.z, 1);
+  ESC = R; sprites.forEach(s => { if (s.userData.punto) s.scale.setScalar(R * 0.006); else s.scale.set(s.userData.w * R * 0.00042, 64 * R * 0.00042, 1); });
+  (spec.cotas || []).forEach(c => { try { cota(c); } catch (x) {} });
+  sprites.forEach(s => { if (s.userData.punto) s.scale.setScalar(R * 0.006); else s.scale.set(s.userData.w * R * 0.00042, 64 * R * 0.00042, 1); });
+  if (spec.suelo !== false) { const p = new T.Mesh(new T.PlaneGeometry(R * 6, R * 6), new T.MeshStandardMaterial({ color: '#cfd3cc', roughness: 1 })); p.rotation.x = -Math.PI / 2; p.position.set(ctr.x, Math.min(0, box.min.y) - 0.002, ctr.z); p.receiveShadow = true; sc.add(p); }
+  sun.position.set(ctr.x + R * 1.2, ctr.y + R * 2, ctr.z + R); sun.target.position.copy(ctr); Object.assign(sun.shadow.camera, { left: -R * 1.5, right: R * 1.5, top: R * 1.5, bottom: -R * 1.5, near: 0.1, far: R * 8 }); sun.shadow.camera.updateProjectionMatrix();
+  ctl.maxDistance = R * 8; ctl.minDistance = R * 0.05;
+  const vista = (n) => { const d = R * 1.9; ctl.target.copy(ctr);
+    if (n === 1) cam.position.set(ctr.x + d * 0.75, ctr.y + d * 0.55, ctr.z + d * 0.85); else if (n === 2) cam.position.set(ctr.x, ctr.y + R * 0.15, ctr.z + d); else if (n === 3) cam.position.set(ctr.x + d, ctr.y + R * 0.15, ctr.z); else cam.position.set(ctr.x + 0.001, ctr.y + d * 1.1, ctr.z + 0.01);
+    ['b1', 'b2', 'b3', 'b4'].forEach((b, i) => $(b).classList.toggle('on', i + 1 === n)); ctl.update(); };
+  if (spec.camara && spec.camara.pos) { cam.position.copy(V(spec.camara.pos)); ctl.target.copy(V(spec.camara.objetivo, ctr)); ctl.update(); } else vista(1);
+  [1, 2, 3, 4].forEach(n => $('b' + n).onclick = () => vista(n));
+  $('bC').onclick = () => { gCot.visible = !gCot.visible; $('bC').textContent = gCot.visible ? 'Ocultar cotas' : 'Mostrar cotas'; };
+  const nombreArch = 'Diseno-3D-' + NRO;
+  $('bI').onclick = () => { r.render(sc, cam); const a = document.createElement('a'); a.href = r.domElement.toDataURL('image/png'); a.download = nombreArch + '.png'; a.click(); };
+  const esc = (t) => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  $('hd').innerHTML = '<b>' + esc(spec.titulo || 'Diseño 3D') + '</b><span style="color:#5f5a52">' + esc(NRO) + (spec.resumen ? ' · ' + esc(spec.resumen) : '') + '</span>' + Object.keys(grupos).map(k => '<label><input type="checkbox" checked data-g="' + esc(k) + '" style="margin:0">' + esc(k) + '</label>').join('');
+  document.querySelectorAll('#hd input').forEach(i => i.onchange = () => { grupos[i.dataset.g].visible = i.checked; });
+  const ray = new T.Raycaster(), mp = new T.Vector2(); let hov = null;
+  const vis = (o) => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
+  r.domElement.addEventListener('pointermove', (ev) => { mp.set(ev.clientX / innerWidth * 2 - 1, -ev.clientY / innerHeight * 2 + 1); ray.setFromCamera(mp, cam);
+    const h = ray.intersectObjects(pick, false).find(x => vis(x.object) && !(x.object.material.opacity < 0.4));
+    if (hov && (!h || h.object !== hov.o)) { hov.o.material = hov.m; hov = null; }
+    const t = $('tip'); if (!h) { t.style.display = 'none'; return; }
+    if (!hov) { const m0 = h.object.material, m1 = m0.clone(); m1.emissive = new T.Color('#ffb300'); m1.emissiveIntensity = 0.25; h.object.material = m1; hov = { o: h.object, m: m0 }; }
+    t.innerHTML = '<b>' + esc(h.object.userData.n) + '</b>' + esc(h.object.userData.d); t.style.display = 'block';
+    t.style.left = Math.min(innerWidth - 310, ev.clientX + 14) + 'px'; t.style.top = (ev.clientY + 12) + 'px'; });
+  r.domElement.addEventListener('pointerleave', () => { $('tip').style.display = 'none'; if (hov) { hov.o.material = hov.m; hov = null; } });
+  // La planilla pide una captura para el boceto
+  addEventListener('message', (ev) => { if (ev.data && ev.data.d3 === 'captura') { r.render(sc, cam); const c = document.createElement('canvas'); const k = Math.min(1, 1100 / r.domElement.width); c.width = r.domElement.width * k; c.height = r.domElement.height * k; c.getContext('2d').drawImage(r.domElement, 0, 0, c.width, c.height); ev.source.postMessage({ d3: 'imagen', nro: NRO, url: c.toDataURL('image/jpeg', 0.8) }, '*'); } });
+}
+</script></body></html>

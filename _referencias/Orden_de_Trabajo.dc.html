@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #ecebe8; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1b1a18; }
+  a { color: #1b1a18; } a:hover { color: #6f6b64; }
+  input, textarea, select { font-family: inherit; }
+  @page { size: A4 portrait; margin: 10mm; }
+  @media print {
+    html, body { background: #fff; }
+    [data-noprint] { display: none !important; }
+    [data-hoja] { box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: none !important; border: 0 !important; }
+    input, textarea, select { border-color: transparent !important; background: transparent !important; }
+    select { appearance: none; -webkit-appearance: none; }
+    tr, [data-fila] { break-inside: avoid; }
+  }
+</style>
+</helmet>
+
+<div data-noprint="1" style="position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 18px; background: #1b1a18; color: #f4f3f0;">
+  <span style="font-size: 14px; font-weight: 700; margin-right: 6px; white-space: nowrap; flex: none;">Orden de trabajo</span>
+  <select value="{{ pid }}" onChange="{{ onPid }}" style="flex: 1 1 320px; min-width: 0; max-width: 520px; padding: 7px 10px; font-size: 13px; border: 0; border-radius: 6px; background: #f4f3f0; color: #1b1a18;">
+    <option value="">Elegí el número de propuesta…</option>
+    <sc-for list="{{ opciones }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
+  </select>
+  <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #d6d2ca; cursor: pointer; white-space: nowrap; flex: none;"><input type="checkbox" checked="{{ soloAprob }}" onChange="{{ onSoloAprob }}" style="width: 14px; height: 14px; margin: 0;" />Solo aprobados, en ejecución y finalizados</label>
+  <span style="flex: 1 1 0; min-width: 0;"></span>
+  <a href="Acuerdo de Trabajo.dc.html" style="white-space: nowrap; flex: none; padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: #f4f3f0; border: 1px solid #8f8a83; border-radius: 6px; text-decoration: none;">Acuerdo con proveedor</a>
+  <button onClick="{{ onRecargar }}" title="Volver a tomar los datos de la propuesta (borra lo editado en esta orden)" style="white-space: nowrap; flex: none; padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: #f4f3f0; background: transparent; border: 1px solid #8f8a83; border-radius: 6px; cursor: pointer;">Recargar de la propuesta</button>
+  <button onClick="{{ onImprimir }}" style="white-space: nowrap; flex: none; padding: 7px 16px; font-size: 12.5px; font-weight: 700; color: #1b1a18; background: oklch(0.88 0.08 85); border: 0; border-radius: 6px; cursor: pointer;">Imprimir orden</button>
+</div>
+
+<sc-if value="{{ sinProp }}" hint-placeholder-val="{{ false }}">
+  <div data-noprint="1" style="max-width: 760px; margin: 40px auto; padding: 22px 26px; background: #fff; border: 1px solid #dedbd5; border-radius: 12px; font-size: 14px; line-height: 1.6; color: #33312e;">{{ sinPropTxt }}</div>
+</sc-if>
+
+<sc-if value="{{ hayProp }}" hint-placeholder-val="{{ true }}">
+<div data-hoja="1" style="max-width: 820px; margin: 24px auto 60px; padding: 34px 38px; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.08); box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; font-size: 11.5px;">
+
+  <div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 210px; gap: 14px; align-items: center; padding-bottom: 10px; border-bottom: 2px solid #1b1a18;">
+    <img src="logo-full-service.png" alt="Full Service and Clean" style="width: 160px; height: auto; display: block;" />
+    <div style="text-align: center; font-size: 19px; font-weight: 700; letter-spacing: 0.04em;">ORDEN DE TRABAJO</div>
+    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px;">
+      <label data-noprint="1" title="Elegí la propuesta: la orden se completa sola con sus datos" style="display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 6px;"><span style="font-weight: 700; font-size: 10px;">Prop.:</span>
+        <select value="{{ pid }}" onChange="{{ onPid }}" style="min-width: 0; padding: 3px 4px; border: 1.5px solid oklch(0.70 0.12 240); border-radius: 3px; background: oklch(0.97 0.02 240); font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600; cursor: pointer;">
+          <sc-for list="{{ opcionesTodas }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.corto }}</option></sc-for>
+        </select></label>
+      <label style="display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 6px;"><span style="font-weight: 700;">Nº:</span><input value="{{ d.nro }}" onChange="{{ on.nro }}" style="padding: 3px 6px; border: 1px solid #c9c5bd; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;" /></label>
+      <label style="display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 6px;"><span style="font-weight: 700;">Fecha:</span><input value="{{ d.fecha }}" onChange="{{ on.fecha }}" style="padding: 3px 6px; border: 1px solid #c9c5bd; border-radius: 3px; font-size: 12px;" /></label>
+      <span style="font-size: 10px; color: #6f6b64;">Propuesta {{ propNro }} · {{ propEstado }}</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 230px; border: 1px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); border-right: 1px solid #1b1a18;"><span style="padding: 6px 8px; font-weight: 700; background: #f1efeb; border-right: 1px solid #1b1a18;">NOMBRE DEL PROYECTO:</span><textarea value="{{ d.nombre }}" onChange="{{ on.nombre }}" rows="1" style="field-sizing: content; min-height: 26px; padding: 5px 8px; border: 0; font-size: 11.5px; resize: none; line-height: 1.35;"></textarea></div>
+    <div style="display: grid; grid-template-columns: 100px minmax(0, 1fr);"><span style="padding: 6px 8px; font-weight: 700; background: #f1efeb; border-right: 1px solid #1b1a18;">FECHA DE ENTREGA:</span><input value="{{ d.entrega }}" onChange="{{ on.entrega }}" placeholder="dd/mm/aaaa" style="padding: 5px 8px; border: 0; font-size: 11.5px;" /></div>
+    <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 150px minmax(0, 1fr); border-top: 1px solid #1b1a18;"><span style="padding: 6px 8px; font-weight: 700; background: #f1efeb; border-right: 1px solid #1b1a18;">DIRECCIÓN:</span><input value="{{ d.dir }}" onChange="{{ on.dir }}" style="padding: 5px 8px; border: 0; font-size: 11.5px;" /></div>
+  </div>
+
+  <div style="border: 1px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: minmax(0, 1.5fr) 120px minmax(0, 1fr); font-weight: 700; background: #f1efeb; text-align: center;"><span style="padding: 6px 8px; border-right: 1px solid #1b1a18;">ACTIVIDAD</span><span style="padding: 6px 8px; border-right: 1px solid #1b1a18;">CONTROL DE CALIDAD (SI / NO)</span><span style="padding: 6px 8px;">COMENTARIOS O CORRECCIONES INDICADAS</span></div>
+    <sc-for list="{{ act }}" as="a" hint-placeholder-count="8">
+      <div data-fila="1" style="display: grid; grid-template-columns: minmax(0, 1.5fr) 120px minmax(0, 1fr); border-top: 1px solid #1b1a18;">
+        <textarea value="{{ a.t }}" onChange="{{ a.onT }}" rows="1" style="field-sizing: content; min-height: 24px; padding: 4px 8px; border: 0; border-right: 1px solid #1b1a18; font-size: 11px; resize: none; line-height: 1.35;"></textarea>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; border-right: 1px solid #1b1a18;">
+          <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ a.si }}" onChange="{{ a.onSi }}" style="width: 13px; height: 13px; margin: 0; accent-color: #1b1a18;" />SI</label>
+          <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ a.no }}" onChange="{{ a.onNo }}" style="width: 13px; height: 13px; margin: 0; accent-color: #1b1a18;" />NO</label>
+        </div>
+        <textarea value="{{ a.c }}" onChange="{{ a.onC }}" rows="1" style="field-sizing: content; min-height: 24px; padding: 4px 8px; border: 0; font-size: 11px; resize: none; line-height: 1.35;"></textarea>
+      </div>
+    </sc-for>
+    <div data-noprint="1" style="padding: 5px 8px; border-top: 1px solid #1b1a18;"><button onClick="{{ onAddAct }}" style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar actividad</button></div>
+  </div>
+
+  <div style="border: 1px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); font-weight: 700; background: #f1efeb; text-align: center;"><span style="padding: 6px 8px; border-right: 1px solid #1b1a18;">MATERIALES</span><span style="padding: 6px 8px; border-right: 1px solid #1b1a18;">EQUIPOS</span><span style="padding: 6px 8px;">HERRAMIENTAS</span></div>
+    <sc-for list="{{ meh }}" as="m" hint-placeholder-count="6">
+      <div data-fila="1" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #1b1a18;">
+        <textarea value="{{ m.a }}" onChange="{{ m.onA }}" rows="1" style="field-sizing: content; min-height: 22px; padding: 3px 8px; border: 0; border-right: 1px solid #1b1a18; font-size: 10.5px; resize: none; line-height: 1.3;"></textarea>
+        <textarea value="{{ m.b }}" onChange="{{ m.onB }}" rows="1" style="field-sizing: content; min-height: 22px; padding: 3px 8px; border: 0; border-right: 1px solid #1b1a18; font-size: 10.5px; resize: none; line-height: 1.3;"></textarea>
+        <textarea value="{{ m.c }}" onChange="{{ m.onC }}" rows="1" style="field-sizing: content; min-height: 22px; padding: 3px 8px; border: 0; font-size: 10.5px; resize: none; line-height: 1.3;"></textarea>
+      </div>
+    </sc-for>
+    <div data-noprint="1" style="padding: 5px 8px; border-top: 1px solid #1b1a18;"><button onClick="{{ onAddMeh }}" style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar fila</button></div>
+  </div>
+
+  <sc-for list="{{ bloques3 }}" as="b" hint-placeholder-count="3">
+    <div style="border: 1px solid #1b1a18;">
+      <div style="display: grid; grid-template-columns: {{ b.cols }}; font-weight: 700; background: #f1efeb; text-align: center;"><sc-for list="{{ b.head }}" as="h" hint-placeholder-count="3"><span style="padding: 6px 8px; border-left: {{ h.bl }};">{{ h.t }}</span></sc-for></div>
+      <sc-for list="{{ b.rows }}" as="r" hint-placeholder-count="3">
+        <div data-fila="1" style="display: grid; grid-template-columns: {{ b.cols }}; border-top: 1px solid #1b1a18;">
+          <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="3"><input value="{{ c.v }}" onChange="{{ c.on }}" style="min-width: 0; padding: 5px 8px; border: 0; border-left: {{ c.bl }}; font-size: 11px;" /></sc-for>
+        </div>
+      </sc-for>
+      <div data-noprint="1" style="padding: 5px 8px; border-top: 1px solid #1b1a18;"><button onClick="{{ b.onAdd }}" style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar fila</button></div>
+    </div>
+  </sc-for>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #1b1a18;">
+    <sc-for list="{{ firmas }}" as="g" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; border-left: {{ g.bl }};">
+        <div style="height: 56px; position: relative; display: flex; justify-content: center;"><sc-if value="{{ g.ed }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ selloVer }}" hint-placeholder-val="{{ false }}"><img src="sello-full-service.png" alt="Sello" style="position: absolute; right: 10px; bottom: -24px; height: 72px; width: auto; opacity: 0.85; pointer-events: none;" /></sc-if><sc-if value="{{ firmaVer }}" hint-placeholder-val="{{ false }}"><img src="firma-edgar-mendez.png" alt="Firma" style="position: absolute; bottom: -12px; height: 66px; width: auto; pointer-events: none;" /></sc-if><div data-noprint="1" style="position: absolute; left: 8px; top: 4px; display: flex; gap: 10px; font-size: 10.5px; font-weight: 400; color: #86817b;"><label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ fsFirma }}" onChange="{{ onFsFirma }}" style="margin: 0; accent-color: #1b1a18;" />Firma</label><label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ fsSello }}" onChange="{{ onFsSello }}" style="margin: 0; accent-color: #1b1a18;" />Sello</label></div></sc-if></div>
+        <div style="margin: 0 14px; border-top: 1px solid #1b1a18;"></div>
+        <div style="display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; padding: 4px 10px 6px;"><span style="font-weight: 700;">Firma:</span><input value="{{ g.v }}" onChange="{{ g.on }}" placeholder="Aclaración" style="min-width: 0; padding: 2px 4px; border: 0; font-size: 11px;" /></div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #1b1a18;">
+    <sc-for list="{{ aprob }}" as="g" hint-placeholder-count="3">
+      <div style="display: grid; grid-template-columns: 88px minmax(0, 1fr); align-items: center; border-left: {{ g.bl }};"><span style="padding: 7px 8px; font-weight: 700;">{{ g.t }}</span><input value="{{ g.v }}" onChange="{{ g.on }}" style="min-width: 0; padding: 7px 6px; border: 0; font-size: 11px;" /></div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ARCH = 'twg-archivo-presupuestos-v1', OTK = 'twg-orden-trabajo-v1';
+const hoyTxt = () => { const d = new Date(); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
+const leer = (k, def) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? def : v; } catch (e) { return def; } };
+const fq = (n) => { const x = Number(String(n).replace(',', '.')) || 0; return (Math.round(x * 100) / 100).toLocaleString('es-PY'); };
+
+class Component extends DCLogic {
+  state = { pid: '', soloAprob: true, tick: 0 };
+  componentDidMount() {
+    const q = new URLSearchParams(location.search).get('id') || leer('twg-ot-ultimo', '');
+    if (q) this.setState({ pid: q });
+    this._st = (e) => { if (e.key === ARCH || e.key === OTK) this.setState(s => ({ tick: s.tick + 1 })); };
+    window.addEventListener('storage', this._st);
+  }
+  componentWillUnmount() { window.removeEventListener('storage', this._st); }
+  archivo() { const v = leer(ARCH, []); return Array.isArray(v) ? v : (v.items || []); }
+  ots() { return leer(OTK, {}); }
+  guardar(pid, fn) { const all = this.ots(); all[pid] = fn(JSON.parse(JSON.stringify(all[pid] || {}))); try { localStorage.setItem(OTK, JSON.stringify(all)); } catch (e) {} this.setState(s => ({ tick: s.tick + 1 })); }
+
+  // Datos iniciales de la orden, tomados de la propuesta.
+  base(p) {
+    const d = p.datos || {}, rub = (d.rubros || []).filter(r => r.incluir !== false);
+    const mats = []; rub.forEach(r => (r.mats || []).forEach(m => { const t = String(m.desc || '').trim(); if (t && !/^prorrateo/i.test(t)) mats.push(t + ' · ' + fq(m.cant) + ' ' + (m.unidad || '')); }));
+    const eqs = []; rub.forEach(r => { if (Number(r.equipos) > 0) eqs.push('Equipos · ' + String(r.nombre || '').slice(0, 50)); });
+    const pers = []; rub.forEach(r => (r.mos || []).forEach(m => { const t = String(m.desc || '').split('·')[0].trim(); if (t && !pers.some(x => x[1] === t)) pers.push(['', t, '']); }));
+    const n = Math.max(6, mats.length, eqs.length);
+    return {
+      nro: 'OT-' + String(p.nro || '').replace(/^P-/, ''), fecha: hoyTxt(), entrega: '', nombre: d.obra || '', dir: d.domicilio || '',
+      act: (rub.length ? rub : [{ nombre: '' }]).map(r => ({ t: r.nombre || '', qc: '', c: '' })).concat(Array(Math.max(0, 6 - rub.length)).fill(0).map(() => ({ t: '', qc: '', c: '' }))),
+      meh: Array(n).fill(0).map((_, i) => [mats[i] || '', eqs[i] || '', '']),
+      pers: pers.length ? pers.concat(Array(Math.max(0, 3 - pers.length)).fill(0).map(() => ['', '', ''])) : [['', '', ''], ['', '', ''], ['', '', '']],
+      resp: [['', '', ''], ['', '', '']], qcr: [['', '', ''], ['', '', '']], firmas: ['', '', ''], elab: d.firmaNombre || '', rev: '', apr: ''
+    };
+  }
+
+  renderVals() {
+    const s = this.state, arr = this.archivo();
+    const okE = (e) => /APROBADO|EJECUCI|FINALIZADO/i.test(String(e || ''));
+    const lista = arr.filter(p => !s.soloAprob || okE(p.estado) || p.id === s.pid).sort((a, b) => String(b.nro).localeCompare(String(a.nro)));
+    const p = arr.find(x => x.id === s.pid);
+    const opciones = lista.map(x => ({ id: x.id, label: x.nro + ' · ' + String((x.datos && x.datos.cliente) || '') + ' · ' + String((x.datos && x.datos.obra) || '').slice(0, 60) + ' · ' + (x.estado || '') }));
+    const opcionesTodas = arr.slice().sort((a, b) => String(b.nro).localeCompare(String(a.nro))).map(x => ({ id: x.id, corto: x.nro + ' · ' + String((x.datos && x.datos.cliente) || '').slice(0, 18) + ' · ' + (x.estado || '') }));
+    const base = { opciones, opcionesTodas, pid: s.pid, soloAprob: s.soloAprob,
+      onPid: (e) => { const v = e.target.value; try { localStorage.setItem('twg-ot-ultimo', JSON.stringify(v)); } catch (x) {} this.setState({ pid: v }); },
+      onSoloAprob: (e) => this.setState({ soloAprob: e.target.checked }),
+      onImprimir: () => window.print(),
+      onRecargar: () => { if (!p) return; if (!window.confirm('¿Volver a cargar los datos de la propuesta ' + p.nro + '? Se pierde lo editado en esta orden.')) return; const all = this.ots(); delete all[p.id]; try { localStorage.setItem(OTK, JSON.stringify(all)); } catch (x) {} this.setState(t => ({ tick: t.tick + 1 })); } };
+    if (!p) return Object.assign(base, { hayProp: false, sinProp: true, sinPropTxt: arr.length ? 'Elegí arriba el número de propuesta. La orden se completa sola con la obra, la dirección, las actividades (rubros) y los materiales de esa propuesta, y todo se puede editar.' : 'No encontré presupuestos en el Archivo. Abrí primero la planilla de Costos y Propuesta en este mismo navegador.' });
+    const B = this.base(p), O = Object.assign({}, B, this.ots()[p.id] || {});
+    const set = (k) => (e) => { const v = e.target.value; this.guardar(p.id, o => { const r = Object.assign({}, B, o); r[k] = v; return r; }); };
+    const setArr = (k, i, j) => (e) => { const v = e.target.value; this.guardar(p.id, o => { const r = Object.assign({}, B, o); r[k] = JSON.parse(JSON.stringify(r[k])); if (j === undefined) r[k][i] = v; else r[k][i][j] = v; return r; }); };
+    const setAct = (i, c, v) => this.guardar(p.id, o => { const r = Object.assign({}, B, o); r.act = JSON.parse(JSON.stringify(r.act)); r.act[i][c] = v; return r; });
+    const addRow = (k, row) => () => this.guardar(p.id, o => { const r = Object.assign({}, B, o); r[k] = (r[k] || []).concat([row]); return r; });
+    const tres = (titulo, k, cols, head) => ({ cols, head: head.map((t, i) => ({ t, bl: i ? '1px solid #1b1a18' : '0' })),
+      rows: (O[k] || []).map((row, i) => ({ cells: row.map((v, j) => ({ v, on: setArr(k, i, j), bl: j ? '1px solid #1b1a18' : '0' })) })), onAdd: addRow(k, ['', '', '']) });
+    return Object.assign(base, {
+      hayProp: true, sinProp: false, propNro: p.nro, propEstado: p.estado || '',
+      d: { nro: O.nro, fecha: O.fecha, entrega: O.entrega, nombre: O.nombre, dir: O.dir },
+      on: { nro: set('nro'), fecha: set('fecha'), entrega: set('entrega'), nombre: set('nombre'), dir: set('dir') },
+      act: O.act.map((a, i) => ({ t: a.t, c: a.c, si: a.qc === 'SI', no: a.qc === 'NO',
+        onT: (e) => setAct(i, 't', e.target.value), onC: (e) => setAct(i, 'c', e.target.value),
+        onSi: (e) => setAct(i, 'qc', e.target.checked ? 'SI' : ''), onNo: (e) => setAct(i, 'qc', e.target.checked ? 'NO' : '') })),
+      onAddAct: addRow('act', { t: '', qc: '', c: '' }),
+      meh: O.meh.map((m, i) => ({ a: m[0], b: m[1], c: m[2], onA: setArr('meh', i, 0), onB: setArr('meh', i, 1), onC: setArr('meh', i, 2) })),
+      onAddMeh: addRow('meh', ['', '', '']),
+      bloques3: [
+        tres('Personal', 'pers', 'minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr)', ['PERSONAL ASIGNADO', 'FUNCIÓN ASIGNADA', 'EFECTIVO ASIGNADO']),
+        tres('Responsable', 'resp', 'minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr)', ['RESPONSABLE EN EL LOCAL DE SERVICIO', 'CARGO', 'CONTACTO']),
+        tres('Calidad', 'qcr', 'minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr)', ['RESPONSABLE DE CONTROL DE CALIDAD', 'CARGO', 'CONTACTO'])
+      ],
+      ...((ed) => { let F = { firma: true, sello: true }; try { F = Object.assign(F, JSON.parse(localStorage.getItem('twg-firma-sello') || '{}')); } catch (x) {} const tg = (k) => (e) => { const v = e.target.checked; try { localStorage.setItem('twg-firma-sello', JSON.stringify(Object.assign({}, F, { [k]: v }))); } catch (x) {} this.forceUpdate(); }; return { firmaEd: ed, firmaVer: ed && F.firma, selloVer: ed && F.sello, fsFirma: F.firma, fsSello: F.sello, onFsFirma: tg('firma'), onFsSello: tg('sello') }; })(true), firmas: O.firmas.map((v, i) => ({ v, ed: /edgar\s+mend[eé]z/i.test(v || ''), on: setArr('firmas', i), bl: i ? '1px solid #1b1a18' : '0' })),
+      aprob: [['Elaborado por:', 'elab'], ['Revisado por:', 'rev'], ['Aprobado:', 'apr']].map(([t, k], i) => ({ t, v: O[k], on: set(k), bl: i ? '1px solid #1b1a18' : '0' }))
+    });
+  }
+}
+</script>
+</body>
+</html>

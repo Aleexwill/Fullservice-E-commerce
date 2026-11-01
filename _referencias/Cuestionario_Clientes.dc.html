@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  a { color: #1b1a18; } a:hover { color: #6f6b64; }
+  * { -webkit-tap-highlight-color: transparent; }
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; justify-content: center; padding: 20px 14px 40px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1b1a18;">
+  <div style="width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+      <img src="./logo-full-service.png" alt="Full Service" style="height: 38px; width: auto; display: block;" />
+      <span style="font-size: 12px; color: #6f6b64;">{{ pasoTxt }}</span>
+    </div>
+    <div style="height: 4px; background: #e2dfd9; border-radius: 99px; overflow: hidden;"><div style="height: 100%; width: {{ barra }}; background: oklch(0.52 0.19 25); transition: width 0.3s;"></div></div>
+
+    <sc-if value="{{ enInicio }}" hint-placeholder-val="{{ true }}">
+      <div style="background: #fff; border-radius: 14px; padding: 24px 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+        <h1 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 700; text-wrap: pretty;">¡Hola! Con gusto coordinamos el relevamiento técnico.</h1>
+        <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #33312e; text-wrap: pretty;">Para enviarte a la persona indicada y acelerar el proceso, respondé dos preguntas rápidas. Te lleva menos de un minuto.</p>
+        <button onClick="{{ empezar }}" style="margin-top: 6px; min-height: 52px; font-size: 16px; font-weight: 700; color: #fff; background: oklch(0.52 0.19 25); border: 0; border-radius: 10px; cursor: pointer;">Empezar</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ enEtapa }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <h2 style="margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700;">¿En qué etapa se encuentra el proyecto hoy?</h2>
+        <sc-for list="{{ etapas }}" as="o" hint-placeholder-count="3">
+          <button onClick="{{ o.elegir }}" style="{{ o.estilo }}">
+            <span style="font-size: 15.5px; font-weight: 700;">{{ o.titulo }}</span>
+            <span style="font-size: 14px; line-height: 1.45; color: #4a4741;">{{ o.texto }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ enPresu }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <h2 style="margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700;">¿Cuál es el presupuesto estimado para el trabajo?</h2>
+        <sc-for list="{{ rangos }}" as="o" hint-placeholder-count="5">
+          <button onClick="{{ o.elegir }}" style="{{ o.estilo }}"><span style="font-size: 15.5px; font-weight: 600;">{{ o.titulo }}</span></button>
+        </sc-for>
+        <button onClick="{{ atras }}" style="align-self: flex-start; min-height: 44px; padding: 0 4px; font-size: 14px; color: #6f6b64; background: none; border: 0; cursor: pointer;">← Volver</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ enDatos }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+        <h2 style="margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700;">¿A quién contactamos?</h2>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a4741;">Nombre y apellido
+          <input value="{{ nombre }}" onChange="{{ onNombre }}" autoComplete="name" style="min-height: 48px; padding: 0 12px; font-size: 16px; border: 1px solid #d6d2ca; border-radius: 9px; font-family: inherit;" />
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a4741;">Empresa o estación (opcional)
+          <input value="{{ empresa }}" onChange="{{ onEmpresa }}" autoComplete="organization" style="min-height: 48px; padding: 0 12px; font-size: 16px; border: 1px solid #d6d2ca; border-radius: 9px; font-family: inherit;" />
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a4741;">Teléfono / WhatsApp
+          <input value="{{ telefono }}" onChange="{{ onTelefono }}" inputMode="tel" autoComplete="tel" placeholder="09xx xxx xxx" style="min-height: 48px; padding: 0 12px; font-size: 16px; border: 1px solid #d6d2ca; border-radius: 9px; font-family: inherit;" />
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a4741;">¿Qué trabajo necesitás? (opcional)
+          <textarea value="{{ trabajo }}" onChange="{{ onTrabajo }}" rows="3" style="padding: 10px 12px; font-size: 16px; border: 1px solid #d6d2ca; border-radius: 9px; font-family: inherit; resize: vertical;"></textarea>
+        </label>
+        <sc-if value="{{ hayError }}" hint-placeholder-val="{{ false }}"><div style="font-size: 13.5px; color: oklch(0.48 0.17 27);">{{ error }}</div></sc-if>
+        <button onClick="{{ enviar }}" style="min-height: 54px; font-size: 16px; font-weight: 700; color: #fff; background: oklch(0.52 0.19 25); border: 0; border-radius: 10px; cursor: pointer;">{{ enviarTxt }}</button>
+        <button onClick="{{ atras }}" style="align-self: flex-start; min-height: 44px; padding: 0 4px; font-size: 14px; color: #6f6b64; background: none; border: 0; cursor: pointer;">← Volver</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ enFin }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border-radius: 14px; padding: 26px 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+        <div style="width: 46px; height: 46px; border-radius: 50%; background: oklch(0.93 0.05 150); color: oklch(0.42 0.12 150); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">✓</div>
+        <h2 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700;">¡Gracias, {{ nombreCorto }}!</h2>
+        <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #33312e; text-wrap: pretty;">{{ finTxt }}</p>
+        <sc-if value="{{ hayWa }}" hint-placeholder-val="{{ true }}">
+          <a href="{{ waUrl }}" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; min-height: 52px; font-size: 15.5px; font-weight: 700; color: #fff; background: #1f9e55; border-radius: 10px; text-decoration: none;">Enviar por WhatsApp</a>
+          <p style="margin: 0; font-size: 12.5px; color: #6f6b64; text-wrap: pretty;">Si WhatsApp no se abrió solo, tocá el botón para enviarnos tus respuestas.</p>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <div style="text-align: center; font-size: 11.5px; color: #86817b;">Full Service · The Wealth Group Import Export S.A.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;sheetsUrl&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Conexión&quot;}, &quot;whatsapp&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;595971235799&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Conexión&quot;}}">
+class Component extends DCLogic {
+  state = { paso: 0, etapa: null, presu: null, nombre: "", empresa: "", telefono: "", trabajo: "", error: "", enviando: false, waUrl: "" };
+
+  static ETAPAS = [
+    { k: 1, titulo: "1. Urgente", texto: "Tenemos presupuesto aprobado y buscamos iniciar cuanto antes.", pts: 60 },
+    { k: 2, titulo: "2. Evaluación", texto: "Estamos cotizando con proveedores serios para definir con quién trabajar este mes.", pts: 40 },
+    { k: 3, titulo: "3. Comparativo", texto: "Solo estamos haciendo sondeo de precios para nuestra carpeta.", pts: 0 }
+  ];
+  static RANGOS = [
+    { k: "a", titulo: "Menos de Gs. 5.000.000", pts: 5 },
+    { k: "b", titulo: "Gs. 5.000.000 a 20.000.000", pts: 15 },
+    { k: "c", titulo: "Gs. 20.000.000 a 60.000.000", pts: 25 },
+    { k: "d", titulo: "Más de Gs. 60.000.000", pts: 35 },
+    { k: "x", titulo: "Todavía no lo sabemos", pts: 5 }
+  ];
+
+  cfg() {
+    let q = {}; try { q = Object.fromEntries(new URLSearchParams(window.location.search)); } catch (e) {}
+    return { sheets: q.s || this.props.sheetsUrl || "", wa: String(q.w || this.props.whatsapp || "595971235799").replace(/\D/g, "") };
+  }
+
+  opcion(on) {
+    return "display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; min-height: 56px; padding: 14px 16px; text-align: left; font-family: inherit; color: #1b1a18; cursor: pointer; border-radius: 12px; background: " + (on ? "oklch(0.96 0.03 25)" : "#fff") + "; border: 2px solid " + (on ? "oklch(0.52 0.19 25)" : "#e2dfd9") + ";";
+  }
+
+  enviar() {
+    const s = this.state;
+    const nombre = s.nombre.trim(), tel = s.telefono.replace(/[^\d+]/g, "");
+    if (!nombre) return this.setState({ error: "Escribí tu nombre." });
+    if (tel.replace(/\D/g, "").length < 7) return this.setState({ error: "Escribí un teléfono válido." });
+    const E = Component.ETAPAS.find(x => x.k === s.etapa), Rg = Component.RANGOS.find(x => x.k === s.presu);
+    const puntaje = (E ? E.pts : 0) + (Rg ? Rg.pts : 0);
+    const clase = s.etapa === 1 ? "PRIORIDAD ALTA" : s.etapa === 2 ? "AGENDAR RELEVAMIENTO" : "SONDEO DE PRECIOS";
+    const d = { id: "L" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), fecha: new Date().toISOString(), nombre, empresa: s.empresa.trim(), telefono: tel, trabajo: s.trabajo.trim(),
+      etapa: E ? E.titulo : "", presupuesto: Rg ? Rg.titulo : "", puntaje, clase };
+    const c = this.cfg();
+    if (c.sheets) { try { fetch(c.sheets, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(d) }); } catch (e) {} }
+    let code = ""; try { code = "FS1-" + btoa(unescape(encodeURIComponent(JSON.stringify(d)))); } catch (e) {}
+    const msg = "Hola, completé el cuestionario de relevamiento.\n\nNombre: " + nombre + (d.empresa ? "\nEmpresa: " + d.empresa : "") + "\nEtapa: " + d.etapa + "\nPresupuesto: " + d.presupuesto + (d.trabajo ? "\nTrabajo: " + d.trabajo : "") + "\n\n" + code;
+    const waUrl = c.wa ? "https://wa.me/" + c.wa + "?text=" + encodeURIComponent(msg) : "";
+    this.setState({ paso: 4, error: "", waUrl });
+    if (waUrl) { try { window.open(waUrl, "_blank"); } catch (e) {} }
+  }
+
+  renderVals() {
+    const s = this.state, total = 3;
+    const set = (k) => (e) => this.setState({ [k]: e.target.value, error: "" });
+    return {
+      enInicio: s.paso === 0, enEtapa: s.paso === 1, enPresu: s.paso === 2, enDatos: s.paso === 3, enFin: s.paso === 4,
+      pasoTxt: s.paso >= 1 && s.paso <= 3 ? "Paso " + s.paso + " de " + total : s.paso === 4 ? "Listo" : "",
+      barra: (s.paso >= 4 ? 100 : Math.round(s.paso / (total + 1) * 100)) + "%",
+      empezar: () => this.setState({ paso: 1 }),
+      atras: () => this.setState({ paso: Math.max(1, s.paso - 1), error: "" }),
+      etapas: Component.ETAPAS.map(o => ({ ...o, estilo: this.opcion(s.etapa === o.k), elegir: () => this.setState({ etapa: o.k, paso: 2 }) })),
+      rangos: Component.RANGOS.map(o => ({ ...o, estilo: this.opcion(s.presu === o.k), elegir: () => this.setState({ presu: o.k, paso: 3 }) })),
+      nombre: s.nombre, empresa: s.empresa, telefono: s.telefono, trabajo: s.trabajo,
+      onNombre: set("nombre"), onEmpresa: set("empresa"), onTelefono: set("telefono"), onTrabajo: set("trabajo"),
+      hayError: !!s.error, error: s.error, enviarTxt: "Enviar respuestas", enviar: () => this.enviar(),
+      nombreCorto: s.nombre.trim().split(/\s+/)[0] || "",
+      finTxt: s.etapa === 3 ? "Recibimos tus respuestas. Nuestro equipo las revisa y te escribe con la información que necesitás." : "Recibimos tus respuestas. En breve te escribimos para coordinar el día y horario del relevamiento técnico.",
+      hayWa: !!s.waUrl, waUrl: s.waUrl
+    };
+  }
+}
+</script>
+</body>
+</html>

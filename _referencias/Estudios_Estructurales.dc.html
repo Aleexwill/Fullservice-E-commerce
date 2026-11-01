@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  a { color: #1f4e79; } a:hover { color: #1b1a18; }
+  @media print { [data-noprint] { display: none !important; } body { background: #fff; } [data-tab] { display: flex !important; break-before: page; } [data-card] { break-inside: avoid; } }
+</style>
+</helmet>
+<div style="min-height: 100vh; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1b1a18;">
+  <div data-noprint="1" style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 24px; background: #1b1a18; color: #f4f3f0;">
+    <img src="logo-full-service.png" alt="Full Service" style="height: 30px; background: #fff; border-radius: 4px; padding: 2px 6px;" />
+    <div style="display: flex; flex-direction: column;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #b8b3ac;">Carpeta de estudios estructurales · tinglados</span>
+      <span style="font-size: 15px; font-weight: 700;">{{ tituloBarra }}</span>
+    </div>
+    <div style="flex: 1;"></div>
+    <button onClick="{{ onCarpeta }}" style="padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: #1b1a18; background: #f4f3f0; border: 0; border-radius: 6px; cursor: pointer;">📁 Carpeta</button>
+    <button onClick="{{ onImprimir }}" style="padding: 7px 12px; font-size: 12.5px; font-weight: 700; color: #1b1a18; background: #f5c400; border: 0; border-radius: 6px; cursor: pointer;">🖨 Imprimir estudio</button>
+  </div>
+
+  <sc-if value="{{ enCarpeta }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 28px 24px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+      <div style="font-size: 20px; font-weight: 700;">Estudios estructurales</div>
+      <span style="font-size: 12.5px; color: #6f6b64;">{{ carpetaTxt }}</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px;">
+      <sc-for list="{{ estudios }}" as="e" hint-placeholder-count="1">
+        <button onClick="{{ e.onAbrir }}" style="display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 16px 18px; background: #fff; border: 1px solid #dedbd5; border-radius: 12px; cursor: pointer; font-family: inherit; color: #1b1a18;">
+          <div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;">{{ e.nro }}</span><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: {{ e.estBg }}; color: {{ e.estFg }};">{{ e.estado }}</span></div>
+          <span style="font-size: 15px; font-weight: 700; line-height: 1.3;">{{ e.nombre }}</span>
+          <span style="font-size: 12px; color: #6f6b64;">{{ e.sub }}</span>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; padding-top: 6px; border-top: 1px solid #efedea;"><span>Acero <strong style="font-family: 'IBM Plex Mono', monospace;">{{ e.kg }}</strong></span><span>Presupuesto <strong style="font-family: 'IBM Plex Mono', monospace;">{{ e.total }}</strong></span></div>
+        </button>
+      </sc-for>
+    </div>
+    <div style="font-size: 12px; color: #86817b; line-height: 1.5;">Para sumar un estudio nuevo, pasame la memoria de cálculo, los planos en PDF y el modelo IFC. Se arma con el mismo formato.</div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ enEstudio }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width: 1180px; margin: 0 auto; padding: 22px 24px 40px; display: flex; flex-direction: column; gap: 16px;">
+    <div data-card="1" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap; padding: 18px 22px; background: #fff; border: 1px solid #dedbd5; border-radius: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">{{ E.nro }} · Estudio estructural</span>
+        <span style="font-size: 21px; font-weight: 700;">{{ E.nombre }}</span>
+        <span style="font-size: 12.5px; color: #4f4b45;">{{ E.ubicacion }} · Cálculo: {{ E.calculista }} · {{ E.software }}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, auto); gap: 4px 22px; font-size: 12px;">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4"><div style="display: flex; flex-direction: column;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;">{{ k.t }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 700;">{{ k.v }}</span></div></sc-for>
+      </div>
+    </div>
+
+    <div data-noprint="1" style="display: flex; gap: 4px; flex-wrap: wrap; padding: 4px; background: #e9e6e0; border-radius: 9px;">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="9"><button onClick="{{ t.onSel }}" style="{{ t.style }}">{{ t.l }}</button></sc-for>
+    </div>
+
+    <div data-tab="memoria" style="display: {{ d.memoria }}; flex-direction: column; gap: 14px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 15px; font-weight: 700;">Memoria de cálculo</div>
+        <sc-for list="{{ memoria }}" as="m" hint-placeholder-count="5"><div style="display: flex; flex-direction: column; gap: 3px;"><span style="font-size: 12.5px; font-weight: 700;">{{ m.t }}</span><span style="font-size: 12.5px; line-height: 1.6; color: #33312e; text-wrap: pretty; white-space: pre-line;">{{ m.x }}</span></div></sc-for>
+      </div>
+      <div data-card="1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-size: 13.5px; font-weight: 700;">Geometría</div>
+          <sc-for list="{{ geo }}" as="g" hint-placeholder-count="8"><div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 4px 0; border-bottom: 1px solid #f1efeb; font-size: 12.5px;"><span style="color: #4f4b45;">{{ g.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; text-align: right;">{{ g.v }}</span></div></sc-for>
+        </div>
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-size: 13.5px; font-weight: 700;">Materiales</div>
+          <sc-for list="{{ mats }}" as="g" hint-placeholder-count="4"><div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 4px 0; border-bottom: 1px solid #f1efeb; font-size: 12.5px;"><span style="color: #4f4b45;">{{ g.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; text-align: right;">{{ g.v }}</span></div></sc-for>
+          <div style="font-size: 13.5px; font-weight: 700; padding-top: 8px;">Normas</div>
+          <sc-for list="{{ normas }}" as="n" hint-placeholder-count="3"><div style="font-size: 12.5px; color: #33312e;">· {{ n }}</div></sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div data-tab="cargas" style="display: {{ d.cargas }}; flex-direction: column; gap: 14px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; font-size: 15px; font-weight: 700;">Hipótesis de carga</div>
+        <div style="display: grid; grid-template-columns: 64px minmax(0, 1.2fr) 140px minmax(0, 1.5fr); gap: 10px; padding: 7px 20px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;"><span>Caso</span><span>Descripción</span><span style="text-align: right;">Valor</span><span>Aplicación</span></div>
+        <sc-for list="{{ hip }}" as="h" hint-placeholder-count="7"><div style="display: grid; grid-template-columns: 64px minmax(0, 1.2fr) 140px minmax(0, 1.5fr); gap: 10px; padding: 7px 20px; border-bottom: 1px solid #f1efeb; font-size: 12.5px;"><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600;">{{ h.c }}</span><span style="font-weight: 600;">{{ h.d }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ h.v }}</span><span style="color: #4f4b45;">{{ h.a }}</span></div></sc-for>
+      </div>
+      <div data-card="1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+        <sc-for list="{{ combos }}" as="cb" hint-placeholder-count="2">
+          <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 20px; display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 13.5px; font-weight: 700;">{{ cb.t }}</div>
+            <span style="font-size: 11.5px; color: #6f6b64;">{{ cb.s }}</span>
+            <sc-for list="{{ cb.l }}" as="x" hint-placeholder-count="5"><div style="display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 8px; padding: 4px 0; border-bottom: 1px solid #f1efeb; font-size: 12.5px;"><span style="font-family: 'IBM Plex Mono', monospace; color: #86817b;">{{ x.n }}</span><span style="font-family: 'IBM Plex Mono', monospace;">{{ x.f }}</span></div></sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 20px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 13.5px; font-weight: 700;">Cargas aplicadas en el modelo</div>
+        <img src="estructuras/misericordia/cargas-52.jpg" alt="Sobrecarga y cargas concentradas en el modelo" style="width: 100%; max-width: 720px; border-radius: 6px; display: block;" />
+        <span style="font-size: 11.5px; color: #6f6b64;">CC3 · sobrecarga de 0,25 kN/m² en cubierta y cargas concentradas de 52,0 kN indicadas en el modelo.</span>
+      </div>
+    </div>
+
+    <div data-tab="resultados" style="display: {{ d.resultados }}; flex-direction: column; gap: 14px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Estado límite último · razón de tensiones máxima por grupo</span><span style="font-size: 11.5px; color: #6f6b64;">Verifica si η ≤ 1,00</span></div>
+        <sc-for list="{{ elu }}" as="r" hint-placeholder-count="7">
+          <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.2fr) 70px minmax(120px, 1fr) 90px; gap: 12px; align-items: center; padding: 8px 20px; border-top: 1px solid #f1efeb; font-size: 12.5px;">
+            <span style="font-weight: 600;">{{ r.g }}</span><span style="color: #4f4b45; font-size: 12px;">{{ r.s }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 700; text-align: right; color: {{ r.c }};">{{ r.e }}</span>
+            <div style="height: 8px; background: #efedea; border-radius: 4px; overflow: hidden;"><div style="height: 100%; width: {{ r.w }}; background: {{ r.c }};"></div></div>
+            <span style="font-size: 11px; font-weight: 700; color: {{ r.c }};">{{ r.ok }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; font-size: 15px; font-weight: 700;">Estado límite de servicio · deformaciones</div>
+        <sc-for list="{{ els }}" as="r" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) 90px 100px 90px; gap: 12px; align-items: center; padding: 8px 20px; border-top: 1px solid #f1efeb; font-size: 12.5px;">
+            <span style="font-weight: 600;">{{ r.g }}</span><span style="color: #4f4b45; font-size: 12px;">{{ r.s }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 700; text-align: right;">{{ r.d }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; color: #6f6b64;">≤ {{ r.lim }}</span>
+            <span style="font-size: 11px; font-weight: 700; color: oklch(0.45 0.13 150);">VERIFICA</span>
+          </div>
+        </sc-for>
+      </div>
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 20px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Reacciones en apoyos</span><span style="font-size: 11.5px; color: #6f6b64;">Envolvente CR1 · CO1 a CO14 · 60 apoyos en 30 pilares</span></div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px;">
+          <sc-for list="{{ reac }}" as="k" hint-placeholder-count="4"><div style="padding: 10px 14px; background: {{ k.bg }}; border-radius: 8px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: #4f4b45;">{{ k.t }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700;">{{ k.v }}</span><span style="font-size: 10.5px; color: #6f6b64;">{{ k.s }}</span></div></sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 10px;">
+          <img src="estructuras/misericordia/reacciones-uz.jpg" alt="Deformación global u-Z y reacciones" style="width: 100%; border-radius: 6px; display: block;" />
+          <img src="estructuras/misericordia/reacciones-u.jpg" alt="Deformación global u y reacciones" style="width: 100%; border-radius: 6px; display: block;" />
+        </div>
+        <span style="font-size: 11.5px; color: #6f6b64;">Deformación global máxima: 16,9 mm. Reacción vertical máxima: +76,65 kN (compresión) y −64,85 kN (levantamiento por viento).</span>
+      </div>
+    </div>
+
+    <div data-tab="fund" style="display: {{ d.fund }}; flex-direction: column; gap: 14px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Diseño de fundaciones · zapata aislada con pedestal</span><span style="font-size: 11.5px; color: #6f6b64;">Los valores azules se pueden editar</span></div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px;">
+          <sc-for list="{{ fIn }}" as="i" hint-placeholder-count="9"><label style="display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: #4f4b45;">{{ i.l }}<input value="{{ i.v }}" onChange="{{ i.on }}" inputMode="decimal" style="padding: 6px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: oklch(0.38 0.10 240); background: oklch(0.97 0.02 240); border: 1px solid oklch(0.85 0.05 240); border-radius: 5px;" /></label></sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start;">
+          <div style="display: flex; flex-direction: column;">
+            <sc-for list="{{ fOut }}" as="o" hint-placeholder-count="10"><div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 5px 0; border-bottom: 1px solid #f1efeb; font-size: 12.5px;"><span style="color: #4f4b45;">{{ o.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-weight: {{ o.w }}; color: {{ o.c }}; text-align: right;">{{ o.v }}</span></div></sc-for>
+          </div>
+          <div style="background: #faf9f7; border: 1px solid #ece9e4; border-radius: 8px; padding: 10px;">{{ fSvg }}</div>
+        </div>
+        <div style="font-size: 11.5px; color: #6f6b64; line-height: 1.55; text-wrap: pretty;">{{ fNota }}</div>
+      </div>
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Plano 3D de fundaciones por pilar</span><span style="font-size: 11.5px; color: #6f6b64;">Girá con el mouse · pasá sobre una base para ver sus medidas · terreno natural según relevamiento topográfico</span></div>
+        <sc-if value="{{ verF3d }}" hint-placeholder-val="{{ false }}"><iframe src="Fundaciones 3D.html" title="Fundaciones 3D" style="width: 100%; height: 600px; border: 1px solid #e6e2da; border-radius: 8px; display: block;"></iframe></sc-if>
+      </div>
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Planilla de bases</span><span style="font-size: 11.5px; color: #6f6b64;">{{ fbRes }}</span></div>
+        <div style="overflow-x: auto;"><div style="min-width: 1000px;">
+          <div style="display: grid; grid-template-columns: 46px 40px 64px 74px 74px 58px 118px 112px 64px 60px 56px 78px; gap: 8px; padding: 7px 16px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: #86817b;"><span>Base</span><span title="Tiene tensor del elevador">Tens.</span><span>Tipo</span><span style="text-align: right;">Cota TN</span><span style="text-align: right;">Cota fondo</span><span style="text-align: right;">Prof.</span><span style="text-align: right;">Zapata B × B × h</span><span style="text-align: right;">Pedestal a × a × H</span><span style="text-align: right;">Horm. m³</span><span style="text-align: right;">Acero kg</span><span style="text-align: right;">Exc. m³</span><span style="text-align: right;">Verif.</span></div>
+          <sc-for list="{{ fbTab }}" as="b" hint-placeholder-count="30"><div style="display: grid; grid-template-columns: 46px 40px 64px 74px 74px 58px 118px 112px 64px 60px 56px 78px; gap: 8px; align-items: center; padding: 5px 16px; border-bottom: 1px solid #f1efeb; font-size: 11.5px; font-family: 'IBM Plex Mono', monospace; background: {{ b.bg }};">
+            <span style="font-weight: 700;">{{ b.id }}</span>
+            <input type="checkbox" checked="{{ b.ten }}" onChange="{{ b.onTen }}" title="Marcá si en este pilar se ancla un tensor del elevador" style="width: 15px; height: 15px; margin: 0; accent-color: #d9731a;" />
+            <span style="font-weight: 700; color: {{ b.tc }};">{{ b.tipo }}</span>
+            <span style="text-align: right;">{{ b.tn }}</span><span style="text-align: right;">{{ b.fondo }}</span><span style="text-align: right;">{{ b.prof }}</span>
+            <span style="text-align: right; font-weight: 600;">{{ b.zap }}</span><span style="text-align: right;">{{ b.ped }}</span>
+            <span style="text-align: right;">{{ b.vol }}</span><span style="text-align: right;">{{ b.kg }}</span><span style="text-align: right;">{{ b.exc }}</span>
+            <span style="text-align: right; font-family: 'IBM Plex Sans', sans-serif; font-size: 10.5px; font-weight: 700; color: {{ b.okc }};">{{ b.ok }}</span>
+          </div></sc-for>
+          <sc-for list="{{ fbTot }}" as="c" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 8px 16px; background: {{ c.bg }}; color: {{ c.fg }}; font-size: 12.5px; font-weight: 700;"><span>{{ c.k }}</span><span style="font-family: 'IBM Plex Mono', monospace;">{{ c.v }}</span></div></sc-for>
+        </div></div>
+      </div>
+    </div>
+
+    <div data-tab="computo" style="display: {{ d.computo }}; flex-direction: column; gap: 14px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Cómputo de acero</span><span style="font-size: 11.5px; color: #6f6b64;">Medido barra por barra sobre el modelo IFC · peso = área de la sección × 7.850 kg/m³ × largo</span></div>
+        <div style="overflow-x: auto;"><div style="min-width: 760px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr) 60px 90px 80px 100px; gap: 10px; padding: 7px 20px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;"><span>Perfil</span><span>Uso</span><span style="text-align: right;">Barras</span><span style="text-align: right;">Largo m</span><span style="text-align: right;">kg/m</span><span style="text-align: right;">Peso kg</span></div>
+          <sc-for list="{{ comp }}" as="c" hint-placeholder-count="15"><div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr) 60px 90px 80px 100px; gap: 10px; padding: 6px 20px; border-bottom: 1px solid #f1efeb; font-size: 12px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;">{{ c.p }}</span><span style="color: #4f4b45;">{{ c.u }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ c.n }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ c.l }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; color: #6f6b64;">{{ c.kgm }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-weight: 700;">{{ c.kg }}</span></div></sc-for>
+          <sc-for list="{{ compTot }}" as="c" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 10px; padding: 8px 20px; background: {{ c.bg }}; color: {{ c.fg }}; font-size: 12.5px; font-weight: 700;"><span>{{ c.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ c.v }}</span></div></sc-for>
+        </div></div>
+      </div>
+    </div>
+
+    <div data-tab="lista" style="display: {{ d.lista }}; flex-direction: column; gap: 14px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Planilla de costos por sector</span><span style="font-size: 11.5px; color: #6f6b64;">Materiales y mano de obra discriminados · cantidad y costo unitario editables · el total pasa al presupuesto</span></div>
+        <div style="overflow-x: auto;"><div style="min-width: 820px;">
+          <div style="display: grid; grid-template-columns: 34px minmax(0, 1fr) 90px 56px 120px 130px; gap: 10px; padding: 7px 20px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;"><span>N°</span><span>Material</span><span style="text-align: right;">Cantidad</span><span>Un.</span><span style="text-align: right;">Costo unit. Gs.</span><span style="text-align: right;">Total Gs.</span></div>
+          <sc-for list="{{ lm }}" as="sx" hint-placeholder-count="9">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 10px; padding: 9px 20px; background: #e9e6e0; border-bottom: 1px solid #dcd8d0; font-size: 13px; font-weight: 700;"><span>{{ sx.t }} <span style="font-weight: 400; color: #6f6b64;">· {{ sx.d }}</span></span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ sx.tot }}</span></div>
+            <sc-if value="{{ sx.hayMat }}" hint-placeholder-val="{{ true }}">
+            <div style="padding: 5px 20px 3px 64px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: oklch(0.42 0.10 240);">Materiales</div>
+            <sc-for list="{{ sx.mats }}" as="it" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: 34px minmax(0, 1fr) 90px 56px 120px 130px; gap: 10px; align-items: center; padding: 5px 20px; border-bottom: 1px solid #f1efeb; font-size: 12px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; color: #86817b;">{{ it.n }}</span>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0;"><span style="font-weight: 600;">{{ it.l }}</span><span style="font-size: 10.5px; color: #86817b;">{{ it.d }}</span></div>
+              <input value="{{ it.c }}" onChange="{{ it.onC }}" inputMode="decimal" style="padding: 4px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-align: right; border: 1px solid {{ it.bc }}; background: {{ it.bg }}; border-radius: 4px;" />
+              <span style="color: #6f6b64;">{{ it.u }}</span>
+              <input value="{{ it.pu }}" onChange="{{ it.onP }}" inputMode="numeric" style="padding: 4px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-align: right; border: 1px solid {{ it.bp }}; background: {{ it.bgp }}; border-radius: 4px;" />
+              <span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-weight: 700;">{{ it.tot }}</span>
+            </div></sc-for>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 10px; padding: 5px 20px; border-bottom: 1px solid #ece9e4; font-size: 11.5px; font-weight: 700; color: oklch(0.42 0.10 240);"><span style="padding-left: 44px;">Subtotal materiales</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ sx.totMat }}</span></div>
+            </sc-if>
+            <sc-if value="{{ sx.hayMo }}" hint-placeholder-val="{{ true }}">
+            <div style="padding: 5px 20px 3px 64px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: oklch(0.45 0.12 60);">{{ sx.moTit }}</div>
+            <sc-for list="{{ sx.mos }}" as="it" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: 34px minmax(0, 1fr) 90px 56px 120px 130px; gap: 10px; align-items: center; padding: 5px 20px; border-bottom: 1px solid #f1efeb; font-size: 12px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; color: #86817b;">{{ it.n }}</span>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0;"><span style="font-weight: 600;">{{ it.l }}</span><span style="font-size: 10.5px; color: #86817b;">{{ it.d }}</span></div>
+              <input value="{{ it.c }}" onChange="{{ it.onC }}" inputMode="decimal" style="padding: 4px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-align: right; border: 1px solid {{ it.bc }}; background: {{ it.bg }}; border-radius: 4px;" />
+              <span style="color: #6f6b64;">{{ it.u }}</span>
+              <input value="{{ it.pu }}" onChange="{{ it.onP }}" inputMode="numeric" style="padding: 4px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-align: right; border: 1px solid {{ it.bp }}; background: {{ it.bgp }}; border-radius: 4px;" />
+              <span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-weight: 700;">{{ it.tot }}</span>
+            </div></sc-for>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 10px; padding: 5px 20px; border-bottom: 1px solid #ece9e4; font-size: 11.5px; font-weight: 700; color: oklch(0.45 0.12 60);"><span style="padding-left: 44px;">Subtotal {{ sx.moTitL }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ sx.totMo }}</span></div>
+            </sc-if>
+          </sc-for>
+          <sc-for list="{{ lmRes }}" as="c" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 10px; padding: 9px 20px; background: {{ c.bg }}; color: {{ c.fg }}; font-size: {{ c.fs }}; font-weight: 700;"><span>{{ c.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ c.v }}</span></div></sc-for>
+        </div></div>
+      </div>
+      <div style="font-size: 11.5px; color: #6f6b64; line-height: 1.55;">Los perfiles se piden en barras de 6 m con 5 % de desperdicio; el costo por barra sale del peso de la barra y el precio por kg de cada tipo de acero. Pintura calculada para unos {{ lmM2 }} m² de superficie de acero. Los precios son de referencia: reemplazalos por los de tus proveedores.</div>
+    </div>
+
+    <div data-tab="presu" style="display: {{ d.presu }}; flex-direction: column; gap: 14px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Presupuesto de fabricación y montaje</span><span style="font-size: 11.5px; color: #6f6b64;">Sale de la planilla de costos · para cambiar cantidades o precios, editá la pestaña Planilla de costos</span></div>
+        <div style="overflow-x: auto;"><div style="min-width: 760px;">
+          <div style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 130px 130px 140px; gap: 10px; padding: 7px 20px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;"><span>N°</span><span>Sector</span><span style="text-align: right;">Materiales</span><span style="text-align: right;">Mano de obra</span><span style="text-align: right;">Costo Gs.</span></div>
+          <sc-for list="{{ pres }}" as="p" hint-placeholder-count="9"><div style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 130px 130px 140px; gap: 10px; align-items: center; padding: 7px 20px; border-bottom: 1px solid #f1efeb; font-size: 12.5px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; color: #86817b;">{{ p.n }}</span>
+            <div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-weight: 600;">{{ p.l }}</span><span style="font-size: 11px; color: #86817b;">{{ p.d }}</span></div>
+            <span style="font-family: 'IBM Plex Mono', monospace; text-align: right; color: oklch(0.42 0.10 240);">{{ p.mat }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; text-align: right; color: oklch(0.45 0.12 60);">{{ p.mo }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-weight: 700;">{{ p.imp }}</span>
+          </div></sc-for>
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 20px; background: #faf9f7; border-bottom: 1px solid #efedea; font-size: 12.5px;">
+            <label style="display: flex; align-items: center; gap: 6px;">Indirectos %<input value="{{ ind }}" onChange="{{ onInd }}" inputMode="decimal" style="width: 54px; padding: 4px 6px; font-family: 'IBM Plex Mono', monospace; text-align: right; border: 1px solid #e0dcd4; border-radius: 4px;" /></label>
+            <label style="display: flex; align-items: center; gap: 6px;">Margen %<input value="{{ mg }}" onChange="{{ onMg }}" inputMode="decimal" style="width: 54px; padding: 4px 6px; font-family: 'IBM Plex Mono', monospace; text-align: right; border: 1px solid #e0dcd4; border-radius: 4px;" /></label>
+            <span style="color: #6f6b64;">{{ gsKg }}</span>
+          </div>
+          <sc-for list="{{ presTot }}" as="c" hint-placeholder-count="5"><div style="display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 10px; padding: 8px 20px; background: {{ c.bg }}; color: {{ c.fg }}; font-size: {{ c.fs }}; font-weight: 700;"><span>{{ c.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right;">{{ c.v }}</span></div></sc-for>
+        </div></div>
+      </div>
+      <div data-noprint="1" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button onClick="{{ onAlArchivo }}" style="padding: 9px 16px; font-size: 13px; font-weight: 700; color: #fff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer;">Enviar al Archivo de presupuestos</button>
+        <span style="font-size: 12px; color: #6f6b64;">{{ archTxt }}</span>
+      </div>
+    </div>
+
+    <div data-tab="tres" style="display: {{ d.tres }}; flex-direction: column; gap: 10px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15px; font-weight: 700;">Esquema 3D de la estructura</span><span style="font-size: 11.5px; color: #6f6b64;">1.934 barras del modelo IFC · pasá el mouse sobre una barra para ver su perfil y largo</span></div>
+        <sc-if value="{{ ver3d }}" hint-placeholder-val="{{ false }}"><iframe src="Estructura 3D.html?d=estructuras/misericordia/barras.json" title="Estructura 3D" style="width: 100%; height: 620px; border: 1px solid #e6e2da; border-radius: 8px; display: block;"></iframe></sc-if>
+        <img src="estructuras/misericordia/modelo-alambre.png" alt="Modelo de alambre de la estructura" style="width: 100%; max-width: 560px; border-radius: 6px; display: block;" />
+      </div>
+    </div>
+
+    <div data-tab="planos" style="display: {{ d.planos }}; flex-direction: column; gap: 10px;">
+      <div data-card="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 20px 8px; font-size: 15px; font-weight: 700;">Planos de detalle y documentos</div>
+        <sc-for list="{{ planos }}" as="p" hint-placeholder-count="7"><div style="display: grid; grid-template-columns: 80px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 9px 20px; border-top: 1px solid #f1efeb; font-size: 12.5px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600;">{{ p.c }}</span>
+          <div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-weight: 600;">{{ p.t }}</span><span style="font-size: 11px; color: #86817b;">{{ p.d }}</span></div>
+          <span style="font-size: 11px; color: #6f6b64; font-family: 'IBM Plex Mono', monospace;">{{ p.f }}</span>
+          <a href="{{ p.href }}" target="_blank" rel="noopener" style="padding: 5px 11px; font-size: 12px; font-weight: 600; color: #1b1a18; background: #f4f3f0; border: 1px solid #dedbd5; border-radius: 6px; text-decoration: none;">Abrir</a>
+        </div></sc-for>
+      </div>
+      <sc-if value="{{ verPdf }}" hint-placeholder-val="{{ false }}"><iframe src="{{ pdfSel }}" title="Plano" style="width: 100%; height: 760px; border: 1px solid #dedbd5; border-radius: 8px;"></iframe></sc-if>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KEY = 'twg-estructuras-v1';
+const fmt = (n) => Math.round(n || 0).toLocaleString('es-PY').replace(/,/g, '.');
+const f1 = (n, d = 1) => (Math.round((n || 0) * Math.pow(10, d)) / Math.pow(10, d)).toLocaleString('es-PY', { minimumFractionDigits: d, maximumFractionDigits: d });
+const num = (v) => { const s = String(v ?? '').trim(); if (!s) return 0; return Number(s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/\.(?=\d{3}(\D|$))/g, '')) || 0; };
+const USO = [[/^RSECTION 2C 180/, 'Pilares (2 por eje)'], [/^2LHLI L 3 x 3/, 'Cordones de cabriada · ejes 4, 5, 6, 8 y 10'], [/^2LHLI L 2 1\/2/, 'Cordones de cabriada · ejes 2, 3, 7 y 9'], [/^RSECTION 2C 150/, 'Vigas de borde'], [/^C 150/, 'Correas de techo y largueros de cerramiento'], [/^2LHLI L 2 x 2/, 'Reticulado de pilares y cabriadas'], [/^2LHLI L 1 1\/2/, 'Reticulado (diagonales)'], [/^2LHLI LS/, 'Reticulado (montantes)'], [/^4LLI/, 'Reticulado armado'], [/^SHS/, 'Tubos de arriostre'], [/^R 16/, 'Tensores y cruces de San Andrés'], [/^L 3 x 3/, 'Contravigas para tensores'], [/^L /, 'Angulares de unión y contravigas']];
+const MIS = {
+  id: 'misericordia', nro: 'EE-2026-001', estado: 'EN ESTUDIO', nombre: 'Nave Industrial La Misericordia', ubicacion: 'Luque, Paraguay',
+  calculista: 'Ing. Alex Colman · Metalúrgica Vera S.R.L.', software: 'RFEM 6 (Dlubal)', fecha: '29/04/2026', datos: 'estructuras/misericordia/barras.json'
+};
+class Component extends DCLogic {
+  state = (() => { let s = {}; try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {} return Object.assign({ vista: 'estudio', tab: 'memoria', f: {}, pq: {}, pc: {}, ind: '8', mg: '20' }, s, { D: null }); })();
+  componentDidMount() { fetch(MIS.datos, { cache: 'no-store' }).then(r => r.json()).then(D => this.setState({ D })).catch(() => {}); }
+  componentDidUpdate() { const { D, ...rest } = this.state; try { localStorage.setItem(KEY, JSON.stringify(rest)); } catch (e) {} this.pub3d(); }
+  pub3d() { try { const FB = this.fundBases(); if (!FB.bases.length) return; const d = { NPT: FB.Q.NPT, TNmin: Math.min(FB.Q.TNf, FB.Q.TNb), TNmax: Math.max(FB.Q.TNf, FB.Q.TNb), terreno: { a: FB.a0, bx: 0, by: FB.by }, Tt: FB.Q.Tt, tensorDir: [-1, 0], vol: FB.tot.vol,
+    bases: FB.bases.map(b => ({ id: b.id, x: b.x, y: b.y, tipo: b.tipo, B: b.B, h: b.h, a: b.a, tn: b.tn, fondo: b.fondo, top: b.top, vol: b.vol, kg: b.kg })) }; const sj = JSON.stringify(d); if (sj === this._p3) return; this._p3 = sj; localStorage.setItem('twg-fund3d-misericordia', sj);
+    document.querySelectorAll('iframe').forEach(fr => { try { fr.contentWindow.postMessage({ fund3d: 1 }, '*'); } catch (e) {} }); } catch (e) {} }
+  fund() {
+    const f = this.state.f, g = (k, d) => (f[k] !== undefined && f[k] !== '' ? num(f[k]) : d);
+    const P = { N: g('N', 76.65), T: g('T', 64.85), sig: g('sig', 1.5), Df: g('Df', 1.5), h: g('h', 0.4), a: g('a', 0.6), gs: g('gs', 18), gc: g('gc', 24), FS: g('FS', 1.5) };
+    const qa = P.sig * 98.0665;
+    let B = 0.8, W = 0, q = 0;
+    for (; B <= 4; B = Math.round((B + 0.05) * 100) / 100) { const Vc = B * B * P.h + P.a * P.a * (P.Df - P.h), Vs = (B * B - P.a * P.a) * (P.Df - P.h); W = P.gc * Vc + P.gs * Vs; q = (P.N + W) / (B * B); if (W >= P.FS * P.T && q <= qa) break; }
+    const Vz = B * B * P.h, Vp = P.a * P.a * (P.Df - P.h + 0.15), Vh = Vz + Vp, Vex = (B + 0.3) * (B + 0.3) * P.Df;
+    return { P, B, W, q, qa, Vz, Vp, Vh, Vex, acero: Vz * 70 + Vp * 110 };
+  }
+  // Fundaciones base por base: cota de terreno natural, profundidad real, pedestal variable y bases con tensor del elevador.
+  fundBases() {
+    const s = this.state, D = s.D, F = this.fund(), f = s.f, g = (k, d) => (f[k] !== undefined && f[k] !== '' ? num(f[k]) : d);
+    const Q = { NPT: g('NPT', 146.30), TNf: g('TNf', 146.50), TNb: g('TNb', 144.50), Dmin: g('Dmin', 1.2), Tt: g('Tt', 52), ang: g('ang', 45), mu: g('mu', 0.45), FSd: g('FSd', 1.5) };
+    const raw = (D && D.bases ? D.bases : []).slice().sort((a, b) => (a.y - b.y) || (a.x - b.x));
+    if (!raw.length) return { Q, bases: [], tot: { vol: 0, kg: 0, exc: 0, enc: 0, limp: 0, n1: 0, n2: 0 } };
+    const y0 = Math.min(...raw.map(b => b.y)), y1 = Math.max(...raw.map(b => b.y)), by = (Q.TNb - Q.TNf) / Math.max(1, y1 - y0), a0 = Q.TNf - by * y0;
+    const tn = (x, y) => a0 + by * y;
+    const ids = raw.map((b, i) => 'B' + (i + 1));
+    // Tensores del elevador en el lateral de la nave (x ≈ 0 / 5,5), según la captura del modelo: esquina del bloque del fondo y pilar del bloque del frente.
+    const cerca = (x, y) => { let k = 0, d = 1e9; raw.forEach((b, i) => { const dd = Math.hypot(b.x - x, b.y - y); if (dd < d) { d = dd; k = i; } }); return ids[k]; };
+    let ten = s.tensorV2 ? s.tensor : null; if (!Array.isArray(ten)) ten = [cerca(0, 54), cerca(5.5, 20.6)];
+    const P = F.P, qa = F.qa, th = Q.ang * Math.PI / 180, Tv = Q.Tt * Math.sin(th), Th = Q.Tt * Math.cos(th);
+    const bases = raw.map((b, i) => {
+      const id = ids[i], Z2 = ten.includes(id), TNb = tn(b.x, b.y), fondo = Math.min(Q.NPT - P.Df, TNb - Q.Dmin), top = Q.NPT + 0.15;
+      const Tup = P.T + (Z2 ? Tv : 0), H = Z2 ? Th : 0, N = P.N + (Z2 ? Tv : 0);
+      let B = 0.8, W = 0, q = 0, ok1 = false, ok2 = false, ok3 = false;
+      for (; B <= 4.5; B = Math.round((B + 0.05) * 100) / 100) {
+        const hp = top - fondo - P.h, ts = Math.max(0, TNb - fondo - P.h);
+        W = P.gc * (B * B * P.h + P.a * P.a * hp) + P.gs * (B * B - P.a * P.a) * ts; q = (N + W) / (B * B);
+        ok1 = W >= P.FS * Tup; ok2 = q <= qa; ok3 = H === 0 || Q.mu * (W - Tup) >= Q.FSd * H;
+        if (ok1 && ok2 && ok3) break; }
+      const hp = top - fondo - P.h, vz = B * B * P.h, vp = P.a * P.a * hp, vol = vz + vp, exc = (B + 0.3) * (B + 0.3) * Math.max(0.3, TNb - fondo), relleno = Math.max(0, exc - vol - (B + 0.3) * (B + 0.3) * 0) * 0.85;
+      return { id, x: b.x, y: b.y, tipo: Z2 ? 'Z2' : 'Z1', B, h: P.h, a: P.a, tn: TNb, fondo, top, hp, prof: TNb - fondo, W, q, Tup, H, N, ok: ok1 && ok2 && ok3, vol, vz, vp, exc, relleno, kg: vz * (Z2 ? 85 : 70) + vp * (Z2 ? 140 : 110), enc: 4 * B * P.h + 4 * P.a * Math.max(0, hp - Math.max(0, TNb - fondo - P.h) + 0.3), limp: (B + 0.1) * (B + 0.1) * 0.05 };
+    });
+    const sum = (k, fl) => bases.filter(fl || (() => true)).reduce((q, b) => q + b[k], 0);
+    return { Q, bases, ten, Tv, Th, tn, a0, by, tot: { vol: sum('vol'), kg: sum('kg'), exc: sum('exc'), enc: sum('enc'), limp: sum('limp'), rell: sum('relleno'), n1: bases.filter(b => b.tipo === 'Z1').length, n2: bases.filter(b => b.tipo === 'Z2').length,
+      vol1: sum('vol', b => b.tipo === 'Z1'), vol2: sum('vol', b => b.tipo === 'Z2'), kg1: sum('kg', b => b.tipo === 'Z1'), kg2: sum('kg', b => b.tipo === 'Z2') } };
+  }
+  renderVals() {
+    const s = this.state, D = s.D, F = this.fund(), nB = (D && D.bases ? D.bases.length : 30), FB = this.fundBases();
+    const setF = (k) => (e) => { const v = e.target.value; this.setState(t => ({ f: Object.assign({}, t.f, { [k]: v }) })); };
+    const kgPerf = D ? D.perfiles.reduce((a, r) => a + r[4], 0) : 26643, kgCon = kgPerf * 0.05, kgTot = kgPerf + kgCon;
+    const Vh = FB.tot.vol || F.Vh * nB, Vex = FB.tot.exc || F.Vex * nB, acF = FB.tot.kg || F.acero * nB;
+    // Planilla de costos por sector: materiales y mano de obra discriminados
+    const lmOv = s.lm || {}, setLm = (k, c) => (e) => { const v = e.target.value; this.setState(t => { const o = Object.assign({}, t.lm || {}); o[k] = Object.assign({}, o[k] || {}, { [c]: v }); return { lm: o }; }); };
+    const PKG = (p) => /^R /.test(p) ? 9000 : /^(RSECTION|C |SHS)/.test(p) ? 9800 : 10500;
+    const nomP = (p) => p.replace(' /y /z', '').replace(/^2LHLI /, '2 × ').replace(/^4LLI /, '4 × ').replace(/\s*\/[\d.]+\/[\d.]+/, '');
+    const SEC = [
+      ['est', 'Estructura principal', 'pilares reticulados y cabriadas', [/^RSECTION 2C 180/, /^2LHLI L 3 x 3/, /^2LHLI L 2 1\/2/, /^2LHLI L 2 x 2/, /^2LHLI L 1 1\/2/, /^2LHLI LS/, /^4LLI/], 5500, 3000],
+      ['vb', 'Vigas de borde', 'perímetro de las naves', [/^RSECTION 2C 150/], 5000, 3000],
+      ['cor', 'Correas y largueros', 'apoyo de chapa de techo y cerramiento lateral', [/^C 150/], 2500, 2500],
+      ['arr', 'Arriostramiento y tensores', 'tubos, cruces de San Andrés y contravigas', [/^SHS/, /^R 16/, /^L /], 4000, 3000]
+    ];
+    const per = D ? D.perfiles : [];
+    const it = (sec, tipo, k, l, d2, c, u, pu) => { const o = lmOv[k] || {}, cq = o.c !== undefined && o.c !== '' ? num(o.c) : c, pp = o.p !== undefined && o.p !== '' ? num(o.p) : pu;
+      return { sec, tipo, k, l, d: d2, u, cN: cq, pN: pp, c: u === 'm³' || u === 'm²' || u === 'ml' ? f1(cq, 1) : fmt(cq), pu: fmt(pp), tot: fmt(cq * pp), bc: o.c ? 'oklch(0.70 0.12 240)' : '#e0dcd4', bg: o.c ? 'oklch(0.97 0.02 240)' : '#fff', bp: o.p ? 'oklch(0.70 0.12 240)' : '#e0dcd4', bgp: o.p ? 'oklch(0.97 0.02 240)' : '#fff', onC: setLm(k, 'c'), onP: setLm(k, 'p') }; };
+    const L0 = [], kgSec = {};
+    SEC.forEach(([sk, , , res]) => per.forEach(r => { if (SEC.findIndex(q => q[3].some(x => x.test(r[0]))) !== SEC.findIndex(q => q[0] === sk)) return;
+      const bar = Math.ceil(r[2] * 1.05 / 6), kgB = r[3] * 6; kgSec[sk] = (kgSec[sk] || 0) + r[4];
+      L0.push(it(sk, 'mat', 'p:' + r[0], 'Perfil ' + nomP(r[0]) + ' · barra de 6 m', (USO.find(u => u[0].test(r[0])) || [0, ''])[1] + ' · ' + f1(r[2], 1) + ' m · ' + f1(kgB, 1) + ' kg/barra', bar, 'barra', Math.round(kgB * PKG(r[0]) / 100) * 100)); }));
+    SEC.forEach(([sk, t, , , fab, mon]) => { const kg = Math.round((kgSec[sk] || 0) * 1.05);
+      L0.push(it(sk, 'mo', 'fab:' + sk, 'Fabricación en taller', 'Corte, armado y soldadura · ' + fmt(kg) + ' kg con conexiones', kg, 'kg', fab));
+      L0.push(it(sk, 'mo', 'mon:' + sk, 'Montaje en obra', 'Izaje, alineación, aplomado y ajuste de uniones', kg, 'kg', mon)); });
+    const kgCon2 = kgPerf * 0.05;
+    L0.push(it('con', 'mat', 'placas', 'Chapa para placas base, cartelas y bridas', 'Chapa A36 de 6,35 a 12,7 mm · 5 % del peso de perfiles', Math.round(kgCon2), 'kg', 10500));
+    L0.push(it('con', 'mat', 'anc', 'Barra roscada Ø ¾" × 600 mm (anclaje AN-01)', '8 por base · ' + nB + ' bases', nB * 8, 'un', 38000));
+    L0.push(it('con', 'mat', 'tue', 'Tuerca hexagonal Ø ¾"', 'Doble tuerca + tuerca de nivelación por anclaje', nB * 8 * 3, 'un', 3500));
+    L0.push(it('con', 'mat', 'aran', 'Arandela plana Ø ¾"', '2 por anclaje', nB * 8 * 2, 'un', 1500));
+    L0.push(it('con', 'mat', 'bul', 'Bulón Ø ⅝" × 2" con tuerca y arandela', 'Bridas de cabriadas y uniones abulonadas', 320, 'un', 9500));
+    L0.push(it('con', 'mat', 'grout', 'Mortero de nivelación sin contracción (grout)', 'Bolsa de 25 kg · bajo placas base', nB * 2, 'bolsa', 95000));
+    L0.push(it('con', 'mo', 'mo:anc', 'Colocación de anclajes con plantilla', 'Replanteo, plantilla y nivelación antes del hormigonado', nB, 'base', 120000));
+    L0.push(it('con', 'mo', 'mo:grout', 'Nivelación y grouting de placas base', 'Ajuste de tuercas y llenado bajo placa', nB * 2, 'placa', 45000));
+    const encM2 = FB.tot.enc || nB * (4 * F.P.a * (F.P.Df - F.P.h + 0.15) + 4 * F.B * F.P.h), T2 = FB.tot;
+    L0.push(it('fun', 'mat', 'hor', 'Hormigón elaborado H-21 · zapatas tipo Z1', T2.n1 + ' bases · pedestales de altura variable según terreno', Math.ceil((T2.vol1 || Vh) * 1.05 * 2) / 2, 'm³', 1050000));
+    if (T2.n2) L0.push(it('fun', 'mat', 'hor2', 'Hormigón elaborado H-21 · bases Z2 con tensor del elevador', T2.n2 + ' bases reforzadas para el tiro del tensor', Math.ceil(T2.vol2 * 1.05 * 2) / 2, 'm³', 1050000));
+    L0.push(it('fun', 'mat', 'hlimp', 'Hormigón de limpieza (5 cm)', 'Bajo todas las zapatas', Math.ceil((T2.limp || nB * F.B * F.B * 0.05) * 10) / 10, 'm³', 750000));
+    L0.push(it('fun', 'mat', 'var', 'Acero de refuerzo · zapatas Z1 (varillas Ø 10 y Ø 12)', 'Parrillas y armadura de pedestal', Math.round((T2.kg1 || acF) * 1.08), 'kg', 9300));
+    if (T2.n2) L0.push(it('fun', 'mat', 'var2', 'Acero de refuerzo · bases Z2 (varillas Ø 12 y Ø 16)', 'Armadura reforzada para tiro y corte del tensor', Math.round(T2.kg2 * 1.08), 'kg', 9300));
+    L0.push(it('fun', 'mat', 'alam', 'Alambre de atar N° 16', '2 % del acero de refuerzo', Math.ceil(acF * 0.02), 'kg', 14000));
+    L0.push(it('fun', 'mat', 'enc', 'Tablas y puntales para encofrado', 'Laterales de zapatas y pedestales, 3 usos', Math.ceil(encM2 / 3), 'm²', 55000));
+    L0.push(it('fun', 'mo', 'mo:rep', 'Replanteo y nivelación con estación total', 'Ejes, cotas de fondo y NPT ' + f1(FB.Q.NPT, 2) + ' según relevamiento topográfico', 1, 'gl', 1800000));
+    L0.push(it('fun', 'mo', 'mo:exc', 'Excavación manual y retiro de tierra', nB + ' bases · profundidad de ' + f1(Math.min(...FB.bases.map(b => b.prof).concat([9])), 2) + ' a ' + f1(Math.max(...FB.bases.map(b => b.prof).concat([0])), 2) + ' m según terreno', Math.round(Vex * 10) / 10, 'm³', 95000));
+    L0.push(it('fun', 'mo', 'mo:rell', 'Relleno y compactación alrededor de bases', 'Con suelo de la excavación, en capas de 20 cm', Math.round((T2.rell || 0) * 10) / 10, 'm³', 45000));
+    L0.push(it('fun', 'mo', 'mo:arm', 'Doblado y armado de hierros', 'Parrillas y pedestales', Math.round(acF), 'kg', 2200));
+    L0.push(it('fun', 'mo', 'mo:encf', 'Encofrado y desencofrado', 'Zapatas y pedestales', Math.round(encM2), 'm²', 35000));
+    L0.push(it('fun', 'mo', 'mo:horm', 'Hormigonado, vibrado y curado', 'Zapatas y pedestales', Math.round(Vh * 10) / 10, 'm³', 220000));
+    const m2 = kgPerf / 1000 * 35, galA = Math.ceil(m2 / 8 / 18), galE = Math.ceil(m2 * 2 / 10 / 18);
+    L0.push(it('pin', 'mat', 'anti', 'Antióxido (fondo), balde de 18 L', '1 mano · 8 m²/L', galA, 'balde', 520000));
+    L0.push(it('pin', 'mat', 'esm', 'Esmalte sintético, balde de 18 L', '2 manos · 10 m²/L', galE, 'balde', 640000));
+    L0.push(it('pin', 'mat', 'thin', 'Thinner, bidón de 18 L', 'Dilución y limpieza', Math.ceil((galA + galE) / 4), 'bidón', 290000));
+    L0.push(it('pin', 'mat', 'elec', 'Electrodo E6013 Ø 2,5 mm, caja de 20 kg', '0,8 % del peso del acero', Math.ceil(kgTot * 0.008 / 20), 'caja', 520000));
+    L0.push(it('pin', 'mat', 'disc', 'Discos de corte y desbaste 4½" y 7"', 'Taller y montaje', Math.ceil(kgTot / 150), 'un', 12000));
+    L0.push(it('pin', 'mat', 'gas', 'Gas y oxígeno para oxicorte', 'Corte de chapas y placas', 2, 'carga', 450000));
+    L0.push(it('pin', 'mo', 'mo:pint', 'Limpieza mecánica y pintura a 3 manos', 'Antióxido + 2 manos de esmalte · ' + fmt(m2) + ' m²', Math.round(m2), 'm²', 9000));
+    const ROOF = 1097 * Math.sqrt(1 + 0.12 * 0.12), chM2 = Math.ceil(ROOF * 1.08);
+    L0.push(it('cub', 'mat', 'chapa', 'Chapa trapezoidal galvanizada N° 24 (0,55 mm)', 'Cubierta de ' + f1(ROOF, 0) + ' m² con pendiente 12 % · +8 % de solapes y cortes', chM2, 'm²', 78000));
+    L0.push(it('cub', 'mat', 'torn', 'Tornillo autoperforante 14 × 1" con arandela de neopreno', '6 por m² de cubierta', Math.ceil(ROOF * 6 / 100) * 100, 'un', 750));
+    L0.push(it('cub', 'mat', 'cumb', 'Cumbrera de chapa N° 24', 'Cumbreras de las dos naves', 90, 'ml', 55000));
+    L0.push(it('cub', 'mat', 'bab', 'Babetas y cierres de chapa N° 24', 'Bordes, encuentros y frontis', 175, 'ml', 42000));
+    L0.push(it('cub', 'mat', 'sell', 'Sellador poliuretánico y cinta butílica', 'Solapes, cumbreras y encuentros', Math.ceil(ROOF / 40), 'un', 65000));
+    L0.push(it('cub', 'mo', 'mo:chapa', 'Colocación de chapa de cubierta', 'Izaje, fijación y sellado', Math.round(ROOF), 'm²', 18000));
+    L0.push(it('cub', 'mo', 'mo:cumb', 'Colocación de cumbreras, babetas y cierres', 'Fijación y sellado', 265, 'ml', 9000));
+    if (T2.n2) {
+      L0.push(it('ten', 'mat', 't:oreja', 'Orejas de anclaje en chapa A36 de 19 mm', 'Lateral de la nave · pilares ' + FB.ten.join(' y ') + ' · soldada al pilar a la altura del tiro', T2.n2 * 2, 'un', 280000));
+      L0.push(it('ten', 'mat', 't:refp', 'Refuerzo de pilar con perfil 2C 180×80×17×2,5', 'Tramo de 3 m en las dos patas del pilar, en la zona del tiro', T2.n2 * 2 * 3, 'm', 14 * 9800));
+      L0.push(it('ten', 'mat', 't:cart', 'Cartelas y diafragmas de chapa de 9,5 mm', 'Rigidización del pilar en el punto de anclaje', T2.n2 * 18, 'kg', 10500));
+      L0.push(it('ten', 'mat', 't:grill', 'Grillete y tensor de ojo-gancho Ø 1"', 'Para conexión del cable del elevador', T2.n2, 'jgo', 420000));
+      L0.push(it('ten', 'mat', 't:perno', 'Pernos Ø 1" grado 5 con tuerca y arandela', 'Unión de la oreja', T2.n2 * 4, 'un', 28000));
+      L0.push(it('ten', 'mo', 't:fab', 'Fabricación y soldadura de refuerzos', 'Orejas, cartelas y refuerzo de pilar', T2.n2, 'pilar', 950000));
+      L0.push(it('ten', 'mo', 't:mon', 'Montaje y prueba de carga del anclaje', 'Colocación en obra y verificación con el tensor tensado', T2.n2, 'pilar', 650000));
+    }
+    // persianas de ventilación: 14 u. de 3,00 × 1,00 m en la parte alta de ambos laterales (ventilación cruzada)
+    L0.push(it('per', 'mat', 'per:u', 'Persiana de ventilación de aletas fijas en chapa galvanizada N° 24, 3,00 × 1,00 m, con malla antipájaro', '6 en el lateral eje A y 8 en el lateral eje F · una por módulo, bajo la canaleta', 14, 'un', 1950000));
+    L0.push(it('per', 'mat', 'per:marco', 'Bastidor de caño 40 × 40 × 1,6 mm para persiana', 'Marco de fijación a largueros', 14 * 8, 'm', 22000));
+    L0.push(it('per', 'mat', 'per:cierre', 'Babetas, cierres y sellador para persiana', 'Corte de chapa del cerramiento y sellado del perímetro', 14, 'un', 180000));
+    L0.push(it('per', 'mo', 'mo:per', 'Colocación de persianas de ventilación', 'Corte de chapa lateral, bastidor, fijación, sellado y prueba de estanqueidad', 14, 'un', 350000));
+    L0.push(it('eq', 'mo', 'grua', 'Camión grúa para montaje', 'Izaje de pilares, cabriadas de hasta 26,5 m y paquetes de chapa', 10, 'día', 2500000));
+    L0.push(it('eq', 'mo', 'flete', 'Flete de taller a obra', 'Camión con carreta, Luque', 5, 'viaje', 1200000));
+    L0.push(it('eq', 'mo', 'and', 'Andamios, línea de vida y equipos de seguridad', 'Alquiler durante el montaje', 1, 'gl', 3200000));
+    L0.push(it('eq', 'mo', 'ing', 'Dirección técnica y replanteo', 'Replanteo de ejes y anclajes, control de montaje, relevamiento previo y posterior', 1, 'gl', 4500000));
+    const SX = [['est', 'Estructura principal', 'pilares reticulados y cabriadas'], ['vb', 'Vigas de borde', 'perímetro de las naves'], ['cor', 'Correas y largueros', 'apoyo de chapa de techo y cerramiento lateral'], ['arr', 'Arriostramiento y tensores', 'tubos, cruces de San Andrés y contravigas'], ['con', 'Conexiones y anclajes', 'placas, bulones y anclajes AN-01'], ['fun', 'Fundaciones', nB + ' zapatas con pedestal'], ['pin', 'Pintura y consumibles', 'antióxido, esmalte y soldadura'], ['cub', 'Cubierta', 'chapa trapezoidal N° 24'], ['per', 'Persianas de ventilación', '14 u. de 3,00 × 1,00 m en ambos laterales · 42 m²'], ['ten', 'Anclaje de tensores del elevador', T2.n2 + ' pilares · tiro de ' + f1(FB.Q.Tt, 1) + ' kN por tensor'], ['eq', 'Equipos, transporte y dirección', 'grúa, fletes, seguridad y dirección técnica']];
+    let nI = 0; const suma = (xs) => xs.reduce((q, x) => q + x.cN * x.pN, 0);
+    const lm = SX.map(([k, t, d2]) => { const all = L0.filter(x => x.sec === k), mats = all.filter(x => x.tipo === 'mat'), mos = all.filter(x => x.tipo === 'mo'); [...mats, ...mos].forEach(x => { x.n = String(++nI); });
+      const tm = suma(mats), to = suma(mos); return { k, t, d: d2, mats, mos, hayMat: mats.length > 0, hayMo: mos.length > 0, moTit: k === 'eq' ? 'Servicios y equipos' : 'Mano de obra', tmN: tm, toN: to, totMat: 'Gs. ' + fmt(tm), totMo: 'Gs. ' + fmt(to), tot: 'Gs. ' + fmt(tm + to) }; }).filter(x => x.mats.length + x.mos.length);
+    const lmMat = lm.reduce((q, x) => q + x.tmN, 0), lmMo = lm.reduce((q, x) => q + x.toN, 0), lmTotN = lmMat + lmMo;
+    const rows = lm.map((x, i) => ({ n: String(i + 1), l: x.t, d: x.d, mat: 'Gs. ' + fmt(x.tmN), mo: 'Gs. ' + fmt(x.toN), imp: fmt(x.tmN + x.toN), cN: 1, ppN: x.tmN + x.toN, u: 'gl', x }));
+    const cd = lmTotN, ind = num(s.ind), mg = num(s.mg), neto = Math.round(cd * (1 + ind / 100) * (1 + mg / 100)), iva = Math.round(neto * 0.1), total = neto + iva;
+    const tabsL = [['memoria', 'Memoria'], ['cargas', 'Cargas y combinaciones'], ['resultados', 'Verificaciones y reacciones'], ['fund', 'Fundaciones'], ['computo', 'Cómputo de acero'], ['lista', 'Planilla de costos'], ['presu', 'Presupuesto'], ['tres', 'Esquema 3D'], ['planos', 'Planos']];
+    const dsp = {}; tabsL.forEach(([k]) => { dsp[k] = s.tab === k ? 'flex' : 'none'; });
+    const elu = [['Pilares', '2C 180×80×17×2,5 + reticulado', 0.753], ['Cordones de cabriadas', '2L 3"×3"×3/16" y 2L 2½"×2½"×3/16"', 0.962], ['Vigas de borde', '2C 150×50×17×2', 0.935], ['Reticulado', '2L 2"×2", 2L 1½"×1½", 2LS 1¼"×1¼"', 0.790], ['Tubos de arriostre', 'SHS 100×100×2', 0.654], ['Cruces', 'Redondo Ø 16 mm', 0.799], ['Contravigas para tensores', 'L 3"×3"×¼" / L 2½"×2½"', 0.709]].map(([g, sx, e]) => ({ g, s: sx, e: f1(e, 3), w: Math.min(100, e * 100) + '%', c: e > 1 ? 'oklch(0.52 0.19 27)' : e > 0.9 ? 'oklch(0.58 0.15 60)' : 'oklch(0.48 0.12 150)', ok: e > 1 ? 'NO VERIFICA' : 'VERIFICA' }));
+    return {
+      tituloBarra: s.vista === 'carpeta' ? 'Carpeta' : MIS.nombre,
+      enCarpeta: s.vista === 'carpeta', enEstudio: s.vista !== 'carpeta',
+      onCarpeta: () => this.setState({ vista: s.vista === 'carpeta' ? 'estudio' : 'carpeta' }), onImprimir: () => { this.setState({ vista: 'estudio' }, () => setTimeout(() => window.print(), 300)); },
+      carpetaTxt: '1 estudio',
+      estudios: [{ nro: MIS.nro, estado: MIS.estado, estBg: 'oklch(0.94 0.05 240)', estFg: 'oklch(0.40 0.12 240)', nombre: MIS.nombre, sub: MIS.ubicacion + ' · ' + MIS.calculista, kg: f1(kgTot / 1000, 1) + ' t', total: 'Gs. ' + fmt(total), onAbrir: () => this.setState({ vista: 'estudio' }) }],
+      E: MIS,
+      kpis: [{ t: 'Acero', v: f1(kgTot / 1000, 1) + ' t' }, { t: 'Luz máx.', v: '26,48 m' }, { t: 'Bases', v: String(nB) }, { t: 'Total', v: 'Gs. ' + fmt(total) }],
+      tabs: tabsL.map(([k, l]) => ({ l, onSel: () => this.setState({ tab: k }), style: 'padding: 7px 13px; font-size: 12.5px; font-weight: 600; border: 0; border-radius: 6px; cursor: pointer; font-family: inherit; color: ' + (s.tab === k ? '#fff' : '#33312e') + '; background: ' + (s.tab === k ? '#1b1a18' : 'transparent') + ';' })),
+      d: dsp,
+      memoria: [
+        { t: '1. Objeto', x: 'Verificación de los elementos estructurales del galpón a dos aguas con tensores de la Nave Industrial La Misericordia, en Luque. El modelo de cálculo se resolvió en RFEM 6; no se incluyen en el modelado las tillas rompe tramos.' },
+        { t: '2. Descripción de la estructura', x: 'Nave de planta en L con pórticos de pilares reticulados (dos patas de 2C 180×80×17×2,5 mm por eje) y cabriadas reticuladas con cordones de doble ángulo, cubierta de chapa trapezoidal con pendiente del 12 % y canaletas de chapa galvanizada N° 18 de 1.200 mm de desarrollo. La estabilidad longitudinal se resuelve con tubos SHS 100×2, cruces de redondo Ø 16 mm y tensores con contravigas.' },
+        { t: '3. Cargas y combinaciones', x: 'Peso propio, permanente de cubierta (0,06 kN/m²), sobrecarga de cubierta (0,25 kN/m²) con cargas concentradas de 52,0 kN y viento en las cuatro direcciones. Combinaciones según ASCE 7-16: apartado 2.3 (LRFD) para estado límite último y 2.4 (ASD) para servicio, CO1 a CO14.' },
+        { t: '4. Resultados', x: 'Todos los grupos verifican en ELU, con una razón de tensiones máxima de 0,962 en los cordones de cabriadas. En servicio, la deformación horizontal máxima en pilares es de 11,9 mm (admisible 25 mm) y la flecha máxima en cabriadas es de 26,9 mm (admisible 105,9 mm).' },
+        { t: '5. Fundaciones', x: 'Zapatas aisladas con pedestal para ' + nB + ' bases. El dimensionado está gobernado por el levantamiento por viento (' + f1(F.P.T, 2) + ' kN), que se equilibra con el peso del hormigón y del suelo sobre la zapata con un factor de seguridad de ' + f1(F.P.FS, 2) + '. Resultado: zapata de ' + f1(F.B, 2) + ' × ' + f1(F.B, 2) + ' m a ' + f1(F.P.Df, 2) + ' m de profundidad.' },
+        { t: '6. Observaciones', x: 'Hacer relevamiento previo y posterior a la ubicación de los anclajes (CA-01). La tensión admisible del suelo usada para las fundaciones debe confirmarse con un estudio de suelo.' }
+      ],
+      geo: [{ k: 'Planta (envolvente)', v: '26,97 × 58,50 m' }, { k: 'Forma', v: 'en L · dos naves' }, { k: 'Altura máxima', v: '9,69 m' }, { k: 'Altura de pilares', v: '7,50 m' }, { k: 'Luz máxima de cabriada', v: '26,48 m' }, { k: 'Pendiente de cubierta', v: '12 %' }, { k: 'Ejes', v: "1' a 10' · A a E" }, { k: 'Pilares / apoyos', v: nB + ' / ' + (nB * 2) }, { k: 'Barras del modelo', v: D ? fmt(D.barras.length) : '1.934' }],
+      mats: [{ k: 'Perfiles laminados y ángulos', v: 'ASTM A36 · Fy 250 MPa' }, { k: 'Perfiles conformados en frío', v: 'S235 · Fy 235 MPa' }, { k: 'Redondos y tensores', v: 'A36 · Ø 16 mm' }, { k: 'Hormigón de bases (modelo)', v: 'C30/37' }],
+      normas: ['ASCE 7-16 · casos de carga y combinaciones', 'ANSI/AISC 360-16 · construcciones de acero', 'AISI S100 · miembros de acero conformado en frío'],
+      hip: [['CC1', 'Peso propio', 'automático', 'Peso de todas las barras del modelo'], ['CC2', 'Permanente', '0,06 kN/m²', 'Chapa de cubierta, fijaciones y aislación'], ['CC3', 'Sobrecarga de cubierta', '0,25 kN/m²', 'Más cargas concentradas de 52,0 kN indicadas en el modelo'], ['CC4', 'Viento +X', '0,48 a 1,07 kN/m²', 'Presión y succión en fachadas y cubierta'], ['CC5', 'Viento −X', '0,49 a 1,07 kN/m²', 'Presión y succión en fachadas y cubierta'], ['CC6', 'Viento +Y', '0,97 kN/m²', 'Frente longitudinal'], ['CC7', 'Viento −Y', '0,97 kN/m²', 'Frente longitudinal']].map(([c, d2, v, a]) => ({ c, d: d2, v, a })),
+      combos: [{ t: 'ELU · ASCE 7-16 apartado 2.3 (LRFD)', s: 'D = permanente + peso propio · Lr = sobrecarga de cubierta · W = viento', l: ['1,4 D', '1,2 D + 1,6 Lr + 0,5 W', '1,2 D + 1,6 Lr', '1,2 D + 1,0 W + 0,5 Lr', '0,9 D + 1,0 W'].map((x, i) => ({ n: 'LC' + (i + 1), f: x })) }, { t: 'ELS · ASCE 7-16 apartado 2.4 (ASD)', s: 'Para deformaciones', l: ['D', 'D + Lr', 'D + 0,6 W', 'D + 0,75 (0,6 W) + 0,75 Lr', '0,6 D + 0,6 W', 'D + 0,75 Lr', '0,6 D + 0,6 W (succión)'].map((x, i) => ({ n: 'LC' + (i + 6), f: x })) }],
+      elu,
+      els: [{ g: 'Pilares', s: 'Desplazamiento horizontal · H = 7.500 mm · H/300', d: '11,9 mm', lim: '25,0 mm' }, { g: 'Cabriadas', s: 'Flecha vertical · L = 26.484 mm · L/250', d: '26,9 mm', lim: '105,9 mm' }, { g: 'Global', s: 'Deformación máxima u-Z de la estructura', d: '16,9 mm', lim: '105,9 mm' }],
+      reac: [{ t: 'Compresión máxima', v: '76,65 kN', s: '≈ 7,8 t por apoyo', bg: 'oklch(0.96 0.03 150)' }, { t: 'Levantamiento máximo', v: '64,85 kN', s: 'viento · ≈ 6,6 t por apoyo', bg: 'oklch(0.96 0.03 27)' }, { t: 'Desplazamiento horizontal', v: '16,9 mm', s: 'envolvente u', bg: '#f4f3f0' }, { t: 'Apoyos', v: String(nB * 2), s: nB + ' pilares de dos patas', bg: '#f4f3f0' }],
+      fIn: [['N', 'Compresión de diseño N (kN)', F.P.N], ['T', 'Levantamiento T (kN)', F.P.T], ['sig', 'Tensión admisible del suelo (kg/cm²)', F.P.sig], ['Df', 'Profundidad de fundación Df (m)', F.P.Df], ['h', 'Altura de zapata h (m)', F.P.h], ['a', 'Lado del pedestal (m)', F.P.a], ['gs', 'Peso del suelo (kN/m³)', F.P.gs], ['gc', 'Peso del hormigón (kN/m³)', F.P.gc], ['FS', 'Factor de seguridad al levantamiento', F.P.FS], ['NPT', 'Nivel de piso terminado NPT (cota)', FB.Q.NPT], ['TNf', 'Terreno natural en el frente (cota)', FB.Q.TNf], ['TNb', 'Terreno natural en el fondo (cota)', FB.Q.TNb], ['Dmin', 'Empotramiento mínimo en suelo natural (m)', FB.Q.Dmin], ['Tt', 'Tiro de cada tensor del elevador (kN)', FB.Q.Tt], ['ang', 'Ángulo del tensor con la horizontal (°)', FB.Q.ang], ['mu', 'Coeficiente de fricción suelo-hormigón', FB.Q.mu], ['FSd', 'Factor de seguridad al deslizamiento', FB.Q.FSd]].map(([k, l, v]) => ({ l, v: s.f[k] !== undefined ? s.f[k] : String(v).replace('.', ','), on: setF(k) })),
+      fOut: [['Lado de zapata B', f1(F.B, 2) + ' m', true], ['Peso que resiste el levantamiento (hormigón + suelo)', f1(F.W, 1) + ' kN'], ['Peso necesario (FS × T)', f1(F.P.FS * F.P.T, 1) + ' kN'], ['Presión sobre el suelo (N + W) / B²', f1(F.q, 1) + ' kN/m²'], ['Presión admisible', f1(F.qa, 1) + ' kN/m²'], ['Verificación al levantamiento', F.W >= F.P.FS * F.P.T ? 'VERIFICA' : 'NO VERIFICA', true, F.W >= F.P.FS * F.P.T], ['Verificación a compresión', F.q <= F.qa ? 'VERIFICA' : 'NO VERIFICA', true, F.q <= F.qa], ['Hormigón por base', f1(F.Vh, 2) + ' m³'], ['Hormigón total (' + nB + ' bases)', f1(F.Vh * nB, 1) + ' m³', true], ['Acero de refuerzo estimado', fmt(F.acero * nB) + ' kg'], ['Excavación total', f1(F.Vex * nB, 1) + ' m³']].map(([k, v, b, ok]) => ({ k, v, w: b ? 700 : 500, c: ok === undefined ? '#1b1a18' : ok ? 'oklch(0.45 0.13 150)' : 'oklch(0.52 0.19 27)' })),
+      fSvg: (() => { const h = React.createElement, W0 = 320, H0 = 230, sc = 150 / Math.max(F.B, F.P.Df + 0.3), x0 = 160, yT = 40, B = F.B * sc, Df = F.P.Df * sc, hz = F.P.h * sc, a = F.P.a * sc;
+        const t = (x, y, s2, o) => h('text', Object.assign({ x, y, fontSize: 10, fontFamily: 'IBM Plex Mono, monospace', fill: '#33312e', textAnchor: 'middle' }, o), s2);
+        return h('svg', { viewBox: '0 0 ' + W0 + ' ' + H0, width: '100%', style: { display: 'block' } }, [
+          h('rect', { key: 's', x: 10, y: yT, width: 300, height: Df + 30, fill: '#e6dfcf' }), h('line', { key: 'g', x1: 10, y1: yT, x2: 310, y2: yT, stroke: '#6f6b64', strokeWidth: 1.5 }),
+          h('rect', { key: 'z', x: x0 - B / 2, y: yT + Df - hz, width: B, height: hz, fill: '#bdb8ae', stroke: '#1b1a18' }),
+          h('rect', { key: 'p', x: x0 - a / 2, y: yT - 10, width: a, height: Df - hz + 10, fill: '#cfc9bf', stroke: '#1b1a18' }),
+          h('rect', { key: 'pl', x: x0 - a / 2 - 4, y: yT - 14, width: a + 8, height: 4, fill: '#1f4e79' }),
+          h('line', { key: 'c1', x1: x0 - 10, y1: yT - 14, x2: x0 - 10, y2: yT - 32, stroke: '#1f4e79', strokeWidth: 4 }), h('line', { key: 'c2', x1: x0 + 10, y1: yT - 14, x2: x0 + 10, y2: yT - 32, stroke: '#1f4e79', strokeWidth: 4 }),
+          t(x0, yT + Df + 14, 'B = ' + f1(F.B, 2) + ' m'), t(x0 + B / 2 + 26, yT + Df - hz / 2 + 3, 'h = ' + f1(F.P.h, 2)), t(30, yT + Df / 2, 'Df', { textAnchor: 'start' }), t(30, yT + Df / 2 + 12, f1(F.P.Df, 2) + ' m', { textAnchor: 'start' }),
+          t(x0 + a / 2 + 40, yT + 16, 'pedestal ' + f1(F.P.a, 2)), t(x0, 14, 'Pilar 2C 180 · 4 anclajes Ø ¾" por pata')]); })(),
+      verF3d: s.tab === 'fund',
+      fbRes: FB.tot.n1 + ' zapatas Z1 · ' + FB.tot.n2 + ' bases Z2 con tensor · terreno de cota ' + f1(FB.Q.TNf, 2) + ' (frente) a ' + f1(FB.Q.TNb, 2) + ' (fondo) · NPT ' + f1(FB.Q.NPT, 2),
+      fbTab: FB.bases.map(b => ({ id: b.id, ten: b.tipo === 'Z2', tipo: b.tipo, tc: b.tipo === 'Z2' ? '#b35a10' : '#1b1a18', bg: b.tipo === 'Z2' ? 'oklch(0.97 0.03 60)' : '#fff', tn: f1(b.tn, 2), fondo: f1(b.fondo, 2), prof: f1(b.prof, 2), zap: f1(b.B, 2) + ' × ' + f1(b.B, 2) + ' × ' + f1(b.h, 2), ped: f1(b.a, 2) + ' × ' + f1(b.a, 2) + ' × ' + f1(b.hp, 2), vol: f1(b.vol, 2), kg: fmt(b.kg), exc: f1(b.exc, 1), ok: b.ok ? 'VERIFICA' : 'REVISAR', okc: b.ok ? 'oklch(0.45 0.13 150)' : 'oklch(0.52 0.19 27)',
+        onTen: (e2) => { const on = e2.target.checked, cur = FB.ten.slice(); const nx = on ? Array.from(new Set(cur.concat([b.id]))) : cur.filter(x => x !== b.id); this.setState({ tensor: nx, tensorV2: true }); } })),
+      fbTot: [{ k: 'Zapatas Z1 · ' + FB.tot.n1 + ' bases', v: f1(FB.tot.vol1, 1) + ' m³ · ' + fmt(FB.tot.kg1) + ' kg', bg: '#f4f3f0', fg: '#1b1a18' }, { k: 'Bases Z2 con tensor · ' + FB.tot.n2 + ' bases', v: f1(FB.tot.vol2, 1) + ' m³ · ' + fmt(FB.tot.kg2) + ' kg', bg: 'oklch(0.95 0.04 60)', fg: '#8a3d00' }, { k: 'Total fundaciones', v: f1(FB.tot.vol, 1) + ' m³ de hormigón · ' + fmt(FB.tot.kg) + ' kg de acero · ' + f1(FB.tot.exc, 1) + ' m³ de excavación', bg: '#1b1a18', fg: '#fff' }],
+      fNota: 'Las bases Z2 llevan el tiro del tensor del elevador: ' + f1(FB.Q.Tt, 1) + ' kN a ' + f1(FB.Q.ang, 0) + '°, es decir ' + f1(FB.Tv, 1) + ' kN de levantamiento extra y ' + f1(FB.Th, 1) + ' kN horizontales, que se verifican al deslizamiento con fricción ' + f1(FB.Q.mu, 2) + '. Cada base se apoya en suelo natural a no menos de ' + f1(FB.Q.Dmin, 2) + ' m bajo el terreno del relevamiento topográfico; donde el terreno está más bajo que el NPT, el pedestal se alarga. No encontré estudio de suelo en los archivos: la tensión admisible es una suposición. ' + 'Cálculo por equilibrio: el peso del hormigón y del suelo que carga la zapata tiene que superar el levantamiento por viento con el factor de seguridad elegido, y la presión total no puede pasar la admisible del suelo. El valor de 1,5 kg/cm² es una suposición: confirmalo con el estudio de suelo. Al cambiar cualquier dato se actualizan el volumen de hormigón, la excavación y el presupuesto.',
+      comp: D ? D.perfiles.map(r => ({ p: r[0].replace(' /y /z', ''), u: (USO.find(u => u[0].test(r[0])) || [0, '—'])[1], n: fmt(r[1]), l: f1(r[2], 1), kgm: f1(r[3], 2), kg: fmt(r[4]) })) : [],
+      compTot: [{ k: 'Total de perfiles', v: fmt(kgPerf) + ' kg', bg: '#f4f3f0', fg: '#1b1a18' }, { k: 'Placas, cartelas, bridas y bulones (+5 %)', v: fmt(kgCon) + ' kg', bg: '#f4f3f0', fg: '#1b1a18' }, { k: 'Total de acero', v: fmt(kgTot) + ' kg · ' + f1(kgTot / 1000, 2) + ' t', bg: '#1b1a18', fg: '#fff' }],
+      lm: lm.map(x => Object.assign(x, { moTitL: x.k === 'eq' ? 'servicios y equipos' : 'mano de obra' })), lmM2: fmt(m2),
+      lmRes: [{ k: 'Total materiales', v: 'Gs. ' + fmt(lmMat), bg: 'oklch(0.95 0.03 240)', fg: 'oklch(0.32 0.10 240)', fs: '13px' }, { k: 'Total mano de obra, servicios y equipos', v: 'Gs. ' + fmt(lmMo), bg: 'oklch(0.95 0.04 75)', fg: 'oklch(0.38 0.11 60)', fs: '13px' }, { k: 'Costo directo total', v: 'Gs. ' + fmt(lmTotN), bg: '#1b1a18', fg: '#fff', fs: '14px' }],
+      pres: rows, ind: s.ind, mg: s.mg, onInd: (e) => this.setState({ ind: e.target.value }), onMg: (e) => this.setState({ mg: e.target.value }),
+      gsKg: 'Estructura metálica: Gs. ' + fmt(lm.filter(x => ['est', 'vb', 'cor', 'arr', 'con', 'pin'].includes(x.k)).reduce((q, x) => q + x.tmN + x.toN, 0) / kgTot) + ' por kg de costo directo',
+      presTot: [{ k: 'Costo directo', v: 'Gs. ' + fmt(cd), bg: '#faf9f7', fg: '#1b1a18', fs: '12.5px' }, { k: 'Indirectos ' + s.ind + ' % y margen ' + s.mg + ' %', v: 'Gs. ' + fmt(neto - cd), bg: '#faf9f7', fg: '#1b1a18', fs: '12.5px' }, { k: 'Subtotal', v: 'Gs. ' + fmt(neto), bg: '#f4f3f0', fg: '#1b1a18', fs: '13px' }, { k: 'IVA 10 %', v: 'Gs. ' + fmt(iva), bg: '#f4f3f0', fg: '#1b1a18', fs: '13px' }, { k: 'Total', v: 'Gs. ' + fmt(total), bg: '#1b1a18', fg: '#fff', fs: '15px' }],
+      archTxt: s.archNro ? 'Guardado en el Archivo como ' + s.archNro : 'Crea o actualiza el presupuesto en Costos y Propuesta, con cliente, alcance y rubros.',
+      onAlArchivo: () => {
+        const K = 'twg-archivo-presupuestos-v1'; let v; try { v = JSON.parse(localStorage.getItem(K) || '[]'); } catch (e) { v = []; } const arr = Array.isArray(v) ? v : (v.items || []);
+        let it = arr.find(x => x.id === 'p2026ee001misericordia'); const nmax = Math.max(0, ...arr.map(x => +(String(x.nro).match(/P-2026-(\d+)/) || [0, 0])[1]));
+        const nro = it ? it.nro : 'P-2026-' + String(nmax + 1).padStart(3, '0');
+        const rub = lm.map(x => ({ id: 'ee' + x.k, nombre: x.t, medida: '', unidad: 'gl', overhead: String(ind), margen: String(mg), descMat: x.t + ' · ' + x.d + '\nDetalles:\n' + x.mats.map(m => '- ' + m.l + ': ' + m.c + ' ' + m.u).join('\n'), descMatCant: '1', descMatUn: 'Global', descMo: x.mos.map(m => '- ' + m.l).join('\n'), propVer: true, propDescMat: true, propDescMo: false, incluir: true,
+          mats: x.mats.map((m, j) => ({ id: j + 1, desc: m.l, unidad: m.u, cant: String(m.cN), costo: String(m.pN), desp: '0', marg: String(mg), prop: false })),
+          mos: x.mos.map((m, j) => ({ id: j + 1, desc: m.l + ' (' + m.c + ' ' + m.u + ')', pers: '1', horas: String(m.cN), vh: String(m.pN), marg: String(mg) })), flete: '0', equipos: '0', subcontratos: '0', varios: '0' }));
+        const P = { id: 'p2026ee001misericordia', nro, fecha: new Date().toLocaleDateString('es-PY'), estado: it ? it.estado : 'BORRADOR', total: 'Gs. ' + fmt(total), datos: Object.assign({}, it ? it.datos : {}, { cliente: (it && it.datos.cliente) || '', obra: 'Nave Industrial La Misericordia · Fabricación y montaje de estructura metálica y fundaciones', domicilio: 'Luque', moneda: 'Gs.', decimales: '0', iva: '10', ivaMonto: '', mostrarMO: true, mostrarOtros: true, verAlcance: true,
+          plazo: '60 días corridos desde el anticipo: 35 de fabricación en taller y 25 de fundaciones y montaje.', pago: 'Crédito', validez: '15 días', firmaNombre: 'Ing. Edgar Mendez', firmaCargo: 'Ejecutivo Comercial',
+          alcance: 'Fabricación, pintura, transporte y montaje de la estructura metálica de la Nave Industrial La Misericordia, en Luque, y ejecución de sus fundaciones, según la memoria de cálculo y los planos CA-01 a CA-05 del Ing. Alex Colman.\n\nCOMPRENDE: ' + f1(kgTot / 1000, 2) + ' t de acero estructural (pilares reticulados 2C 180, cabriadas de doble ángulo, vigas de borde, correas y largueros C 150, arriostres SHS 100, cruces y tensores Ø 16) con placas y conexiones; pintura antióxido y esmalte; flete; montaje con camión grúa; ' + (nB * 8) + ' anclajes AN-01; excavación y ' + f1(F.Vh * nB, 1) + ' m³ de hormigón armado en ' + nB + ' bases; grouting y dirección técnica.\n\nNO INCLUYE: chapa de cubierta y cerramiento, canaletas y bajadas, piso industrial, instalaciones, estudio de suelo.\n\nOBSERVACIONES: el dimensionado de fundaciones supone una tensión admisible del suelo de ' + f1(F.P.sig, 2) + ' kg/cm², a confirmar con estudio de suelo.',
+          memoria: 'Cómputo de acero medido sobre el modelo IFC: ' + fmt(kgPerf) + ' kg de perfiles + 5 % de conexiones. Fundaciones: zapata ' + f1(F.B, 2) + ' × ' + f1(F.B, 2) + ' × ' + f1(F.P.h, 2) + ' m con pedestal, gobernada por el levantamiento de ' + f1(F.P.T, 2) + ' kN. Indirectos ' + ind + ' % y margen ' + mg + ' %.',
+          rubros: rub }) };
+        const k0 = arr.findIndex(x => x.id === P.id); if (k0 >= 0) arr[k0] = P; else arr.push(P);
+        try { localStorage.setItem(K, JSON.stringify(Array.isArray(v) ? arr : Object.assign(v, { items: arr }))); this.setState({ archNro: nro }); } catch (e) { this.setState({ archNro: '' }); }
+      },
+      ver3d: s.tab === 'tres',
+      planos: [['Memoria', 'Memoria de cálculo · Galpón Misericordia', '37 páginas · RFEM 6', 'PDF', 'estructuras/misericordia/memoria.pdf'], ['CA-01', 'Planta para ubicación de anclajes', 'Esc. 1:125 · detalles 1 a 6 y corte A-A esc. 1:10', 'PDF', 'estructuras/misericordia/ca01.pdf'], ['CA-02', 'Planta de arriostres', 'Arriostres en ejes A, B, C y E · cruz horizontal', 'PDF', 'estructuras/misericordia/ca02.pdf'], ['CA-03', 'Planta de correas y cerramientos laterales', 'Elevaciones en ejes A, B, C y E', 'PDF', 'estructuras/misericordia/ca03.pdf'], ['CA-04', "Cortes en ejes 1' al 5 y detalles", 'Bridas de cabriada, canaleta, contravigas', 'PDF', 'estructuras/misericordia/ca04.pdf'], ['CA-05', "Cortes en ejes 6 al 10' y detalles", 'Secciones de cabriadas y pilares', 'PDF', 'estructuras/misericordia/ca05.pdf'], ['IFC', 'Modelo 3D de la estructura', '1.951 barras · IFC4', 'IFC', 'estructuras/misericordia/modelo.ifc']].map(([c, t, d2, f, href]) => ({ c, t, d: d2, f, href })),
+      verPdf: false, pdfSel: ''
+    };
+  }
+}
+</script>
+</body>
+</html>

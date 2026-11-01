@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #ecebe8; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1b1a18; }
+  a { color: #1b1a18; } a:hover { color: #6f6b64; }
+  input, textarea, select { font-family: inherit; }
+  @page { size: A4 portrait; margin: 8mm 9mm; }
+  @media print {
+    html, body { background: #fff; }
+    [data-noprint] { display: none !important; }
+    html, body, x-dc, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+    [data-hoja] { box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: none !important; width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
+    [data-hoja] * { overflow: visible !important; max-height: none !important; }
+    [data-hoja] > div { min-width: 0 !important; }
+    [data-hoja] textarea { height: auto !important; white-space: pre-wrap !important; overflow-wrap: anywhere; }
+    input, textarea, select { border-color: transparent !important; background: transparent !important; }
+    select { appearance: none; -webkit-appearance: none; }
+    [data-fila] { break-inside: avoid; }
+    [data-bloque] { break-inside: auto; }
+    [data-entero] { break-inside: avoid !important; page-break-inside: avoid !important; }
+    [data-off] { display: none !important; }
+    [data-vacio] input, [data-vacio] textarea { min-height: 18px !important; }
+    ::placeholder { color: transparent !important; }
+    /* compacto */
+    [data-hoja] { gap: 5px !important; font-size: 9pt !important; line-height: 1.25 !important; }
+    [data-hoja] input, [data-hoja] textarea { padding-top: 1px !important; padding-bottom: 1px !important; min-height: 0 !important; font-size: 8.6pt !important; line-height: 1.25 !important; }
+    [data-hoja] span, [data-hoja] div { padding-top: 2px; padding-bottom: 2px; }
+    [data-hoja] [data-logo] { width: 120px !important; }
+    [data-hoja] [data-fotos] { display: block !important; padding: 4px !important; font-size: 0 !important; }
+    [data-hoja] [data-fotos] > [data-fila] { display: inline-flex !important; vertical-align: top; width: calc(25% - 4px) !important; margin: 0 4px 4px 0 !important; box-sizing: border-box; font-size: 8pt !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+    [data-hoja] [data-fotos] img { aspect-ratio: 16 / 10 !important; break-inside: avoid; page-break-inside: avoid; }
+    [data-fotosbox] { break-inside: auto; }
+    [data-fotosbox] > div:first-child { break-after: avoid; page-break-after: avoid; }
+    [data-hoja] [data-firma] { height: 30px !important; }
+    [data-hoja] [data-cab] { padding-bottom: 4px !important; }
+  }
+</style>
+</helmet>
+
+<div data-noprint="1" style="position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 18px; background: #1b1a18; color: #f4f3f0;">
+  <div style="display: flex; gap: 2px; padding: 3px; background: #33312e; border-radius: 7px; flex: none;"><button onClick="{{ onModoProv }}" style="{{ btnProv }}">Con proveedor</button><button onClick="{{ onModoCli }}" style="{{ btnCli }}">Con cliente</button></div>
+  <select value="{{ provF }}" onChange="{{ onProvF }}" style="flex: 0 1 220px; min-width: 0; padding: 7px 10px; font-size: 13px; border: 0; border-radius: 6px; background: oklch(0.90 0.08 85); color: #1b1a18; font-weight: 600;">
+    <option value="">Todos los proveedores</option>
+    <sc-for list="{{ provOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+  </select>
+  <select value="{{ pid }}" onChange="{{ onPid }}" style="flex: 1 1 320px; min-width: 0; max-width: 520px; padding: 7px 10px; font-size: 13px; border: 0; border-radius: 6px; background: #f4f3f0; color: #1b1a18;">
+    <option value="">Elegí el número de propuesta…</option>
+    <sc-for list="{{ opciones }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
+  </select>
+  <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #d6d2ca; cursor: pointer; white-space: nowrap; flex: none;"><input type="checkbox" checked="{{ soloAprob }}" onChange="{{ onSoloAprob }}" style="width: 14px; height: 14px; margin: 0;" />Solo aprobados y en ejecución</label>
+  <span style="flex: 1 1 0; min-width: 0;"></span>
+  <a href="Orden de Trabajo.dc.html" style="white-space: nowrap; flex: none; padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: #f4f3f0; border: 1px solid #8f8a83; border-radius: 6px; text-decoration: none;">Orden de trabajo</a>
+  <button onClick="{{ onArchTg }}" style="white-space: nowrap; flex: none; padding: 7px 12px; font-size: 12.5px; font-weight: 700; color: #1b1a18; background: {{ archBg }}; border: 0; border-radius: 6px; cursor: pointer;">📁 Archivo de acuerdos ({{ archN }})</button>
+  <button onClick="{{ onRecargar }}" style="white-space: nowrap; flex: none; padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: #f4f3f0; background: transparent; border: 1px solid #8f8a83; border-radius: 6px; cursor: pointer;">Recargar de la propuesta</button>
+  <button onClick="{{ onImprimir }}" style="white-space: nowrap; flex: none; padding: 7px 16px; font-size: 12.5px; font-weight: 700; color: #1b1a18; background: oklch(0.88 0.08 85); border: 0; border-radius: 6px; cursor: pointer;">Imprimir acuerdo</button>
+</div>
+
+<sc-if value="{{ archOpen }}" hint-placeholder-val="{{ false }}">
+  <div data-noprint="1" style="max-width: 980px; margin: 16px auto 0; background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #1b1a18;">
+      <span style="font-size: 14px; font-weight: 700;">{{ archTit }}</span>
+      <textarea rows="1" value="{{ archQ }}" onChange="{{ onArchQ }}" placeholder="Buscar por N°, obra, cliente o proveedor" style="width: 280px; padding: 6px 9px; border: 1px solid #d6d2ca; border-radius: 5px; font-size: 12.5px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+    </div>
+    <div style="display: grid; grid-template-columns: 110px 110px minmax(0, 1.6fr) minmax(0, 1fr) 82px 130px 70px; gap: 10px; padding: 7px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #8f8a83; border-bottom: 1px solid #efedea;"><span>Acuerdo</span><span>Propuesta</span><span>Obra</span><span>Proveedor</span><span>Fecha</span><span style="text-align: right;">Monto Gs.</span><span></span></div>
+    <sc-if value="{{ archVacio }}" hint-placeholder-val="{{ false }}"><div style="padding: 14px 16px; font-size: 12.5px; color: #86817b;">No hay acuerdos guardados todavía.</div></sc-if>
+    <sc-for list="{{ archLista }}" as="a" hint-placeholder-count="3">
+      <div style="display: grid; grid-template-columns: 110px 110px minmax(0, 1.6fr) minmax(0, 1fr) 82px 130px 70px; gap: 10px; align-items: center; padding: 7px 16px; border-bottom: 1px solid #f4f2ef; font-size: 12.5px; background: {{ a.bg }};">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 700;">{{ a.nro }}</span><span style="font-family: 'IBM Plex Mono', monospace; color: #6f6b64;">{{ a.prop }}</span>
+        <div style="display: flex; flex-direction: column; min-width: 0;"><span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.obra }}</span><span style="font-size: 11px; color: #6f6b64;">{{ a.cliente }}</span></div>
+        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.prov }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;">{{ a.fecha }}</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-weight: 600;">{{ a.monto }}</span>
+        <button onClick="{{ a.onAbrir }}" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; color: #fff; background: #1b1a18; border: 0; border-radius: 5px; cursor: pointer;">Abrir</button>
+      </div>
+    </sc-for>
+  </div>
+</sc-if>
+
+<sc-if value="{{ sinProp }}" hint-placeholder-val="{{ false }}">
+  <div data-noprint="1" style="max-width: 760px; margin: 40px auto; padding: 22px 26px; background: #fff; border: 1px solid #dedbd5; border-radius: 12px; font-size: 14px; line-height: 1.6; color: #33312e;">{{ sinPropTxt }}</div>
+</sc-if>
+
+<sc-if value="{{ hayProp }}" hint-placeholder-val="{{ true }}">
+<button data-noprint="1" onClick="{{ onImprimir }}" title="Imprimir el acuerdo" style="position: fixed; right: 22px; bottom: 22px; z-index: 30; display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 14px; font-weight: 700; color: #1b1a18; background: oklch(0.88 0.08 85); border: 0; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); cursor: pointer;">🖨 Imprimir acuerdo</button>
+<div data-hoja="1" style="max-width: 820px; margin: 24px auto 60px; padding: 34px 38px; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.08); box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; font-size: 11.5px; line-height: 1.4;">
+
+  <div data-cab="1" style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 220px; gap: 14px; align-items: center; padding-bottom: 10px; border-bottom: 2px solid #1b1a18;">
+    <img data-logo="1" src="logo-full-service.png" alt="Full Service and Clean" style="width: 160px; height: auto; display: block;" />
+    <div style="text-align: center; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 18px; font-weight: 700; letter-spacing: 0.03em;"><textarea rows="1" value="{{ tx.titulo }}" onChange="{{ onTx.titulo }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="font-size: 11px; color: #4f4b45;"><textarea rows="1" value="{{ tx.sub }}" onChange="{{ onTx.sub }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span></div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <label data-noprint="1" style="display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 6px;"><span style="font-weight: 700; font-size: 10px;">Prop.:</span>
+        <select value="{{ pid }}" onChange="{{ onPid }}" style="min-width: 0; padding: 3px 4px; border: 1.5px solid oklch(0.70 0.12 240); border-radius: 3px; background: oklch(0.97 0.02 240); font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600; cursor: pointer;"><sc-for list="{{ opcionesTodas }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.corto }}</option></sc-for></select></label>
+      <label style="display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 6px;"><span style="font-weight: 700;">Nº:</span><input value="{{ d.nro }}" onChange="{{ on.nro }}" style="padding: 3px 6px; border: 1px solid #c9c5bd; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;" /></label>
+      <label style="display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 6px;"><span style="font-weight: 700;">Fecha:</span><input value="{{ d.fecha }}" onChange="{{ on.fecha }}" style="padding: 3px 6px; border: 1px solid #c9c5bd; border-radius: 3px; font-size: 12px;" /></label>
+      <span style="font-size: 10px; color: #6f6b64;">Propuesta {{ propNro }} · {{ propEstado }}</span>
+    </div>
+  </div>
+
+  <div data-bloque="1" style="display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #1b1a18;">
+    <div style="display: flex; flex-direction: column; border-right: 1px solid #1b1a18;">
+      <div style="padding: 5px 8px; font-weight: 700; background: #f1efeb; border-bottom: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.hCont }}" onChange="{{ onTx.hCont }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></div>
+      <sc-for list="{{ contratante }}" as="f" hint-placeholder-count="4"><label style="display: grid; grid-template-columns: 118px minmax(0, 1fr); align-items: center; border-bottom: 1px solid #e0dcd4;"><span style="padding: 4px 8px; font-size: 10.5px; font-weight: 600; color: #4f4b45;"><textarea rows="1" value="{{ f.l }}" onChange="{{ f.onL }}" style="width: 100%; min-width: 0; box-sizing: border-box; padding: 0; border: 1px dashed transparent; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><textarea rows="1" value="{{ f.v }}" onChange="{{ f.on }}" style="min-width: 0; padding: 4px 6px; border: 0; font-size: 11.5px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea></label></sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column;">
+      <div style="padding: 5px 8px; font-weight: 700; background: #f1efeb; border-bottom: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.hProv }}" onChange="{{ onTx.hProv }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></div>
+      <sc-for list="{{ proveedor }}" as="f" hint-placeholder-count="4"><label style="display: grid; grid-template-columns: 118px minmax(0, 1fr); align-items: center; border-bottom: 1px solid #e0dcd4;"><span style="padding: 4px 8px; font-size: 10.5px; font-weight: 600; color: #4f4b45;"><textarea rows="1" value="{{ f.l }}" onChange="{{ f.onL }}" style="width: 100%; min-width: 0; box-sizing: border-box; padding: 0; border: 1px dashed transparent; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><textarea rows="1" value="{{ f.v }}" onChange="{{ f.on }}" placeholder="Completar" style="min-width: 0; padding: 4px 6px; border: 0; font-size: 11.5px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea></label></sc-for>
+    </div>
+  </div>
+
+  <div data-bloque="1" style="display: grid; grid-template-columns: 150px minmax(0, 1fr); border: 1px solid #1b1a18;">
+    <sc-for list="{{ obraF }}" as="f" hint-placeholder-count="5">
+      <span style="padding: 5px 8px; font-weight: 700; background: #f1efeb; border-right: 1px solid #1b1a18; border-top: {{ f.bt }};"><textarea rows="1" value="{{ f.l }}" onChange="{{ f.onL }}" style="width: 100%; min-width: 0; box-sizing: border-box; padding: 0; border: 1px dashed transparent; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span>
+      <textarea value="{{ f.v }}" onChange="{{ f.on }}" rows="1" style="field-sizing: content; min-height: 24px; padding: 4px 8px; border: 0; border-top: {{ f.bt }}; font-size: 11.5px; resize: none; line-height: 1.35;"></textarea>
+    </sc-for>
+  </div>
+
+  <div data-bloque="1" style="border: 1px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: 40px minmax(0, 1fr); font-weight: 700; background: #f1efeb;"><span style="padding: 6px 8px; border-right: 1px solid #1b1a18; text-align: center;">✓</span><span style="padding: 6px 8px;"><textarea rows="1" value="{{ tx.hAlc }}" onChange="{{ onTx.hAlc }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span></div>
+    <sc-for list="{{ alcance }}" as="a" hint-placeholder-count="4">
+      <div data-fila="1" data-off="{{ a.off }}" style="display: grid; grid-template-columns: 40px minmax(0, 1fr); border-top: 1px solid #1b1a18; opacity: {{ a.op }};">
+        <div style="display: flex; align-items: flex-start; justify-content: center; padding-top: 6px; border-right: 1px solid #1b1a18;"><input type="checkbox" checked="{{ a.on }}" onChange="{{ a.onOn }}" title="Incluir en el acuerdo" style="width: 14px; height: 14px; margin: 0; accent-color: #1b1a18;" /></div>
+        <div style="display: flex; flex-direction: column;">
+          <textarea value="{{ a.t }}" onChange="{{ a.onT }}" rows="1" style="field-sizing: content; min-height: 22px; padding: 4px 8px 0; border: 0; font-size: 11.5px; font-weight: 700; resize: none;"></textarea>
+          <textarea value="{{ a.d }}" onChange="{{ a.onD }}" rows="1" style="field-sizing: content; min-height: 20px; padding: 2px 8px 5px; border: 0; font-size: 10.5px; color: #33312e; resize: none; line-height: 1.4;"></textarea>
+        </div>
+      </div>
+    </sc-for>
+    <div data-noprint="1" style="padding: 5px 8px; border-top: 1px solid #1b1a18;"><button onClick="{{ onAddAlc }}" style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar trabajo</button></div>
+  </div>
+
+  <div data-bloque="1" style="border: 1px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 78px 78px 78px minmax(0, 1fr); font-weight: 700; background: #f1efeb; text-align: center;"><span style="padding: 6px 8px; border-right: 1px solid #1b1a18; text-align: left;"><textarea rows="1" value="{{ tx.hResp }}" onChange="{{ onTx.hResp }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="padding: 6px 4px; border-right: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.cProv }}" onChange="{{ onTx.cProv }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="padding: 6px 4px; border-right: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.cFS }}" onChange="{{ onTx.cFS }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="padding: 6px 4px; border-right: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.cCli }}" onChange="{{ onTx.cCli }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="padding: 6px 8px;"><textarea rows="1" value="{{ tx.cObs }}" onChange="{{ onTx.cObs }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span></div>
+    <sc-for list="{{ resp }}" as="r" hint-placeholder-count="8">
+      <div data-fila="1" style="display: grid; grid-template-columns: minmax(0, 1fr) 78px 78px 78px minmax(0, 1fr); border-top: 1px solid #1b1a18;">
+        <textarea rows="1" value="{{ r.t }}" onChange="{{ r.onT }}" style="min-width: 0; padding: 4px 8px; border: 0; border-right: 1px solid #1b1a18; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+        <sc-for list="{{ r.q }}" as="c" hint-placeholder-count="3"><div style="display: flex; align-items: center; justify-content: center; border-right: 1px solid #1b1a18;"><input type="checkbox" checked="{{ c.v }}" onChange="{{ c.on }}" style="width: 14px; height: 14px; margin: 0; accent-color: #1b1a18;" /></div></sc-for>
+        <textarea rows="1" value="{{ r.c }}" onChange="{{ r.onC }}" style="min-width: 0; padding: 4px 8px; border: 0; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+      </div>
+    </sc-for>
+    <div data-noprint="1" style="padding: 5px 8px; border-top: 1px solid #1b1a18;"><button onClick="{{ onAddResp }}" style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar fila</button></div>
+  </div>
+
+  <div data-bloque="1" data-entero="1" style="border: 1px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: 28px minmax(0, 1.5fr) 100px minmax(0, 1fr) 96px 64px 64px 26px; font-weight: 700; background: #f1efeb; text-align: center; font-size: 10.5px;">
+      <span style="padding: 6px 4px; border-right: 1px solid #1b1a18;">N°</span>
+      <span style="padding: 6px 8px; border-right: 1px solid #1b1a18; text-align: left;">{{ tx.hPers }}</span>
+      <span style="padding: 6px 4px; border-right: 1px solid #1b1a18;">C.I.</span>
+      <span style="padding: 6px 4px; border-right: 1px solid #1b1a18;">Función</span>
+      <span style="padding: 6px 4px; border-right: 1px solid #1b1a18;">Teléfono</span>
+      <span style="padding: 6px 4px; border-right: 1px solid #1b1a18;" title="Inscripto en el Instituto de Previsión Social">IPS</span>
+      <span style="padding: 6px 4px; border-right: 1px solid #1b1a18;" title="Certificado de aptitud y capacitación para trabajo en altura">Apto altura</span>
+      <span></span>
+    </div>
+    <sc-for list="{{ pers }}" as="w" hint-placeholder-count="0">
+      <div data-fila="1" data-vacio="{{ w.vacio }}" style="display: grid; grid-template-columns: 28px minmax(0, 1.5fr) 100px minmax(0, 1fr) 96px 64px 64px 26px; border-top: 1px solid #1b1a18;">
+        <span style="padding: 4px; border-right: 1px solid #1b1a18; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">{{ w.n }}</span>
+        <textarea rows="1" value="{{ w.nom }}" onChange="{{ w.onNom }}" placeholder="Nombre y apellido" style="min-width: 0; padding: 4px 6px; border: 0; border-right: 1px solid #1b1a18; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+        <input value="{{ w.ci }}" onChange="{{ w.onCi }}" placeholder="C.I." style="min-width: 0; padding: 4px 6px; border: 0; border-right: 1px solid #1b1a18; font-size: 11px; font-family: 'IBM Plex Mono', monospace; text-align: center;" />
+        <textarea rows="1" value="{{ w.fun }}" onChange="{{ w.onFun }}" placeholder="Oficial, ayudante…" style="min-width: 0; padding: 4px 6px; border: 0; border-right: 1px solid #1b1a18; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+        <textarea rows="1" value="{{ w.tel }}" onChange="{{ w.onTel }}" placeholder="09xx…" style="min-width: 0; padding: 4px 6px; border: 0; border-right: 1px solid #1b1a18; font-size: 11px; font-family: 'IBM Plex Mono', monospace; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+        <div style="display: flex; align-items: center; justify-content: center; border-right: 1px solid #1b1a18;"><input type="checkbox" checked="{{ w.ips }}" onChange="{{ w.onIps }}" style="width: 14px; height: 14px; margin: 0; accent-color: #1b1a18;" /></div>
+        <div style="display: flex; align-items: center; justify-content: center; border-right: 1px solid #1b1a18;"><input type="checkbox" checked="{{ w.alt }}" onChange="{{ w.onAlt }}" style="width: 14px; height: 14px; margin: 0; accent-color: #1b1a18;" /></div>
+        <button data-noprint="1" onClick="{{ w.onX }}" title="Quitar" style="border: 0; background: transparent; color: #8a3a2f; cursor: pointer; font-size: 13px;">×</button>
+      </div>
+    </sc-for>
+    <div data-noprint="1" style="display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-top: 1px solid #1b1a18;"><button onClick="{{ onAddPers }}" style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar persona</button><span style="font-size: 10.5px; color: #6f6b64;">{{ persTxt }}</span></div>
+  </div>
+
+  <div data-bloque="1" style="border: 1.5px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 230px; align-items: center; background: #f1efeb; border-bottom: 1px solid #1b1a18;">
+      <span style="padding: 7px 8px; font-weight: 700;"><textarea value="{{ tx.hMonto }}" onChange="{{ onTx.hMonto }}" rows="1" style="field-sizing: content; width: 100%; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span>
+      <div style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-left: 1px solid #1b1a18;"><span style="font-weight: 700;">Gs.</span><input value="{{ montoTxt }}" onChange="{{ onMonto }}" inputMode="numeric" placeholder="0" style="min-width: 0; flex: 1; padding: 3px 6px; border: 1px solid #c9c5bd; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; text-align: right;" /></div>
+    </div>
+    <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid #1b1a18;"><input type="checkbox" checked="{{ d.conIva }}" onChange="{{ on.conIva }}" style="width: 14px; height: 14px; margin: 0; accent-color: #1b1a18;" /><textarea rows="1" value="{{ tx.conIva }}" onChange="{{ onTx.conIva }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></label>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 70px 140px 120px; font-weight: 700; text-align: center; border-bottom: 1px solid #1b1a18;"><span style="padding: 5px 8px; text-align: left; border-right: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.hPago }}" onChange="{{ onTx.hPago }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="padding: 5px 4px; border-right: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.cPct }}" onChange="{{ onTx.cPct }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="padding: 5px 4px; border-right: 1px solid #1b1a18;"><textarea rows="1" value="{{ tx.cMonto }}" onChange="{{ onTx.cMonto }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><span style="padding: 5px 4px;"><textarea rows="1" value="{{ tx.cFecha }}" onChange="{{ onTx.cFecha }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; text-align: center; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span></div>
+    <sc-for list="{{ pagos }}" as="g" hint-placeholder-count="3">
+      <div data-fila="1" style="display: grid; grid-template-columns: minmax(0, 1fr) 70px 140px 120px; border-top: 1px solid #e0dcd4;">
+        <textarea rows="1" value="{{ g.t }}" onChange="{{ g.onT }}" style="min-width: 0; padding: 4px 8px; border: 0; border-right: 1px solid #1b1a18; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+        <input value="{{ g.pct }}" onChange="{{ g.onPct }}" inputMode="decimal" style="min-width: 0; padding: 4px; border: 0; border-right: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: right;" />
+        <input value="{{ g.monto }}" onChange="{{ g.onMonto }}" onBlur="{{ g.onMontoOk }}" onKeyDown="{{ g.onMontoKey }}" inputMode="numeric" placeholder="0" title="Editá el monto: el % se recalcula solo" style="min-width: 0; padding: 4px 8px; border: 0; border-right: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; text-align: right;" />
+        <textarea rows="1" value="{{ g.f }}" onChange="{{ g.onF }}" style="min-width: 0; padding: 4px 6px; border: 0; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea>
+      </div>
+    </sc-for>
+    <div style="display: flex; justify-content: space-between; gap: 10px; padding: 5px 8px; border-top: 1px solid #1b1a18; font-weight: 700; color: {{ pctColor }};"><span>{{ pctTxt }}</span><button data-noprint="1" onClick="{{ onAddPago }}" style="padding: 2px 9px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer; color: #1b1a18;">+ Agregar pago</button></div>
+  </div>
+
+  <sc-if value="{{ verFotos }}" hint-placeholder-val="{{ false }}">
+  <div data-fotosbox="1" style="border: 1px solid #1b1a18;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 8px; font-weight: 700; background: #f1efeb; border-bottom: 1px solid #1b1a18;">
+      <span style="flex: 1; min-width: 0;"><textarea rows="1" value="{{ tx.hFotos }}" onChange="{{ onTx.hFotos }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span>
+      <span data-noprint="1" style="font-size: 10.5px; font-weight: 500; color: #6f6b64;">{{ fotosTxt }}</span>
+    </div>
+    <div data-fotos="1" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px;">
+      <sc-for list="{{ fotos }}" as="ft" hint-placeholder-count="0">
+        <div data-fila="1" data-off="{{ ft.off }}" style="display: flex; flex-direction: column; gap: 4px; border: 1px solid #d6d2ca; padding: 4px; opacity: {{ ft.op }}; position: relative;">
+          <sc-if value="{{ ft.src }}" hint-placeholder-val="{{ false }}"><img loading="lazy" src="{{ ft.src }}" alt="{{ ft.cap }}" style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: #f1efeb;" /></sc-if>
+          <textarea value="{{ ft.cap }}" onChange="{{ ft.onCap }}" rows="1" placeholder="Descripción" style="field-sizing: content; min-height: 18px; padding: 2px 4px; border: 0; font-size: 10px; resize: none; line-height: 1.3;"></textarea>
+          <div data-noprint="1" style="position: absolute; top: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <label title="Incluir en el acuerdo" style="display: flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; background: rgba(255,255,255,0.9); border-radius: 4px; cursor: pointer;"><input type="checkbox" checked="{{ ft.on }}" onChange="{{ ft.onOn }}" style="width: 12px; height: 12px; margin: 0; accent-color: #1b1a18;" />{{ ft.origen }}</label>
+            <sc-if value="{{ ft.propia }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ft.onBorrar }}" title="Quitar imagen" style="width: 20px; height: 20px; padding: 0; font-size: 12px; color: #8a3a2f; background: rgba(255,255,255,0.92); border: 1px solid #e8d3ce; border-radius: 4px; cursor: pointer;">×</button></sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div data-noprint="1" style="display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-top: 1px solid #1b1a18;">
+      <label style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar imagen<input type="file" accept="image/*" multiple="" onChange="{{ onAddImg }}" style="display: none;" /></label>
+      <span style="font-size: 10.5px; color: #6f6b64;">Las fotos de la propuesta aparecen solas; destildá las que no quieras imprimir.</span>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ sinFotos }}" hint-placeholder-val="{{ true }}">
+  <div data-noprint="1" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px dashed #c9c5bd;">
+    <label style="padding: 4px 12px; font-size: 11.5px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar imagen<input type="file" accept="image/*" multiple="" onChange="{{ onAddImg }}" style="display: none;" /></label>
+    <span style="font-size: 11px; color: #6f6b64;">La propuesta {{ propNro }} no tiene fotos cargadas. Podés agregar imágenes para el registro de los trabajos.</span>
+  </div>
+  </sc-if>
+
+  <div data-bloque="1" style="border: 1px solid #1b1a18;">
+    <div style="display: grid; grid-template-columns: 40px minmax(0, 1fr); font-weight: 700; background: #f1efeb;"><span style="padding: 6px 8px; border-right: 1px solid #1b1a18; text-align: center;">✓</span><span style="padding: 6px 8px;"><textarea rows="1" value="{{ tx.hCond }}" onChange="{{ onTx.hCond }}" style="width: 100%; min-width: 0; box-sizing: border-box; margin: 0; padding: 0; border: 1px dashed transparent; border-radius: 2px; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span></div>
+    <sc-for list="{{ cond }}" as="c" hint-placeholder-count="8">
+      <div data-fila="1" data-off="{{ c.off }}" style="display: grid; grid-template-columns: 40px minmax(0, 1fr); border-top: 1px solid #e0dcd4; opacity: {{ c.op }};">
+        <div style="display: flex; align-items: flex-start; justify-content: center; padding-top: 5px; border-right: 1px solid #1b1a18;"><input type="checkbox" checked="{{ c.on }}" onChange="{{ c.onOn }}" style="width: 14px; height: 14px; margin: 0; accent-color: #1b1a18;" /></div>
+        <textarea value="{{ c.t }}" onChange="{{ c.onT }}" rows="1" style="field-sizing: content; min-height: 22px; padding: 4px 8px; border: 0; font-size: 10.8px; resize: none; line-height: 1.4;"></textarea>
+      </div>
+    </sc-for>
+    <div data-noprint="1" style="padding: 5px 8px; border-top: 1px solid #1b1a18;"><button onClick="{{ onAddCond }}" style="padding: 3px 10px; font-size: 11px; font-weight: 600; background: #fff; border: 1px solid #c9c5bd; border-radius: 4px; cursor: pointer;">+ Agregar condición</button></div>
+  </div>
+
+  <div data-bloque="1" style="display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #1b1a18;">
+    <sc-for list="{{ firmas }}" as="g" hint-placeholder-count="2">
+      <div style="display: flex; flex-direction: column; border-left: {{ g.bl }};">
+        <div style="padding: 5px 10px; font-weight: 700; background: #f1efeb; border-bottom: 1px solid #1b1a18;"><textarea rows="1" value="{{ g.t }}" onChange="{{ g.onT }}" style="width: 100%; min-width: 0; box-sizing: border-box; padding: 0; border: 1px dashed transparent; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></div>
+        <div data-firma="1" style="height: 60px; position: relative; display: flex; justify-content: center; align-items: flex-end;"><sc-if value="{{ g.ed }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ selloVer }}" hint-placeholder-val="{{ false }}"><img src="sello-full-service.png" alt="Sello" style="position: absolute; right: 10px; bottom: -24px; height: 76px; width: auto; opacity: 0.85; pointer-events: none;" /></sc-if><sc-if value="{{ firmaVer }}" hint-placeholder-val="{{ false }}"><img src="firma-edgar-mendez.png" alt="Firma" style="position: absolute; bottom: -12px; height: 72px; width: auto; pointer-events: none;" /></sc-if><div data-noprint="1" style="position: absolute; left: 8px; top: 4px; display: flex; gap: 10px; font-size: 10.5px; font-weight: 400; color: #86817b;"><label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ fsFirma }}" onChange="{{ onFsFirma }}" style="margin: 0; accent-color: #1b1a18;" />Firma</label><label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ fsSello }}" onChange="{{ onFsSello }}" style="margin: 0; accent-color: #1b1a18;" />Sello</label></div></sc-if></div>
+        <div style="margin: 0 16px; border-top: 1px solid #1b1a18;"></div>
+        <div style="display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; padding: 4px 10px;"><span style="font-weight: 600;"><textarea rows="1" value="{{ g.lA }}" onChange="{{ g.onLA }}" style="width: 100%; min-width: 0; padding: 0; border: 1px dashed transparent; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><textarea rows="1" value="{{ g.n }}" onChange="{{ g.onN }}" style="min-width: 0; padding: 2px 4px; border: 0; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea></div>
+        <div style="display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; padding: 0 10px 6px;"><span style="font-weight: 600;"><textarea rows="1" value="{{ g.lC }}" onChange="{{ g.onLC }}" style="width: 100%; min-width: 0; padding: 0; border: 1px dashed transparent; background: transparent; font: inherit; color: inherit; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;" style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></span><textarea rows="1" value="{{ g.ci }}" onChange="{{ g.onCi }}" style="min-width: 0; padding: 2px 4px; border: 0; font-size: 11px; field-sizing: content; resize: none; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; font-family: inherit; display: block;"></textarea></div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ARCH = 'twg-archivo-presupuestos-v1', AK = 'twg-acuerdo-trabajo-v1', AKC = 'twg-acuerdo-cliente-v1';
+const leer = (k, def) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? def : v; } catch (e) { return def; } };
+const hoyTxt = () => { const d = new Date(); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
+const num = (v) => Number(String(v == null ? '' : v).replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+const fmt = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const RESP0 = ['Materiales e insumos de la obra', 'Herramientas de mano', 'Herramientas eléctricas (préstamo)', 'Equipos: andamios, escaleras, maquinaria', 'Elementos de protección personal (EPP)', 'Transporte de personal y flete', 'Combustible y viáticos', 'Retiro de escombros y limpieza final'];
+RESP0.push('Equipos de seguridad: arnés, línea de vida, conos y señalización, matafuego');
+const RESP_DEF = [[0, 1, 0], [1, 0, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]];
+const COND0 = [
+  'El monto acordado es cerrado y cubre la ejecución completa del alcance marcado. No se reconocen adicionales sin aprobación previa por escrito de Full Service.',
+  'El proveedor ejecuta los trabajos según la propuesta indicada, las indicaciones del supervisor de Full Service y las normas de calidad del cliente.',
+  'Las herramientas, equipos o materiales prestados por Full Service se entregan con inventario y se devuelven en el mismo estado al finalizar. Las pérdidas o roturas por mal uso se descuentan del pago.',
+  'El proveedor es responsable de la seguridad de su personal: uso obligatorio de EPP, trabajo en altura con arnés y cumplimiento de las normas del local.',
+  'Horario de trabajo según lo autorizado por el local. El proveedor informa a diario el inicio y fin de la jornada con la nómina del personal presente.',
+  'El atraso injustificado sobre el plazo acordado genera un descuento del 1 % del monto por cada día de atraso.',
+  'El pago final se libera contra la recepción conforme de los trabajos, firmada en el acta de entrega o la hoja de servicio.',
+  'El proveedor garantiza los trabajos ejecutados por 90 días desde la entrega, corrigiendo sin costo los defectos de mano de obra.',
+  'El proveedor no puede ceder ni subcontratar el trabajo sin autorización escrita de Full Service, ni tratar directamente con el cliente temas comerciales.',
+  "Seguridad y salud en el trabajo: el proveedor es el único y exclusivo responsable de su personal durante la ejecución de los trabajos dentro del establecimiento del cliente. Debe cumplir y hacer cumplir el Código del Trabajo (Ley N° 213/93), el Reglamento General Técnico de Seguridad, Higiene y Medicina en el Trabajo (Decreto N° 14.390/92) y las normas internas de seguridad del cliente, y proveer a su personal los equipos de protección personal, la capacitación y la inscripción en el Instituto de Previsión Social (IPS) que la ley exige.",
+  "Incumplimiento de las normas de seguridad: cada levantamiento de trabajo inseguro, observación o acta emitida por el cliente o por Full Service por conducta insegura del personal del proveedor se comunicará al proveedor con constancia escrita. Faltas leves: se admiten hasta dos (2) amonestaciones verbales; una tercera falta leve será causal de rescisión. Faltas graves: toda falta que ponga en riesgo directo la vida o la integridad física de personas (trabajo en altura sin arnés ni línea de vida, trabajos en caliente o eléctricos sin permiso ni bloqueo, ausencia de EPP en tareas de riesgo, entre otras) será causal de rescisión inmediata desde la primera vez. En ambos casos Full Service podrá rescindir este acuerdo en forma unilateral y con efecto inmediato, por culpa del proveedor, mediante comunicación escrita y sin que corresponda indemnización alguna a su favor, conforme a la resolución por incumplimiento prevista en el Código Civil Paraguayo.",
+  "Liquidación en caso de rescisión: producida la rescisión, se pagará únicamente el trabajo efectivamente ejecutado y verificado hasta esa fecha, según el avance constatado por Full Service. De ese monto se descontarán los costos que la situación ocasione, incluidos el atraso de la obra, la reasignación del trabajo a otro proveedor y las multas o penalidades que el cliente aplique a Full Service, sin perjuicio de las acciones legales que correspondan."
+];
+
+class Component extends DCLogic {
+  state = { pid: '', soloAprob: true, tick: 0, modo: leer('twg-acuerdo-modo', 'prov') };
+  componentDidMount() {
+    const q = new URLSearchParams(location.search).get('id') || leer('twg-ot-ultimo', '');
+    if (q) this.setState({ pid: q });
+    this._st = (e) => { if (e.key === ARCH || e.key === AK || e.key === AKC) this.setState(s => ({ tick: s.tick + 1 })); };
+    window.addEventListener('storage', this._st);
+  }
+  componentWillUnmount() { window.removeEventListener('storage', this._st); }
+  componentDidUpdate() { if (this.state.pid !== this._fpid) { this._fpid = this.state.pid; this.cargarFotos(this.state.pid); } }
+  // Fotos: las de la propuesta salen de la base de fotos de Costos y Propuesta; las agregadas acá, de una base propia.
+  idb(nombre) { return new Promise((res, rej) => { try { const r = indexedDB.open(nombre, 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); }
+  async idbGet(nombre, k) { try { const db = await this.idb(nombre); return await new Promise(res => { const q = db.transaction('kv', 'readonly').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); }); } catch (e) { return undefined; } }
+  async idbPut(nombre, k, v) { try { const db = await this.idb(nombre); await new Promise(res => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
+  async cargarFotos(pid) {
+    if (!pid) { this.setState({ fProp: [], fMias: [] }); return; }
+    let fp = await this.idbGet('twg-fotos-db', String(pid));
+    if (!Array.isArray(fp)) { try { const ls = JSON.parse(localStorage.getItem('twg-boceto-fotos-v1') || '{}'); fp = ls[String(pid)] || []; } catch (e) { fp = []; } }
+    const fm = await this.idbGet('twg-acuerdo-img-db', String(pid));
+    if (this.state.pid === pid) this.setState({ fProp: (fp || []).filter(x => x && x.src), fMias: Array.isArray(fm) ? fm : [] });
+  }
+  comprimir(file) { return new Promise(res => { const rd = new FileReader(); rd.onload = () => { const im = new Image(); im.onload = () => { const mx = 1000, k = Math.min(1, mx / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res({ src: c.toDataURL('image/jpeg', 0.7), cap: String(file.name || '').replace(/\.[^.]+$/, '') }); }; im.onerror = () => res(null); im.src = rd.result; }; rd.onerror = () => res(null); rd.readAsDataURL(file); }); }
+  archivo() { const v = leer(ARCH, []); return Array.isArray(v) ? v : (v.items || []); }
+  ak() { return this.state.modo === 'cli' ? AKC : AK; }
+  all() { return leer(this.ak(), {}); }
+  guardar(pid, B, fn) { const a = this.all(); const r = Object.assign({}, B, a[pid] || {}); a[pid] = fn(JSON.parse(JSON.stringify(r))); try { localStorage.setItem(this.ak(), JSON.stringify(a)); } catch (e) {} this.setState(s => ({ tick: s.tick + 1 })); }
+
+  base(p) {
+    const d = p.datos || {}, rub = (d.rubros || []).filter(r => r.incluir !== false);
+    const mo = rub.reduce((a, r) => a + (r.mos || []).reduce((b, m) => b + num(m.pers) * num(m.horas) * num(m.vh), 0), 0);
+    const cli = this.state.modo === 'cli', totV = num(String(p.total || '').replace(/[^\d]/g, ''));
+    return {
+      nro: (cli ? 'AC-C-' : 'AC-') + String(p.nro || '').replace(/^P-/, ''), fecha: hoyTxt(),
+      cRazon: cli ? (d.cliente || '') : 'The Wealth Group Import & Export S.A. · Full Service and Clean', cRuc: cli ? '' : '80084600-1', cRep: cli ? (d.contacto || '') : (d.firmaNombre || 'Ing. Edgar Mendez'), cTel: '',
+      pRazon: cli ? 'The Wealth Group Import & Export S.A. · Full Service and Clean' : '', pRuc: cli ? '80084600-1' : '', pRep: cli ? (d.firmaNombre || 'Ing. Edgar Mendez') : '', pTel: '',
+      obra: d.obra || '', cliente: d.cliente || '', dir: d.domicilio || '', plazo: d.plazo || '', fechas: '',
+      alc: rub.map(r => ({ on: true, t: r.nombre || '', d: String(r.descMat || '').replace(/^[^\n]*\n?Detalles:\n?/i, '').trim() })),
+      resp: RESP0.map((t, i) => ({ t, q: RESP_DEF[i].slice(), c: '' })),
+      monto: cli ? (totV ? String(totV) : '') : (mo ? String(Math.round(mo)) : ''), conIva: cli,
+      pagos: [{ t: 'Anticipo al inicio de los trabajos', pct: '40', f: '' }, { t: 'Contra avance del 50 %', pct: '30', f: '' }, { t: 'Saldo contra entrega y recepción conforme', pct: '30', f: '' }],
+      cond: COND0.map(t => ({ on: true, t })), segLey: true, segLey2: true,
+      firmas: cli ? [{ n: d.contacto || '', ci: '' }, { n: d.firmaNombre || 'Ing. Edgar Mendez', ci: '' }] : [{ n: d.firmaNombre || '', ci: '' }, { n: '', ci: '' }],
+      ...(cli ? { tx: { sub: 'con el cliente · monto cerrado', hProv: 'CONTRATISTA', cProv: 'Full Service', cFS: 'Subcontratista', cCli: 'Cliente (contratante)', hMonto: 'MONTO CERRADO DEL CONTRATO (según propuesta ' + p.nro + ')', conIva: 'El monto incluye IVA (Full Service entrega factura legal)', hAlc: 'ALCANCE DE LOS TRABAJOS (según propuesta ' + p.nro + ')' } } : {})
+    };
+  }
+
+  renderVals() {
+    const s = this.state, arr = this.archivo();
+    const ok = (e) => /APROBADO|EJECUCI/i.test(String(e || ''));
+    const ags = this.all(), provDe = (id) => { const a = ags[id] || {}; return String(a.pRazon || a.pRep || '').trim(); };
+    const cnt = {}; Object.keys(ags).forEach(id => { const n = provDe(id); if (n && arr.some(x => x.id === id)) cnt[n] = (cnt[n] || 0) + 1; });
+    const provF = s.provF && cnt[s.provF] ? s.provF : '';
+    const lista = arr.filter(p => (!s.soloAprob || provF || ok(p.estado) || p.id === s.pid) && (!provF || provDe(p.id) === provF)).sort((a, b) => String(b.nro).localeCompare(String(a.nro)));
+    const todas = arr.slice().sort((a, b) => String(b.nro).localeCompare(String(a.nro)));
+    const p = arr.find(x => x.id === s.pid);
+    const base = {
+      provF, provOpts: Object.keys(cnt).sort((a, b) => a.localeCompare(b)).map(n => ({ v: n, label: n + ' (' + cnt[n] + ')' })),
+      onProvF: (e) => { const v = e.target.value; const first = v ? arr.filter(x => provDe(x.id) === v).sort((a, b) => String(b.nro).localeCompare(String(a.nro)))[0] : null; this.setState(first && provDe(s.pid) !== v ? { provF: v, pid: first.id } : { provF: v }); },
+      opciones: lista.map(x => ({ id: x.id, label: x.nro + ' · ' + (provDe(x.id) ? provDe(x.id) + ' · ' : '') + String((x.datos && x.datos.cliente) || '') + ' · ' + String((x.datos && x.datos.obra) || '').slice(0, 60) + ' · ' + (x.estado || '') })),
+      opcionesTodas: todas.map(x => ({ id: x.id, corto: x.nro + ' · ' + String((x.datos && x.datos.cliente) || '').slice(0, 18) + ' · ' + (x.estado || '') })),
+      pid: s.pid, soloAprob: s.soloAprob,
+      onPid: (e) => { const v = e.target.value; try { localStorage.setItem('twg-ot-ultimo', JSON.stringify(v)); } catch (x) {} this.setState({ pid: v }); },
+      onSoloAprob: (e) => this.setState({ soloAprob: e.target.checked }),
+      onImprimir: () => window.print(),
+      onModoProv: () => { try { localStorage.setItem('twg-acuerdo-modo', JSON.stringify('prov')); } catch (x) {} this.setState({ modo: 'prov', archOpen: false }); },
+      onModoCli: () => { try { localStorage.setItem('twg-acuerdo-modo', JSON.stringify('cli')); } catch (x) {} this.setState({ modo: 'cli', archOpen: false }); },
+      btnProv: 'padding: 5px 11px; font-size: 12px; font-weight: 700; border: 0; border-radius: 5px; cursor: pointer; white-space: nowrap; color: ' + (s.modo !== 'cli' ? '#1b1a18' : '#c9c5bd') + '; background: ' + (s.modo !== 'cli' ? '#f4f3f0' : 'transparent') + ';',
+      btnCli: 'padding: 5px 11px; font-size: 12px; font-weight: 700; border: 0; border-radius: 5px; cursor: pointer; white-space: nowrap; color: ' + (s.modo === 'cli' ? '#1b1a18' : '#c9c5bd') + '; background: ' + (s.modo === 'cli' ? 'oklch(0.86 0.09 230)' : 'transparent') + ';',
+      archTit: s.modo === 'cli' ? 'Archivo de acuerdos con clientes (Full Service contratista)' : 'Archivo de acuerdos con proveedores', archBg: s.modo === 'cli' ? 'oklch(0.86 0.09 230)' : '#f4f3f0',
+      onRecargar: () => { if (!p || !window.confirm('¿Volver a cargar los datos de la propuesta ' + p.nro + '? Se pierde lo completado en este acuerdo.')) return; const a = this.all(); delete a[p.id]; try { localStorage.setItem(AK, JSON.stringify(a)); } catch (x) {} this.setState(t => ({ tick: t.tick + 1 })); }
+    };
+    { const todos = this.all(), q = String(s.archQ || '').toLowerCase().trim();
+      const L = Object.keys(todos).map(id => { const a = todos[id] || {}, pr = arr.find(x => x.id === id) || {}; return { id, a, pr }; })
+        .filter(x => x.pr.id && (!q || [x.a.nro, x.pr.nro, x.a.obra, x.a.cliente, x.a.pRazon, x.a.pRep].join(' ').toLowerCase().includes(q)))
+        .sort((x, y) => String(y.a.nro || '').localeCompare(String(x.a.nro || '')));
+      Object.assign(base, { archN: String(Object.keys(todos).length), archOpen: !!s.archOpen, onArchTg: () => this.setState({ archOpen: !s.archOpen }), archQ: s.archQ || '', onArchQ: (e) => this.setState({ archQ: e.target.value }), archVacio: !L.length,
+        archLista: L.map(({ id, a, pr }) => ({ nro: a.nro || 'AC-' + String(pr.nro || '').replace(/^P-/, ''), prop: pr.nro || '', obra: a.obra || (pr.datos || {}).obra || '', cliente: a.cliente || (pr.datos || {}).cliente || '', prov: a.pRazon || a.pRep || '—', fecha: a.fecha || '', monto: a.monto ? fmt(num(a.monto)) : '—', bg: id === s.pid ? 'oklch(0.97 0.02 85)' : '#fff',
+          onAbrir: () => { try { localStorage.setItem('twg-ot-ultimo', JSON.stringify(id)); } catch (x) {} this.setState({ pid: id, archOpen: false }); } })) }); }
+    if (!p) return Object.assign(base, { hayProp: false, sinProp: true, sinPropTxt: arr.length ? 'Elegí arriba el número de propuesta. El acuerdo se completa solo con la obra, el cliente, el plazo y el alcance de esa propuesta; después completás los datos del proveedor, el monto cerrado y quién provee cada cosa.' : 'No encontré presupuestos en el Archivo. Abrí primero la planilla de Costos y Propuesta en este mismo navegador.' });
+    const B = this.base(p), O = Object.assign({}, B, this.all()[p.id] || {});
+    if (s.modo === 'cli' && !this.all()[p.id]) setTimeout(() => { if (!this.all()[p.id]) this.guardar(p.id, B, o => o); }, 0);
+    const G = (fn) => this.guardar(p.id, B, fn);
+    if (!O.resp.some(r => /^Equipos de seguridad/i.test(r.t)) && this._migSeg !== p.id) { this._migSeg = p.id; setTimeout(() => G(o => { if (!o.resp.some(r => /^Equipos de seguridad/i.test(r.t))) o.resp.push({ t: RESP0[RESP0.length - 1], q: [1, 0, 0], c: '' }); return o; }), 0); }
+    const set = (k) => (e) => { const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value; G(o => { o[k] = v; return o; }); };
+    const monto = num(O.monto), sumPct = O.pagos.reduce((a, g) => a + num(String(g.pct).replace('.', ',')), 0);
+    const BL = '1px solid #1b1a18';
+    const TX0 = { titulo: 'ACUERDO DE TRABAJO', sub: 'con proveedor de servicio · monto cerrado', hCont: 'CONTRATANTE', hProv: 'PROVEEDOR DE SERVICIO', hAlc: 'ALCANCE DE LOS TRABAJOS (según propuesta ' + p.nro + ')',
+      hResp: 'PROVISIÓN Y RESPONSABILIDADES', cProv: 'Proveedor', cFS: 'Full Service', cCli: 'Cliente', cObs: 'Observación', hMonto: 'MONTO CERRADO PARA LA EJECUCIÓN (mano de obra y lo marcado a cargo del proveedor)',
+      conIva: 'El monto incluye IVA (el proveedor entrega factura legal)', hPago: 'Forma de pago', cPct: '%', cMonto: 'Monto Gs.', cFecha: 'Fecha / condición', hFotos: 'REGISTRO FOTOGRÁFICO DE LOS TRABAJOS', hPers: 'PERSONAL ASIGNADO A LA OBRA', hCond: 'CONDICIONES DEL ACUERDO' };
+    const txO = O.tx || {}, tx = {}, onTx = {};
+    Object.keys(TX0).forEach(k => { tx[k] = txO[k] !== undefined ? txO[k] : TX0[k]; onTx[k] = (e) => { const v = e.target.value; G(o => { o.tx = Object.assign({}, o.tx || {}, { [k]: v }); return o; }); }; });
+    const lbl = (key, def) => (txO['l:' + key] !== undefined ? txO['l:' + key] : def), onLbl = (key) => (e) => { const v = e.target.value; G(o => { o.tx = Object.assign({}, o.tx || {}, { ['l:' + key]: v }); return o; }); };
+    return Object.assign(base, {
+      hayProp: true, sinProp: false, propNro: p.nro, propEstado: p.estado || '',
+      d: { nro: O.nro, fecha: O.fecha, conIva: !!O.conIva }, on: { nro: set('nro'), fecha: set('fecha'), conIva: set('conIva') },
+      tx, onTx,
+      ...(() => { const P0 = Array.isArray(O.pers) && O.pers.length ? O.pers : [{}, {}, {}];
+        const setW = (i, k) => (e) => { const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value; G(o => { o.pers = (Array.isArray(o.pers) && o.pers.length ? o.pers : [{}, {}, {}]).map(x => Object.assign({}, x)); o.pers[i][k] = v; return o; }); };
+        const cargados = P0.filter(w => String(w.nom || '').trim()).length;
+        return { pers: P0.map((w, i) => ({ n: String(i + 1), vacio: String(w.nom || '').trim() ? undefined : '1', nom: w.nom || '', ci: w.ci || '', fun: w.fun || '', tel: w.tel || '', ips: !!w.ips, alt: !!w.alt,
+            onNom: setW(i, 'nom'), onCi: setW(i, 'ci'), onFun: setW(i, 'fun'), onTel: setW(i, 'tel'), onIps: setW(i, 'ips'), onAlt: setW(i, 'alt'),
+            onX: () => G(o => { o.pers = (Array.isArray(o.pers) && o.pers.length ? o.pers : [{}, {}, {}]).filter((_, j) => j !== i); return o; }) })),
+          onAddPers: () => G(o => { o.pers = (Array.isArray(o.pers) && o.pers.length ? o.pers : [{}, {}, {}]).concat([{}]); return o; }),
+          persTxt: cargados ? cargados + (cargados === 1 ? ' persona cargada' : ' personas cargadas') + ' · ' + P0.filter(w => w.ips).length + ' con IPS · ' + P0.filter(w => w.alt).length + ' aptas para altura' : 'Cargá a quienes van a trabajar: el contratante puede pedir sus documentos antes del ingreso.' }; })(),
+      contratante: [['Razón social', 'cRazon'], ['RUC', 'cRuc'], ['Representante', 'cRep'], ['Teléfono', 'cTel']].map(([l, k]) => ({ l: lbl(k, l), onL: onLbl(k), v: O[k], on: set(k) })),
+      proveedor: [['Razón social', 'pRazon'], ['RUC / C.I.', 'pRuc'], ['Responsable', 'pRep'], ['Teléfono', 'pTel']].map(([l, k]) => ({ l: lbl(k, l), onL: onLbl(k), v: O[k], on: set(k) })),
+      obraF: [['OBRA:', 'obra'], ['CLIENTE:', 'cliente'], ['DIRECCIÓN:', 'dir'], ['PLAZO DE EJECUCIÓN:', 'plazo'], ['INICIO / FIN:', 'fechas']].map(([l, k], i) => ({ l: lbl(k, l), onL: onLbl(k), v: O[k], on: set(k), bt: i ? BL : '0' })),
+      alcance: O.alc.map((a, i) => ({ t: a.t, d: a.d, on: a.on !== false, off: a.on === false ? '1' : undefined, op: a.on === false ? 0.45 : 1,
+        onOn: (e) => { const v = e.target.checked; G(o => { o.alc[i].on = v; return o; }); }, onT: (e) => { const v = e.target.value; G(o => { o.alc[i].t = v; return o; }); }, onD: (e) => { const v = e.target.value; G(o => { o.alc[i].d = v; return o; }); } })),
+      onAddAlc: () => G(o => { o.alc.push({ on: true, t: '', d: '' }); return o; }),
+      resp: O.resp.map((r, i) => ({ t: r.t, c: r.c, q: [0, 1, 2].map(j => ({ v: !!r.q[j], on: (e) => { const v = e.target.checked; G(o => { o.resp[i].q[j] = v ? 1 : 0; return o; }); } })),
+        onT: (e) => { const v = e.target.value; G(o => { o.resp[i].t = v; return o; }); }, onC: (e) => { const v = e.target.value; G(o => { o.resp[i].c = v; return o; }); } })),
+      onAddResp: () => G(o => { o.resp.push({ t: '', q: [0, 0, 0], c: '' }); return o; }),
+      montoTxt: O.monto ? fmt(monto) : '', onMonto: (e) => { const v = String(e.target.value).replace(/[^\d]/g, ''); G(o => { o.monto = v; o.pagos.forEach(x => { delete x.m; }); return o; }); },
+      pagos: O.pagos.map((g, i) => { const dr = (s.drM || {})[i];
+        // Al confirmar un monto: su % se recalcula y el resto se reparte entre las otras filas para que sume 100 %.
+        const commit = () => { if (dr === undefined) return; const v = num(dr); this.setState(t => { const d2 = Object.assign({}, t.drM || {}); delete d2[i]; return { drM: d2 }; });
+          G(o => { const tot = num(o.monto); if (!(tot > 0)) { o.monto = String(v); o.pagos.forEach((x, j) => { x.pct = j === i ? '100' : '0'; }); return o; }
+            // Montos en Gs. enteros: el escrito queda tal cual, el resto se reparte y la última fila toma la diferencia; el % se deriva.
+            const vi = Math.min(tot, Math.max(0, Math.round(v))), otros = o.pagos.map((x, j) => j).filter(j => j !== i), resto = tot - vi;
+            const pc = (j) => num(String(o.pagos[j].pct).replace('.', ',')), base = otros.reduce((a, j) => a + pc(j), 0);
+            const r2 = (x) => String(Math.round(x * 100) / 100).replace('.', ',');
+            o.pagos[i].m = String(vi); let acc = 0;
+            otros.forEach((j, k) => { const w = base > 0 ? pc(j) / base : 1 / otros.length; const mj = k === otros.length - 1 ? Math.max(0, resto - acc) : Math.round(resto * w); acc += mj; o.pagos[j].m = String(mj); });
+            o.pagos.forEach(x => { x.pct = r2(num(x.m) / tot * 100); });
+            return o; }); };
+        return { t: g.t, pct: g.pct, f: g.f, monto: dr !== undefined ? dr : (g.m !== undefined && g.m !== '' ? fmt(num(g.m)) : (monto ? fmt(monto * num(String(g.pct).replace('.', ',')) / 100) : '')),
+        onMonto: (e) => { const v = String(e.target.value).replace(/[^\d.]/g, ''); this.setState(t => ({ drM: Object.assign({}, t.drM || {}, { [i]: v }) })); },
+        onMontoOk: commit, onMontoKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } },
+        onT: (e) => { const v = e.target.value; G(o => { o.pagos[i].t = v; return o; }); }, onPct: (e) => { const v = e.target.value; G(o => { o.pagos[i].pct = v; delete o.pagos[i].m; return o; }); }, onF: (e) => { const v = e.target.value; G(o => { o.pagos[i].f = v; return o; }); } }; }),
+      onAddPago: () => G(o => { o.pagos.push({ t: '', pct: '0', f: '' }); return o; }),
+      pctTxt: 'Total: ' + String(Math.round(sumPct * 100) / 100).replace('.', ',') + ' %' + (monto ? ' · Gs. ' + fmt(O.pagos.every(g => g.m !== undefined && g.m !== '') ? O.pagos.reduce((a, g) => a + num(g.m), 0) : monto * sumPct / 100) : '') + (Math.round(sumPct) !== 100 ? ' · los porcentajes deben sumar 100 %' : ''),
+      pctColor: Math.round(sumPct) !== 100 ? 'oklch(0.50 0.18 27)' : '#1b1a18',
+      ...(() => { if ((!O.segLey || !O.segLey2) && Array.isArray(O.cond)) { const tiene = O.cond.some(c => /^Seguridad y salud en el trabajo/.test(c.t || ''));
+        if (tiene && !O.segLey2) setTimeout(() => G(o => { if (o.segLey2) return o; o.segLey2 = true; o.cond.forEach(c => { if ((c.t || '') === "Incumplimiento de las normas de seguridad: cada levantamiento de trabajo inseguro, observación o acta emitida por el cliente o por Full Service por conducta insegura del personal del proveedor se comunicará al proveedor con una amonestación verbal y constancia escrita. Si la falta se repite dos (2) o tres (3) veces, Full Service podrá rescindir este acuerdo en forma unilateral y con efecto inmediato, por culpa del proveedor, mediante comunicación escrita y sin que corresponda indemnización alguna a su favor, conforme a la resolución por incumplimiento prevista en el Código Civil Paraguayo.") c.t = "Incumplimiento de las normas de seguridad: cada levantamiento de trabajo inseguro, observación o acta emitida por el cliente o por Full Service por conducta insegura del personal del proveedor se comunicará al proveedor con constancia escrita. Faltas leves: se admiten hasta dos (2) amonestaciones verbales; una tercera falta leve será causal de rescisión. Faltas graves: toda falta que ponga en riesgo directo la vida o la integridad física de personas (trabajo en altura sin arnés ni línea de vida, trabajos en caliente o eléctricos sin permiso ni bloqueo, ausencia de EPP en tareas de riesgo, entre otras) será causal de rescisión inmediata desde la primera vez. En ambos casos Full Service podrá rescindir este acuerdo en forma unilateral y con efecto inmediato, por culpa del proveedor, mediante comunicación escrita y sin que corresponda indemnización alguna a su favor, conforme a la resolución por incumplimiento prevista en el Código Civil Paraguayo."; }); return o; }), 0); if (!tiene) setTimeout(() => G(o => { if (o.segLey) return o; o.segLey = true; o.segLey2 = true; COND0.slice(-3).forEach(t => o.cond.push({ on: true, t })); return o; }), 0); else if (!O.segLey) setTimeout(() => G(o => { o.segLey = true; return o; }), 0); } return {}; })(),
+      cond: O.cond.map((c, i) => ({ t: c.t, on: c.on !== false, off: c.on === false ? '1' : undefined, op: c.on === false ? 0.45 : 1,
+        onOn: (e) => { const v = e.target.checked; G(o => { o.cond[i].on = v; return o; }); }, onT: (e) => { const v = e.target.value; G(o => { o.cond[i].t = v; return o; }); } })),
+      onAddCond: () => G(o => { o.cond.push({ on: true, t: '' }); return o; }),
+      ...(() => { const fP = s.fProp || [], fM = s.fMias || [], cap = O.fcap || {}, off = O.foff || {};
+        const lst = fP.map((x, i) => ({ k: 'p' + i, src: x.src, cap0: x.desc || x.pie || x.descripcion || x.nombre || '', origen: 'Propuesta', propia: false }))
+          .concat(fM.map((x, i) => ({ k: 'm' + i, src: x.src, cap0: x.cap || '', origen: 'Agregada', propia: true, i })));
+        const pidF = p.id;
+        return { verFotos: lst.length > 0, sinFotos: !lst.length,
+          fotosTxt: lst.filter(x => !off[x.k]).length + ' de ' + lst.length + ' se imprimen',
+          fotos: lst.map(x => ({ src: x.src, origen: x.origen, propia: x.propia, cap: cap[x.k] ?? x.cap0, on: !off[x.k], off: off[x.k] ? '1' : undefined, op: off[x.k] ? 0.4 : 1,
+            onCap: (e) => { const v = e.target.value; G(o => { o.fcap = Object.assign({}, o.fcap || {}, { [x.k]: v }); return o; }); },
+            onOn: (e) => { const v = e.target.checked; G(o => { o.foff = Object.assign({}, o.foff || {}); if (v) delete o.foff[x.k]; else o.foff[x.k] = 1; return o; }); },
+            onBorrar: () => { const nv = (this.state.fMias || []).filter((_, j) => j !== x.i); this.setState({ fMias: nv }); this.idbPut('twg-acuerdo-img-db', String(pidF), nv);
+              G(o => { const c2 = {}, f2 = {}; Object.keys(o.fcap || {}).forEach(k => { if (k[0] !== 'm') c2[k] = o.fcap[k]; else { const j = +k.slice(1); if (j < x.i) c2[k] = o.fcap[k]; else if (j > x.i) c2['m' + (j - 1)] = o.fcap[k]; } }); Object.keys(o.foff || {}).forEach(k => { if (k[0] !== 'm') f2[k] = 1; else { const j = +k.slice(1); if (j < x.i) f2[k] = 1; else if (j > x.i) f2['m' + (j - 1)] = 1; } }); o.fcap = c2; o.foff = f2; return o; }); } })),
+          onAddImg: async (e) => { const files = Array.from(e.target.files || []); e.target.value = ''; const nuevas = (await Promise.all(files.map(f => this.comprimir(f)))).filter(Boolean); if (!nuevas.length) return; const nv = (this.state.fMias || []).concat(nuevas); this.setState({ fMias: nv }); await this.idbPut('twg-acuerdo-img-db', String(pidF), nv); } }; })(),
+      ...((ed) => { let F = { firma: true, sello: true }; try { F = Object.assign(F, JSON.parse(localStorage.getItem('twg-firma-sello') || '{}')); } catch (x) {} const tg = (k) => (e) => { const v = e.target.checked; try { localStorage.setItem('twg-firma-sello', JSON.stringify(Object.assign({}, F, { [k]: v }))); } catch (x) {} this.forceUpdate(); }; return { firmaEd: ed, firmaVer: ed && F.firma, selloVer: ed && F.sello, fsFirma: F.firma, fsSello: F.sello, onFsFirma: tg('firma'), onFsSello: tg('sello') }; })(true), firmas: ['POR EL CONTRATANTE', 'POR EL PROVEEDOR'].map((t, i) => ({ t: lbl('f' + i, t), onT: onLbl('f' + i), lA: lbl('fa', 'Aclaración:'), onLA: onLbl('fa'), lC: lbl('fc', 'C.I.:'), onLC: onLbl('fc'), n: O.firmas[i].n, ci: O.firmas[i].ci, ed: /edgar\s+mend[eé]z/i.test(O.firmas[i].n || ''), bl: i ? BL : '0',
+        onN: (e) => { const v = e.target.value; G(o => { o.firmas[i].n = v; return o; }); }, onCi: (e) => { const v = e.target.value; G(o => { o.firmas[i].ci = v; return o; }); } }))
+    });
+  }
+}
+</script>
+</body>
+</html>

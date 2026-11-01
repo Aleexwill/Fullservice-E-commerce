@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="./doc-page.js"></script>
+<style>
+html, body { margin: 0; padding: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1b1a18; }
+a { color: #1b1a18; } a:hover { color: #14382f; }
+doc-page:not(:defined) { visibility: hidden; }
+@media print { [data-noprint] { display: none !important; } }
+</style>
+</helmet>
+
+<div data-noprint="1" style="position: fixed; top: 14px; right: 18px; z-index: 50; display: flex; gap: 8px; align-items: center;">
+  <span style="font-size: 12px; color: #4a463f; background: #ffffff; padding: 7px 10px; border-radius: 7px; border: 1px solid #dedbd5;">Vista previa · 5 láminas A4 apaisado · imprimir al 100 %</span>
+  <a href="Camara Desengrasadora 3D.html" style="padding: 8px 13px; font-size: 13px; font-weight: 600; background: #ffffff; border: 1px solid #c9c5bd; border-radius: 7px; text-decoration: none;">Ver 3D</a>
+  <button onClick="{{ imprimir }}" style="padding: 8px 15px; font-family: inherit; font-size: 13px; font-weight: 600; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer;">Imprimir / guardar PDF</button>
+</div>
+
+<doc-page size="a4" orientation="landscape">
+  <section class="page" id="p1" data-screen-label="01 Planta" style="padding: 0;"><div ref="{{ r1 }}" style="width: 100%; height: 100%;"></div></section>
+  <section class="page" id="p2" data-screen-label="02 Corte A-A" style="padding: 0;"><div ref="{{ r2 }}" style="width: 100%; height: 100%;"></div></section>
+  <section class="page" id="p3" data-screen-label="03 Corte B-B y tapa" style="padding: 0;"><div ref="{{ r3 }}" style="width: 100%; height: 100%;"></div></section>
+
+  <section class="page" id="p4" data-screen-label="04 Armaduras" style="padding: 9mm 12mm 7mm; box-sizing: border-box; display: flex; flex-direction: column; gap: 3mm;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 6mm; border-bottom: 1.5px solid #1b1a18; padding-bottom: 2mm;">
+      <div style="font-size: 18pt; font-weight: 700;">LÁMINA 4 · PLANILLA DE ARMADURAS</div>
+      <div style="font-size: 11pt; color: #4a463f;">Acero ADN 420 · recubrimiento 0,03 m · medidas en metros</div>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 10.5pt; font-variant-numeric: tabular-nums;">
+      <thead>
+        <tr style="background: #1b1a18; color: #ffffff; text-align: left;">
+          <th style="padding: 3px 5px;">Pos.</th><th style="padding: 3px 5px;">Elemento</th><th style="padding: 3px 5px; text-align: right;">Ø mm</th><th style="padding: 3px 5px; text-align: right;">Sep.</th><th style="padding: 3px 5px; text-align: right;">Cant.</th><th style="padding: 3px 5px; text-align: right;">Largo unit.</th><th style="padding: 3px 5px; text-align: right;">Largo total</th><th style="padding: 3px 5px; text-align: right;">kg/m</th><th style="padding: 3px 5px; text-align: right;">Peso kg</th><th style="padding: 3px 5px;">Forma</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ filas }}" as="f" hint-placeholder-count="8">
+          <tr style="border-bottom: 1px solid #d8d4cc;">
+            <td style="padding: 3px 5px; font-weight: 700;">{{ f.pos }}</td>
+            <td style="padding: 3px 5px;"><div style="font-weight: 600;">{{ f.el }}</div><div style="font-size: 9.5pt; color: #5f5a52;">{{ f.det }}</div></td>
+            <td style="padding: 3px 5px; text-align: right; font-weight: 700;">{{ f.d }}</td>
+            <td style="padding: 3px 5px; text-align: right;">{{ f.sep }}</td>
+            <td style="padding: 3px 5px; text-align: right; font-weight: 700;">{{ f.cant }}</td>
+            <td style="padding: 3px 5px; text-align: right;">{{ f.lu }}</td>
+            <td style="padding: 3px 5px; text-align: right;">{{ f.lt }}</td>
+            <td style="padding: 3px 5px; text-align: right;">{{ f.kgm }}</td>
+            <td style="padding: 3px 5px; text-align: right; font-weight: 700;">{{ f.kg }}</td>
+            <td style="padding: 3px 5px; font-size: 9.5pt;">{{ f.forma }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3mm;">
+      <div style="border: 1px solid #c9c5bd; border-radius: 2mm; padding: 2.5mm 3mm;"><div style="font-size: 9pt; font-family: 'IBM Plex Mono', monospace; color: #5f5a52;">Ø 12 mm</div><div style="font-size: 15pt; font-weight: 700;">{{ t.kg12 }} kg</div><div style="font-size: 10pt;">{{ t.m12 }} m · <b>{{ t.b12 }} barras × 12 m</b></div></div>
+      <div style="border: 1px solid #c9c5bd; border-radius: 2mm; padding: 2.5mm 3mm;"><div style="font-size: 9pt; font-family: 'IBM Plex Mono', monospace; color: #5f5a52;">Ø 10 mm</div><div style="font-size: 15pt; font-weight: 700;">{{ t.kg10 }} kg</div><div style="font-size: 10pt;">{{ t.m10 }} m · <b>{{ t.b10 }} barras × 12 m</b></div></div>
+      <div style="border: 1px solid #c9c5bd; border-radius: 2mm; padding: 2.5mm 3mm;"><div style="font-size: 9pt; font-family: 'IBM Plex Mono', monospace; color: #5f5a52;">Peso neto</div><div style="font-size: 15pt; font-weight: 700;">{{ t.neto }} kg</div><div style="font-size: 10pt;">{{ t.cNeta }} kg/m³ sobre 11,52 m³</div></div>
+      <div style="border: 1.5px solid #14382f; background: #eef5f1; border-radius: 2mm; padding: 2.5mm 3mm;"><div style="font-size: 9pt; font-family: 'IBM Plex Mono', monospace; color: #14382f;">Con 5 % de empalmes y desperdicio</div><div style="font-size: 15pt; font-weight: 700;">{{ t.con5 }} kg</div><div style="font-size: 10pt;"><b>{{ t.c5 }} kg/m³</b> · pedido 93 kg/m³</div></div>
+    </div>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6mm; font-size: 10pt; line-height: 1.3;">
+      <div>
+        <div style="font-weight: 700; margin-bottom: 1mm;">Reglas de armado</div>
+        <div>Recubrimiento de 0,03 m en todas las caras, con separadores de mortero o plástico cada 0,80 m.</div>
+        <div>Mallas doble (cara interior y exterior) en losa, muros y tabiques, unidas con caballetes Ø 10 cada 0,80 m.</div>
+        <div>Empalmes por yuxtaposición de 0,50 m, alternados: nunca dos empalmes a la misma altura.</div>
+        <div>Atar todos los cruces con alambre N° 16.</div>
+      </div>
+      <div>
+        <div style="font-weight: 700; margin-bottom: 1mm;">Cómo se calculó</div>
+        <div>Cantidad = largo a cubrir ÷ 0,20 + 1, por cada cara. Largo unitario = medida entre recubrimientos + patas o empalme.</div>
+        <div>Pesos: Ø 10 = 0,617 kg/m · Ø 12 = 0,888 kg/m.</div>
+        <div style="margin-top: 1.5mm; padding: 2mm 3mm; background: #fff7e0; border: 1px solid #d9b44a; border-radius: 1.5mm;">Armadura propuesta para cumplir la cuantía de 93 kg/m³. Verificar con el ingeniero responsable antes de cortar el hierro.</div>
+      </div>
+    </div>
+    <div style="margin-top: auto; display: grid; grid-template-columns: 34mm minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.9fr); border: 1.5px solid #1b1a18; font-size: 9.5pt;">
+      <div style="padding: 2mm; border-right: 1px solid #1b1a18; display: flex; align-items: center;"><img src="logo-full-service.png" alt="Full Service" style="max-width: 100%; max-height: 11mm;"></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">OBRA</div><div style="font-weight: 600;">Cámara desengrasadora H°A° 5,20 × 2,50 × 2,80</div></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">CLIENTE</div><div style="font-weight: 600;">Construservice EAS</div></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">PRESUPUESTO</div><div style="font-weight: 600;">P-2026-176</div></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">LÁMINA</div><div style="font-weight: 600;">4 de 5</div></div>
+      <div style="padding: 2mm 3mm;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">FECHA</div><div style="font-weight: 600;">30/10/2026 · rev. A</div></div>
+    </div>
+  </section>
+
+  <section class="page" id="p5" data-screen-label="05 Secuencia y controles" style="padding: 10mm 12mm 8mm; box-sizing: border-box; display: flex; flex-direction: column; gap: 4mm;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 6mm; border-bottom: 1.5px solid #1b1a18; padding-bottom: 2.5mm;">
+      <div style="font-size: 19pt; font-weight: 700;">LÁMINA 5 · PASO A PASO Y CONTROLES</div>
+      <div style="font-size: 11pt; color: #4a463f;">Seguir en este orden · tildar cada control antes de pasar al siguiente paso</div>
+    </div>
+    <div style="display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 7mm; font-size: 10.5pt; line-height: 1.36;">
+      <div style="display: flex; flex-direction: column; gap: 1.6mm;">
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">1</b><div><b>Replanteo.</b> Marcar un rectángulo de <b>5,80 × 3,10 m</b> (cámara 5,20 × 2,50 m más 0,30 m por lado). Para que quede a escuadra, las dos diagonales deben medir igual: <b>6,58 m</b>.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">2</b><div><b>Excavación manual</b> hasta <b>2,65 m</b> bajo el terreno (nivel −2,85). Paredes verticales perfiladas, fondo plano y compactado.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">3</b><div><b>Hormigón de limpieza</b> de <b>0,05 m</b> en todo el fondo, nivelado.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">4</b><div>Marcar sobre la limpieza el contorno exterior <b>5,20 × 2,50 m</b> (diagonales <b>5,77 m</b>) y la posición de los tabiques.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">5</b><div><b>Armar la losa de fondo</b> (P1, P2) sobre separadores de 3 cm y dejar los arranques de muros (P3, P4) y del tabique 2 (P7).</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">6</b><div><b>Hormigonar la losa de fondo</b> de <b>0,20 m</b> con H-25, vibrar y nivelar.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">7</b><div><b>Armar muros y tabiques</b> (P3 a P8). Colocar los pases de caño Ø 160: <b>entrada con eje a 0,35 m</b> y <b>salida con eje a 0,42 m</b> bajo el borde superior.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">8</b><div><b>Doble encofrado</b> (cara interior y exterior). Antes de hormigonar, hacer los controles de la derecha.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">9</b><div><b>Hormigonar muros y tabiques</b> en capas de 0,50 m, vibrando cada capa. El borde queda <b>0,20 m sobre el terreno</b>.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">10</b><div><b>Curado húmedo</b> mínimo 7 días. Desencofrar muros a las 72 h.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">11</b><div><b>Prueba de estanqueidad:</b> llenar con agua hasta la salida y controlar 24 h sin pérdida.</div></div>
+        <div style="display: grid; grid-template-columns: 7mm minmax(0, 1fr); gap: 2mm;"><b style="font-size: 12pt;">12</b><div><b>Tapa</b> (si el cliente la confirma): losa de 0,12 m con 3 bocas de 0,60 × 0,60 m, una centrada sobre cada cámara.</div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3mm;">
+        <div style="border: 1.5px solid #1b1a18; border-radius: 2mm; padding: 3mm 4mm;">
+          <div style="font-weight: 700; font-size: 11.5pt; margin-bottom: 2mm;">Medidas que hay que controlar</div>
+          <sc-for list="{{ controles }}" as="c" hint-placeholder-count="11">
+            <div style="display: grid; grid-template-columns: 5mm minmax(0, 1fr); gap: 2mm; align-items: start; padding: 0.9mm 0; border-bottom: 1px solid #ebe8e2;">
+              <span style="width: 3.6mm; height: 3.6mm; border: 1.3px solid #1b1a18; border-radius: 0.6mm; margin-top: 0.8mm;"></span>
+              <span>{{ c }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding: 2.5mm 3.5mm; background: #fff7e0; border: 1px solid #d9b44a; border-radius: 1.5mm; font-size: 10pt;">Las medidas del interior mandan: si una cámara no da 1,525 / 1,45 / 1,525 m, corregir el encofrado antes de hormigonar.</div>
+      </div>
+    </div>
+    <div style="margin-top: auto; display: grid; grid-template-columns: 34mm minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.9fr); border: 1.5px solid #1b1a18; font-size: 9.5pt;">
+      <div style="padding: 2mm; border-right: 1px solid #1b1a18; display: flex; align-items: center;"><img src="logo-full-service.png" alt="Full Service" style="max-width: 100%; max-height: 11mm;"></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">OBRA</div><div style="font-weight: 600;">Cámara desengrasadora H°A° 5,20 × 2,50 × 2,80</div></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">CLIENTE</div><div style="font-weight: 600;">Construservice EAS</div></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">PRESUPUESTO</div><div style="font-weight: 600;">P-2026-176</div></div>
+      <div style="padding: 2mm 3mm; border-right: 1px solid #1b1a18;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">LÁMINA</div><div style="font-weight: 600;">5 de 5</div></div>
+      <div style="padding: 2mm 3mm;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; color: #5f5a52;">FECHA</div><div style="font-weight: 600;">30/10/2026 · rev. A</div></div>
+    </div>
+  </section>
+</doc-page>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const S = 188.57; // 1 m a escala 1:25 en A4 apaisado (viewBox 1400 = 297 mm)
+const F2 = (v) => { const r = Math.round(v * 1000); return (r % 10 ? (r / 1000).toFixed(3) : (r / 1000).toFixed(2)).replace('.', ','); };
+const nf = (v, d) => { const [i, f] = v.toFixed(d).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (f ? ',' + f : ''); };
+const R = (v) => Math.round(v * 10) / 10;
+const CX = [-1.6375, 0, 1.6375], XS = [-2.6, -2.4, -0.875, -0.725, 0.725, 0.875, 2.4, 2.6];
+const REFS = [['1', 'Losa de fondo H°A° e = 0,20'], ['2', 'Muros H°A° e = 0,20'], ['3', 'Tabique 1 e = 0,15 (colgado)'], ['4', 'Tabique 2 e = 0,15 (desde el fondo)'], ['5', 'Hormigón de limpieza e = 0,05'], ['6', 'Excavación manual perfilada'], ['7', 'Losa de tapa e = 0,12'], ['8', 'Tapa de inspección 0,70 × 0,70'], ['9', 'Entrada Ø 160 · eje −0,35'], ['10', 'Salida Ø 160 · eje −0,42'], ['11', 'Armadura · recubrimiento 0,03']];
+
+function kit() {
+  let o = '';
+  const k = { add: (s) => { o += s; }, get: () => o };
+  k.rect = (x, y, w, h, a) => k.add(`<rect x="${R(x)}" y="${R(y)}" width="${R(w)}" height="${R(h)}" ${a || ''}/>`);
+  k.line = (x1, y1, x2, y2, a) => k.add(`<line x1="${R(x1)}" y1="${R(y1)}" x2="${R(x2)}" y2="${R(y2)}" ${a || ''}/>`);
+  k.text = (x, y, t, a) => k.add(`<text x="${R(x)}" y="${R(y)}" ${a || ''}>${t}</text>`);
+  const DL = 'stroke="#1b1a18" stroke-width="1"', EL = 'stroke="#8f8a81" stroke-width="0.8"';
+  k.DL = DL;
+  k.HAT = 'fill="url(#hc)" stroke="#1b1a18" stroke-width="1.6"'; k.HAP = 'fill="url(#hp)" stroke="#1b1a18" stroke-width="1.2"';
+  k.DASH = 'fill="none" stroke="#9a6b45" stroke-width="1.4" stroke-dasharray="9 6"'; k.RB = 'stroke="#9a3412" stroke-width="1.4"';
+  k.tick = (x, y) => k.line(x - 6, y + 6, x + 6, y - 6, 'stroke="#1b1a18" stroke-width="1.8"');
+  k.dimH = (map, xs, y, ref) => { k.line(map(xs[0]) - 9, y, map(xs[xs.length - 1]) + 9, y, DL);
+    xs.forEach((v, i) => { const X = map(v); k.tick(X, y); if (ref !== undefined) { const s = Math.sign(y - ref); k.line(X, ref + 6 * s, X, y + 8 * s, EL); } if (i) k.text((map(xs[i - 1]) + X) / 2, y - 7, F2(v - xs[i - 1]), 'class="d" text-anchor="middle"'); }); };
+  k.dimV = (map, hs, x, ref) => { k.line(x, map(hs[0]) + 9, x, map(hs[hs.length - 1]) - 9, DL);
+    hs.forEach((v, i) => { const Y = map(v); k.tick(x, Y); if (ref !== undefined) { const s = Math.sign(x - ref); k.line(ref + 6 * s, Y, x + 8 * s, Y, EL); } if (i) k.add(`<text class="d" text-anchor="middle" transform="translate(${R(x - 7)} ${R((map(hs[i - 1]) + Y) / 2)}) rotate(-90)">${F2(Math.abs(v - hs[i - 1]))}</text>`); }); };
+  k.acum = (map, xs, y, ref, base) => { k.line(map(xs[0]) - 9, y, map(xs[xs.length - 1]) + 9, y, DL); k.add(`<circle cx="${R(map(xs[0]))}" cy="${y}" r="4" fill="none" stroke="#1b1a18" stroke-width="1.4"/>`);
+    xs.forEach((v, i) => { const X = map(v); if (i) k.tick(X, y); const s = Math.sign(y - ref); k.line(X, ref + 6 * s, X, y + 8 * s, EL); k.add(`<text class="d" transform="translate(${R(X + 5)} ${y - 9}) rotate(-90)">${i ? F2(v - base) : '0'}</text>`); }); };
+  k.co = (n, x1, y1, cx, cy) => { k.line(x1, y1, cx, cy, DL); k.add(`<circle cx="${R(x1)}" cy="${R(y1)}" r="2.6" fill="#1b1a18"/><circle cx="${R(cx)}" cy="${R(cy)}" r="13" fill="#fff" stroke="#1b1a18" stroke-width="1.3"/>`); k.text(cx, cy + 5, n, 'class="n" text-anchor="middle"'); };
+  k.marca = (l, x, y) => { k.add(`<circle cx="${R(x)}" cy="${R(y)}" r="13" fill="#1b1a18"/>`); k.text(x, y + 6, l, 'class="m" text-anchor="middle"'); };
+  k.niv = (x, y, t, end) => { k.add(`<path d="M ${R(x - 6)} ${R(y - 10)} L ${R(x + 6)} ${R(y - 10)} L ${R(x)} ${R(y)} Z" fill="#1b1a18"/>`); k.text(end ? x - 10 : x + 10, y - 2, t, 'class="x"' + (end ? ' text-anchor="end"' : '')); };
+  k.asa = (x, y, r) => k.add(`<path d="M ${R(x - r)} ${R(y)} a ${R(r)} ${R(r)} 0 0 1 ${R(2 * r)} 0" fill="none" stroke="#1b1a18" stroke-width="1.6"/>`);
+  return k;
+}
+
+function rotulo(k, lam, tit, esc) {
+  const x = 960, y = 858, w = 410, h = 110;
+  k.rect(x, y, w, h, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.8"');
+  k.add(`<image href="logo-full-service.png" x="${x + 10}" y="${y + 8}" width="112" height="38" preserveAspectRatio="xMinYMid meet"/>`);
+  k.text(x + 132, y + 24, tit, 'class="k"'); k.text(x + 132, y + 44, 'Cámara desengrasadora de H°A° 5,20 × 2,50 × 2,80 m', 'class="x"');
+  k.line(x, y + 54, x + w, y + 54, 'stroke="#1b1a18" stroke-width="1"'); k.line(x, y + 82, x + w, y + 82, 'stroke="#d8d4cc" stroke-width="1"');
+  [['CLIENTE', 'Construservice EAS'], ['PRESUPUESTO', 'P-2026-176'], ['LÁMINA', lam + ' de 5'], ['ESCALA', esc], ['FECHA', '30/10/2026'], ['REVISIÓN', 'A']].forEach(([a, b], i) => { const cx = x + 10 + (i % 3) * 136, cy = y + (i < 3 ? 66 : 94); k.text(cx, cy, a, 'class="lb"'); k.text(cx, cy + 13, b, 'class="v"'); });
+}
+function claves(k) {
+  REFS.forEach(([n, t], i) => { const x = 40 + Math.floor(i / 4) * 300, y = 884 + (i % 4) * 24; k.add(`<circle cx="${x + 11}" cy="${y - 5}" r="11" fill="#fff" stroke="#1b1a18" stroke-width="1.2"/>`); k.text(x + 11, y - 0.5, n, 'class="n" text-anchor="middle"'); k.text(x + 30, y, t, 'class="x"'); });
+}
+function svg(k) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 990" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;height:100%;background:#ffffff">
+<defs><pattern id="hc" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#ece9e2"/><line x1="0" y1="0" x2="0" y2="10" stroke="#8a857c" stroke-width="1"/></pattern>
+<pattern id="hp" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="8" height="8" fill="#f6f4ef"/><line x1="0" y1="0" x2="0" y2="8" stroke="#b5b0a6" stroke-width="0.9"/></pattern>
+<pattern id="hl" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#d7d2c8"/><circle cx="4" cy="4" r="1.2" fill="#6f6b64"/></pattern>
+<style>text{font-family:'IBM Plex Sans',system-ui,sans-serif;fill:#1b1a18}.h{font-size:26px;font-weight:700}.t{font-size:19px;font-weight:700}.s{font-size:15px;fill:#4a463f}.d{font:600 16px 'IBM Plex Mono',ui-monospace,monospace}.n{font-size:13px;font-weight:700}.m{font-size:15px;font-weight:700;fill:#fff}.k{font-size:16px;font-weight:700}.x{font-size:14.5px;fill:#2f2c27}.v{font-size:13.5px;font-weight:600}.lb{font:600 10.5px 'IBM Plex Mono',ui-monospace,monospace;fill:#6f6b64}</style></defs>
+<rect x="14" y="14" width="1372" height="962" fill="none" stroke="#1b1a18" stroke-width="2"/>${k.get()}</svg>`;
+}
+
+function lamina1() {
+  const k = kit(), P0x = 210, P0y = 270, px = (x) => P0x + (x + 2.6) * S, pz = (z) => P0y + (z + 1.25) * S;
+  k.text(40, 58, 'LÁMINA 1 · PLANTA', 'class="h"'); k.text(40, 82, 'Corte horizontal a media altura, sin tapa · cotas en metros · escala 1:25', 'class="s"');
+  k.rect(px(-2.9), pz(-1.55), 5.8 * S, 3.1 * S, k.DASH); k.text(px(-2.85), pz(-1.55) + 20, 'borde de excavación 5,80 × 3,10 m', 'class="x" fill="#7a4f2c"');
+  k.rect(px(-2.6), pz(-1.25), 5.2 * S, 2.5 * S, k.HAT); k.rect(px(-2.4), pz(-1.05), 4.8 * S, 2.1 * S, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.6"');
+  [-0.875, 0.725].forEach(x => k.rect(px(x), pz(-1.05), 0.15 * S, 2.1 * S, k.HAT));
+  CX.forEach(cx => { k.rect(px(cx - 0.3), pz(-0.3), 0.6 * S, 0.6 * S, 'fill="none" stroke="#6f6b64" stroke-width="1.2" stroke-dasharray="6 4"'); k.line(px(cx - 0.3), pz(-0.3), px(cx + 0.3), pz(0.3), 'stroke="#c2bdb3" stroke-width="0.8" stroke-dasharray="6 4"'); k.line(px(cx + 0.3), pz(-0.3), px(cx - 0.3), pz(0.3), 'stroke="#c2bdb3" stroke-width="0.8" stroke-dasharray="6 4"'); });
+  k.text(px(CX[0]), pz(-0.55), 'boca de inspección 0,60 × 0,60', 'class="x" text-anchor="middle"'); k.dimH(px, [CX[0] - 0.3, CX[0] + 0.3], pz(-0.3) - 12);
+  [['CÁMARA 1', 'retención de grasa', CX[0]], ['CÁMARA 2', 'sedimentación', 0], ['CÁMARA 3', 'salida', CX[2]]].forEach(([a, b, cx]) => { k.text(px(cx), pz(0.52), a, 'class="k" text-anchor="middle"'); k.text(px(cx), pz(0.66), b, 'class="x" text-anchor="middle"'); });
+  k.rect(px(-2.9), pz(-0.08), 0.55 * S, 0.16 * S, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.2"'); k.rect(px(2.35), pz(-0.08), 0.55 * S, 0.16 * S, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.2"');
+  k.text(px(-2.33), pz(-0.12), 'entrada Ø 160', 'class="x"'); k.text(px(2.33), pz(-0.12), 'salida Ø 160', 'class="x" text-anchor="end"');
+  k.line(px(-2.9), pz(0), 58, pz(0), 'stroke="#1b1a18" stroke-width="2" stroke-dasharray="14 4 3 4"'); k.line(px(2.9), pz(0), 1342, pz(0), 'stroke="#1b1a18" stroke-width="2" stroke-dasharray="14 4 3 4"');
+  k.marca('A', 45, pz(0)); k.marca('A', 1355, pz(0));
+  k.line(px(CX[2]), pz(-1.55), px(CX[2]), pz(-1.25) - 2, 'stroke="#1b1a18" stroke-width="2"'); k.line(px(CX[2]), pz(1.25) + 2, px(CX[2]), pz(1.55), 'stroke="#1b1a18" stroke-width="2"');
+  k.marca('B', px(CX[2]) + 24, pz(-1.4)); k.marca('B', px(CX[2]) + 24, pz(1.4));
+  k.co('9', px(-2.75), pz(0.08), px(-2.75), pz(0.75)); k.co('10', px(2.75), pz(0.08), px(2.75), pz(0.75)); k.co('6', px(-2.9), pz(-1.0), px(-2.75), pz(-0.75));
+  k.co('2', px(-1.0), pz(-1.15), px(-1.2), pz(-0.8)); k.co('3', px(-0.8), pz(0.9), px(-0.45), pz(0.9)); k.co('4', px(0.8), pz(0.9), px(0.45), pz(0.9));
+  k.acum(px, XS, 150, pz(-1.25), -2.6); k.dimH(px, XS, 188, pz(-1.25));
+  k.dimH(px, [-2.9, -2.6, 2.6, 2.9], 832, pz(1.55));
+  k.dimV(pz, [-1.25, -1.05, 1.05, 1.25], 125, px(-2.6)); k.dimV(pz, [-1.55, -1.25, 1.25, 1.55], 90, px(-2.9));
+  // escala gráfica + leyenda
+  k.rect(700, 52, S, 8, 'fill="#1b1a18"'); k.rect(700 + S, 52, S, 8, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1"');
+  k.text(700, 80, '0', 'class="x" text-anchor="middle"'); k.text(700 + S, 80, '1', 'class="x" text-anchor="middle"'); k.text(700 + 2 * S, 80, '2 m', 'class="x" text-anchor="middle"'); k.text(1090, 62, 'escala gráfica 1:25', 'class="x"');
+  const LG = [[(x, y) => k.rect(x, y - 13, 30, 16, k.HAT), 'Hormigón armado H-25 (Fck = 25 MPa)'], [(x, y) => k.rect(x, y - 13, 30, 16, 'fill="url(#hl)" stroke="#1b1a18"'), 'Hormigón de limpieza e = 0,05'], [(x, y) => k.line(x, y - 5, x + 30, y - 5, k.DASH), 'Borde de excavación'], [(x, y) => k.rect(x + 7, y - 13, 16, 16, 'fill="none" stroke="#6f6b64" stroke-width="1.2" stroke-dasharray="4 3"'), 'Boca de inspección (proyección)'], [(x, y) => k.rect(x, y - 10, 30, 10, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.2"'), 'Caño Ø 160 mm'], [(x, y) => { k.line(x, y - 5, x + 30, y - 5, 'stroke="#1b1a18" stroke-width="2" stroke-dasharray="14 4 3 4"'); }, 'Línea de corte A-A y B-B']];
+  LG.forEach(([f, t], i) => { const x = 40 + (i % 2) * 440, y = 884 + Math.floor(i / 2) * 26; f(x, y); k.text(x + 42, y, t, 'class="x"'); });
+  k.text(40, 964, 'Imprimir en A4 apaisado al 100 % para que la escala 1:25 sea real. Verificar todas las medidas en obra antes de excavar.', 'class="x" font-weight="600"');
+  rotulo(k, 1, 'PLANTA', '1:25'); return svg(k);
+}
+
+function seccionComun(k, map, ah, xs, opts) {
+  // xs: [izqExc, izqExt, izqInt, derInt, derExt, derExc]
+  const [a0, a1, a2, b2, b1, b0] = xs;
+  k.line(map(b0), ah(2.6), map(b0) + 0.55 * S, ah(2.6), 'stroke="#1b1a18" stroke-width="2"');
+  for (let x = map(b0); x < map(b0) + 0.55 * S; x += 9) k.line(x, ah(2.6) + 1, x - 7, ah(2.6) + 9, 'stroke="#9a6b45" stroke-width="0.9"');
+  k.niv(map(b0) + 0.12 * S, ah(2.6), 'N.T. −0,20');
+  k.add(`<polyline points="${R(map(a0))},${R(ah(2.6))} ${R(map(a0))},${R(ah(-0.05))} ${R(map(b0))},${R(ah(-0.05))} ${R(map(b0))},${R(ah(2.6))}" ${k.DASH}/>`);
+  k.rect(map(a0), ah(0), (b0 - a0) * S, 0.05 * S, 'fill="url(#hl)" stroke="#1b1a18" stroke-width="1"');
+  k.rect(map(a2), ah(2.3), (b2 - a2) * S, 2.1 * S, 'fill="#d6e7f2" opacity="0.75"');
+  if (opts.grasa) k.rect(map(a2), ah(2.36), (opts.grasa - a2) * S, 0.06 * S, 'fill="#e3c35a"');
+  k.line(map(a2), ah(2.3), map(b2), ah(2.3), 'stroke="#2f6f9f" stroke-width="1.4" stroke-dasharray="10 5"');
+  k.rect(map(a1), ah(0.2), (b1 - a1) * S, 0.2 * S, k.HAT); k.rect(map(a1), ah(2.8), 0.2 * S, 2.6 * S, k.HAT); k.rect(map(b2), ah(2.8), 0.2 * S, 2.6 * S, k.HAT);
+  k.text(map(b1) + 6, ah(0) - 5, '−2,80', 'class="x"'); k.text(map(a0) + 4, ah(-0.05) + 21, '−2,85 fondo de excavación', 'class="x"');
+}
+
+function lamina2() {
+  const k = kit(), AY0 = 720, ax = (x) => 210 + (x + 2.6) * S, ah = (h) => AY0 - h * S;
+  k.text(40, 58, 'LÁMINA 2 · CORTE A-A (LONGITUDINAL)', 'class="h"'); k.text(40, 82, 'Niveles referidos al borde superior de los muros (±0,00) · cotas en metros · escala 1:25', 'class="s"');
+  seccionComun(k, ax, ah, [-2.9, -2.6, -2.4, 2.4, 2.6, 2.9], { grasa: -0.875 });
+  k.rect(ax(-0.875), ah(2.8), 0.15 * S, 2.1 * S, k.HAT); k.rect(ax(0.725), ah(2.1), 0.15 * S, 1.9 * S, k.HAT);
+  [[-2.6, CX[0] - 0.3], [CX[0] + 0.3, -0.3], [0.3, CX[2] - 0.3], [CX[2] + 0.3, 2.6]].forEach(([a, b]) => k.rect(ax(a), ah(2.92), (b - a) * S, 0.12 * S, k.HAP));
+  CX.forEach(cx => { k.rect(ax(cx - 0.35), ah(2.98), 0.7 * S, 0.06 * S, k.HAP); [-0.2, 0.2].forEach(d => k.asa(ax(cx + d), ah(2.98), 0.06 * S)); });
+  k.rect(ax(-2.9), ah(2.53), 0.55 * S, 0.16 * S, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.2"'); k.rect(ax(2.35), ah(2.46), 0.55 * S, 0.16 * S, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.2"');
+  [-2.57, -2.43, 2.43, 2.57].forEach(x => k.line(ax(x), ah(0.03), ax(x), ah(2.77), k.RB)); [0.03, 0.17].forEach(h => k.line(ax(-2.57), ah(h), ax(2.57), ah(h), k.RB));
+  [-0.845, -0.755].forEach(x => k.line(ax(x), ah(0.73), ax(x), ah(2.77), k.RB)); [0.755, 0.845].forEach(x => k.line(ax(x), ah(0.05), ax(x), ah(2.07), k.RB));
+  k.text(ax(-2.35), ah(2.7), '±0,00 borde superior de muros', 'class="x" font-weight="600"');
+  k.text(ax(-2.33), ah(2.58), 'eje entrada −0,35', 'class="x"'); k.text(ax(2.33), ah(2.58), 'eje salida −0,42', 'class="x" text-anchor="end"');
+  k.text(ax(0), ah(2.3) - 7, 'N.L. −0,50', 'class="x" text-anchor="middle" fill="#2f6f9f" font-weight="600"');
+  k.text(ax(1.12), ah(2.1) + 20, '−0,70 borde del tabique 2', 'class="x"');
+  k.line(ax(-2.4), ah(0.7), ax(-0.875), ah(0.7), 'stroke="#6f6b64" stroke-width="0.9" stroke-dasharray="5 4"'); k.text(ax(-2.35), ah(0.7) - 7, '−2,10 fondo del tabique 1', 'class="x"');
+  k.text(ax(1.12), ah(0.2) - 9, '−2,60 cara superior de la losa', 'class="x"');
+  k.dimV(ah, [0.2, 0.7], ax(-1.05)); k.dimV(ah, [0.7, 2.8], ax(-0.55)); k.dimV(ah, [0.2, 2.1], ax(0.55)); k.dimV(ah, [2.1, 2.8], ax(1.05));
+  k.co('1', ax(-1.6), ah(0.12), ax(-1.6), ah(0.45)); k.co('2', ax(2.45), ah(1.6), ax(2.1), ah(1.6)); k.co('3', ax(-0.875), ah(1.6), ax(-1.3), ah(1.6)); k.co('4', ax(0.875), ah(1.0), ax(1.3), ah(1.0));
+  k.co('5', ax(-2.75), ah(-0.025), ax(-2.75), ah(0.45)); k.co('6', ax(-2.9), ah(1.5), ax(-2.75), ah(1.5)); k.co('7', ax(-2.2), ah(2.86), ax(-2.2), ah(3.25)); k.co('8', ax(0.1), ah(2.95), ax(0.55), ah(3.25));
+  k.co('9', ax(-2.7), ah(2.45), ax(-2.75), ah(2.05)); k.co('10', ax(2.75), ah(2.38), ax(2.75), ah(2.0)); k.co('11', ax(-2.43), ah(1.1), ax(-2.0), ah(1.1));
+  k.dimH(ax, XS, 792, ah(-0.05)); k.dimH(ax, [-2.9, -2.6, 2.6, 2.9], 826, ah(-0.05));
+  k.dimV(ah, [0, 0.2, 2.8, 2.92], 125, ax(-2.6)); k.dimV(ah, [0, 2.8], 95, ax(-2.6)); k.dimV(ah, [-0.05, 2.6], 65, ax(-2.9));
+  claves(k); rotulo(k, 2, 'CORTE A-A', '1:25'); return svg(k);
+}
+
+function lamina3() {
+  const k = kit(), AY0 = 720, bz = (z) => 232 + (z + 1.25) * S, ah = (h) => AY0 - h * S;
+  k.text(40, 58, 'LÁMINA 3 · CORTE B-B Y DETALLE DE TAPA', 'class="h"'); k.text(40, 82, 'Corte transversal por la cámara 3 · cotas en metros', 'class="s"');
+  k.text(175, 112, 'CORTE B-B · escala 1:25', 'class="t"');
+  seccionComun(k, bz, ah, [-1.55, -1.25, -1.05, 1.05, 1.25, 1.55], {});
+  k.add(`<circle cx="${R(bz(0))}" cy="${R(ah(2.38))}" r="${R(0.08 * S)}" fill="#ffffff" stroke="#1b1a18" stroke-width="1.3" stroke-dasharray="4 3"/>`);
+  k.rect(bz(-1.25), ah(2.92), 0.95 * S, 0.12 * S, k.HAP); k.rect(bz(0.3), ah(2.92), 0.95 * S, 0.12 * S, k.HAP); k.rect(bz(-0.35), ah(2.98), 0.7 * S, 0.06 * S, k.HAP);
+  [-0.2, 0.2].forEach(d => k.asa(bz(d), ah(2.98), 0.06 * S));
+  [-1.22, -1.08, 1.08, 1.22].forEach(z => k.line(bz(z), ah(0.03), bz(z), ah(2.77), k.RB)); [0.03, 0.17].forEach(h => k.line(bz(-1.22), ah(h), bz(1.22), ah(h), k.RB));
+  for (let h = 0.3; h < 2.75; h += 0.2) [-1.195, -1.105, 1.105, 1.195].forEach(z => k.add(`<circle cx="${R(bz(z))}" cy="${R(ah(h))}" r="2.6" fill="#9a3412"/>`));
+  for (let z = -1.1; z <= 1.11; z += 0.2) [0.055, 0.145].forEach(h => k.add(`<circle cx="${R(bz(z))}" cy="${R(ah(h))}" r="2.6" fill="#9a3412"/>`));
+  k.line(bz(-1.08), ah(1.75), bz(-0.95), ah(1.75), k.DL); k.text(bz(-0.93), ah(1.75) + 5, 'verticales Ø 12 c/20', 'class="x" font-weight="600"');
+  k.line(bz(-1.105), ah(1.5), bz(-0.95), ah(1.5), k.DL); k.text(bz(-0.93), ah(1.5) + 5, 'horizontales Ø 10 c/20', 'class="x" font-weight="600"');
+  k.text(bz(-0.93), ah(1.5) + 25, 'doble malla · recubrimiento 0,03', 'class="x"');
+  k.text(bz(-0.93), ah(1.5) + 45, 'losa de fondo: doble malla Ø 12 c/20', 'class="x"');
+  k.text(bz(-1.0), ah(2.7), '±0,00 borde superior', 'class="x" font-weight="600"');
+  k.text(bz(0.2), ah(2.3) - 7, 'N.L. −0,50', 'class="x" fill="#2f6f9f" font-weight="600"');
+  k.text(bz(0.1), ah(0.2) - 9, '−2,60 sup. de losa', 'class="x"');
+  k.co('10', bz(0), ah(2.38), bz(0.6), ah(2.0)); k.co('7', bz(0.8), ah(2.86), bz(0.8), ah(3.25)); k.co('8', bz(0), ah(2.95), bz(-0.45), ah(3.1));
+  k.co('1', bz(-0.6), ah(0.1), bz(-0.6), ah(0.55)); k.co('2', bz(1.15), ah(1.0), bz(0.75), ah(1.0)); k.co('11', bz(1.08), ah(1.4), bz(0.75), ah(1.4));
+  k.co('5', bz(-1.4), ah(-0.025), bz(-1.4), ah(0.45)); k.co('6', bz(-1.55), ah(1.5), bz(-1.4), ah(1.5));
+  k.dimH(bz, [-1.25, -1.05, 1.05, 1.25], 792, ah(-0.05)); k.dimH(bz, [-1.55, -1.25, 1.25, 1.55], 826, ah(-0.05));
+  k.dimV(ah, [0, 0.2, 2.8, 2.92], 140, bz(-1.25)); k.dimV(ah, [0, 2.8], 110, bz(-1.25)); k.dimV(ah, [-0.05, 2.6], 80, bz(-1.55));
+  // Detalle de tapa 1:10
+  const Q = 471.43, D0x = 990, D0y = 170;
+  k.text(930, 112, 'DETALLE TAPA DE INSPECCIÓN · escala 1:10', 'class="t"');
+  k.rect(D0x, D0y, 0.7 * Q, 0.7 * Q, k.HAP);
+  k.rect(D0x + 0.01 * Q, D0y + 0.01 * Q, 0.68 * Q, 0.68 * Q, 'fill="none" stroke="#1b1a18" stroke-width="1" stroke-dasharray="6 4"');
+  k.rect(D0x + 0.05 * Q, D0y + 0.05 * Q, 0.6 * Q, 0.6 * Q, 'fill="none" stroke="#1b1a18" stroke-width="1" stroke-dasharray="6 4"');
+  [-0.2, 0.2].forEach(d => k.rect(D0x + (0.35 + d) * Q - 6, D0y + 0.29 * Q, 12, 0.12 * Q, 'rx="6" fill="#ffffff" stroke="#1b1a18" stroke-width="1.4"'));
+  k.dimH((v) => D0x + v * Q, [0, 0.7], D0y - 22, D0y); k.dimV((v) => D0y + v * Q, [0, 0.7], D0x - 22, D0x);
+  k.dimH((v) => D0x + v * Q, [0.05, 0.65], D0y + 0.62 * Q);
+  k.text(D0x + 0.35 * Q, D0y + 0.7 * Q + 26, 'planta · boca de 0,60 × 0,60 en línea de trazos', 'class="x" text-anchor="middle"');
+  const S0x = 960, S0y = 650, sx = (v) => S0x + v * Q;
+  k.rect(sx(0), S0y, 0.1 * Q, 0.12 * Q, k.HAT); k.rect(sx(0.7), S0y, 0.1 * Q, 0.12 * Q, k.HAT);
+  [[0.1, 1], [0.7, -1]].forEach(([x, s]) => k.add(`<polyline points="${R(sx(x) + s * 18)},${S0y} ${R(sx(x))},${S0y} ${R(sx(x))},${S0y + 18}" fill="none" stroke="#1b1a18" stroke-width="3.2"/>`));
+  k.rect(sx(0.05), S0y - 0.06 * Q, 0.7 * Q, 0.06 * Q, k.HAP);
+  [-0.2, 0.2].forEach(d => k.asa(sx(0.4 + d), S0y - 0.06 * Q, 0.06 * Q));
+  k.dimH(sx, [0.1, 0.7], S0y + 0.12 * Q + 32, S0y + 0.12 * Q);
+  k.dimV((h) => S0y + 0.12 * Q - h * Q, [0, 0.12, 0.18], sx(0.8) + 26, sx(0.8));
+  k.co('8', sx(0.6), S0y - 0.03 * Q, sx(0.6) + 40, S0y - 82); k.co('7', sx(0.05), S0y + 0.06 * Q, 938, S0y + 0.06 * Q);
+  k.text(sx(0.4), S0y - 100, 'corte de la tapa', 'class="x" text-anchor="middle"');
+  ['Tapa de H°A° 0,70 × 0,70 × 0,06 m, armada con malla Ø 6 c/10', 'Marco de ángulo 1 ½" × 3/16" anclado a la losa · 2 asas Ø 12 mm', 'Losa de tapa e = 0,12 m · una boca centrada sobre cada cámara'].forEach((t, i) => k.text(930, 792 + i * 21, t, 'class="x"'));
+  claves(k); rotulo(k, 3, 'CORTE B-B Y DETALLE DE TAPA', '1:25 y 1:10'); return svg(k);
+}
+
+class Component extends DCLogic {
+  r1 = React.createRef(); r2 = React.createRef(); r3 = React.createRef();
+  componentDidMount() { this.pintar(); this._t = setTimeout(() => this.pintar(), 400); }
+  componentDidUpdate() { this.pintar(); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  pintar() { [[this.r1, lamina1], [this.r2, lamina2], [this.r3, lamina3]].forEach(([r, f]) => { const el = r.current; if (el && !el.querySelector('svg')) el.innerHTML = f(); }); }
+  renderVals() {
+    const n = (span) => Math.floor(span / 0.2 + 1e-9) + 1, KG = { 10: 0.617, 12: 0.888 };
+    const base = [
+      ['P1', 'Losa de fondo · sentido largo', 'mallas inferior y superior', 12, 2 * n(2.44), 5.14 + 0.4, 'Recta con patas de 0,20 m'],
+      ['P2', 'Losa de fondo · sentido corto', 'mallas inferior y superior', 12, 2 * n(5.14), 2.44 + 0.4, 'Recta con patas de 0,20 m'],
+      ['P3', 'Muros largos · verticales', '2 muros × 2 caras', 12, 4 * n(5.14), 2.74 + 0.3, 'En L · pata de 0,30 m en la losa'],
+      ['P4', 'Muros cortos · verticales', '2 muros × 2 caras', 12, 4 * n(2.04), 2.74 + 0.3, 'En L · pata de 0,30 m en la losa'],
+      ['P5', 'Muros · horizontales, cara exterior', n(2.54) + ' anillos', 10, n(2.54), 2 * (5.14 + 2.44) + 0.5, 'Anillo perimetral · empalme 0,50 m'],
+      ['P6', 'Muros · horizontales, cara interior', n(2.54) + ' anillos', 10, n(2.54), 2 * (4.74 + 2.04) + 0.5, 'Anillo perimetral · empalme 0,50 m'],
+      ['P7', 'Tabiques · verticales', '2 tabiques × 2 caras', 10, 4 * n(2.04), 2.04 + 0.3, 'En L · pata de 0,30 m'],
+      ['P8', 'Tabiques · horizontales', '2 tabiques × 2 caras', 10, 4 * n(2.04), 2.1 + 0.3, 'Recta · 0,15 m dentro de cada muro']
+    ];
+    const t = { m10: 0, m12: 0, k10: 0, k12: 0 };
+    const filas = base.map(([pos, el, det, d, cant, lu, forma]) => { const lt = cant * lu, kg = lt * KG[d]; t['m' + d] += lt; t['k' + d] += kg; return { pos, el, det, d: String(d), sep: '0,20', cant: String(cant), lu: nf(lu, 2), lt: nf(lt, 2), kgm: nf(KG[d], 3), kg: nf(kg, 1), forma }; });
+    const neto = t.k10 + t.k12;
+    return {
+      r1: this.r1, r2: this.r2, r3: this.r3,
+      imprimir: () => window.print(),
+      filas,
+      t: { kg12: nf(t.k12, 0), m12: nf(t.m12, 1), b12: String(Math.ceil(t.m12 * 1.05 / 12)), kg10: nf(t.k10, 0), m10: nf(t.m10, 1), b10: String(Math.ceil(t.m10 * 1.05 / 12)), neto: nf(neto, 0), cNeta: nf(neto / 11.52, 1), con5: nf(neto * 1.05, 0), c5: nf(neto * 1.05 / 11.52, 1) },
+      controles: ['Excavación 5,80 × 3,10 m y 2,65 m de profundidad', 'Hormigón de limpieza 0,05 m', 'Exterior 5,20 × 2,50 m · diagonales iguales de 5,77 m', 'Interior 4,80 × 2,10 m', 'Muros 0,20 m · losa de fondo 0,20 m · tabiques 0,15 m', 'Cámaras: 1,525 m · 1,45 m · 1,525 m', 'Tabique 1: 2,10 m de alto, colgado, paso libre abajo 0,50 m', 'Tabique 2: 1,90 m sobre la losa, borde a 0,70 m del borde superior', 'Entrada eje −0,35 · salida eje −0,42 (la salida 7 cm más baja)', 'Recubrimiento 0,03 m en todas las caras', 'Altura total 2,80 m · borde 0,20 m sobre el terreno']
+    };
+  }
+}
+</script>
+</body>
+</html>

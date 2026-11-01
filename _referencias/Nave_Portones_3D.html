@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Nave La Misericordia · Vista con portones</title>
+<style>html,body{margin:0;height:100%;background:#eeece8;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif}#v{position:absolute;inset:0}
+#hd{position:absolute;left:12px;top:10px;background:rgba(255,255,255,.95);border:1px solid #dedbd5;border-radius:8px;padding:9px 12px;font-size:11.5px;display:flex;flex-direction:column;gap:4px;max-width:330px}
+#hd b.t{font-size:13px}#hd label{display:flex;align-items:center;gap:6px;cursor:pointer}#hd i{width:12px;height:12px;border-radius:2px;flex:none;border:1px solid rgba(0,0,0,.2);display:inline-block}
+#tip{position:absolute;pointer-events:none;background:#1b1a18;color:#fff;font-size:11.5px;line-height:1.45;padding:6px 9px;border-radius:5px;display:none;white-space:nowrap}
+#bt{position:absolute;right:12px;top:10px;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:58%}#bt button{font:600 11.5px system-ui;padding:6px 10px;border:1px solid #c9c5bd;background:#fff;border-radius:5px;cursor:pointer}
+#bt button.p{background:#1f4e79;color:#fff;border-color:#1f4e79}
+#ayu{position:absolute;left:12px;bottom:36px;max-width:calc(100% - 24px);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#6f6b64;background:rgba(255,255,255,.88);padding:3px 8px;border-radius:5px}
+#rec{position:absolute;inset:0;background:rgba(27,26,24,.55);display:none;align-items:center;justify-content:center;z-index:9}#rec div{background:#fff;border-radius:10px;padding:16px 20px;font-size:13px;text-align:center;max-width:420px;line-height:1.5}#rec a{display:inline-block;margin-top:10px;padding:8px 14px;background:#25d366;color:#fff;border-radius:6px;font-weight:700;text-decoration:none}
+#est{position:absolute;right:12px;bottom:8px;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#6f6b64;background:rgba(255,255,255,.88);padding:3px 8px;border-radius:5px}
+#tab{position:absolute;right:12px;top:92px;background:rgba(255,255,255,.95);border:1px solid #dedbd5;border-radius:8px;font-size:11px;max-width:420px}
+#tab div{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;padding:4px 10px;border-top:1px solid #f1efeb;cursor:pointer}#tab div:hover{background:#f4f3f0}#tab div:first-child{border-top:0;cursor:default;font-weight:700}
+#tab span.n{font-family:'IBM Plex Mono',monospace;font-weight:700;color:#1f4e79}#tab span.m{font-family:'IBM Plex Mono',monospace;color:#4f4b45;white-space:nowrap}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body><div id="v"></div><div id="hd"></div><div id="tab"></div><div id="tip"></div>
+<div id="bt"><button class="p" id="abr">Abrir portón corredizo</button><button data-v="iso">Isométrica</button><button data-v="frente">Portón 10 m</button><button data-v="planta">Planta</button><button data-v="lado">Lateral</button><button id="ent" class="p">Entrar a la nave</button><button id="perV">Ver persianas</button><button id="vWa" style="background:#25d366;color:#fff;border-color:#25d366">🎬 Video WhatsApp</button><button id="vEst" style="background:#128c7e;color:#fff;border-color:#128c7e">📱 Estado WhatsApp</button></div>
+<div id="ayu">Girar: clic izq. · Acercar/entrar: rueda · Mover: clic der. · Caminar: W A S D · Subir/bajar: Q E</div><div id="est">Cargando…</div><div id="rec"><div id="recT"></div></div>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = (i) => document.getElementById(i), f2 = (v) => (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
+const ren = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); $('v').appendChild(ren.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#eeece8');
+const cam = new T.PerspectiveCamera(50, 1, 0.02, 3000), ctl = new OrbitControls(cam, ren.domElement);
+ctl.enableDamping = true; ctl.zoomToCursor = true; ctl.screenSpacePanning = true; ctl.mouseButtons = { LEFT: T.MOUSE.ROTATE, MIDDLE: T.MOUSE.DOLLY, RIGHT: T.MOUSE.PAN };
+ren.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+{ const pm = new T.PMREMGenerator(ren); sc.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; ren.toneMapping = T.ACESFilmicToneMapping; ren.toneMappingExposure = 1.0; }
+sc.add(new T.HemisphereLight('#ffffff', '#8f8a83', 0.9)); const dl = new T.DirectionalLight('#ffffff', 1.15); dl.position.set(40, 70, 30); sc.add(dl);
+const fit = () => { ren.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }; addEventListener('resize', fit); fit();
+const G = new T.Group(); sc.add(G); const pick = [];
+let cx = 13, cy = 27; const V = (x, y, z) => new T.Vector3(x - cx, z, -(y - cy));
+const M = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.6, metalness: 0.35 }, o || {}));
+const reg = (m, n, d) => { m.userData.n = n; m.userData.d = d || ''; pick.push(m); return m; };
+// caja alineada entre dos puntos de planta (a → b), de alto h desde z0, espesor e
+const panel = (a, b, z0, h, e, mat, n, d, par) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), m = new T.Mesh(new T.BoxGeometry(L, h, e), mat);
+  m.position.copy(V((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, z0 + h / 2)); m.rotation.y = Math.atan2(b[1] - a[1], b[0] - a[0]); (par || G).add(m); if (n) reg(m, n, d); return m; };
+const tubo = (p, q, r, mat, n, d, par) => { const A = V(...p), B = V(...q), dd = B.clone().sub(A), L = dd.length(); const m = new T.Mesh(new T.CylinderGeometry(r, r, L, 10), mat); m.position.copy(A.clone().add(B).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dd.normalize()); (par || G).add(m); if (n) reg(m, n, d); return m; };
+const box = (x, y, z, w, d, h, mat, n, dd, par) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.copy(V(x, y, z + h / 2)); (par || G).add(m); if (n) reg(m, n, dd); return m; };
+
+const D = await (await fetch('estructuras/misericordia/barras.json', { cache: 'no-store' })).json();
+const grp = () => { const g = new T.Group(); G.add(g); return g; };
+const gEst = grp(), gBase = grp(), gLat = grp(), gTest = grp(), gTecho = grp(), gCan = grp(), gBaj = grp(), gPort = grp();
+// estructura existente (no se modifica)
+const IN = 0.0254;
+const secShape = (p) => { const s = new T.Shape(), L = (a, t) => { s.moveTo(0, 0); s.lineTo(a, 0); s.lineTo(a, t); s.lineTo(t, t); s.lineTo(t, a); s.lineTo(0, a); s.lineTo(0, 0); };
+  let m;
+  if ((m = p.match(/L\S* (\d+(?: \d\/\d)?|\d\/\d) x .* x (\d\/\d+)/))) { const fr = (v) => v.split(' ').reduce((a, x) => a + (x.includes('/') ? x.split('/')[0] / x.split('/')[1] : +x), 0); const a = fr(m[1]) * IN, t = fr(m[2]) * IN;
+    if (/^2L|^4L/.test(p)) { L(a, t); const s2 = new T.Shape(); s2.moveTo(-0.006, 0); s2.lineTo(-0.006 - a, 0); s2.lineTo(-0.006 - a, t); s2.lineTo(-0.006 - t, t); s2.lineTo(-0.006 - t, a); s2.lineTo(-0.006, a); return [s, s2]; } L(a, t); return [s]; }
+  if ((m = p.match(/C (\d+)\/(\d+)\/([\d.]+)\/\d+\/(\d+)/))) { const h = m[1] / 1000, b = m[2] / 1000, t = m[3] / 1000, l = m[4] / 1000;
+    const pts = [[b, -h / 2 + l], [b, -h / 2], [0, -h / 2], [0, h / 2], [b, h / 2], [b, h / 2 - l], [b - t, h / 2 - l], [b - t, h / 2 - t], [t, h / 2 - t], [t, -h / 2 + t], [b - t, -h / 2 + t], [b - t, -h / 2 + l]];
+    pts.forEach((q, i) => i ? s.lineTo(q[0], q[1]) : s.moveTo(q[0], q[1])); return [s]; }
+  if ((m = p.match(/2C (\d+)[xX](\d+)[xX](\d+)[xX]([\d.]+)/))) { const h = m[1] / 1000, b = m[2] / 1000; s.moveTo(-b, -h / 2); s.lineTo(b, -h / 2); s.lineTo(b, h / 2); s.lineTo(-b, h / 2); s.lineTo(-b, -h / 2);
+    const hl = new T.Path(); const t = m[4] / 1000; hl.moveTo(-b + t, -h / 2 + t); hl.lineTo(-b + t, h / 2 - t); hl.lineTo(b - t, h / 2 - t); hl.lineTo(b - t, -h / 2 + t); s.holes.push(hl); return [s]; }
+  if ((m = p.match(/SHS (\d+)\/([\d.]+)/))) { const a = m[1] / 2000, t = m[2] / 1000; s.moveTo(-a, -a); s.lineTo(a, -a); s.lineTo(a, a); s.lineTo(-a, a); s.lineTo(-a, -a); const hl = new T.Path(); hl.moveTo(-a + t, -a + t); hl.lineTo(-a + t, a - t); hl.lineTo(a - t, a - t); hl.lineTo(a - t, -a + t); s.holes.push(hl); return [s]; }
+  if ((m = p.match(/^R (\d+)/))) { s.absarc(0, 0, m[1] / 2000, 0, Math.PI * 2, false); return [s]; }
+  s.moveTo(-0.025, -0.025); s.lineTo(0.025, -0.025); s.lineTo(0.025, 0.025); s.lineTo(-0.025, 0.025); return [s]; };
+const nomPerfil = (p) => p.replace(/^2LHLI /, '2 × ').replace(/^4LLI /, '4 × ').replace(/ \/.*$/, '').replace('RSECTION ', '').replace(/\/C$/, '');
+const mAcero = new T.MeshStandardMaterial({ color: '#8d97a1', roughness: 0.45, metalness: 0.75 }), mGalv = new T.MeshStandardMaterial({ color: '#b6bdc4', roughness: 0.35, metalness: 0.8 });
+// Vanos de portones: la estructura del cerramiento se corta para dejar el paso libre.
+const VANOS = (() => { const Fx = (y) => 24.5 + (26.2 - 24.5) * (y - 0.8) / (56.6 - 0.8), A = [5.5, -1.8], B = [24.5, 0.8], Lt0 = Math.hypot(B[0] - A[0], B[1] - A[1]);
+  return [{ a: A, b: B, s0: 18.8 - 10, s1: 18.8, zh: 5.3, dd: 1.6 }, { a: [0, 38.6], b: [0, 44.6], s0: 0, s1: 6, zh: 5.1, dd: 1.2 }, { a: [12.3, 26.6], b: [12.3, 29.6], s0: 0, s1: 3, zh: 3.1, dd: 1.2 },
+    { a: [Fx(27.1), 27.1], b: [Fx(31.1), 31.1], s0: 0, s1: 4, zh: 5.1, dd: 1.2 }].map(v => { const L = Math.hypot(v.b[0] - v.a[0], v.b[1] - v.a[1]); return Object.assign(v, { ux: (v.b[0] - v.a[0]) / L, uy: (v.b[1] - v.a[1]) / L }); }); })();
+const recortar = (q) => { let segs = [[q.a, q.b]];
+  VANOS.forEach(v => { const out = []; segs.forEach(([a, b]) => {
+    const dist = (p) => Math.abs((p[0] - v.a[0]) * v.uy - (p[1] - v.a[1]) * v.ux), sp = (p) => (p[0] - v.a[0]) * v.ux + (p[1] - v.a[1]) * v.uy;
+    if (dist(a) > v.dd || dist(b) > v.dd || Math.min(a[2], b[2]) > v.zh - 0.05) { out.push([a, b]); return; }
+    const sa = sp(a), sb = sp(b), lo = v.s0 + 0.12, hi = v.s1 - 0.12;
+    const at = (t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    if (Math.abs(sb - sa) < 0.05) { if (sa <= lo || sa >= hi) out.push([a, b]); else if (Math.max(a[2], b[2]) > v.zh) { const t = (v.zh - a[2]) / (b[2] - a[2]); out.push(a[2] > b[2] ? [a, at(t)] : [at(t), b]); } return; }
+    const t0 = (lo - sa) / (sb - sa), t1 = (hi - sa) / (sb - sa), tl = Math.max(0, Math.min(t0, t1)), th = Math.min(1, Math.max(t0, t1));
+    if (th <= 0 || tl >= 1 || th - tl < 1e-3) { out.push([a, b]); return; }
+    if (tl > 0.01) out.push([a, at(tl)]); if (th < 0.99) out.push([at(th), b]); }); segs = out; });
+  return segs.filter(([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) > 0.05).map(([a, b]) => Object.assign({}, q, { a, b })); };
+let quitadas = 0; const BARRAS = []; D.barras.forEach(q => { const r = recortar(q); if (r.length !== 1 || r[0].a !== q.a || r[0].b !== q.b) quitadas++; BARRAS.push(...r); });
+const enVano = (x, y) => VANOS.some(v => { const d = Math.abs((x - v.a[0]) * v.uy - (y - v.a[1]) * v.ux), s = (x - v.a[0]) * v.ux + (y - v.a[1]) * v.uy; return d < v.dd && s > v.s0 + 0.12 && s < v.s1 - 0.12; });
+D.bases = D.bases.filter(b => !enVano(b.x, b.y));
+const porPerfil = {}; BARRAS.forEach(q => { (porPerfil[q.p] = porPerfil[q.p] || []).push(q); });
+const instInfo = new Map();
+Object.entries(porPerfil).forEach(([pf, bs]) => {
+  const geo = new T.ExtrudeGeometry(secShape(pf), { depth: 1, bevelEnabled: false, curveSegments: 8 });
+  const im = new T.InstancedMesh(geo, /^C |SHS|2C/.test(pf) ? mGalv : mAcero, bs.length), mt = new T.Matrix4(), up = new T.Vector3();
+  bs.forEach((q, i) => { const A = V(...q.a), B = V(...q.b), d = B.clone().sub(A), L = d.length(), z = d.clone().normalize();
+    up.set(0, 1, 0); if (Math.abs(z.y) > 0.95) up.set(1, 0, 0); const x = new T.Vector3().crossVectors(up, z).normalize(), y = new T.Vector3().crossVectors(z, x);
+    mt.makeBasis(x, y, z.clone().multiplyScalar(L)); mt.setPosition(A); im.setMatrixAt(i, mt); });
+  im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); gEst.add(im);
+  instInfo.set(im, bs.map(q => ({ n: 'Perfil ' + nomPerfil(pf), d: q.nm + ' · ' + f2(Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1], q.b[2] - q.a[2])) + ' m' })));
+  pick.push(im); });
+// detalles: placas base con pernos de anclaje y nudos con cartelas
+const mPlaca = new T.MeshStandardMaterial({ color: '#6f7780', roughness: 0.5, metalness: 0.7 }), mPerno = new T.MeshStandardMaterial({ color: '#c9a14a', roughness: 0.3, metalness: 0.9 });
+D.bases.forEach(b => { const pl = box(b.x - 0.2, b.y - 0.2, 0.02, 0.4, 0.4, 0.016, mPlaca, 'Placa base 400 × 400 × 16 mm', 'Con 4 pernos de anclaje Ø 3/4" y grout', gEst);
+  [[-0.14, -0.14], [0.14, -0.14], [-0.14, 0.14], [0.14, 0.14]].forEach(([dx, dy]) => { const p = new T.Mesh(new T.CylinderGeometry(0.0095, 0.0095, 0.12, 10), mPerno); p.position.copy(V(b.x + dx, b.y + dy, 0.09)); gEst.add(p);
+    const tu = new T.Mesh(new T.CylinderGeometry(0.018, 0.018, 0.02, 6), mPerno); tu.position.copy(V(b.x + dx, b.y + dy, 0.05)); gEst.add(tu); });
+  box(b.x - 0.25, b.y - 0.25, -0.02, 0.5, 0.5, 0.04, M('#a39d94', { roughness: 1, metalness: 0 }), 'Grout de nivelación', '', gEst); });
+{ const nod = new Map(); BARRAS.forEach(q => [q.a, q.b].forEach(p => { if (p[2] < 6.5) return; const k = p.map(v => Math.round(v * 4)).join(','); nod.set(k, (nod.get(k) || 0) + 1); }));
+  const geo = new T.BoxGeometry(0.22, 0.22, 0.008), im = new T.InstancedMesh(geo, mPlaca, [...nod.values()].filter(c => c >= 4).length), mt = new T.Matrix4(); let i = 0;
+  nod.forEach((c, k) => { if (c < 4) return; const [x, y, z] = k.split(',').map(v => v / 4); mt.makeTranslation(V(x, y, z).x, V(x, y, z).y, V(x, y, z).z); im.setMatrixAt(i++, mt); });
+  im.instanceMatrix.needsUpdate = true; gEst.add(im); instInfo.set(im, Array.from({ length: i }, () => ({ n: 'Cartela de nudo', d: 'Chapa 8 mm soldada · unión de barras de la cercha' }))); pick.push(im); }
+const piso = new T.Mesh(new T.PlaneGeometry(70, 90), new T.MeshStandardMaterial({ color: '#d8d3c9', roughness: 1 })); piso.rotation.x = -Math.PI / 2; piso.position.y = -0.01; G.add(piso);
+D.bases.forEach(b => box(b.x, b.y, -0.05, 0.6, 0.6, 0.1, M('#9a948a'), 'Base de columna', '', gBase));
+
+// ---------- chapa trapezoidal (textura de nervios)
+const tex0 = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 4; const x = c.getContext('2d');
+  const gr = x.createLinearGradient(0, 0, 64, 0); [[0, '#9aa1a8'], [0.12, '#e6e9ec'], [0.28, '#c7ccd1'], [0.4, '#c7ccd1'], [0.52, '#f2f4f5'], [0.64, '#aab1b7'], [1, '#c7ccd1']].forEach(([o, cc]) => gr.addColorStop(o, cc));
+  x.fillStyle = gr; x.fillRect(0, 0, 64, 4); const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.colorSpace = T.SRGBColorSpace; return t; })();
+const chapaMat = (rep, op, tint) => { const t = tex0.clone(); t.needsUpdate = true; t.repeat.set(rep, 1); return new T.MeshStandardMaterial({ map: t, color: tint || '#ffffff', roughness: 0.4, metalness: 0.55, transparent: op < 1, opacity: op, side: T.DoubleSide }); };
+const mMamp = M('#c9826e', { roughness: 0.95, metalness: 0, transparent: true, opacity: 0.6 });
+const Hm = 3.0, NERV = 4; // 4 nervios por metro (chapa trapezoidal)
+// Perfil trapezoidal real (tipo T-101): nervio cada 0,25 m, altura 35 mm, con dos microonda en el valle
+const PITCH = 0.25, RH = 0.035, BK = [0, 0.06, 0.16, 0.36, 0.38, 0.40, 0.60, 0.62, 0.64, 0.84, 0.94];
+const prof = (u) => { const t = (((u % PITCH) + PITCH) % PITCH) / PITCH; if (t < 0.06 || t >= 0.94) return RH; if (t < 0.16) return RH * (1 - (t - 0.06) / 0.1); if (t >= 0.84) return RH * (t - 0.84) / 0.1; return (Math.abs(t - 0.38) < 0.021 || Math.abs(t - 0.62) < 0.021) ? 0.004 : 0; };
+const muestras = (L) => { const us = []; for (let k = 0; k * PITCH < L; k++) BK.forEach(t => { const u = (k + t) * PITCH; if (u < L) us.push(u); }); us.push(L); return us; };
+const mChapaW = new T.MeshStandardMaterial({ color: '#e2e6e9', metalness: 0.65, roughness: 0.38, envMapIntensity: 1.5, side: T.DoubleSide }), mChapaR = new T.MeshStandardMaterial({ color: '#e8ebee', metalness: 0.65, roughness: 0.34, envMapIntensity: 1.5, side: T.DoubleSide });
+// chapa vertical: u a lo largo del muro, alto variable por u (sirve para hastiales)
+const chapaGeo = (L, z0f, z1f, hs) => { hs = hs || []; const us = muestras(L).concat(...hs.map(h => [h.u0, h.u1])).filter(u => u >= 0 && u <= L).sort((x, y) => x - y), pos = [];
+  const q = (u0, u1, a0, a1, b0, b1) => { const p0 = prof(u0), p1 = prof(u1); pos.push(u0, a0, p0, u1, a1, p1, u1, b1, p1, u0, a0, p0, u1, b1, p1, u0, b0, p0); };
+  for (let i = 1; i < us.length; i++) { const u0 = us[i - 1], u1 = us[i]; if (u1 - u0 < 1e-4) continue; const a0 = z0f(u0), a1 = z0f(u1), b0 = z1f(u0), b1 = z1f(u1), um = (u0 + u1) / 2, h = hs.find(h => um > h.u0 && um < h.u1);
+    if (!h) q(u0, u1, a0, a1, b0, b1); else { q(u0, u1, a0, a1, h.a, h.a); q(u0, u1, h.b, h.b, b0, b1); } }
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g; };
+// La chapa va por fuera de la estructura: se corre 0,25 m hacia el exterior y se prolonga en las esquinas.
+const PLANTA = [[5.5, -1.8], [24.5, 0.8], [26.2, 56.6], [0, 54], [0, 38.6], [12.3, 38.6], [12.3, 26.6], [5.5, 26.6]];
+const dentro = (x, y) => { let c = false; for (let i = 0, j = PLANTA.length - 1; i < PLANTA.length; j = i++) { const [xi, yi] = PLANTA[i], [xj, yj] = PLANTA[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+const OFF = 0.25, HUECOS = [];
+const chapaMuro = (a, b, z0f, z1f, n, d, par) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
+  let nx = -uy, ny = ux; const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2; if (dentro(mx + nx * 0.6, my + ny * 0.6)) { nx = -nx; ny = -ny; }
+  const a2 = [a[0] + nx * OFF - ux * OFF, a[1] + ny * OFF - uy * OFF], L2 = L + 2 * OFF, cl = (u) => Math.min(L, Math.max(0, u - OFF));
+  const hs = HUECOS.filter(h => Math.abs((h.x - a[0]) * uy - (h.y - a[1]) * ux) < 0.6).map(h => { const s = (h.x - a[0]) * ux + (h.y - a[1]) * uy + OFF; return { u0: s - h.w / 2, u1: s + h.w / 2, a: h.z0, b: h.z1 }; }).filter(h => h.u1 > 0 && h.u0 < L2);
+  const m = new T.Mesh(chapaGeo(L2, (u) => z0f(cl(u)), (u) => z1f(cl(u)) + (z0f(cl(u)) > 0.5 ? 0 : 0.15), hs), mChapaW);
+  m.position.copy(V(a2[0], a2[1], 0)); m.rotation.y = Math.atan2(uy, ux); (par || gLat).add(m); reg(m, n, d); return m; };
+const muroChapa = (a, b, Ht, n, z0, par) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); return chapaMuro(a, b, () => z0 || 0, () => (z0 || 0) + Ht, 'Chapa trapezoidal galvanizada · ' + n, f2(L) + ' × ' + f2(Ht) + ' m · nervio 35 mm cada 25 cm', par); };
+const muroChapaTex = (a, b, Ht, n, z0, par) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); return panel(a, b, z0 || 0, Ht, 0.04, chapaMat(L * NERV, 0.72), 'Cerramiento de chapa trapezoidal · ' + n, f2(L) + ' × ' + f2(Ht) + ' m', par || gLat); };
+const muroMixto = (a, b, Ht, n, par) => { panel(a, b, 0, Hm, 0.15, mMamp, 'Mampostería · ' + n, 'Altura 3,00 m', par || gLat); muroChapa(a, b, Ht - Hm, n, Hm, par); };
+const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+const F = (y) => 24.5 + (26.2 - 24.5) * (y - 0.8) / (56.6 - 0.8);
+// ---------- perfil del techo leído de la estructura (envolvente superior de barras)
+// Cubierta a dos aguas: cumbrera sobre el eje C (x 13,0 · +9,69) y caída de 14,4 % hacia los ejes A y F (según estructura y flechas del plano).
+const XR = 13.0, ZR = 9.69, PEND = 0.1445;
+const zTop = (x) => ZR - PEND * Math.abs(x - XR);
+// testero: chapa con borde superior siguiendo las dos aguas (pentagonal si cruza la cumbrera)
+const hastial = (a, b, z0, n, par) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), xa = a[0], xb = b[0];
+  return chapaMuro(a, b, () => z0, (u) => zTop(xa + (xb - xa) * u / L) - 0.03, 'Chapa trapezoidal galvanizada · ' + n, f2(L) + ' m · hasta la cubierta a dos aguas', par || gTest); };
+// huecos de las persianas de ventilación (se abren en la chapa para que pase el aire)
+{ const add = (x, y) => { const zt = zTop(x) - 0.55; HUECOS.push({ x, y, z0: zt - 1.0 + 0.04, z1: zt - 0.04, w: 3.0 - 0.08 }); };
+  [5.6, 11.6, 17.6, 23.6].forEach(y => add(5.5, y)); [41.6, 47.6].forEach(y => add(0, y)); [5.6, 11.6, 17.6, 23.6, 35.6, 41.6, 47.6, 53.0].forEach(y => add(F(y), y)); }
+// laterales y retranqueo: chapa trapezoidal hasta la cubierta
+const lat = (a, b, n) => muroChapa(a, b, Math.min(zTop(a[0]), zTop(b[0])) - 0.05, n);
+lat([5.5, -1.8], [5.5, 26.6], 'lateral · ejes 10 a 6');
+lat([5.5, 26.6], [12.3, 26.6], 'eje 6 · tramo B–C');
+lat([12.3, 29.6], [12.3, 38.6], 'eje C · ejes 5 a 4');
+lat([12.3, 38.6], [0, 38.6], 'eje 4 · 12,06 m');
+lat([0, 44.6], [0, 54.0], 'eje A · ejes 3 a 1');
+lat([24.5, 0.8], [F(27.1), 27.1], 'eje F · ejes 10 a 6');
+lat([F(31.1), 31.1], [26.2, 56.6], 'eje F · ejes 5 a 1');
+hastial([0, 54.0], [26.2, 56.6], 0, 'testero eje 1');
+// ---------- cubierta de chapa trapezoidal (3 tramos por el retranqueo)
+const yS = (x) => -1.8 + (x - 5.5) * 2.6 / 19, yE = (x) => 54 + x * 2.6 / 26.2, EAVE = 0.35;
+const techo = (xa, xb, y0f, y1f0, n) => { const y1f = (x) => y1f0(x) + 0.3, y0s = y0f; y0f = (x) => y0s(x) - 0.3; const xs = [xa - EAVE - OFF, xa, xb, xb + EAVE + OFF]; if (XR > xa && XR < xb) xs.splice(2, 0, XR);
+  const Lm = Math.max(...xs.map(x => y1f(Math.min(xb, Math.max(xa, x))) - y0f(Math.min(xb, Math.max(xa, x))))), ss = muestras(Lm).map(u => u / Lm), pos = [];
+  const P = (x, s) => { const xc = Math.min(xb, Math.max(xa, x)), y0 = y0f(xc), y = y0 + s * (y1f(xc) - y0), v = V(x, y, ZR - PEND * Math.abs(x - XR) + 0.28 + prof(y - y0)); return [v.x, v.y, v.z]; };
+  for (let i = 1; i < xs.length; i++) for (let j = 1; j < ss.length; j++) { const A = P(xs[i - 1], ss[j - 1]), B = P(xs[i - 1], ss[j]), C = P(xs[i], ss[j]), Dd = P(xs[i], ss[j - 1]); pos.push(...A, ...B, ...C, ...A, ...C, ...Dd); }
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+  const m = new T.Mesh(g, mChapaR); gTecho.add(m); reg(m, 'Cubierta de chapa trapezoidal galvanizada N° 24 · ' + n, 'Nervio 35 mm cada 25 cm · pendiente 14,4 %'); };
+techo(5.5, F(13), yS, () => 26.6, 'ejes 10 a 6');
+techo(12.3, F(32), () => 26.6, () => 38.6, 'ejes 6 a 4');
+techo(0, F(46), () => 38.6, yE, 'ejes 4 a 1');
+{ const y0 = yS(XR), y1 = yE(XR); const cb = new T.Mesh(new T.CylinderGeometry(0.16, 0.16, y1 - y0, 4, 1, false, Math.PI / 4), M('#9aa1a8', { metalness: 0.7, roughness: 0.3 })); cb.rotation.x = Math.PI / 2; cb.scale.set(1.4, 1, 0.5); cb.position.copy(V(XR, (y0 + y1) / 2, ZR + 0.32)); gTecho.add(cb); reg(cb, 'Cumbrera de chapa', 'Sobre el eje C · ' + f2(y1 - y0) + ' m · +9,69 m'); }
+// ---------- canaletas en ambos laterales y bajadas pluviales
+const mCan = M('#b9bfc5', { metalness: 0.75, roughness: 0.3 }), mBaj = M('#d9dcdf', { metalness: 0.5, roughness: 0.4 });
+const canaleta = (x, y0, y1, lado, n) => { const z = ZR - PEND * (Math.abs(x - XR) + EAVE + OFF) + 0.18, xo = x + lado * (EAVE + OFF + 0.12), L = y1 - y0;
+  const s = new T.Shape(); s.moveTo(-0.15, 0.15); s.lineTo(-0.15, -0.12); s.lineTo(0.15, -0.12); s.lineTo(0.15, 0.15); s.lineTo(0.13, 0.15); s.lineTo(0.13, -0.1); s.lineTo(-0.13, -0.1); s.lineTo(-0.13, 0.15);
+  const g = new T.ExtrudeGeometry(s, { depth: L, bevelEnabled: false }); const m = new T.Mesh(g, mCan); m.position.copy(V(xo, y0, z)); m.rotation.y = Math.PI; gCan.add(m);
+  reg(m, 'Canaleta de chapa galvanizada · ' + n, 'Desarrollo 60 cm · ' + f2(L) + ' m · pendiente 0,5 %');
+  const nb = Math.max(2, Math.round(L / 12) + 1); for (let k = 0; k < nb; k++) { const y = y0 + 0.6 + (L - 1.2) * k / (nb - 1);
+    tubo([xo, y, z - 0.12], [xo, y, 0.25], 0.05, mBaj, 'Bajada pluvial Ø 100 mm · ' + n, 'PVC reforzado · ' + f2(z) + ' m', gBaj);
+    tubo([xo, y, 0.25], [xo + lado * 0.4, y, 0.05], 0.05, mBaj, 'Codo de descarga Ø 100 mm', 'A canal de desagüe', gBaj);
+    for (let zz = 1.5; zz < z - 0.5; zz += 2) { const ab = new T.Mesh(new T.TorusGeometry(0.06, 0.008, 6, 14), mCan); ab.position.copy(V(xo, y, zz)); ab.rotation.x = Math.PI / 2; gBaj.add(ab); } }
+  return nb; };
+let nBaj = 0;
+nBaj += canaleta(5.5, yS(5.5) + 0.3, 26.4, -1, 'lateral eje A · ejes 10 a 6');
+nBaj += canaleta(12.3, 26.8, 38.4, -1, 'retranqueo eje C');
+nBaj += canaleta(0, 38.8, 53.8, -1, 'lateral eje A · ejes 4 a 1');
+nBaj += canaleta(F(28), 1.2, 56.2, 1, 'lateral eje F');
+// ---------- persianas de ventilación: una por módulo en la parte alta de ambos laterales (ventilación cruzada; los portones toman aire abajo)
+const gPer = grp(), mPerM = M('#9aa3ab', { metalness: 0.75, roughness: 0.3 }), mMalla = new T.MeshStandardMaterial({ color: '#2a2f35', transparent: true, opacity: 0.35, side: T.DoubleSide });
+const PW = 3.0, PH = 1.0; let nPer = 0;
+const PERS = [];
+const persiana = (x, yc, lado, n) => { const zt = zTop(x) - 0.55, z0 = zt - PH, xo = x + lado * (OFF + 0.06), a = [xo, yc - PW / 2], b = [xo, yc + PW / 2]; PERS.push({ x, y: yc, z: z0 + PH / 2, lado, n });
+  panel(a, b, z0, 0.06, 0.1, mPerM, 'Persiana de ventilación ' + (++nPer) + ' · ' + n, '3,00 × 1,00 m · aletas fijas de chapa galvanizada · malla antipájaro', gPer);
+  panel(a, b, zt - 0.06, 0.06, 0.1, mPerM, 'Persiana de ventilación ' + nPer + ' · ' + n, '3,00 × 1,00 m', gPer);
+  [a, b].forEach(p => panel([p[0], p[1] - 0.03], [p[0], p[1] + 0.03], z0, PH, 0.1, mPerM, 'Marco de persiana', 'Caño 40 × 40 × 1,6', gPer));
+  for (let z = z0 + 0.12; z < zt - 0.08; z += 0.12) { const m = new T.Mesh(new T.BoxGeometry(PW - 0.06, 0.1, 0.012), mPerM); m.position.copy(V(xo + lado * 0.03, yc, z + 0.05)); m.rotation.y = Math.PI / 2; m.rotateX(-lado * 0.75); gPer.add(m); reg(m, 'Persiana de ventilación ' + nPer + ' · ' + n, 'Aletas a 45° · 3,00 m²'); }
+  const ml = new T.Mesh(new T.PlaneGeometry(PW - 0.06, PH - 0.1), mMalla); ml.position.copy(V(x + lado * (OFF + 0.01), yc, z0 + PH / 2)); ml.rotation.y = Math.PI / 2; gPer.add(ml); };
+[5.6, 11.6, 17.6, 23.6].forEach(y => persiana(5.5, y, -1, 'lateral eje A'));
+[41.6, 47.6].forEach(y => persiana(0, y, -1, 'lateral eje A'));
+[5.6, 11.6, 17.6, 23.6, 35.6, 41.6, 47.6, 53.0].forEach(y => persiana(F(y), y, 1, 'lateral eje F'));
+// ---------- portones
+const mMarco = M('#2f3a44', { metalness: 0.7, roughness: 0.35 }), mHoja = M('#1f4e79', { metalness: 0.55, roughness: 0.4 }), mHoja2 = M('#2b6aa3', { metalness: 0.55, roughness: 0.4 }), mRiel = M('#8a9196', { metalness: 0.8, roughness: 0.3 }), mAma = M('#e8c020', { metalness: 0.3, roughness: 0.5 });
+const P = [];
+const hoja = (ancho, alto, mat, n, d) => { const g = new T.Group(); const t = 0.08;
+  [[0, 0, ancho, t], [0, alto - t, ancho, t], [0, alto / 2, ancho, t]].forEach(([x, z, w, h]) => { const m = new T.Mesh(new T.BoxGeometry(w, h, 0.08), mMarco); m.position.set(x + w / 2, z + h / 2, 0); g.add(m); reg(m, n, d); });
+  const nn = Math.max(1, Math.ceil(ancho / 1.6)); for (let k = 0; k <= nn; k++) { const x = Math.min(ancho - t, k * ancho / nn); const m = new T.Mesh(new T.BoxGeometry(t, alto, 0.08), mMarco); m.position.set(x + t / 2, alto / 2, 0); g.add(m); reg(m, n, d); }
+  const ch = new T.Mesh(new T.BoxGeometry(ancho - 0.04, alto - 0.04, 0.025), mat); ch.position.set(ancho / 2, alto / 2, 0); g.add(ch); reg(ch, n, d);
+  for (let z = 0.25; z < alto; z += 0.25) { const r = new T.Mesh(new T.BoxGeometry(ancho - 0.1, 0.03, 0.035), mat); r.position.set(ancho / 2, z, 0.02); g.add(r); }
+  return g; };
+const portonMuro = (a, b, alto, n, d) => { const g = hoja(Math.hypot(b[0] - a[0], b[1] - a[1]), alto, mHoja, n, d), k = new T.Group(); k.add(g);
+  k.position.copy(V(a[0], a[1], 0.03)); k.rotation.y = Math.atan2(b[1] - a[1], b[0] - a[0]); gPort.add(k);
+  const Ht = Math.min(zTop(a[0]), zTop(b[0])) - 0.05; muroChapa(a, b, Ht - alto - 0.05, 'sobre ' + n.toLowerCase(), alto + 0.05);
+  [a, b].forEach(p => box(p[0] - 0.06, p[1] - 0.06, 0, 0.12, 0.12, alto + 0.1, mAma, 'Marco del vano · ' + n, d, gPort)); return k; };
+portonMuro([0, 38.6], [0, 44.6], 5.0, 'Portón 6,00 × 5,00 m', 'Eje A · entre ejes 4 y 3');
+P.push({ n: '1', t: 'Portón', m: '6,00 × 5,00 m', p: [0, 41.6, 2.5], d: 'Eje A · entre ejes 4 y 3' });
+portonMuro([12.3, 26.6], [12.3, 29.6], 3.0, 'Portón 3,00 × 3,00 m', 'Eje C · entre ejes 6 y 5');
+P.push({ n: '2', t: 'Portón', m: '3,00 × 3,00 m', p: [12.3, 28.1, 1.5], d: 'Eje C · entre ejes 6 y 5' });
+portonMuro([F(27.1), 27.1], [F(31.1), 31.1], 5.0, 'Portón 4,00 × 5,00 m', 'Eje F · entre ejes 6 y 5');
+P.push({ n: '3', t: 'Portón', m: '4,00 × 5,00 m', p: [F(29.1), 29.1, 2.5], d: 'Eje F · entre ejes 6 y 5' });
+const tA = [5.5, -1.8], tB = [24.5, 0.8], Lt = Math.hypot(tB[0] - tA[0], tB[1] - tA[1]);
+const SFIN = 18.8, sP = SFIN - 10, mA5 = lerp(tA, tB, 5 / Lt), m5 = lerp(tA, tB, sP / Lt), m15 = lerp(tA, tB, SFIN / Lt), Hv = 5.0, Ht = 8.4;
+hastial(tA, mA5, 0, 'testero eje 10 · tramo eje A');
+hastial(mA5, m5, 0, 'testero eje 10');
+hastial(m5, m15, Hv + 0.3, 'testero eje 10 · sobre portón');
+hastial(m15, tB, 0, 'testero eje 10 · esquina eje F');
+[m5, m15].forEach(p => box(p[0] - 0.1, p[1] - 0.1, 0, 0.2, 0.2, Hv + 0.3, mAma, 'Marco del vano · portón 10,00 m', 'Columnas y dintel', gPort));
+panel(m5, m15, Hv, 0.3, 0.2, mAma, 'Dintel del vano · 10,00 m', 'Viga a +5,00', gPort);
+const ang = Math.atan2(tB[1] - tA[1], tB[0] - tA[0]), nx = -Math.sin(ang), ny = Math.cos(ang);
+// cenefa frontal: banda de chapa prepintada que cubre el hastial y deja la fachada recta
+const gCen = grp();
+{ const o = 0.45, zc0 = Math.min(zTop(tA[0]), zTop(tB[0])) - 0.9, zc1 = ZR + 0.7, pA = [tA[0] - nx * o - Math.cos(ang) * 0.5, tA[1] - ny * o - Math.sin(ang) * 0.5], pB = [tB[0] - nx * o + Math.cos(ang) * 0.5, tB[1] - ny * o + Math.sin(ang) * 0.5];
+  const Lc = Math.hypot(pB[0] - pA[0], pB[1] - pA[1]), mc = chapaMat(Lc * NERV, 1, '#3c4650');
+  panel(pA, pB, zc0, zc1 - zc0, 0.04, mc, 'Cenefa frontal de chapa prepintada', f2(Lc) + ' × ' + f2(zc1 - zc0) + ' m · sobre bastidor de caño 40 × 40', gCen);
+  panel(pA, pB, zc1, 0.06, 0.12, M('#2a3038', { metalness: 0.6, roughness: 0.35 }), 'Coronamiento de cenefa', 'Babeta de chapa plegada', gCen);
+  panel(pA, pB, zc0 - 0.06, 0.06, 0.12, M('#2a3038', { metalness: 0.6, roughness: 0.35 }), 'Borde inferior de cenefa', 'Gotero de chapa', gCen);
+  [[pA, tA], [pB, tB]].forEach(([p, q]) => panel(p, [q[0] + (p[0] - q[0]) * 0.0, q[1]], zc0, zc1 - zc0, 0.04, chapaMat(2, 1, '#3c4650'), 'Retorno lateral de cenefa', '', gCen));
+  for (let s = 0; s <= Lc; s += 1.5) { const p = [pA[0] + Math.cos(ang) * s + nx * 0.2, pA[1] + Math.sin(ang) * s + ny * 0.2]; box(p[0] - 0.02, p[1] - 0.02, zc0, 0.04, 0.04, zc1 - zc0, mGalv, 'Bastidor de cenefa · caño 40 × 40 × 1,6', '', gCen); } }
+const off = (p, o) => [p[0] + nx * o, p[1] + ny * o];
+const r0 = lerp(tA, tB, Math.max(0.15, sP - 5.4) / Lt), r1 = m15;
+[0.25, 0.45].forEach((o, k) => { const p = off(r0, -o), q = off(r1, -o); tubo([p[0], p[1], Hv + 0.15], [q[0], q[1], Hv + 0.15], 0.05, mRiel, 'Riel superior ' + (k + 1) + ' · portón corredizo', 'Guía con carros de rodamiento', gPort); tubo([p[0], p[1], 0.04], [q[0], q[1], 0.04], 0.04, mRiel, 'Riel inferior ' + (k + 1) + ' · portón corredizo', 'Perfil empotrado al ras del NPT', gPort); });
+const gA = new T.Group(), gB = new T.Group();
+gA.add(hoja(5.15, Hv - 0.05, mHoja, 'Portón corredizo · hoja 1', 'Hoja de 5,15 × 4,95 m · riel 1'));
+gB.add(hoja(5.15, Hv - 0.05, mHoja2, 'Portón corredizo · hoja 2', 'Hoja de 5,15 × 4,95 m · riel 2 · se superpone a la hoja 1 al abrir'));
+gA.rotation.y = ang; gB.rotation.y = ang; gPort.add(gA); gPort.add(gB);
+const sA0 = sP, sB0 = sP + 5 - 0.15, sAb = sP - 5.25;
+const ubic = (g, s, o) => { const p = off(lerp(tA, tB, s / Lt), -o); g.position.copy(V(p[0], p[1], 0.05)); };
+let t = 0, objetivo = 0;
+P.push({ n: '4', t: 'Portón corredizo de 2 hojas superpuestas', m: '10,00 × 5,00 m', p: [...lerp(tA, tB, (sP + 5) / Lt), 2.5], d: 'Testero eje 10 · junto al eje F' });
+
+// rótulos numerados sobre cada portón
+P.forEach(q => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); x.fillStyle = '#1f4e79'; x.beginPath(); x.arc(64, 64, 58, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = 'bold 72px system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(q.n, 64, 68);
+  const s = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), depthTest: false })); s.scale.set(1.3, 1.3, 1); s.position.copy(V(q.p[0], q.p[1], q.p[2] + 4.2)); s.renderOrder = 9; gPort.add(s); });
+
+const CAPAS = [['Estructura metálica', gEst, '#56708c'], ['Bases', gBase, '#9a948a'], ['Paredes laterales', gLat, '#c7ccd1'], ['Testeros', gTest, '#aab1b7'], ['Techo', gTecho, '#e4e7ea'], ['Canaletas', gCan, '#b9bfc5'], ['Bajadas pluviales', gBaj, '#d9dcdf'], ['Portones', gPort, '#1f4e79'], ['Cenefa frontal', gCen, '#3c4650'], ['Persianas de ventilación', gPer, '#9aa3ab']];
+$('hd').innerHTML = '<b class="t">Vista con portones · Nave La Misericordia</b><span style="color:#6f6b64">Propuesta · no modifica el estudio estructural</span>' +
+  '<div style="font-weight:700;margin-top:4px">Mostrar / ocultar partes</div>' +
+  CAPAS.map((c, i) => '<label><input type="checkbox" data-c="' + i + '" checked style="margin:0"><i style="background:' + c[2] + '"></i>' + c[0] + '</label>').join('') +
+  '<div style="display:flex;gap:4px;margin-top:4px"><button id="tTodo" style="font:600 11px system-ui;padding:4px 8px;border:1px solid #c9c5bd;background:#fff;border-radius:4px;cursor:pointer">Todo</button><button id="tNada" style="font:600 11px system-ui;padding:4px 8px;border:1px solid #c9c5bd;background:#fff;border-radius:4px;cursor:pointer">Solo estructura</button></div>' +
+  '<span style="color:#86817b;font-size:10.5px">Chapa trapezoidal en laterales y techo · ' + nBaj + ' bajadas Ø 100 mm</span>';
+const setCapa = (i, v) => { CAPAS[i][1].visible = v; const el = document.querySelector('#hd input[data-c="' + i + '"]'); if (el) el.checked = v; };
+document.querySelectorAll('#hd input[data-c]').forEach(el => el.onchange = () => setCapa(+el.dataset.c, el.checked));
+$('tTodo').onclick = () => CAPAS.forEach((c, i) => setCapa(i, true));
+$('tNada').onclick = () => CAPAS.forEach((c, i) => setCapa(i, i <= 1));
+$('tab').innerHTML = '<div><span>N°</span><span>Portón</span><span>Medida</span></div>' + P.map((q, i) => '<div data-i="' + i + '"><span class="n">' + q.n + '</span><span>' + q.t + '<br><span style="color:#86817b">' + q.d + '</span></span><span class="m">' + q.m + '</span></div>').join('');
+document.querySelectorAll('#tab div[data-i]').forEach(el => el.onclick = () => { const q = P[+el.dataset.i], tg = V(...q.p); const d = cam.position.clone().sub(ctl.target).normalize().multiplyScalar(16); ctl.target.copy(tg); cam.position.copy(tg).add(d); ctl.update(); });
+const vista = (k) => { ctl.target.set(0, 3, 0); const p = { iso: [42, 30, 48], frente: [3, 5, -26], planta: [0.01, 75, 0.01], lado: [-48, 10, 0] }[k]; const pm = lerp(tA, tB, (sP + 5) / Lt); if (k === 'frente') ctl.target.copy(V(pm[0], pm[1], 2.6)); cam.position.copy(k === 'frente' ? V(pm[0] - 1.5, pm[1] - 16, 4.5) : new T.Vector3(...p)); ctl.update(); };
+document.querySelectorAll('#bt button[data-v]').forEach(b => b.onclick = () => vista(b.dataset.v)); vista('iso');
+ctl.minDistance = 0.4; ctl.maxDistance = 400;
+ren.domElement.addEventListener('wheel', (e) => { const d = cam.position.distanceTo(ctl.target); if (e.deltaY < 0 && d < 1.2) { const dir = new T.Vector3(); cam.getWorldDirection(dir); const st = Math.min(1.5, 0.004 * -e.deltaY * 3); cam.position.addScaledVector(dir, st); ctl.target.addScaledVector(dir, st); ctl.update(); } }, { passive: true });
+const teclas = new Set(); addEventListener('keydown', (e) => { if (/^(w|a|s|d|q|e|arrow\w+)$/i.test(e.key)) { teclas.add(e.key.toLowerCase()); e.preventDefault(); } }); addEventListener('keyup', (e) => teclas.delete(e.key.toLowerCase()));
+const caminar = () => { if (!teclas.size) return; const f0 = new T.Vector3(); cam.getWorldDirection(f0); f0.y = 0; f0.normalize(); const r0 = new T.Vector3().crossVectors(f0, new T.Vector3(0, 1, 0)); const v = new T.Vector3(), sp = 0.12;
+  if (teclas.has('w') || teclas.has('arrowup')) v.add(f0); if (teclas.has('s') || teclas.has('arrowdown')) v.sub(f0); if (teclas.has('d') || teclas.has('arrowright')) v.add(r0); if (teclas.has('a') || teclas.has('arrowleft')) v.sub(r0);
+  if (teclas.has('e')) v.y += 1; if (teclas.has('q')) v.y -= 1; v.multiplyScalar(sp); cam.position.add(v); ctl.target.add(v); };
+$('ent').onclick = () => { ctl.target.copy(V(18, 20, 1.7)); cam.position.copy(V(18, 6, 1.7)); ctl.update(); };
+let iPer = -1;
+$('perV').onclick = () => { iPer = (iPer + 1) % PERS.length; const q = PERS[iPer]; setCapa(CAPAS.findIndex(c => c[1] === gPer), true);
+  const tg = V(q.x, q.y, q.z); ctl.target.copy(tg); cam.position.copy(V(q.x + q.lado * 3.2, q.y - 1.6, q.z - 0.4)); ctl.update();
+  $('perV').textContent = 'Persiana ' + (iPer + 1) + ' de ' + PERS.length + ' ›'; $('est').textContent = 'Persiana ' + (iPer + 1) + ' · ' + q.n + ' · 3,00 × 1,00 m · aletas a 45° con malla antipájaro'; };
+$('abr').onclick = () => { objetivo = objetivo ? 0 : 1; $('abr').textContent = objetivo ? 'Cerrar portón corredizo' : 'Abrir portón corredizo'; };
+ren.domElement.addEventListener('dblclick', (e) => { const r = ren.domElement.getBoundingClientRect(), m = new T.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), rc = new T.Raycaster(); rc.setFromCamera(m, cam); const h = rc.intersectObjects(G.children, true).find(x => { if (!x.object.isMesh) return false; for (let q = x.object; q; q = q.parent) if (!q.visible) return false; return true; }); if (!h) return; const d = cam.position.clone().sub(ctl.target); ctl.target.copy(h.point); cam.position.copy(h.point).add(d.multiplyScalar(0.6)); ctl.update(); });
+const ray = new T.Raycaster(), mo = new T.Vector2(); let hv = 0;
+ren.domElement.addEventListener('pointermove', (e) => { const tip = $('tip'); if (e.buttons) { tip.style.display = 'none'; return; } const now = performance.now(); if (now - hv < 40) return; hv = now;
+  const r = ren.domElement.getBoundingClientRect(); mo.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(mo, cam);
+  const vis = (o) => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
+  const h = ray.intersectObjects(pick, false).find(x => vis(x.object)); if (!h) { tip.style.display = 'none'; return; }
+  const ii = instInfo.get(h.object), ud = ii && h.instanceId != null ? ii[h.instanceId] : h.object.userData;
+  tip.innerHTML = '<b>' + ud.n + '</b>' + (ud.d ? '<br>' + ud.d : ''); tip.style.display = 'block'; tip.style.left = (e.clientX - r.left + 14) + 'px'; tip.style.top = (e.clientY - r.top + 10) + 'px'; });
+$('est').textContent = P.length + ' portones · ' + quitadas + ' barras recortadas en vanos';
+// ---------- recorrido grabado para WhatsApp (video 16:9 o estado 9:16)
+const logoImg = new Image(); logoImg.src = 'logo-full-service.png';
+const ease = (x) => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+const pm10 = lerp(tA, tB, (sP + 5) / Lt);
+const TOUR = [
+  { d: 3.5, p: [52, -18, 34], t: [13, 27, 3], c: 'Nave Industrial La Misericordia', s: 'Ykua Dure · Luque · 1.097 m² cubiertos' },
+  { d: 3.0, p: [-26, 20, 16], t: [13, 27, 4], c: 'Chapa trapezoidal galvanizada', s: 'Cerramientos laterales y cubierta a dos aguas' },
+  { d: 4.0, p: [pm10[0] - 2, pm10[1] - 17, 4.5], t: [pm10[0], pm10[1], 2.6], c: 'Portón corredizo de 2 hojas', s: '10,00 × 5,00 m · las hojas se superponen al abrir', abrir: true },
+  { d: 3.0, p: [33, 14, 9], t: [F(14), 14, 7.2], c: 'Persianas de ventilación', s: '14 unidades · ventilación cruzada por los dos laterales' },
+  { d: 3.0, p: [13, 27, 60], t: [13, 27.01, 0], c: 'Cubierta a dos aguas', s: 'Cumbrera sobre el eje C · canaletas y bajadas en ambos lados' },
+  { d: 4.0, p: [pm10[0], pm10[1] + 3, 1.7], t: [pm10[0], pm10[1] + 22, 2.5], c: 'Interior libre de columnas', s: 'Luz de 26,5 m · paso libre por los portones' },
+  { d: 3.5, p: [16, 22, 2.0], t: [14, 30, 9], c: 'Estructura metálica reticulada', s: 'Cabriadas de ángulos L, correas C 150 y placas base con pernos' },
+  { d: 3.0, p: [52, -18, 34], t: [13, 27, 3], c: '', s: '', fin: true }
+];
+let REC = null;
+const grabar = async (modo) => { if (REC) return; const vert = modo === 'est', W = vert ? 540 : 960, H = vert ? 960 : 540;
+  const tipos = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'], mime = tipos.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+  if (!mime) { alert('Este navegador no puede grabar video. Usá Chrome o Edge actualizado.'); return; }
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const cx2 = cv.getContext('2d');
+  const st = cv.captureStream(24), mr = new MediaRecorder(st, { mimeType: mime, videoBitsPerSecond: 900000 }), ch = [];
+  mr.ondataavailable = (e) => e.data.size && ch.push(e.data);
+  const capasAntes = CAPAS.map(c => c[1].visible), objAntes = objetivo; CAPAS.forEach((c, i) => setCapa(i, true));
+  ctl.enabled = false; ctl.enableDamping = false; ren.setPixelRatio(1); ren.setSize(W, H, false); cam.aspect = W / H; cam.fov = vert ? 62 : 48; cam.updateProjectionMatrix();
+  const dur = TOUR.reduce((a, k) => a + k.d, 0); REC = { t0: performance.now(), W, H, cx2, vert, dur };
+  $('rec').style.display = 'flex'; $('recT').innerHTML = '<b>Grabando el recorrido…</b><br>' + Math.round(dur) + ' s · no cambies de pestaña';
+  mr.start(250);
+  await new Promise(res => { REC.fin = res; });
+  mr.stop(); await new Promise(r => mr.onstop = r);
+  const ext = mime.includes('mp4') ? 'mp4' : 'webm', blob = new Blob(ch, { type: mime.split(';')[0] }), url = URL.createObjectURL(blob), nom = (vert ? 'Estado' : 'Video') + '-Nave-La-Misericordia.' + ext;
+  const a = document.createElement('a'); a.href = url; a.download = nom; document.body.appendChild(a); try { a.click(); } catch (e) {} a.remove();
+  $('recT').innerHTML = '<b>Video listo · ' + (blob.size / 1048576).toFixed(1) + ' MB</b><br>' + nom + (ext === 'webm' ? '<br><span style="color:#b35a10">Formato WEBM: en WhatsApp puede no reproducirse; abrilo con Chrome actualizado para MP4.</span>' : '<br>Compatible con WhatsApp y estados.') + '<video src="' + url + '" controls playsinline style="display:block;width:100%;max-height:300px;margin:10px 0;border-radius:6px;background:#000"></video>' +
+  '<span style="font-size:12px;color:#4f4b45">Si no se descargó solo: <b>clic derecho sobre el video → Guardar video como</b> (en el celular, mantené presionado).</span><br>' +
+  '<a href="' + url + '" download="' + nom + '">⬇ Descargar</a> <a href="' + url + '" target="_blank" rel="noopener" style="background:#1f4e79">Abrir en pestaña</a><br><a href="#" id="recX" style="background:#fff;color:#1b1a18;border:1px solid #c9c5bd">Cerrar</a>';
+  $('recX').onclick = (e) => { e.preventDefault(); $('rec').style.display = 'none'; };
+  CAPAS.forEach((c, i) => setCapa(i, capasAntes[i])); objetivo = objAntes; ctl.enabled = true; ctl.enableDamping = true; ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); cam.fov = 50; fit(); vista('iso'); REC = null; };
+$('vWa').onclick = () => grabar('wa'); $('vEst').onclick = () => grabar('est');
+const pasoRec = () => { const R = REC, el = (performance.now() - R.t0) / 1000; let acc = 0, i = 0; while (i < TOUR.length - 1 && el > acc + TOUR[i].d) { acc += TOUR[i].d; i++; }
+  const k = TOUR[i], kp = TOUR[Math.max(0, i - 1)], u = Math.min(1, (el - acc) / k.d), e = ease(Math.min(1, u * 1.6)), ip = (a, b) => a.map((v, j) => v + (b[j] - v) * e);
+  const P2 = i === 0 ? k.p.map((v, j) => j === 0 ? v - 10 * (1 - u) : v) : ip(kp.p, k.p), T2 = i === 0 ? k.t : ip(kp.t, k.t);
+  cam.position.copy(V(...P2)); ctl.target.copy(V(...T2)); cam.lookAt(ctl.target);
+  objetivo = k.abrir ? (u > 0.35 ? 1 : 0) : (i > 2 && i < 7 ? 1 : 0);
+  ren.render(sc, cam); const c = R.cx2, W = R.W, H = R.H; c.drawImage(ren.domElement, 0, 0, W, H);
+  const fs = R.vert ? 26 : 23, pad = R.vert ? 30 : 28;
+  if (k.c) { const a = Math.min(1, u * 4, (1 - u) * 5); c.globalAlpha = Math.max(0, a); const y0 = R.vert ? H - 200 : H - 116;
+    c.fillStyle = 'rgba(15,22,30,.72)'; c.fillRect(0, y0, W, R.vert ? 160 : 92); c.fillStyle = '#25d366'; c.fillRect(pad, y0 + 22, 6, fs * 2.2);
+    c.fillStyle = '#fff'; c.font = '700 ' + fs + 'px system-ui, sans-serif'; c.fillText(k.c, pad + 20, y0 + 22 + fs); c.font = '400 ' + Math.round(fs * 0.62) + 'px system-ui, sans-serif'; c.fillStyle = '#d7dde3';
+    const words = k.s.split(' '), lines = []; let ln = ''; words.forEach(w => { if (c.measureText(ln + w).width > W - pad * 2 - 30) { lines.push(ln); ln = ''; } ln += w + ' '; }); lines.push(ln);
+    lines.forEach((l, j) => c.fillText(l.trim(), pad + 20, y0 + 22 + fs * 1.85 + j * fs * 0.85)); c.globalAlpha = 1; }
+  if (logoImg.complete && logoImg.naturalWidth) { const lh = R.vert ? 52 : 40, lw = lh * logoImg.naturalWidth / logoImg.naturalHeight; c.fillStyle = 'rgba(255,255,255,.9)'; c.fillRect(pad - 10, pad - 10, lw + 20, lh + 20); c.drawImage(logoImg, pad, pad, lw, lh); }
+  if (k.fin) { const a = Math.min(1, u * 2.5); c.globalAlpha = a; c.fillStyle = 'rgba(15,22,30,.82)'; c.fillRect(0, 0, W, H); c.fillStyle = '#fff'; c.textAlign = 'center';
+    if (logoImg.complete && logoImg.naturalWidth) { const lh = R.vert ? 110 : 90, lw = lh * logoImg.naturalWidth / logoImg.naturalHeight; c.fillStyle = '#fff'; c.fillRect(W / 2 - lw / 2 - 16, H / 2 - lh - 60, lw + 32, lh + 24); c.drawImage(logoImg, W / 2 - lw / 2, H / 2 - lh - 48, lw, lh); }
+    c.fillStyle = '#fff'; c.font = '700 ' + (fs + 4) + 'px system-ui, sans-serif'; c.fillText('Nave Industrial La Misericordia', W / 2, H / 2 + 20); c.font = '400 ' + Math.round(fs * 0.7) + 'px system-ui, sans-serif'; c.fillStyle = '#d7dde3';
+    c.fillText('Diseño, fabricación y montaje · Full Service', W / 2, H / 2 + 20 + fs * 1.3); c.fillText('Ing. Edgar Mendez · 0971 235 799', W / 2, H / 2 + 20 + fs * 2.3); c.textAlign = 'left'; c.globalAlpha = 1; }
+  if (el >= R.dur) R.fin(); else $('recT').innerHTML = '<b>Grabando el recorrido…</b><br>' + Math.round(R.dur - el) + ' s restantes · no cambies de pestaña'; };
+(function loop() { requestAnimationFrame(loop); t += (objetivo - t) * 0.04; if (REC) { ubic(gA, sA0 + (sAb - sA0) * t, 0.25); ubic(gB, sB0 + (sAb - sB0) * t, 0.45); pasoRec(); return; }
+  ubic(gA, sA0 + (sAb - sA0) * t, 0.25); ubic(gB, sB0 + (sAb - sB0) * t, 0.45);
+  caminar(); ctl.update(); ren.render(sc, cam); })();
+</script></body></html>

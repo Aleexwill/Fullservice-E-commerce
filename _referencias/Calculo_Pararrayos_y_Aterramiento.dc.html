@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>html, body { margin: 0; background: #f1efeb; } a { color: #0f6e5c; } a:hover { color: #1b1a18; } input, select, textarea { font-family: inherit; }
+@media print { @page { size: A4 portrait; margin: 12mm; } html, body { background: #fff !important; } [data-noprint] { display: none !important; } [data-hoja] { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: auto !important; } [data-bloque] { break-inside: avoid; } }</style>
+</helmet>
+<div style="min-height: 100vh; font-family: 'IBM Plex Sans', sans-serif; color: #1b1a18;">
+  <div data-noprint="1" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 26px; background: #0e3b36; color: #f4f3f0; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <img src="./logo-full-service.png" alt="Full Service" style="height: 34px; background: #fff; padding: 4px 8px; border-radius: 6px;" />
+      <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 17px; font-weight: 700;">Pararrayos y aterramiento</span><span style="font-size: 11.5px; color: #a9c9c2;">Cálculo según IEC 62305 / NFC 17-102 · Franklin o PDC Ioniflash Mach NG</span></div>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 10px; padding: 8px 14px; background: rgba(255,255,255,.1); border-radius: 8px;"><span style="font-size: 11px; color: #a9c9c2; white-space: nowrap;">Total + IVA</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; white-space: nowrap;">{{ totTxt }}</span><button onClick="{{ onProp }}" style="margin-left: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #0e3b36; background: #f5d34a; border: 0; border-radius: 5px; cursor: pointer; white-space: nowrap;">{{ propBtn }}</button><button onClick="{{ onPrint }}" style="margin-left: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #0e3b36; background: #fff; border: 0; border-radius: 5px; cursor: pointer;">Imprimir</button></div>
+  </div>
+
+
+  <sc-if value="{{ esProp }}" hint-placeholder-val="{{ false }}">
+  <div data-noprint="1" style="max-width: 820px; margin: 16px auto 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #4f4b45;">
+    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" checked="{{ pVerPre }}" onChange="{{ onPVerPre }}" style="width: 15px; height: 15px; margin: 0; accent-color: #0e3b36;" />Mostrar precios por ítem</label>
+    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" checked="{{ pVerPlanta }}" onChange="{{ onPVerPlanta }}" style="width: 15px; height: 15px; margin: 0; accent-color: #0e3b36;" />Incluir planta de protección</label>
+    <span>Hacé clic en cualquier texto para editarlo.</span>
+  </div>
+  <div data-hoja="1" style="width: 794px; max-width: 100%; box-sizing: border-box; margin: 14px auto 40px; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.12); padding: 40px 46px; font-size: 9.6pt; line-height: 1.5; color: #1b1a18; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 10px; border-bottom: 2.5px solid #0e3b36;">
+      <img src="./logo-full-service.png" alt="Full Service" style="height: 46px;" />
+      <div style="text-align: right; display: flex; flex-direction: column; gap: 1px;">
+        <span style="font-size: 14pt; font-weight: 700; color: #0e3b36;">PROPUESTA TÉCNICA</span>
+        <span style="font-size: 9pt; color: #4f4b45;">Sistema de protección contra descargas atmosféricas y puesta a tierra</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9pt; font-weight: 600;">{{ pNro }} · {{ pFecha }}</span>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr) 70px minmax(0, 1fr); gap: 4px 10px; font-size: 9.4pt;">
+      <b>Cliente:</b><span>{{ pCliente }}</span><b>Obra:</b><span>{{ nombreTit }}</span>
+      <b>Atención:</b><textarea value="{{ pAtt }}" onChange="{{ onPAtt }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea><b>Lugar:</b><textarea value="{{ pLugar }}" onChange="{{ onPLugar }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea>
+    </div>
+    <div style="text-align: justify;"><textarea value="{{ pIntro }}" onChange="{{ onPIntro }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></div>
+
+    <div data-bloque="1" style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 10.5pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1.5px solid #0e3b36; color: #0e3b36;">1. Datos de la estructura</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;">
+        <sc-for list="{{ pDatos }}" as="d" hint-placeholder-count="8"><div style="border: 1px solid #d6dcd9; border-radius: 4px; padding: 5px 7px; display: flex; flex-direction: column;"><span style="font-size: 7.5pt; color: #6f6b64; text-transform: uppercase; letter-spacing: .04em;">{{ d.k }}</span><span style="font-weight: 700;">{{ d.v }}</span></div></sc-for>
+      </div>
+    </div>
+
+    <div data-bloque="1" style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 10.5pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1.5px solid #0e3b36; color: #0e3b36;">2. Análisis de riesgo y nivel de protección</div>
+      <sc-for list="{{ memoria }}" as="mm" hint-placeholder-count="4">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-weight: 700; font-size: 9.2pt;">{{ mm.t }}</div>
+          <sc-for list="{{ mm.l }}" as="ll" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 1px 0; border-bottom: 1px dotted #d6dcd9; font-size: 9pt;"><span>{{ ll.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600;">{{ ll.v }}</span></div></sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <div data-bloque="1" style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 10.5pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1.5px solid #0e3b36; color: #0e3b36;">3. Solución propuesta</div>
+      <sc-for list="{{ pSol }}" as="q" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; text-align: justify;"><b>{{ q.t }}</b><textarea value="{{ q.v }}" onChange="{{ q.on }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea></div></sc-for>
+    </div>
+
+    <sc-if value="{{ pVerPlanta }}" hint-placeholder-val="{{ true }}">
+    <div data-bloque="1" style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 10.5pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1.5px solid #0e3b36; color: #0e3b36;">4. Planta de protección</div>
+      <div style="max-width: 460px; align-self: center; width: 100%;">{{ plantaSvg }}</div>
+      <div style="font-size: 8.5pt; color: #4f4b45; text-align: center;">{{ plantaTxt }}</div>
+    </div>
+    </sc-if>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 10.5pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1.5px solid #0e3b36; color: #0e3b36;">{{ nItems }}. Materiales y trabajos</div>
+      <sc-for list="{{ secciones }}" as="sec" hint-placeholder-count="4">
+        <div data-bloque="1" style="display: flex; flex-direction: column;">
+          <div style="font-weight: 700; font-size: 9.2pt; padding: 3px 0;">{{ sec.tP }}</div>
+          <sc-for list="{{ sec.itemsP }}" as="it" hint-placeholder-count="3">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 70px {{ pColPre }}; gap: 8px; padding: 2px 0; border-bottom: 1px solid #eef0ef; font-size: 9pt;">
+              <div style="display: flex; flex-direction: column;"><span>{{ it.l }}</span><span style="font-size: 8pt; color: #6f6b64;">{{ it.d }}</span></div>
+              <span style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ it.cTxt }} {{ it.u }}</span>
+              <sc-if value="{{ pVerPre }}" hint-placeholder-val="{{ true }}"><span style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ it.totTxt }}</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+      <div data-bloque="1" style="align-self: flex-end; width: 280px; display: flex; flex-direction: column; margin-top: 6px;">
+        <div style="display: flex; justify-content: space-between; padding: 3px 8px; font-size: 9.4pt;"><span>Subtotal</span><span style="font-family: 'IBM Plex Mono', monospace;">{{ pSub }}</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 3px 8px; font-size: 9.4pt;"><span>IVA 10 %</span><span style="font-family: 'IBM Plex Mono', monospace;">{{ pIva }}</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 8px; font-size: 11pt; font-weight: 700; color: #fff; background: #0e3b36;"><span>TOTAL</span><span style="font-family: 'IBM Plex Mono', monospace;">{{ totTxt }}</span></div>
+      </div>
+    </div>
+
+    <div data-bloque="1" style="display: flex; flex-direction: column; gap: 4px;"><div style="font-size: 10.5pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1.5px solid #0e3b36; color: #0e3b36;">{{ nCond }}. Condiciones</div>
+      <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 3px 10px;">
+        <b>Plazo de ejecución:</b><textarea value="{{ pPlazo }}" onChange="{{ onPPlazo }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea><b>Forma de pago:</b><textarea value="{{ pPago }}" onChange="{{ onPPago }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea><b>Validez:</b><textarea value="{{ pValidez }}" onChange="{{ onPValidez }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea><b>Garantía:</b><textarea value="{{ pGar }}" onChange="{{ onPGar }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea><b>No incluye:</b><textarea value="{{ pNoInc }}" onChange="{{ onPNoInc }}" rows="1" style="width: 100%; box-sizing: border-box; field-sizing: content; margin: 0; padding: 1px 3px; font: inherit; color: inherit; background: transparent; border: 1px dashed transparent; border-radius: 3px; resize: none; " style-hover="border-color: #c9c5bd;" style-focus="border-color: #1b1a18; outline: none; background: #fff;"></textarea>
+      </div>
+    </div>
+
+    <div data-bloque="1" style="display: flex; justify-content: space-between; gap: 30px; margin-top: 26px;">
+      <div style="width: 230px; border-top: 1px solid #1b1a18; padding-top: 4px; font-size: 9pt;"><b>Ing. Edgar Mendez</b><br />Ejecutivo Comercial · Full Service</div>
+      <div style="width: 230px; border-top: 1px solid #1b1a18; padding-top: 4px; font-size: 9pt; text-align: right;"><b>Conformidad del cliente</b><br />Firma y aclaración</div>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ noProp }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width: 1300px; margin: 0 auto; padding: 22px 26px 40px; display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 18px; align-items: start;">
+    <div data-noprint="1" style="display: flex; flex-direction: column; gap: 14px; position: sticky; top: 14px;">
+      <div style="background: #fff; border: 1.5px solid #0f6e5c; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0f6e5c;">Proyecto</div>
+        <select value="{{ pid }}" onChange="{{ onPid }}" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13px; background: #fff; width: 100%; box-sizing: border-box;"><sc-for list="{{ proys }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.l }}</option></sc-for></select>
+        <input value="{{ nombre }}" onChange="{{ onNombre }}" placeholder="Nombre del proyecto (ej. Galpón Tigre Villeta)" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13px; background: #fff; width: 100%; box-sizing: border-box; font-weight: 600;" />
+        <input value="{{ cliente }}" onChange="{{ onCliente }}" placeholder="Cliente" style="padding: 7px 9px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 13px; background: #fff; width: 100%; box-sizing: border-box;" />
+        <div style="display: flex; gap: 6px;">
+          <button onClick="{{ onNuevo }}" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 700; color: #fff; background: #0f6e5c; border: 0; border-radius: 5px; cursor: pointer;">+ Nuevo proyecto</button>
+          <button onClick="{{ onBorrar }}" style="padding: 7px 10px; font-size: 12px; font-weight: 600; color: #8a3a2f; background: #faf0ee; border: 1px solid #e8d3ce; border-radius: 5px; cursor: pointer;">Borrar</button>
+        </div>
+      </div>
+      <sc-for list="{{ grupos }}" as="g" hint-placeholder-count="4">
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
+          <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0f6e5c;">{{ g.t }}</div>
+          <sc-for list="{{ g.c }}" as="c" hint-placeholder-count="3">
+            <label style="display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 8px; align-items: center; font-size: 12.5px; color: #33312e;">{{ c.l }}
+              <sc-if value="{{ c.esSel }}" hint-placeholder-val="{{ false }}"><select value="{{ c.v }}" onChange="{{ c.on }}" style="padding: 6px 7px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 12.5px; background: #fff;"><sc-for list="{{ c.op }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></sc-if>
+              <sc-if value="{{ c.esNum }}" hint-placeholder-val="{{ true }}"><input value="{{ c.v }}" onChange="{{ c.on }}" inputMode="decimal" style="padding: 6px 8px; border: 1px solid #c9c5bd; border-radius: 5px; font-size: 12.5px; text-align: right; font-family: 'IBM Plex Mono', monospace;" /></sc-if>
+            </label>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <div style="background: {{ k.bg }}; color: {{ k.fg }}; border: 1px solid #dedbd5; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {{ k.lab }};">{{ k.t }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 700;">{{ k.v }}</span>
+            <span style="font-size: 11px; color: {{ k.lab }}; line-height: 1.4;">{{ k.s }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px;">
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+          <div style="font-size: 14px; font-weight: 700;">Planta de protección</div>
+          <div style="font-size: 11.5px; color: #6f6b64;">{{ plantaTxt }}</div>
+          <div>{{ plantaSvg }}</div>
+        </div>
+        <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+          <div style="font-size: 14px; font-weight: 700;">Memoria de cálculo</div>
+          <sc-for list="{{ memoria }}" as="m" hint-placeholder-count="6">
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-top: 1px solid #f1efeb;">
+              <span style="font-size: 12px; font-weight: 700; color: #0f6e5c;">{{ m.t }}</span>
+              <sc-for list="{{ m.l }}" as="x" hint-placeholder-count="2"><div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; font-size: 12px;"><span style="color: #4f4b45;">{{ x.k }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; text-align: right;">{{ x.v }}</span></div></sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div data-noprint="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <div style="font-size: 14px; font-weight: 700;">Esquema 3D · {{ nombreTit }}</div>
+          <div style="font-size: 11.5px; color: #6f6b64;">Arrastrá para girar · rueda para acercar · pasá el mouse sobre cada pieza</div>
+        </div>
+        <div style="position: relative; height: 72vh; min-height: 540px; border-radius: 8px; overflow: hidden; border: 1px solid #e3e8e5;">
+          <iframe ref="{{ ref3d }}" allowfullscreen="true" allow="fullscreen" src="Pararrayos 3D.html" title="Esquema 3D del sistema de pararrayos" onLoad="{{ on3d }}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;"></iframe>
+        </div>
+      </div>
+
+      <div data-noprint="1" style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <div style="font-size: 14px; font-weight: 700;">Detalle 3D de la puesta a tierra · {{ tierraTit }}</div>
+          <div style="font-size: 11.5px; color: #6f6b64;">Corte del suelo con cotas y referencias numeradas · se actualiza con el proyecto</div>
+        </div>
+        <div style="position: relative; height: 78vh; min-height: 560px; border-radius: 8px; overflow: hidden; border: 1px solid #e3e8e5;">
+          <iframe ref="{{ ref3dT }}" allowfullscreen="true" allow="fullscreen" src="Pararrayos 3D.html#tierra" title="Detalle 3D de la puesta a tierra" onLoad="{{ on3dT }}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block;"></iframe>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow: hidden;">
+        <div style="padding: 14px 16px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 14px; font-weight: 700;">Lista de materiales y mano de obra</span><span style="font-size: 11.5px; color: #6f6b64;">Cantidades calculadas · precios editables</span></div>
+        <div style="overflow-x: auto;"><div style="min-width: 760px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 60px 70px 120px 130px; gap: 10px; padding: 7px 16px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;"><span>Ítem</span><span>Un.</span><span style="text-align: right;">Cant.</span><span style="text-align: right;">P. unit. Gs.</span><span style="text-align: right;">Total Gs.</span></div>
+          <sc-for list="{{ secciones }}" as="s" hint-placeholder-count="4">
+            <div style="padding: 7px 16px; background: #f4f3f0; font-size: 12px; font-weight: 700; color: #0e3b36;">{{ s.t }}</div>
+            <sc-for list="{{ s.items }}" as="it" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 60px 70px 120px 130px; gap: 10px; align-items: center; padding: 5px 16px; border-bottom: 1px solid #f1efeb; font-size: 12.5px;">
+                <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0;"><span style="font-weight: 600;">{{ it.l }}</span><span style="font-size: 10.5px; color: #86817b;">{{ it.d }}</span></div>
+                <span style="color: #6f6b64;">{{ it.u }}</span>
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 700;">{{ it.c }}</span>
+                <input value="{{ it.p }}" onChange="{{ it.onP }}" inputMode="numeric" style="padding: 4px 6px; border: 1px solid #e0dcd4; border-radius: 4px; font-size: 12px; text-align: right; font-family: 'IBM Plex Mono', monospace;" />
+                <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">{{ it.t }}</span>
+              </div>
+            </sc-for>
+          </sc-for>
+          <sc-for list="{{ totales }}" as="t" hint-placeholder-count="5">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 10px; padding: 7px 16px; font-size: 13px; background: {{ t.bg }}; color: {{ t.fg }}; font-weight: {{ t.w }};"><span style="text-align: right;">{{ t.k }}</span><span style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ t.v }}</span></div>
+          </sc-for>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KEY = 'twg-pararrayos-v1';
+const num = (v) => { const n = parseFloat(String(v ?? '').replace(/\./g, '').replace(',', '.')); return isFinite(n) ? n : 0; };
+const fmt = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const f1 = (n, d = 1) => (Math.round(n * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d).replace('.', ',');
+const DEF = { L: '40', W: '25', H: '9', mast: '5', ng: '10', loc: '1', uso: 'ind', tipo: 'pdc', mod: '60', rho: '200', L_j: '2.40', d_j: '5/8', Rob: '10', gel: '1', ind: '10', mg: '25', km: '20', p: {} };
+const LOC = [['0.25', 'Rodeada de objetos más altos'], ['0.5', 'Rodeada de objetos de igual altura'], ['1', 'Aislada'], ['2', 'Aislada en lo alto / descampado']];
+const USO = { res: ['Vivienda', 1, 1], com: ['Comercio u oficinas', 1, 3], ind: ['Industria / depósito', 2, 3], est: ['Estación de servicio / inflamables', 3, 5], pub: ['Escuela, hospital, iglesia', 2, 5], tan: ['Tanque PCI / torre', 1, 1] };
+const NIV = [{ n: 'I', E: 0.98, D: 20, sep: 10, a: 0.20 }, { n: 'II', E: 0.95, D: 30, sep: 10, a: 0.35 }, { n: 'III', E: 0.80, D: 45, sep: 15, a: 0.45 }, { n: 'IV', E: 0, D: 60, sep: 20, a: 0.55 }];
+const FJ = [1, 1, 1.16, 1.29, 1.36, 1.42, 1.48];
+const DJ = { '1/2': 0.0127, '5/8': 0.0159, '3/4': 0.019 };
+const PRE = { pdc15: 4800000, pdc30: 6200000, pdc60: 8400000, fr: 650000, mast: 950000, base: 420000, cu50: 42000, abr: 9000, prot: 180000, cont: 1900000, bar: 380000, jab: 0, caja: 180000, sold: 95000, molde: 650000, gel: 85000, epp: 350000, mo: 150000, medi: 450000 };
+const PJ = { '1/2': { '1.20': 95000, '1.50': 115000, '2.00': 150000, '2.40': 180000, '3.00': 230000 }, '5/8': { '1.20': 120000, '1.50': 145000, '2.00': 190000, '2.40': 220000, '3.00': 290000 }, '3/4': { '1.20': 160000, '1.50': 195000, '2.00': 255000, '2.40': 300000, '3.00': 390000 } };
+
+const PKEY = 'twg-pararrayos-proyectos';
+const leerP = () => { try { return JSON.parse(localStorage.getItem(PKEY) || '[]'); } catch (e) { return []; } };
+const CAMPOS = ['nombre', 'cliente', 'L', 'W', 'H', 'mast', 'ng', 'loc', 'uso', 'tipo', 'mod', 'rho', 'L_j', 'd_j', 'Rob', 'gel', 'ind', 'mg', 'km', 'p'];
+class Component extends DCLogic {
+  ref3d = React.createRef();
+  ref3dT = React.createRef();
+  componentDidMount() { this._onMsg = (ev) => { const fr = this.ref3d.current; const ft = this.ref3dT.current; if (ev.data && ev.data.pr3d === 'listo' && ((fr && ev.source === fr.contentWindow) || (ft && ev.source === ft.contentWindow))) { this._s3 = ''; this.send3d(true); } }; window.addEventListener('message', this._onMsg);
+    if (!this.state.pid) { const id = 'pr' + Date.now(); const ls = leerP(); ls.push({ id, data: this.snap() }); try { localStorage.setItem(PKEY, JSON.stringify(ls)); } catch (e) {} this.setState({ pid: id }); } }
+  componentWillUnmount() { window.removeEventListener('message', this._onMsg); }
+  snap() { const o = {}; CAMPOS.forEach(k => { o[k] = this.state[k]; }); return o; }
+  guardarP() { const ls = leerP(), k = ls.findIndex(x => x.id === this.state.pid); if (k >= 0) ls[k].data = this.snap(); else if (this.state.pid) ls.push({ id: this.state.pid, data: this.snap() }); try { localStorage.setItem(PKEY, JSON.stringify(ls)); } catch (e) {} }
+  datos3d() { const C = this.calc(), s = this.state, cap = [];
+    const n = C.nCap, c = Math.max(1, Math.round(Math.sqrt(n * C.L / Math.max(1, C.W)))), rr = Math.ceil(n / c);
+    for (let i = 0; i < c; i++) for (let j = 0; j < rr && cap.length < n; j++) cap.push([(i + 0.5) * C.L / c, (j + 0.5) * C.W / rr]);
+    const baj = [], per = 2 * (C.L + C.W); for (let k = 0; k < C.nBaj; k++) { let t = (k + 0.5) / C.nBaj * per, x, z; if (t < C.L) { x = t; z = 0; } else if ((t -= C.L) < C.W) { x = C.L; z = t; } else if ((t -= C.W) < C.L) { x = C.L - t; z = C.W; } else { t -= C.L; x = 0; z = C.W - t; } baj.push([x, z]); }
+    return { nombre: String(s.nombre || '').trim(), L: C.L, W: C.W, H: C.H, hm: C.hm, Rp: C.Rp, tipo: s.tipo, capTxt: C.capTxt, nivel: C.nv.n, nJ: C.nJ, Lj: C.Lj, Rtot: C.Rtot, cap, baj, gel: s.gel === '1', dj: s.d_j, rho: fmt(C.rho),
+      resumen: f1(C.L) + ' × ' + f1(C.W) + ' × ' + f1(C.H) + ' m · ' + C.nCap + (s.tipo === 'pdc' ? ' PDC' : ' puntas') + ' · ' + C.nBaj + ' bajadas · ' + C.totJ + ' jabalinas' }; }
+  send3d(force) { let D; try { D = this.datos3d(); } catch (e) { return; } const s = JSON.stringify(D); if (s === this._s3 && !force) return; this._s3 = s;
+    [this.ref3d.current, this.ref3dT.current].forEach(fr => { try { if (fr && fr.contentWindow) fr.contentWindow.postMessage({ pr3d: 'modelo', C: D }, '*'); } catch (e) {} }); }
+  state = (() => { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return Object.assign({}, DEF); } })();
+  componentDidUpdate() { try { localStorage.setItem(KEY, JSON.stringify(this.state)); } catch (e) {} this.guardarP(); this.send3d(); }
+
+  calc() {
+    const s = this.state, L = num(s.L), W = num(s.W), H = num(s.H), hm = num(s.mast), Ng = num(s.ng), C1 = parseFloat(s.loc) || 1, u = USO[s.uso] || USO.ind;
+    // 1) frecuencia esperada y nivel de protección (NFC 17-102 anexo A, simplificado)
+    const Ae = L * W + 6 * H * (L + W) + 9 * Math.PI * H * H, Nd = Ng * Ae * C1 * 1e-6;
+    const C2 = u[1] === 3 ? 3 : u[1], C3 = u[2] >= 5 ? 5 : u[2], Nc = 5.5e-3 / (C2 * C3 * 1 * 1), E = Nd > Nc ? 1 - Nc / Nd : 0;
+    const iN = E <= 0 ? 3 : E > 0.98 ? 0 : E > 0.95 ? 1 : E > 0.80 ? 2 : 3, nv = NIV[iN], req = Nd > Nc;
+    // 2) captación
+    const h = hm + 0.0, Dm = nv.D, diag = Math.hypot(L, W) / 2;
+    let Rp, nCap, capTxt;
+    if (s.tipo === 'pdc') { const dL = num(s.mod); Rp = h >= 5 ? Math.sqrt(h * (2 * Dm - h) + dL * (2 * Dm + dL)) : Math.sqrt(5 * (2 * Dm - 5) + dL * (2 * Dm + dL)) * h / 5;
+      nCap = diag <= Rp ? 1 : Math.ceil((L * W) / (Math.PI * Rp * Rp * 0.6)); capTxt = 'Ioniflash Mach NG ' + s.mod + ' · ΔT ' + s.mod + ' µs'; }
+    else { const ang = { 0: 25, 1: 35, 2: 45, 3: 55 }[iN] * Math.PI / 180; Rp = h * Math.tan(ang) + 0; const paso = Math.max(2, 2 * Rp * 0.7);
+      nCap = Math.max(2, Math.ceil(L / paso) * Math.ceil(W / paso)); capTxt = 'Puntas Franklin h ' + f1(h) + ' m · ángulo ' + Math.round(ang * 180 / Math.PI) + '°'; }
+    // 3) bajadas
+    const per = 2 * (L + W), nBaj = s.tipo === 'pdc' ? Math.max(2, nCap * 2 > 2 && (H > 28 || Math.max(L, W) > H) ? nCap * 2 : Math.max(2, nCap)) : Math.max(2, Math.ceil(per / nv.sep));
+    const lBaj = (H + hm + 1.5) * nBaj + (s.tipo === 'pdc' ? 0 : per * 1.05);
+    // 4) aterramiento
+    const rho = num(s.rho) * (s.gel === '1' ? 0.6 : 1), Lj = parseFloat(s.L_j) || 2.4, dj = DJ[s.d_j] || 0.0159;
+    const R1 = rho / (2 * Math.PI * Lj) * (Math.log(4 * Lj / dj) - 1), Rob = num(s.Rob) || 10;
+    let nJ = 3; const Rn = (n) => R1 / n * (FJ[Math.min(n, 6)] || 1.5);
+    while (Rn(nJ) > Rob && nJ < 12) nJ++;
+    const Rtot = Rn(nJ), porBaj = nJ, totJ = porBaj * nBaj, cuTierra = nBaj * (2 * Lj * (porBaj - 1) + 3);
+    return { L, W, H, hm, Ng, C1, u, Ae, Nd, Nc, E, nv, iN, req, Rp, nCap, capTxt, per, nBaj, lBaj, rho, R1, Rtot, nJ: porBaj, totJ, Lj, dj, cuTierra, Rob };
+  }
+
+  items(C) {
+    const s = this.state, P = (k, d) => (s.p[k] !== undefined && s.p[k] !== '' ? num(s.p[k]) : d), pdc = s.tipo === 'pdc';
+    const pj = (PJ[s.d_j] || PJ['5/8'])[Number(s.L_j).toFixed(2)] || 220000;
+    const it = (sec, k, l, d, u, c, pDef) => ({ sec, k, l, d, u, c, p: P(k, pDef) });
+    const nSold = C.totJ + C.nBaj * 2, nCart = nSold + Math.ceil(nSold * 0.1);
+    return [
+      it('Captación', pdc ? 'pdc' + s.mod : 'fr', pdc ? 'Pararrayo con dispositivo de cebado Ioniflash Mach NG ' + s.mod : 'Pararrayo Franklin de cobre, punta de 0,60 m', C.capTxt + ' · radio protegido ' + f1(C.Rp) + ' m', 'un', C.nCap, pdc ? PRE['pdc' + s.mod] : PRE.fr),
+      it('Captación', 'mast', 'Mástil galvanizado de ' + f1(C.hm) + ' m con acople', 'Eleva la punta sobre el punto más alto', 'un', C.nCap, PRE.mast),
+      it('Captación', 'base', 'Soporte simple / base de fijación con riendas', 'Fijación a cubierta o estructura', 'un', C.nCap, PRE.base),
+      it('Bajadas', 'cu50', 'Conductor de cobre desnudo 50 mm²', C.nBaj + ' bajadas' + (pdc ? '' : ' + perímetro de captación') + ' · recorrido más corto y recto', 'm', Math.ceil(C.lBaj * 1.05), PRE.cu50),
+      it('Bajadas', 'abr', 'Grampa / abrazadera de fijación de cobre', 'Una por metro de bajada', 'un', Math.ceil(C.lBaj), PRE.abr),
+      it('Bajadas', 'prot', 'Tubo de protección mecánica de 2,00 m', 'Últimos 2 m de cada bajada', 'un', C.nBaj, PRE.prot),
+      it('Bajadas', 'bar', 'Junta de control / barra de medición', 'Desconexión para medir la resistencia', 'un', C.nBaj, PRE.bar),
+      ...(pdc ? [it('Bajadas', 'cont', 'Contador de descargas', 'En la bajada principal', 'un', 1, PRE.cont)] : []),
+      it('Aterramiento', 'jab', 'Jabalina cobre-acero ' + s.d_j + '" × ' + f1(C.Lj, 2) + ' m', C.nJ + ' por bajada en triángulo o línea, separadas ' + f1(2 * C.Lj, 2) + ' m', 'un', C.totJ, pj),
+      it('Aterramiento', 'cuT', 'Conductor de cobre desnudo 50 mm² enterrado', 'Unión de jabalinas a 0,60 m de profundidad', 'm', Math.ceil(C.cuTierra), PRE.cu50),
+      it('Aterramiento', 'caja', 'Caja de inspección con tapa', 'Una por jabalina', 'un', C.totJ, PRE.caja),
+      it('Aterramiento', 'sold', 'Cartucho de soldadura exotérmica (pólvora)', nSold + ' uniones + 10 % de reserva', 'un', nCart, PRE.sold),
+      it('Aterramiento', 'molde', 'Molde de grafito tipo T / X con pinza y chispero', 'Juego de herramientas de soldadura', 'jgo', 1, PRE.molde),
+      it('Aterramiento', 'gel', 'Gel despolarizante / mejorador de suelo', s.gel === '1' ? 'Baja la resistividad del suelo ~40 %' : 'No aplicado', 'bolsa', s.gel === '1' ? C.totJ : 0, PRE.gel),
+      it('Mano de obra', 'mo', 'Mano de obra de instalación', 'Oficial electricista + ayudante · ' + Math.max(2, Math.ceil(C.nCap * 1.5 + C.totJ * 0.35 + C.lBaj / 60)) + ' días', 'jornal', Math.max(2, Math.ceil(C.nCap * 1.5 + C.totJ * 0.35 + C.lBaj / 60)) * 2, PRE.mo),
+      it('Mano de obra', 'epp', 'Trabajo en altura: arnés, línea de vida y andamio', 'Durante la instalación de captación y bajadas', 'gl', 1, PRE.epp),
+      it('Mano de obra', 'medi', 'Medición con telurímetro y certificado', 'Protocolo de resistencia de puesta a tierra', 'gl', 1, PRE.medi),
+      it('Mano de obra', 'km', 'Traslado y viáticos', num(s.km) + ' km ida y vuelta', 'km', num(s.km) * 2, 3500)
+    ];
+  }
+
+  plantaSvg(C) {
+    const h = React.createElement, W0 = 420, H0 = 300, pad = 30, sc = Math.min((W0 - 2 * pad) / Math.max(C.L, C.Rp * 2), (H0 - 2 * pad) / Math.max(C.W, C.Rp * 2)), x0 = W0 / 2 - C.L * sc / 2, y0 = H0 / 2 - C.W * sc / 2;
+    const els = [h('rect', { key: 'b', x: x0, y: y0, width: C.L * sc, height: C.W * sc, fill: '#e8e4dc', stroke: '#1b1a18', strokeWidth: 1.5 })];
+    const pts = []; if (this.state.tipo === 'pdc') { const n = C.nCap, c = Math.ceil(Math.sqrt(n * C.L / Math.max(1, C.W))), r = Math.ceil(n / c); for (let i = 0; i < c; i++) for (let j = 0; j < r && pts.length < n; j++) pts.push([x0 + (i + 0.5) * C.L * sc / c, y0 + (j + 0.5) * C.W * sc / r]); }
+    else { const n = C.nCap, c = Math.max(1, Math.round(Math.sqrt(n * C.L / Math.max(1, C.W)))), r = Math.ceil(n / c); for (let i = 0; i < c; i++) for (let j = 0; j < r && pts.length < n; j++) pts.push([x0 + (i + 0.5) * C.L * sc / c, y0 + (j + 0.5) * C.W * sc / r]); }
+    pts.forEach(([x, y], k) => { els.push(h('circle', { key: 'r' + k, cx: x, cy: y, r: C.Rp * sc, fill: 'rgba(15,110,92,.12)', stroke: '#0f6e5c', strokeDasharray: '4 3' })); els.push(h('circle', { key: 'p' + k, cx: x, cy: y, r: 4, fill: '#0f6e5c' })); });
+    const nb = C.nBaj; for (let k = 0; k < nb; k++) { const t = k / nb * 2 * (C.L + C.W) * sc, Lx = C.L * sc, Wy = C.W * sc; let x, y; if (t < Lx) { x = x0 + t; y = y0; } else if (t < Lx + Wy) { x = x0 + Lx; y = y0 + t - Lx; } else if (t < 2 * Lx + Wy) { x = x0 + Lx - (t - Lx - Wy); y = y0 + Wy; } else { x = x0; y = y0 + Wy - (t - 2 * Lx - Wy); }
+      els.push(h('rect', { key: 'bj' + k, x: x - 4, y: y - 4, width: 8, height: 8, fill: '#b87333' })); }
+    els.push(h('text', { key: 't1', x: x0 + C.L * sc / 2, y: y0 - 8, fontSize: 11, textAnchor: 'middle', fontFamily: 'IBM Plex Mono', fill: '#33312e' }, f1(C.L) + ' m'));
+    els.push(h('text', { key: 't2', x: x0 - 8, y: y0 + C.W * sc / 2, fontSize: 11, textAnchor: 'end', fontFamily: 'IBM Plex Mono', fill: '#33312e' }, f1(C.W) + ' m'));
+    return h('svg', { viewBox: '0 0 ' + W0 + ' ' + H0, width: '100%', style: { display: 'block', background: '#fbfaf8', borderRadius: 8 } }, els);
+  }
+
+  renderVals() {
+    const s = this.state, C = this.calc(), set = (k) => (e) => this.setState({ [k]: e.target.value });
+    const n = (l, k) => ({ l, v: s[k], on: set(k), esNum: true, esSel: false }), sl = (l, k, op) => ({ l, v: s[k], on: set(k), esNum: false, esSel: true, op: op.map(([v, l2]) => ({ v, l: l2 })) });
+    const its = this.items(C), sum = (f) => its.reduce((a, x) => a + f(x), 0), cd = sum(x => x.c * x.p), ind = cd * num(s.ind) / 100, mg = (cd + ind) * num(s.mg) / 100, neto = cd + ind + mg, iva = Math.round(neto * 0.1), tot = Math.round(neto) + iva;
+    const kV = cd > 0 ? neto / cd : 1;
+    const secs = ['Captación', 'Bajadas', 'Aterramiento', 'Mano de obra'].map(t => ({ tP: t, itemsP: its.filter(x => x.sec === t && x.c > 0).map(x => ({ l: x.l, d: x.d, u: x.u, cTxt: fmt(x.c), totTxt: 'Gs. ' + fmt(Math.round(x.c * x.p * kV)) })), t: t + ' · Gs. ' + fmt(its.filter(x => x.sec === t).reduce((a, x) => a + x.c * x.p, 0)), items: its.filter(x => x.sec === t && x.c > 0).map(x => ({ l: x.l, d: x.d, u: x.u, c: fmt(x.c), p: fmt(x.p), t: fmt(x.c * x.p), onP: (e) => { const v = e.target.value.replace(/[^\d]/g, ''); this.setState(q => ({ p: Object.assign({}, q.p, { [x.k]: v }) })); } })) }));
+    const ok = C.Rtot <= C.Rob;
+    const kp = (t, v, s2, dark, warn) => ({ t, v, s: s2, bg: dark ? '#0e3b36' : warn ? 'oklch(0.96 0.04 30)' : '#fff', fg: dark ? '#f4f3f0' : '#1b1a18', lab: dark ? '#a9c9c2' : warn ? 'oklch(0.48 0.14 30)' : '#86817b' });
+    return {
+      grupos: [
+        { t: 'Estructura', c: [n('Largo (m)', 'L'), n('Ancho (m)', 'W'), n('Altura (m)', 'H'), sl('Uso', 'uso', Object.entries(USO).map(([k, v]) => [k, v[0]])), sl('Entorno', 'loc', LOC)] },
+        { t: 'Rayos y captación', c: [n('Densidad de rayos Ng (rayos/km²·año)', 'ng'), sl('Sistema', 'tipo', [['pdc', 'PDC Ioniflash Mach NG'], ['fr', 'Franklin (puntas)']]), sl('Modelo PDC', 'mod', [['15', 'Mach NG 15'], ['30', 'Mach NG 30'], ['60', 'Mach NG 60']]), n('Altura del mástil sobre cubierta (m)', 'mast')] },
+        { t: 'Puesta a tierra', c: [n('Resistividad del suelo ρ (Ω·m)', 'rho'), sl('Jabalina Ø', 'd_j', [['1/2', '1/2"'], ['5/8', '5/8"'], ['3/4', '3/4"']]), sl('Largo de jabalina', 'L_j', [['1.20', '1,20 m'], ['1.50', '1,50 m'], ['2.00', '2,00 m'], ['2.40', '2,40 m'], ['3.00', '3,00 m']]), n('Resistencia objetivo (Ω)', 'Rob'), sl('Gel despolarizante', 'gel', [['1', 'Sí'], ['0', 'No']])] },
+        { t: 'Presupuesto', c: [n('Costos indirectos %', 'ind'), n('Margen %', 'mg'), n('Distancia a obra (km)', 'km')] }
+      ],
+      kpis: [kp('Nivel de protección', C.req ? 'Nivel ' + C.nv.n : 'No obligatorio', C.req ? 'Eficiencia requerida ' + f1(C.E * 100) + ' %' : 'Nd ' + f1(C.Nd, 3) + ' ≤ Nc ' + f1(C.Nc, 3) + ' · recomendado igual', true),
+        kp('Captación', fmt(C.nCap) + (s.tipo === 'pdc' ? ' PDC' : ' puntas'), 'Radio protegido ' + f1(C.Rp) + ' m'), kp('Bajadas', fmt(C.nBaj), 'Cobre 50 mm² · ' + fmt(C.lBaj) + ' m'),
+        kp('Puesta a tierra', f1(C.Rtot) + ' Ω', fmt(C.totJ) + ' jabalinas · ' + C.nJ + ' por bajada · ' + (ok ? 'cumple ≤ ' + f1(C.Rob, 0) + ' Ω' : 'no llega: mejorar suelo'), false, !ok)],
+      plantaSvg: this.plantaSvg(C), plantaTxt: 'Círculos: zona protegida a nivel de cubierta (radio ' + f1(C.Rp) + ' m) · cuadrados cobre: bajadas con su puesta a tierra',
+      memoria: [
+        { t: '1. Frecuencia de rayos esperada (NFC 17-102, anexo A)', l: [{ k: 'Área equivalente Ae = L·W + 6H(L+W) + 9πH²', v: fmt(C.Ae) + ' m²' }, { k: 'Nd = Ng · Ae · C1 · 10⁻⁶', v: f1(C.Nd, 4) + ' /año' }, { k: 'Frecuencia aceptada Nc = 5,5·10⁻³ / (C2·C3)', v: f1(C.Nc, 4) + ' /año' }, { k: 'Eficiencia necesaria E = 1 − Nc/Nd', v: C.req ? f1(C.E * 100) + ' % → nivel ' + C.nv.n : 'no requerida' }] },
+        { t: '2. Captación', l: [{ k: 'Sistema', v: C.capTxt }, { k: 'Distancia de cebado D (nivel ' + C.nv.n + ')', v: C.nv.D + ' m' }, { k: s.tipo === 'pdc' ? 'Rp = √(h(2D−h) + ΔL(2D+ΔL))' : 'Radio por método del ángulo', v: f1(C.Rp) + ' m' }, { k: 'Semidiagonal a proteger', v: f1(Math.hypot(C.L, C.W) / 2) + ' m' }] },
+        { t: '3. Bajadas', l: [{ k: 'Perímetro', v: f1(C.per) + ' m' }, { k: 'Cantidad de bajadas', v: fmt(C.nBaj) }, { k: 'Conductor', v: 'Cu desnudo 50 mm²' }] },
+        { t: '4. Puesta a tierra', l: [{ k: 'ρ de cálculo' + (s.gel === '1' ? ' (con gel, −40 %)' : ''), v: fmt(C.rho) + ' Ω·m' }, { k: 'R de 1 jabalina = ρ/(2πL)·(ln(4L/d) − 1)', v: f1(C.R1) + ' Ω' }, { k: 'R con ' + C.nJ + ' jabalinas separadas 2L', v: f1(C.Rtot) + ' Ω' }, { k: 'Objetivo', v: '≤ ' + f1(C.Rob, 0) + ' Ω ' + (ok ? '✓' : '✗') }] }
+      ],
+      secciones: secs,
+      totales: [{ k: 'Costo directo', v: fmt(cd), bg: '#fff', fg: '#1b1a18', w: '400' }, { k: 'Indirectos ' + s.ind + ' %', v: fmt(ind), bg: '#fff', fg: '#1b1a18', w: '400' }, { k: 'Margen ' + s.mg + ' %', v: fmt(mg), bg: '#fff', fg: '#1b1a18', w: '400' }, { k: 'Subtotal', v: fmt(neto), bg: '#f4f3f0', fg: '#1b1a18', w: '700' }, { k: 'IVA 10 %', v: fmt(iva), bg: '#f4f3f0', fg: '#1b1a18', w: '400' }, { k: 'Total', v: 'Gs. ' + fmt(tot), bg: '#0e3b36', fg: '#fff', w: '700' }],
+      totTxt: 'Gs. ' + fmt(tot), onPrint: () => window.print(),
+      ...(() => { const pr = s.prop || {}, sp = (k, d) => pr[k] !== undefined ? pr[k] : d, setP = (k) => (e) => { const v = e.target.value; this.setState(q => ({ prop: Object.assign({}, q.prop || {}, { [k]: v }) })); };
+        const hoy = new Date(), fFecha = String(hoy.getDate()).padStart(2, '0') + '/' + String(hoy.getMonth() + 1).padStart(2, '0') + '/' + hoy.getFullYear();
+        const pdc = s.tipo === 'pdc', vP = sp('verPre', true) !== false, vPl = sp('verPlanta', true) !== false, nIt = vPl ? 5 : 4;
+        const sol = [
+          ['Captación', pdc ? fmt(C.nCap) + ' pararrayos PDC ' + C.capTxt + ' sobre mástil galvanizado de ' + f1(C.hm) + ' m con base y riendas. Radio de protección de ' + f1(C.Rp) + ' m a nivel de cubierta, que cubre toda la estructura con nivel ' + C.nv.n + '.' : fmt(C.nCap) + ' puntas Franklin de ' + f1(C.hm) + ' m sobre la cubierta, unidas por un conductor perimetral de cobre 50 mm². ' + C.capTxt + '.'],
+          ['Bajadas', fmt(C.nBaj) + ' bajadas de cobre desnudo de 50 mm² por el recorrido más corto y recto, fijadas con grampas cada 1 m, con tubo de protección mecánica en los últimos 2 m y junta de control para medición' + (pdc ? ', más contador de descargas en la bajada principal.' : '.')],
+          ['Puesta a tierra', fmt(C.totJ) + ' jabalinas de cobre-acero ' + s.d_j + '" × ' + f1(C.Lj, 2) + ' m, ' + C.nJ + ' por bajada separadas ' + f1(2 * C.Lj, 2) + ' m, unidas con cobre desnudo 50 mm² enterrado a 0,60 m y soldadura exotérmica, con caja de inspección por jabalina' + (s.gel === '1' ? ' y gel mejorador de suelo' : '') + '. Resistencia calculada de ' + f1(C.Rtot) + ' Ω (objetivo ≤ ' + f1(C.Rob, 0) + ' Ω).'],
+          ['Pruebas', 'Medición de la resistencia de puesta a tierra con telurímetro y entrega del protocolo de medición y certificado del sistema.']
+        ].map(([t, v], i) => ({ t, v: sp('sol' + i, v), on: setP('sol' + i) }));
+        return { esProp: !!s.verProp, noProp: !s.verProp, propBtn: s.verProp ? '← Volver al cálculo' : 'Propuesta técnica', onProp: () => this.setState({ verProp: !s.verProp }),
+          pNro: sp('nro', 'PT-PR-' + hoy.getFullYear() + '-' + String(leerP().findIndex(x => x.id === s.pid) + 1).padStart(3, '0')), pFecha: fFecha, pCliente: String(s.cliente || '').trim() || '—',
+          pAtt: sp('att', ''), onPAtt: setP('att'), pLugar: sp('lugar', ''), onPLugar: setP('lugar'),
+          pIntro: sp('intro', 'Por medio de la presente ponemos a su consideración la propuesta técnica para la provisión e instalación del sistema de protección contra descargas atmosféricas y la puesta a tierra de ' + (String(s.nombre || '').trim() || 'la estructura') + ', dimensionado según las normas IEC 62305 y NFC 17-102.'), onPIntro: setP('intro'),
+          pDatos: [{ k: 'Largo', v: f1(C.L) + ' m' }, { k: 'Ancho', v: f1(C.W) + ' m' }, { k: 'Altura', v: f1(C.H) + ' m' }, { k: 'Uso', v: C.u[0] }, { k: 'Densidad de rayos', v: f1(C.Ng) + ' rayos/km²·año' }, { k: 'Nivel de protección', v: C.req ? 'Nivel ' + C.nv.n : 'No obligatorio' }, { k: 'Sistema', v: pdc ? 'PDC Ioniflash Mach NG' : 'Franklin' }, { k: 'Resistividad del suelo', v: fmt(num(s.rho)) + ' Ω·m' }],
+          pSol: sol, pVerPre: vP, onPVerPre: (e) => { const v = e.target.checked; this.setState(q => ({ prop: Object.assign({}, q.prop || {}, { verPre: v }) })); },
+          pVerPlanta: vPl, onPVerPlanta: (e) => { const v = e.target.checked; this.setState(q => ({ prop: Object.assign({}, q.prop || {}, { verPlanta: v }) })); },
+          pColPre: vP ? '100px' : '0px', nItems: String(nIt), nCond: String(nIt + 1),
+          pSub: 'Gs. ' + fmt(neto), pIva: 'Gs. ' + fmt(iva),
+          pPlazo: sp('plazo', Math.max(3, Math.ceil(C.nCap * 1.5 + C.totJ * 0.35 + C.lBaj / 60) + 2) + ' días hábiles desde la aprobación, sujeto a condiciones climáticas.'), onPPlazo: setP('plazo'),
+          pPago: sp('pago', '50 % de anticipo con la orden de compra y 50 % contra entrega del protocolo de medición.'), onPPago: setP('pago'),
+          pValidez: sp('validez', '15 días.'), onPValidez: setP('validez'),
+          pGar: sp('gar', '12 meses sobre la instalación y según fabricante en los equipos.'), onPGar: setP('gar'),
+          pNoInc: sp('noinc', 'Obras civiles, reparación de cubiertas, protección contra sobretensiones en tableros (DPS) y trámites ante entes, salvo que se indique.'), onPNoInc: setP('noinc') }; })(),
+      ref3d: this.ref3d, on3d: () => { this._s3 = ''; this.send3d(true); }, ref3dT: this.ref3dT, on3dT: () => { this._s3 = ''; this.send3d(true); },
+      tierraTit: C.nJ + ' jabalinas de ' + f1(C.Lj, 2) + ' m por bajada · ' + C.nBaj + ' bajadas · ' + f1(C.Rtot) + ' Ω',
+      nombre: s.nombre || '', cliente: s.cliente || '', nombreTit: String(s.nombre || '').trim() || 'Proyecto sin nombre',
+      onNombre: (e) => this.setState({ nombre: e.target.value }), onCliente: (e) => this.setState({ cliente: e.target.value }),
+      pid: s.pid || '', proys: leerP().map(x => x.id === s.pid ? { id: x.id, data: this.snap() } : x).map((x, i) => ({ id: x.id, l: (String((x.data || {}).nombre || '').trim() || 'Proyecto ' + (i + 1)) + ' · ' + f1(num((x.data || {}).L)) + ' × ' + f1(num((x.data || {}).W)) + ' m' })),
+      onPid: (e) => { const id = e.target.value, x = leerP().find(q => q.id === id); if (!x) return; this.guardarP(); this.setState(Object.assign({}, DEF, x.data, { pid: id })); },
+      onNuevo: () => { this.guardarP(); const id = 'pr' + Date.now(), d = Object.assign({}, DEF, { nombre: '', cliente: '' }), ls = leerP(); ls.push({ id, data: d }); try { localStorage.setItem(PKEY, JSON.stringify(ls)); } catch (e) {} this.setState(Object.assign({}, d, { pid: id })); },
+      onBorrar: () => { const ls = leerP(); if (ls.length <= 1) return; if (!window.confirm('¿Borrar este proyecto?')) return; const rest = ls.filter(x => x.id !== s.pid); try { localStorage.setItem(PKEY, JSON.stringify(rest)); } catch (e) {} this.setState(Object.assign({}, DEF, rest[0].data, { pid: rest[0].id })); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Shell Eusebio Ayala · Planta de tratamiento de efluentes · 3D</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#dfe6ea;font-family:system-ui,sans-serif}
+#v{position:absolute;inset:0}
+#hd{position:absolute;left:12px;top:12px;background:rgba(255,255,255,.95);border:1px solid #d2d8dc;border-radius:10px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;z-index:3;max-width:260px}
+#hd b{font-size:13.5px}#hd label{display:flex;gap:6px;align-items:center;cursor:pointer}#hd i{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+#bt{position:absolute;right:12px;top:12px;display:flex;gap:6px;z-index:3;flex-wrap:wrap;justify-content:flex-end;max-width:62%}
+#bt button{font:600 12px system-ui;padding:6px 10px;border:1px solid #c9c5bd;background:#fff;border-radius:6px;cursor:pointer}
+#bt button.on{background:#14382f;color:#fff;border-color:#14382f}
+#tip{position:absolute;pointer-events:none;background:rgba(16,36,30,.95);color:#fff;font-size:12px;line-height:1.45;padding:7px 10px;border-radius:7px;max-width:290px;display:none;z-index:5}
+#tip b{display:block;font-size:13px;margin-bottom:2px}#tip span{color:#cfe3da}
+#e{position:absolute;right:12px;bottom:10px;font-size:11px;color:#3f3b35;background:rgba(255,255,255,.9);padding:4px 8px;border-radius:5px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="v"></div><div id="hd"></div><div id="tip"></div>
+<div id="bt"><button id="b1" class="on">Vista general</button><button id="b2">Planta de tratamiento</button><button id="b3">Equipos bajo tierra</button><button id="b4">Desde arriba</button><button id="b5">Frente de la estación</button><button id="bP">Ocultar panel</button></div>
+<div id="e">Arrastrá para girar · rueda para acercar · clic derecho para mover · pasá el cursor sobre cada equipo</div>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = (i) => document.getElementById(i);
+const r = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+r.toneMapping = T.ACESFilmicToneMapping; r.outputColorSpace = T.SRGBColorSpace; $('v').appendChild(r.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#cfdde6'); sc.environment = new T.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+const cam = new T.PerspectiveCamera(40, 1, 0.05, 3000);
+sc.add(new T.HemisphereLight('#ffffff', '#7d8a70', 0.6));
+const sun = new T.DirectionalLight('#fff4e0', 1.7); sun.position.set(40, 60, 25); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -60, right: 60, top: 60, bottom: -60, far: 200 }); sun.shadow.bias = -0.0004; sc.add(sun);
+const ctl = new OrbitControls(cam, r.domElement); ctl.enableDamping = true; ctl.minDistance = 0.8; ctl.maxDistance = 220; ctl.screenSpacePanning = true; ctl.maxPolarAngle = Math.PI * 0.62;
+ctl.addEventListener('change', () => { const d = cam.position.distanceTo(ctl.target); cam.near = Math.max(0.02, d / 500); cam.updateProjectionMatrix(); });
+const fit = () => { const w = innerWidth || 800, h = innerHeight || 560; r.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+addEventListener('resize', fit); new ResizeObserver(fit).observe($('v')); fit(); requestAnimationFrame(fit);
+(function loop() { requestAnimationFrame(loop); ctl.update(); r.render(sc, cam); })();
+
+const texC = (w, h, draw, rep) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; if (rep) t.repeat.set(...rep); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return t; };
+const ruido = (x, w, h, base, a) => { x.fillStyle = base; x.fillRect(0, 0, w, h); for (let i = 0; i < w * h / 5; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,' + a + ')' : 'rgba(0,0,0,' + a + ')'; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); } };
+const tH = texC(256, 256, (x, w, h) => { ruido(x, w, h, '#bdb9b0', 0.06); x.strokeStyle = 'rgba(60,60,60,.25)'; x.lineWidth = 2; x.strokeRect(0, 0, w, h); }, [12, 12]);
+const tP = texC(256, 256, (x, w, h) => ruido(x, w, h, '#5f7f3c', 0.12), [16, 16]);
+const tA = texC(256, 256, (x, w, h) => ruido(x, w, h, '#3c3e41', 0.05), [20, 2]);
+const tChapa = texC(64, 64, (x, w, h) => { for (let i = 0; i < 8; i++) { x.fillStyle = i % 2 ? '#8e959b' : '#a9b0b6'; x.fillRect(0, i * 8, w, 8); } for (let i = 0; i < 40; i++) { x.fillStyle = 'rgba(40,40,40,.35)'; x.fillRect(Math.random() * w, Math.random() * h, 3, 1); } }, [3, 3]);
+const M = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.7 }, o || {}));
+const capas = {}, pick = [];
+['terreno', 'estacion', 'vehiculos', 'equipos', 'tapas', 'canos', 'estero'].forEach(k => { capas[k] = new T.Group(); sc.add(capas[k]); });
+const reg = (m, n, d, cap, ex) => { m.userData = { n, d, x: ex || '' }; m.castShadow = true; m.receiveShadow = true; if (n) pick.push(m); capas[cap].add(m); return m; };
+const box = (w, h, d, x, y, z, mat, n, ds, cap, ex) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); return reg(m, n, ds, cap, ex); };
+const cyl = (rt, rb, h, x, y, z, mat, n, ds, cap, seg, ex) => { const m = new T.Mesh(new T.CylinderGeometry(rt, rb, h, seg || 32), mat); m.position.set(x, y, z); return reg(m, n, ds, cap, ex); };
+const pipe = (pts, rr, mat, n, ds, cap) => { for (let i = 1; i < pts.length; i++) { const A = new T.Vector3(...pts[i - 1]), B = new T.Vector3(...pts[i]), v = B.clone().sub(A), L = v.length(); if (L < 1e-3) continue; const m = new T.Mesh(new T.CylinderGeometry(rr, rr, L, 14), mat); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v.normalize()); reg(m, n, ds, cap); if (i > 1) { const c = new T.Mesh(new T.SphereGeometry(rr * 1.15, 12, 8), mat); c.position.copy(A); reg(c, n, ds, cap); } } };
+
+
+// Coordenadas tomadas de la foto satelital (≈ 0,08 m por píxel). Norte (ruta) hacia z negativo.
+const mPasto = M('#5f7f3c', { map: tP, roughness: 1 }), mTierra = M('#a58a62', { roughness: 1 }), mHorm = M('#bdb9b0', { map: tH, roughness: 0.9 });
+box(70, 0.2, 60, -6, -0.1, -2, mPasto, 'Área verde', '', 'terreno');
+const tierraA = box(8, 0.21, 24, -11.5, -0.09, -6, mTierra, 'Zona de tierra / acceso', '', 'terreno'); tierraA.rotation.y = 0.35;
+box(70, 0.05, 4, -6, 0.03, -27, M('#3c3e41', { map: tA }), 'Ruta', '', 'terreno');
+for (let x = -40; x < 30; x += 6) box(3, 0.01, 0.15, x, 0.06, -27, M('#f2f2ee'), '', '', 'terreno');
+// ---------- edificaciones existentes (según la imagen)
+const mFach = M('#f1ede4', { roughness: 0.8 }), mChapa = M('#b9bfc4', { map: tChapa, metalness: 0.6, roughness: 0.4 }), mNar = M('#e3895e', { roughness: 0.6 }), mRojo = M('#d52b1e', { roughness: 0.45 }), mAma = M('#f7c300', { roughness: 0.45 });
+// market con techo colgante
+const mk = new T.Group(); mk.position.set(-23, 0, 6); mk.rotation.y = 0.22; capas.estacion.add(mk);
+const addG = (g, w, h, d, x, y, z, m, n, ds) => { const o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.position.set(x, y, z); reg(o, n, ds || '', 'estacion'); g.add(o); return o; };
+const mVid = M('#8fb4c9', { roughness: 0.15, metalness: 0.3 });
+addG(mk, 24, 3.6, 21, 2, 1.8, 1.5, mFach, 'Oficinas', 'Bloque de oficinas con paredes · origen de las salidas de baños y cocina');
+addG(mk, 24.6, 0.25, 21.6, 2, 3.72, 1.5, mChapa, 'Techo de las oficinas');
+for (let k = 0; k < 7; k++) { addG(mk, 1.8, 1.2, 0.06, -8 + k * 3.4, 1.9, -9.02, mVid, 'Ventana de oficina'); addG(mk, 1.8, 1.2, 0.06, -8 + k * 3.4, 1.9, 12.02, mVid, 'Ventana de oficina'); }
+for (let k = 0; k < 6; k++) addG(mk, 0.06, 1.2, 1.8, 14.02, 1.9, -7 + k * 3.5, mVid, 'Ventana de oficina');
+addG(mk, 1.2, 2.2, 0.08, 10, 1.1, -9.04, M('#6d5a42'), 'Puerta de acceso a oficinas');
+// techo de playa (canopy) con surtidores
+const tp = new T.Group(); tp.position.set(-24, 0, -12.5); tp.rotation.y = 0.22; capas.estacion.add(tp);
+// faja del techo de playa con los colores de la foto: blanco arriba, banda amarilla y línea roja abajo
+const tFaja = texC(512, 64, (x, w, h) => { x.fillStyle = '#f7f5f0'; x.fillRect(0, 0, w, h); x.fillStyle = '#f7c300'; x.fillRect(0, h * 0.42, w, h * 0.38); x.fillStyle = '#d52b1e'; x.fillRect(0, h * 0.8, w, h * 0.2); });
+const mFaja = M('#ffffff', { map: tFaja, roughness: 0.45 });
+addG(tp, 15, 0.25, 10, 0, 6.0, 0, M('#f4f2ee'), 'Techo de playa', 'Cubierta de la zona de surtidores');
+addG(tp, 15.2, 1.0, 10.2, 0, 5.45, 0, [mFaja, mFaja, M('#f4f2ee'), M('#e8e5df'), mFaja, mFaja], 'Faja del techo de playa', 'Blanco con banda amarilla y línea roja');
+// emblema sobre la faja (frente hacia la avenida)
+const tLogo = texC(256, 256, (x, w, h) => { x.fillStyle = '#f2f0ea'; x.fillRect(0, 0, w, h); x.fillStyle = '#d52b1e'; x.beginPath(); x.arc(w / 2, h * 0.62, w * 0.36, Math.PI, 0); x.lineTo(w * 0.62, h * 0.9); x.lineTo(w * 0.38, h * 0.9); x.closePath(); x.fill();
+  x.fillStyle = '#f7c300'; x.beginPath(); x.arc(w / 2, h * 0.62, w * 0.3, Math.PI, 0); x.lineTo(w * 0.59, h * 0.84); x.lineTo(w * 0.41, h * 0.84); x.closePath(); x.fill();
+  x.strokeStyle = '#d52b1e'; x.lineWidth = 6; for (let k = -3; k <= 3; k++) { x.beginPath(); x.moveTo(w / 2, h * 0.84); x.lineTo(w / 2 + Math.sin(k * 0.38) * w * 0.3, h * 0.62 - Math.cos(k * 0.38) * w * 0.3); x.stroke(); } });
+const lg = addG(tp, 2.2, 2.0, 0.6, 0, 6.3, -5.45, [M('#f2f0ea'), M('#f2f0ea'), M('#f2f0ea'), M('#f2f0ea'), M('#f2f0ea'), M('#ffffff', { map: tLogo, roughness: 0.5 })], 'Emblema de la estación', '');
+
+[[-4.5, 0], [4.5, 0]].forEach(([x, z]) => { addG(tp, 0.6, 5.2, 0.6, x, 2.6, z, M('#e8e5df'), 'Columna del techo de playa'); addG(tp, 1.6, 1.8, 0.7, x, 0.9, z + 1.4, M('#f1efe9'), 'Surtidor', ''); addG(tp, 1.6, 0.3, 0.72, x, 1.6, z + 1.4, mAma, 'Surtidor'); });
+// segundo techo de playa, al costado izquierdo de las oficinas
+const tp2 = new T.Group(); tp2.position.set(-41, 0, 9); tp2.rotation.y = 0.22; capas.estacion.add(tp2);
+addG(tp2, 9, 0.25, 13, 0, 6.0, 0, M('#f4f2ee'), 'Techo de playa N° 2', 'Cubierta de surtidores');
+addG(tp2, 9.2, 1.0, 13.2, 0, 5.45, 0, mFaja, 'Faja del techo de playa N° 2', 'Blanco con banda amarilla y línea roja');
+[[0, -3.5], [0, 3.5]].forEach(([x, z]) => { addG(tp2, 0.6, 5.2, 0.6, x, 2.6, z, M('#e8e5df'), 'Columna del techo de playa'); addG(tp2, 0.7, 1.8, 1.6, x + 1.4, 0.9, z, M('#f1efe9'), 'Surtidor'); addG(tp2, 0.72, 0.3, 1.6, x + 1.4, 1.6, z, mAma, 'Surtidor'); });
+// patio de hormigón donde estaba el edificio lateral (se retira del diseño)
+box(13, 0.06, 26, 14, 0.02, -4, mHorm, 'Patio', 'Área libre de hormigón', 'terreno');
+const arbol = (x, z, s) => { cyl(0.18 * s, 0.25 * s, 2.4 * s, x, 1.2 * s, z, M('#5b4630'), '', '', 'estacion'); const c = new T.Mesh(new T.IcosahedronGeometry(2.3 * s, 1), M('#2f4a26', { roughness: 1 })); c.position.set(x, 3.4 * s, z); reg(c, 'Árbol', '', 'estacion'); };
+arbol(-17, -22, 1.2);
+
+// ---------- PLANTA DE TRATAMIENTO según la imagen
+const mPVC = M('#e9e4d4', { roughness: 0.35 }), mHA = M('#a9a59c', { map: tH, roughness: 0.9 }), mTq = M('#1f2421', { roughness: 0.5 });
+const tapaHA = (w, d, x, z, n) => box(w, 0.08, d, x, 0.05, z, M('#9a978f', { map: tH }), 'Tapa de H°A° · ' + n, '', 'tapas');
+// (A) cámara de grasas (salida de cocina)
+const CG = [0, 6.4];
+pipe([[-7.6, -0.45, 8.8], [CG[0] - 0.55, -0.5, CG[1] + 0.2]], 0.05, mPVC, 'Salida de cocina PVC Ø 100 mm', 'Desde el market', 'canos');
+cyl(0.5, 0.5, 0.9, CG[0], -0.45, CG[1], M('#5b6c75'), 'Cámara de grasas', 'Retiene las grasas de la cocina antes del sistema', 'equipos', 32, 'Ø 1,00 m × 0,90 m');
+cyl(0.58, 0.58, 0.08, CG[0], 0.05, CG[1], M('#9a978f', { map: tH }), 'Tapa de H°A° · cámara de grasas', '', 'tapas', 32);
+// (B) registro de entrada (cuadrado negro)
+const RE = [4.8, 2.4];
+box(1.0, 0.9, 1.0, RE[0], -0.5, RE[1], mHA, 'Registro de entrada', 'Recibe la salida de baños y la de la cámara de grasas', 'equipos', '1,00 × 1,00 × 0,90 m'); tapaHA(1.1, 1.1, RE[0], RE[1], 'registro de entrada');
+pipe([[-10.4, -0.5, 3.8], [RE[0] - 0.5, -0.55, RE[1]]], 0.06, mPVC, 'Salida de baños PVC Ø 100 mm', 'Desde el market · pendiente 1 %', 'canos');
+pipe([[CG[0] + 0.45, -0.6, CG[1] - 0.25], [RE[0] - 0.35, -0.6, RE[1] + 0.45]], 0.06, mPVC, 'Cañería PVC Ø 100 mm · cámara de grasas → registro', '', 'canos');
+// (C) dos biodigestores UNIFAM (círculos negros)
+const UN = [[-0.6, -0.8], [5.4, -2.8]];
+const RS = [1.8, -4.6];
+UN.forEach(([x, z], i) => { const n = i + 1, nm = 'UNIFAM N° ' + n + ' · Tigre', ds = 'Tratamiento biológico con biomasa inmovilizada · eficiencia > 95 % · sin lodo excedente', ex = 'Cuerpo Ø 1,40 m · 2 bocas de inspección con tapa';
+  const mG = M('#8d9397', { roughness: 0.55 }), mG2 = M('#7d8387', { roughness: 0.55 }), mT = M('#9aa0a4', { roughness: 0.6 });
+  const yTop = 0.06, hN = 0.62, yD = yTop - hN, R = 0.72, hC = 1.25, yC = yD - 0.35 - hC;
+  box(1.9, 0.15, 1.9, x, yC - 0.1, z, mHA, 'Base de hormigón', nm, 'equipos');
+  const rel = new T.Mesh(new T.CylinderGeometry(1.0, 1.0, yTop - yC, 32, 1, true), M('#d1c39f', { transparent: true, opacity: 0.22, side: T.DoubleSide, depthWrite: false })); rel.position.set(x, (yTop + yC) / 2, z); reg(rel, 'Relleno de arena compactada', nm, 'equipos');
+  // cuerpo corrugado
+  cyl(R * 0.94, R * 0.9, 0.08, x, yC + 0.04, z, mG2, nm, ds, 'equipos', 40, ex);
+  cyl(R, R * 0.94, hC, x, yC + hC / 2 + 0.06, z, mG, nm, ds, 'equipos', 40, ex);
+  for (let k = 0; k < 10; k++) { const rg = new T.Mesh(new T.TorusGeometry(R * (0.95 + k * 0.005), 0.035, 8, 40), mG2); rg.rotation.x = Math.PI / 2; rg.position.set(x, yC + 0.18 + k * (hC - 0.2) / 9, z); reg(rg, nm, ds, 'equipos', ex); }
+  // domo superior
+  const dm = new T.Mesh(new T.SphereGeometry(R, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2), mG); dm.scale.y = 0.5; dm.position.set(x, yC + hC + 0.06, z); reg(dm, nm, ds, 'equipos', ex);
+  // dos torres de inspección con anillos y tapa ranurada
+  [[-0.3, 0.55, 'Boca de inspección y entrada'], [0.32, 0.5, 'Boca de inspección y salida']].forEach(([o, rr, t], j) => { const cx = x + o, cy0 = yD - 0.05;
+    cyl(rr * 0.5, rr * 0.55, hN + 0.05, cx, cy0 + (hN + 0.05) / 2, z, mG, t + ' · UNIFAM N° ' + n, 'Torre prolongadora hasta el nivel del terreno', 'equipos', 32);
+    for (let k = 0; k < 4; k++) { const rg = new T.Mesh(new T.TorusGeometry(rr * 0.53, 0.02, 8, 32), mG2); rg.rotation.x = Math.PI / 2; rg.position.set(cx, cy0 + 0.12 + k * 0.12, z); reg(rg, t, '', 'equipos'); }
+    cyl(rr * 0.56, rr * 0.56, 0.06, cx, yTop - 0.02, z, mT, 'Tapa con rejilla · ' + t, 'Tapa roscada de inspección', 'tapas', 32);
+    for (let k = -3; k <= 3; k++) box(rr * 0.85, 0.012, 0.02, cx, yTop + 0.015, z + k * 0.04, M('#6f7579'), '', '', 'tapas');
+  });
+
+  cyl(0.06, 0.06, 0.45, x + 0.02, yD + 0.2, z - 0.32, mG2, 'Conexión de aire / ventilación', 'Recibe el aire del soplador', 'equipos', 16);
+  pipe([[RE[0], -0.6, RE[1] - 0.5], [x + 0.2, -0.55, z + 0.8]], 0.06, mPVC, 'Ramal PVC Ø 100 mm al biodigestor N° ' + n, 'Desde el registro de entrada', 'canos');
+  pipe([[x, yD + 0.28, z - 0.75], [RS[0] + (i ? 0.25 : -0.25), -0.75, RS[1] + 0.3]], 0.06, mPVC, 'Salida tratada del biodigestor N° ' + n, 'Hacia el registro de salida', 'canos'); });
+// soplador
+const CS = [6.6, 0.4];
+box(1.4, 1.3, 1.2, CS[0], 0.65, CS[1], M('#c9c4b8', { map: tH }), 'Caseta del soplador', 'Mampostería con tapa metálica y ventilación', 'equipos', '1,40 × 1,20 × 1,30 m');
+box(1.5, 0.08, 1.3, CS[0], 1.34, CS[1], M('#7d858b', { metalness: 0.7, roughness: 0.35 }), 'Tapa metálica de la caseta', '', 'tapas');
+const mAire = M('#9aa0a6', { metalness: 0.6 });
+pipe([[CS[0] - 0.7, 0.3, CS[1]], [5.42, 0.3, CS[1]], [5.42, 0.3, -2.48]], 0.03, mAire, 'Línea de aire del soplador', 'Al biodigestor N° 2', 'canos');
+pipe([[5.42, 0.3, 0.4], [-0.58, 0.3, 0.4], [-0.58, 0.3, -0.48]], 0.03, mAire, 'Línea de aire del soplador', 'Al biodigestor N° 1', 'canos');
+pipe([[CS[0] - 0.7, -0.4, CS[1] + 0.4], [CS[0] - 0.7, -0.4, 4.6], [-10.5, -0.4, 4.6]], 0.02, M('#2b2b2b'), 'Alimentación eléctrica del soplador', 'Desde el tablero de las oficinas · cable en caño subterráneo', 'canos');
+// (D) registro de salida (rectángulo rojo chico)
+box(0.7, 0.8, 0.5, RS[0], -0.55, RS[1], mHA, 'Registro de salida', 'Une las salidas de los dos biodigestores', 'equipos'); tapaHA(0.8, 0.6, RS[0], RS[1], 'registro de salida');
+// (E) reservorio de 2.000 L con cámara de cloración (contorno rojo, donde estaban los camiones)
+const RV = [-1.0, -10.2];
+const rv = new T.Group(); rv.position.set(RV[0], 0, RV[1]); rv.rotation.y = 0.35; capas.equipos.add(rv);
+const tq = new T.Mesh(new T.CapsuleGeometry(0.62, 2.6, 8, 24), mTq); tq.rotation.x = Math.PI / 2; tq.position.set(0, -0.95, 1.2); reg(tq, 'Reservorio de 2.000 L', 'Tanque regulador del efluente tratado', 'equipos', '1,24 m × 3,8 m'); rv.add(tq);
+const bs = new T.Mesh(new T.BoxGeometry(1.6, 0.12, 4.2), mHA); bs.position.set(0, -1.65, 1.2); reg(bs, 'Base de hormigón del reservorio', '', 'equipos'); rv.add(bs);
+const cl = new T.Mesh(new T.BoxGeometry(1.0, 1.1, 1.0), M('#b3aea5', { map: tH })); cl.position.set(0, -0.6, -2.6); reg(cl, 'Cámara de cloración', 'Desinfección final con pastillas de cloro', 'equipos', '1,00 × 1,00 × 1,10 m'); rv.add(cl);
+[[0, 1.2, 0.8, 'reservorio'], [0, -2.6, 1.1, 'cámara de cloración']].forEach(([x, z, w, n]) => { const t = new T.Mesh(new T.BoxGeometry(w, 0.08, w), M('#9a978f', { map: tH })); t.position.set(x, 0.05, z); reg(t, 'Tapa de H°A° · ' + n, '', 'tapas'); rv.add(t); });
+const rvP = (lx, lz) => [RV[0] + lx * Math.cos(0.35) + lz * Math.sin(0.35), RV[1] - lx * Math.sin(0.35) + lz * Math.cos(0.35)];
+const rIn = rvP(0, 3.2), rMid = rvP(0, -0.8), rCl = rvP(0, -2.1), rOut = rvP(0, -3.1);
+pipe([[RS[0], -0.8, RS[1] - 0.25], [rIn[0], -0.9, rIn[1]]], 0.06, mPVC, 'Cañería PVC Ø 100 mm · registro → reservorio', '', 'canos');
+pipe([[rMid[0], -0.95, rMid[1]], [rCl[0], -0.95, rCl[1]]], 0.06, mPVC, 'Reservorio → cámara de cloración', '', 'canos');
+// (F) cañería de vertido final (hacia la ruta)
+pipe([[rOut[0], -1.0, rOut[1]], [-2.4, -1.0, -14.6], [0.4, -1.0, -23.6]], 0.06, mPVC, 'Cañería de vertido final PVC Ø 100 mm', 'Efluente tratado hacia el desagüe de la ruta', 'canos');
+cyl(0.09, 0.09, 0.3, 0.45, -1.0, -23.9, mPVC, 'Boca de descarga con clapeta', 'Evita el retroceso', 'canos').rotation.x = Math.PI / 2;
+
+// ---------- leyenda y vistas
+const LY = [['estacion', 'Estación (oficinas, techos de playa)', '#f1ede4'], ['terreno', 'Terreno', '#5f7f3c'], ['tapas', 'Tapas de H°A°', '#9a978f'], ['equipos', 'Planta de tratamiento', '#8d9397'], ['canos', 'Cañerías', '#e9e4d4']];
+$('hd').innerHTML = '<b>Shell Eusebio Ayala · planta de tratamiento</b><span style="color:#5f5a52">Oficinas: baños y cocina (cámara de grasas) → registro → 2 biodigestores → registro → reservorio 2.000 L con cloración → vertido final</span>' + LY.map(([k, t, c]) => '<label><input type="checkbox" data-k="' + k + '" checked style="margin:0"><i style="background:' + c + '"></i>' + t + '</label>').join('');
+const setCapa = (k, v) => { capas[k].visible = v; const el = document.querySelector('#hd input[data-k="' + k + '"]'); if (el) el.checked = v; };
+document.querySelectorAll('#hd input').forEach(i => i.onchange = () => setCapa(i.dataset.k, i.checked));
+const suelo = (op) => { [mPasto, mTierra].forEach(m => { m.transparent = op < 1; m.opacity = op; m.depthWrite = op >= 1; m.needsUpdate = true; }); };
+const marcar = (id) => document.querySelectorAll('#bt button').forEach(b => b.classList.toggle('on', b.id === id));
+const vista = (n) => { Object.keys(capas).forEach(k => setCapa(k, true)); suelo(1);
+  if (n === 1) { ctl.target.set(-1, 0, -2); cam.position.set(-14, 18, 22); marcar('b1'); }
+  else if (n === 2) { ctl.target.set(-0.5, -0.5, 0); cam.position.set(-9, 9, 12); marcar('b2'); }
+  else if (n === 3) { setCapa('tapas', false); setCapa('vehiculos', false); suelo(0.25); ctl.target.set(0, -1.2, -1.3); cam.position.set(-4, 3.2, 7); marcar('b3'); }
+  else if (n === 5) { ctl.target.set(-24, 4, -14); cam.position.set(-20, 7, -36); marcar('b5'); }
+  else { ctl.target.set(-6, 0, -4); cam.position.set(-5.99, 60, -3.5); marcar('b4'); }
+  ctl.update(); };
+$('b1').onclick = () => vista(1); $('b2').onclick = () => vista(2); $('b3').onclick = () => vista(3); $('b4').onclick = () => vista(4); $('b5').onclick = () => vista(5); vista(1);
+// Modo propuesta: sin paneles, encuadre de la planta y captura para la hoja de Biodigestores.
+const QS3 = new URLSearchParams(location.search);
+if (QS3.get('prop') === '1') { ['hd', 'bt', 'e'].forEach(i => { const el = $(i); if (el) el.style.display = 'none'; });
+  vista(4); suelo(0.45); setCapa('tapas', false); if (capas.vehiculos) setCapa('vehiculos', false);
+  // planta a lo ancho de la imagen: se gira la escena 90° y se encuadra solo la planta de tratamiento
+  Object.values(capas).forEach(gr => gr.rotation.y = -Math.PI / 2);
+  r.toneMappingExposure = 1.35; sc.background = new T.Color('#eef2f4');
+  ctl.target.set(7.5, 0, -1); cam.position.set(7.5 + 0.01, 30, -1 + 0.01); ctl.update(); r.setPixelRatio(2); fit();
+  setTimeout(() => { r.render(sc, cam); try { parent.postMessage({ bio3d: 'snap', key: QS3.get('k') || '', url: r.domElement.toDataURL('image/jpeg', 0.88) }, '*'); } catch (x) {} }, 1200); }
+let panel = true; $('bP').onclick = () => { panel = !panel; $('hd').style.display = panel ? 'flex' : 'none'; $('e').style.display = panel ? 'block' : 'none'; $('bP').textContent = panel ? 'Ocultar panel' : 'Mostrar panel'; };
+const ray = new T.Raycaster(), mp = new T.Vector2(); let hov = null;
+const vis = (o) => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
+r.domElement.addEventListener('pointermove', (e) => { const b = r.domElement.getBoundingClientRect(); mp.set((e.clientX - b.left) / b.width * 2 - 1, -(e.clientY - b.top) / b.height * 2 + 1); ray.setFromCamera(mp, cam);
+  const h = ray.intersectObjects(pick, false).find(x => vis(x.object) && !(x.object.material.transparent && x.object.material.opacity < 0.4 && !/Relleno/.test(x.object.userData.n)));
+  if (hov && (!h || h.object !== hov.o)) { hov.o.material = hov.m; hov = null; }
+  const t = $('tip'); if (!h) { t.style.display = 'none'; return; }
+  if (!hov && h.object.material.emissive) { const m0 = h.object.material, m1 = m0.clone(); m1.emissive = new T.Color('#ffb300'); m1.emissiveIntensity = 0.25; h.object.material = m1; hov = { o: h.object, m: m0 }; }
+  const u = h.object.userData; t.innerHTML = '<b>' + u.n + '</b>' + (u.d || '') + (u.x ? '<br><span>' + u.x + '</span>' : ''); t.style.display = 'block'; t.style.left = Math.min(innerWidth - 300, e.clientX + 14) + 'px'; t.style.top = (e.clientY + 12) + 'px'; });
+r.domElement.addEventListener('pointerleave', () => { $('tip').style.display = 'none'; if (hov) { hov.o.material = hov.m; hov = null; } });
+</script></body></html>

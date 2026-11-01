@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  doc-page:not(:defined) { visibility: hidden; }
+  a { color: #1b1a18; text-decoration: underline; }
+  a:hover { color: #6f6b64; }
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+
+<doc-page size="a4">
+  <div style="font-family: 'IBM Plex Sans', sans-serif; font-size: 10.5pt; line-height: 1.5; color: #1b1a18;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-bottom: 10px; border-bottom: 2px solid #1b1a18;">
+      <img src="./logo-full-service.png" alt="Full Service" style="height: 48px; width: auto; display: block;" />
+      <div style="text-align: right; font-size: 9pt; line-height: 1.45;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 10pt;">IT-2026-HEL-115</div>
+        <div style="color: #6f6b64;">Ref. presupuesto P-2026-115 · rubro 4</div>
+        <div style="color: #6f6b64;">22 de octubre de 2026</div>
+      </div>
+    </div>
+
+    <div style="padding: 14px 0 10px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: #6f6b64;">Informe técnico</div>
+      <div style="font-size: 17pt; font-weight: 700; line-height: 1.2; text-wrap: pretty;">Desperfecto de heladeras exhibidoras afectadas por el temporal</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: #d6d2ca; border: 1px solid #d6d2ca; margin-bottom: 14px; break-inside: avoid;">
+      <div style="background: #f4f3f0; padding: 7px 10px;"><div style="font-size: 7.5pt; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.06em;">Cliente</div><div style="font-weight: 600;">Bahía</div></div>
+      <div style="background: #f4f3f0; padding: 7px 10px;"><div style="font-size: 7.5pt; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.06em;">Estación</div><div style="font-weight: 600;">Shell Boggiani</div></div>
+      <div style="background: #f4f3f0; padding: 7px 10px;"><div style="font-size: 7.5pt; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.06em;">Sector</div><div style="font-weight: 600;">Market</div></div>
+      <div style="background: #f4f3f0; padding: 7px 10px;"><div style="font-size: 7.5pt; color: #6f6b64; text-transform: uppercase; letter-spacing: 0.06em;">Equipos</div><div style="font-weight: 600;">2 heladeras exhibidoras</div></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+
+      <div style="break-inside: avoid;">
+        <div style="font-size: 11pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1px solid #1b1a18; margin-bottom: 6px;">1. Objeto</div>
+        <p style="margin: 0; text-align: justify; text-wrap: pretty;">Dejar constancia del estado en que se encontraron las dos heladeras exhibidoras del market de la estación Shell Boggiani después del temporal y de la causa probable de las fallas.</p>
+      </div>
+
+      <div style="break-inside: avoid;">
+        <div style="font-size: 11pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1px solid #1b1a18; margin-bottom: 6px;">2. Antecedentes</div>
+        <p style="margin: 0 0 6px; text-align: justify; text-wrap: pretty;">Durante el temporal que afectó a la zona, la estación sufrió cortes de energía y variaciones de tensión en la red eléctrica. Al restablecerse el servicio, las heladeras del market dejaron de mantener la temperatura de trabajo: el personal informó que no enfriaban de forma pareja y que el compresor arrancaba y se detenía en ciclos cortos.</p>
+        <p style="margin: 0; text-align: justify; text-wrap: pretty;">Este tipo de evento es una causa frecuente de fallas en equipos de refrigeración comercial: la sobretensión y la baja tensión dañan los componentes de arranque y control, y los cortes repetidos obligan al compresor a arrancar con la presión del circuito sin equilibrar.</p>
+      </div>
+
+      <div style="break-inside: avoid;">
+        <div style="font-size: 11pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1px solid #1b1a18; margin-bottom: 6px;">3. Equipos inspeccionados</div>
+        <div style="display: grid; grid-template-columns: 28px minmax(0, 1.2fr) minmax(0, 2fr); border: 1px solid #d6d2ca; font-size: 9.5pt;">
+          <div style="padding: 5px 8px; background: #1b1a18; color: #fff; font-weight: 600;">N°</div>
+          <div style="padding: 5px 8px; background: #1b1a18; color: #fff; font-weight: 600;">Equipo</div>
+          <div style="padding: 5px 8px; background: #1b1a18; color: #fff; font-weight: 600;">Estado encontrado</div>
+          <div style="padding: 6px 8px; border-top: 1px solid #d6d2ca;">1</div>
+          <div style="padding: 6px 8px; border-top: 1px solid #d6d2ca;">Heladera exhibidora vertical de 2 puertas de vidrio</div>
+          <div style="padding: 6px 8px; border-top: 1px solid #d6d2ca;">No alcanzaba la temperatura de trabajo. Ciclos cortos del compresor y condensador con suciedad acumulada.</div>
+          <div style="padding: 6px 8px; border-top: 1px solid #d6d2ca;">2</div>
+          <div style="padding: 6px 8px; border-top: 1px solid #d6d2ca;">Heladera exhibidora vertical de 1 puerta de vidrio</div>
+          <div style="padding: 6px 8px; border-top: 1px solid #d6d2ca;">Enfriamiento irregular entre estantes. Falla en el control de temperatura y en la ventilación del evaporador.</div>
+        </div>
+      </div>
+
+      <div style="break-inside: avoid;">
+        <div style="font-size: 11pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1px solid #1b1a18; margin-bottom: 6px;">4. Diagnóstico</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; text-align: justify;">
+          <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr);"><span>–</span><span><strong>Componentes de arranque y control:</strong> las variaciones de tensión afectaron el relé de arranque, el protector térmico y el termostato. Por eso el compresor cortaba antes de llegar a la temperatura.</span></div>
+          <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr);"><span>–</span><span><strong>Circuito de refrigeración:</strong> los arranques forzados después de cada corte provocaron pérdida parcial de rendimiento. Se midieron presiones y se detectó carga de gas por debajo de la nominal.</span></div>
+          <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr);"><span>–</span><span><strong>Intercambio de calor:</strong> el condensador y el evaporador tenían suciedad acumulada, que reduce la capacidad de enfriar y aumenta la exigencia del compresor.</span></div>
+        </div>
+      </div>
+
+      <div style="break-inside: avoid;">
+        <div style="font-size: 11pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1px solid #1b1a18; margin-bottom: 6px;">5. Estado actual</div>
+        <p style="margin: 0; text-align: justify; text-wrap: pretty;">Las dos heladeras siguen con las fallas descritas y no mantienen la temperatura de conservación. La reparación está cotizada en el presupuesto P-2026-115 y se ejecutará una vez aprobado.</p>
+      </div>
+
+      <div style="font-size: 11pt; font-weight: 700; padding-bottom: 3px; border-bottom: 1px solid #1b1a18; margin-bottom: 8px;">6. Registro fotográfico</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="aspect-ratio: 3 / 4; border: 1px solid #d6d2ca; background: #f4f3f0; overflow: hidden;"><img src="./fotos/boggiani-heladera-2p.png" alt="Heladera exhibidora de 2 puertas" style="width: 100%; height: 100%; object-fit: cover; display: block;" /></div>
+            <div style="font-size: 9pt; color: #33312e;"><strong>Foto 1.</strong> Heladera exhibidora de 2 puertas.</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="aspect-ratio: 3 / 4; border: 1px solid #d6d2ca; background: #f4f3f0; overflow: hidden;"><img src="./fotos/boggiani-heladera-1p.png" alt="Heladera exhibidora de 1 puerta" style="width: 100%; height: 100%; object-fit: cover; display: block;" /></div>
+            <div style="font-size: 9pt; color: #33312e;"><strong>Foto 2.</strong> Heladera exhibidora de 1 puerta.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding-top: 40px; break-inside: avoid;">
+        <div style="border-top: 1px solid #1b1a18; padding-top: 5px; font-size: 9.5pt; line-height: 1.4;"><div style="font-weight: 600;">Ing. Edgar Mendez</div><div style="color: #6f6b64;">Ejecutivo Comercial · Full Service</div></div>
+        <div style="border-top: 1px solid #1b1a18; padding-top: 5px; font-size: 9.5pt; line-height: 1.4;"><div style="font-weight: 600;">Recibido por</div><div style="color: #6f6b64;">Bahía · Shell Boggiani</div></div>
+      </div>
+
+    </div>
+  </div>
+</doc-page>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="./erp/calculo.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  * { box-sizing: border-box; }
+  a { color: oklch(0.50 0.09 220); text-decoration: none; }
+  a:hover { color: oklch(0.40 0.09 220); }
+</style>
+</helmet>
+<div style="max-width: 860px; margin: 0 auto; padding: 40px 24px 60px; font-family: 'IBM Plex Sans', sans-serif; color: #1b1a18; display: flex; flex-direction: column; gap: 22px;">
+  <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 14px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #6f6b64;">Full Service · Migración al ERP</div>
+    <h1 style="margin: 0; font-size: 28px; font-weight: 700;">Archivo de migración de datos</h1>
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #55524d; text-wrap: pretty;">Reúne todos los presupuestos con sus rubros, materiales, mano de obra y estados, la papelera, el catálogo de materiales, el Control Tigre con su facturación, los cronogramas y los datos de los demás módulos guardados en este equipo. Se descarga como un único archivo JSON listo para el importador del ERP.</p>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+    <button onClick="{{ onDescargar }}" disabled="{{ noListo }}" style="padding: 12px 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #ffffff; background: #1b1a18; border: 0; border-radius: 8px; cursor: pointer;" style-hover="background: #3a3833;">Descargar archivo de migración</button>
+    <button onClick="{{ onRecalcular }}" style="padding: 12px 16px; font-family: inherit; font-size: 13px; color: #1b1a18; background: #ffffff; border: 1px solid #dedbd5; border-radius: 8px; cursor: pointer;">Volver a leer los datos</button>
+    <span style="font-size: 13px; color: #6f6b64;">{{ estadoTxt }}</span>
+  </div>
+
+  <sc-if value="{{ hayResumen }}" hint-placeholder-val="{{ false }}">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+      <sc-for list="{{ conteos }}" as="c" hint-placeholder-count="8">
+        <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 8px; display: flex; flex-direction: column; gap: 4px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600;">{{ c.n }}</div>
+          <div style="font-size: 12.5px; color: #6f6b64;">{{ c.l }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0; font-size: 16px;">Presupuestos por estado</h2>
+      <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 8px;">
+        <sc-for list="{{ porEstado }}" as="e" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 60px 170px; gap: 10px; padding: 9px 14px; border-bottom: 1px solid #eeece8; font-size: 13.5px;">
+            <div>{{ e.estado }}</div>
+            <div style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ e.n }}</div>
+            <div style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ e.total }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0; font-size: 16px;">Control de totales</h2>
+      <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #55524d;">{{ difTxt }}</p>
+      <sc-if value="{{ hayDif }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #ffffff; border: 1px solid #dedbd5; border-radius: 8px; max-height: 320px; overflow: auto;">
+          <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 140px 140px; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: #6f6b64;">
+            <div>N°</div><div>Obra</div><div style="text-align: right;">Guardado</div><div style="text-align: right;">Recalculado</div>
+          </div>
+          <sc-for list="{{ difs }}" as="d" hint-placeholder-count="2">
+            <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 140px 140px; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #eeece8; font-size: 12.5px;">
+              <div style="font-family: 'IBM Plex Mono', monospace;">{{ d.nro }}</div>
+              <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ d.obra }}</div>
+              <div style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ d.g }}</div>
+              <div style="text-align: right; font-family: 'IBM Plex Mono', monospace;">{{ d.c }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0; font-size: 16px;">Claves guardadas en este equipo</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <sc-for list="{{ claves }}" as="k" hint-placeholder-count="4">
+          <span style="padding: 4px 9px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 20px;">{{ k }}</span>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <p style="margin: 0; font-size: 12.5px; line-height: 1.6; color: #86817b;">Los datos se leen del navegador donde trabajás: abrí esta página en el mismo equipo y navegador que usás para la planilla. El archivo incluye además una copia íntegra de cada clave sin modificar, para no perder nada que el ERP todavía no modele.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { listo: false, estado: "Leyendo datos…", M: null };
+
+  componentDidMount() { this.armar(); }
+
+  async constantes() {
+    try {
+      const txt = await (await fetch("./Cielite - Costos y Propuesta.dc.html", { cache: "no-store" })).text();
+      const tomar = (nombre) => { const i = txt.indexOf("const " + nombre + " = "); if (i < 0) return "undefined"; const j = txt.indexOf("\nconst ", i + 10); const k = txt.indexOf("\nfunction ", i + 10); const fin = [j, k].filter((x) => x > 0).reduce((a, b) => Math.min(a, b), txt.length); return txt.slice(i + nombre.length + 9, fin).trim().replace(/;\s*(\/\/[^\n]*)?\s*$/, ""); };
+      return new Function("return { TIGRE_NOTAS: " + tomar("TIGRE_NOTAS") + ", TIGRE_COLOR: " + tomar("TIGRE_COLOR") + ", TIGRE_GRUPOS: " + tomar("TIGRE_GRUPOS") + ", CATALOGO_BASE: " + tomar("CATALOGO_BASE") + " };")();
+    } catch (e) { console.warn("No se pudieron leer los datos base de la planilla", e); return { TIGRE_NOTAS: [], TIGRE_COLOR: {}, TIGRE_GRUPOS: [], CATALOGO_BASE: [] }; }
+  }
+
+  async armar() {
+    const C = window.TWGCalculo;
+    if (!C) { setTimeout(() => this.armar(), 200); return; }
+    this.setState({ listo: false, estado: "Leyendo datos…" });
+    const N = C.N, fechaISO = (f) => { const m = String(f || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0") : (/^\d{4}-\d{2}-\d{2}/.test(String(f || "")) ? String(f).slice(0, 10) : null); };
+    const leer = (k) => { const t = localStorage.getItem(k); try { return JSON.parse(t); } catch (e) { return t; } };
+    const respaldo = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); respaldo[k] = leer(k); }
+    const B = await this.constantes();
+
+    const A = respaldo["twg-archivo-presupuestos-v1"] || { items: [], papelera: [] };
+    const lista = (A.items || []).map((x) => ({ x, pap: false })).concat((A.papelera || []).map((x) => ({ x, pap: true })));
+    const T = { estados: C.ESTADOS.map((codigo, i) => ({ codigo, orden: i + 1 })), clientes: [], presupuestos: [], rubros: [], materiales: [], mano_obra: [], catalogo: [], tigre_grupos: [], tigre_items: [], cronogramas: [], documentos: [] };
+    const cli = {}, difs = [];
+    lista.forEach(({ x: it, pap }) => {
+      const d = it.datos || {}, c = C.calcPresupuesto(d), nom = String(d.cliente || "").trim();
+      if (nom && !cli[nom.toUpperCase()]) { cli[nom.toUpperCase()] = nom; T.clientes.push({ nombre: nom, contacto: d.contacto || null, domicilio: d.domicilio || null }); }
+      const tg = C.montoDeTexto(it.total);
+      if (tg && Math.abs(tg - c.totalFinal) > 1) difs.push({ nro: it.nro, obra: d.obra || "", g: tg, c: Math.round(c.totalFinal) });
+      T.presupuestos.push({ id: String(it.id), nro: it.nro, cliente: nom ? cli[nom.toUpperCase()] : null, obra: d.obra || null, domicilio: d.domicilio || null, contacto: d.contacto || null, fecha: fechaISO(it.fecha), estado: C.ESTADOS.includes(it.estado) ? it.estado : "BORRADOR",
+        moneda: d.moneda || "Gs.", decimales: d.decimales, iva_pct: d.iva, iva_monto_fijo: d.ivaMonto, descuento_pct: d.descuento, desc_prorrateado_pct: d.descProrr, mostrar_mo: d.mostrarMO !== false, mostrar_otros: d.mostrarOtros !== false, ver_alcance: d.verAlcance !== false,
+        plazo: d.plazo || null, forma_pago: d.pago || null, validez: d.validez || null, firma_nombre: d.firmaNombre || null, firma_cargo: d.firmaCargo || null, alcance: d.alcance || null, memoria: d.memoria || null, boceto: d.boceto || null,
+        costo_total: Math.round(c.costoTotal), subtotal: Math.round(c.subtotal), descuento: Math.round(c.montoDescuento), neto: Math.round(c.neto), iva: Math.round(c.montoIva), total: Math.round(c.totalFinal), ganancia: Math.round(c.ganancia), total_guardado: tg || null,
+        en_papelera: pap, editado: it.editado ? new Date(it.editado).toISOString() : null, origen: it });
+      (d.rubros || []).filter(Boolean).forEach((R, ri) => {
+        const r = c.rubros[ri], rid = String(R.id ?? ri);
+        T.rubros.push({ id: rid, presupuesto_id: String(it.id), orden: ri + 1, nombre: R.nombre || null, medida: R.medida, unidad: R.unidad || null, overhead_pct: R.overhead, margen_pct: R.margen, flete: R.flete, equipos: R.equipos, subcontratos: R.subcontratos, varios: R.varios, incluir: R.incluir !== false,
+          desc_mat: R.descMat || null, desc_mat_cant: R.descMatCant, desc_mat_un: R.descMatUn || null, desc_mat_unit: R.descMatUnit, desc_mo: R.descMo || null, prop_ver: R.propVer !== false, prop_desc_mat: R.propDescMat !== false, prop_desc_mo: !!R.propDescMo,
+          costo_materiales: Math.round(r.materiales), costo_mo: Math.round(r.manoObra), costo_otros: Math.round(r.otros), costo_total: Math.round(r.costoTotal), margen_aplicado_pct: r.pctMargen, precio: Math.round(r.precioRubro), precio_hoja: Math.round(r.precioHoja) });
+        (R.mats || []).forEach((m, i) => T.materiales.push({ presupuesto_id: String(it.id), rubro_id: rid, orden: i + 1, descripcion: m.desc || "", unidad: m.unidad || null, cantidad: String(N(m.cant)), costo_unit: String(N(m.costo)), desperdicio_pct: String(N(m.desp)), margen_pct: m.marg === "" || m.marg == null ? null : String(N(m.marg)), en_propuesta: m.prop !== false }));
+        (R.mos || []).forEach((m, i) => T.mano_obra.push({ presupuesto_id: String(it.id), rubro_id: rid, orden: i + 1, descripcion: m.desc || "", personas: String(N(m.pers)), horas_o_jornales: String(N(m.horas)), valor: String(N(m.vh)), margen_pct: m.marg === "" || m.marg == null ? null : String(N(m.marg)) }));
+      });
+    });
+
+    const cat = (respaldo["twg-catalogo-materiales-v1"] && respaldo["twg-catalogo-materiales-v1"].items) || (B.CATALOGO_BASE || []).map((x, i) => Object.assign({ id: "base-" + i }, x));
+    T.catalogo = cat.map((x, i) => ({ id: String(x.id || "cat-" + i), descripcion: x.desc || "", unidad: x.unidad || null, precio: String(N(x.precio)), proveedor: x.prov || null, fecha: fechaISO(x.fecha) }));
+
+    const D2 = respaldo["twg-control-tigre-v2"] || {}, ov = D2.ov || {}, D1 = respaldo["twg-control-tigre-v1"] || {}, ov1 = (D1 && D1.ov) || D1 || {}, nf = D2.nf || {};
+    T.tigre_grupos = (B.TIGRE_GRUPOS || []).map((g) => ({ codigo: g.v, etiqueta: g.l }));
+    const fila = (k, origen, nota, fechaNota, base) => {
+      const o = ov[k] || {}, o1 = ov1[k] || {};
+      const pu = o.pu !== undefined && o.pu !== "" ? N(o.pu) : o1.pu !== undefined && o1.pu !== "" ? N(o1.pu) : base.pu;
+      const sinIva = o.sinIva !== undefined ? !!o.sinIva : base.sinIva, grupo = o.g || (pu ? base.g : "pend"), cant = o.cant !== undefined && o.cant !== "" ? N(o.cant) : base.cant;
+      const v = C.calcFilaTigre(cant, pu, o.mg, sinIva);
+      T.tigre_items.push({ clave: k, origen, nota, fecha_nota: fechaISO(fechaNota), nro: String(base.n), descripcion: o.desc !== undefined ? o.desc : base.desc, cantidad: String(cant), unidad: o.un !== undefined ? o.un : base.un, precio_unit: String(pu), recargo_pct: String(N(o.mg)), sin_iva: sinIva, grupo,
+        fecha_factura: fechaISO(o.fecha || nf[grupo]), estado_trabajo: o.est || null, solicito: o.sol || null, controlado: !!o.ctrl, no_suma: !!o.noSuma, no_imprime: !!o.noPrint, eliminado: o.dup || null, neto: String(Math.round(v.neto)), iva: String(Math.round(v.iva)), total: String(Math.round(v.total)), origen_json: { base, ov: o, ov1: o1 } });
+    };
+    (D2.sol || []).forEach((x, i) => fila("sol-" + x.id, "solicitud", "Solicitudes nuevas", x.fecha, { n: x.fecha ? x.fecha.slice(8, 10) + "/" + x.fecha.slice(5, 7) : String(i + 1), cant: N(x.cant) || 1, un: x.un || "gl", desc: x.desc || "—", pu: N(x.pu), sinIva: x.sinIva !== false, g: "pend", calc: x.calc || null }));
+    (A.items || []).filter((it) => /tigre/i.test(String((it.datos && it.datos.cliente) || "") + " " + String((it.datos && it.datos.obra) || "")) && /APROBAD|FINALIZAD|EJECUCI/i.test(String(it.estado || ""))).forEach((it, i) => {
+      const o1 = ov1["arch-" + it.id] || {};
+      fila("arch-" + it.id, "archivo", "Presupuestos del Archivo", it.fecha, { n: it.nro || String(i + 1), cant: 1, un: "gl", desc: ((it.datos && it.datos.obra) || "—") + " · " + it.estado, pu: C.montoDeTexto(it.total), sinIva: false, g: o1.fac ? "f5" : "pend" });
+    });
+    (B.TIGRE_NOTAS || []).forEach((nt) => { const id = nt.nro.replace("Nota N° ", ""), col = (B.TIGRE_COLOR || {})[id] || (() => "f4");
+      nt.items.forEach(([n, cant, un, desc, pu]) => fila(id + "-" + n, "nota", nt.nro, nt.fecha, { n, cant, un, desc, pu, sinIva: !nt.ivaIncl, g: col(n) })); });
+
+    const cr = respaldo["twg-crono-resumen-v1"] || {}, ci = respaldo["cielite-crono-v1"] || {};
+    Array.from(new Set(Object.keys(cr).concat(Object.keys(ci)))).forEach((k) => T.cronogramas.push({ clave: k, inicio: (ci[k] && ci[k].inicio) || null, datos: { resumen: cr[k] || null, planilla: ci[k] || null } }));
+
+    const usadas = ["twg-archivo-presupuestos-v1", "twg-catalogo-materiales-v1", "twg-control-tigre-v2", "twg-control-tigre-v1", "twg-crono-resumen-v1", "cielite-crono-v1"];
+    const MOD = [[/pci/i, "calculo_pci"], [/pararray/i, "calculo_pararrayos"], [/biodig/i, "calculo_biodigestores"], [/estruct|fundac/i, "calculo_estructuras"], [/agenda/i, "agenda"], [/seguim/i, "seguimiento"], [/acuerdo/i, "acuerdo_trabajo"], [/orden/i, "orden_trabajo"], [/adicional/i, "adicional"], [/informe/i, "informe"], [/cuestion|cliente/i, "clientes_cuestionario"], [/tablero/i, "tablero"], [/3d|boceto|visor/i, "boceto_3d"], [/firma|sello|logo|encabezado/i, "firma_sello_logo"]];
+    Object.keys(respaldo).filter((k) => !usadas.includes(k)).forEach((k) => {
+      const v = respaldo[k], modulo = (MOD.find(([re]) => re.test(k)) || [null, "otros"])[1];
+      const arr = v && typeof v === "object" && !Array.isArray(v) ? Object.values(v).find((x) => Array.isArray(x) && x.length && typeof x[0] === "object") : null;
+      if (arr) arr.forEach((e, i) => T.documentos.push({ modulo, clave: k + "#" + (e.id || i), presupuesto_nro: e.nro || e.presupuesto || null, datos: e }));
+      T.documentos.push({ modulo, clave: k, presupuesto_nro: null, datos: v });
+    });
+
+    const resumen = { presupuestos: T.presupuestos.length, en_papelera: T.presupuestos.filter((p) => p.en_papelera).length, clientes: T.clientes.length, rubros: T.rubros.length, materiales: T.materiales.length, mano_obra: T.mano_obra.length, catalogo: T.catalogo.length, tigre_items: T.tigre_items.length, cronogramas: T.cronogramas.length, documentos: T.documentos.length, claves_respaldo: Object.keys(respaldo).length };
+    const M = { formato: "fs-migracion", version: 1, exportado: new Date().toISOString(), empresa: "The Wealt Group Export Import S.A. · Full Service", moneda: "PYG", resumen, tablas: T, diferencias: difs, respaldo };
+    this.setState({ M, listo: true, estado: "Listo · " + resumen.presupuestos + " presupuestos leídos" });
+  }
+
+  renderVals() {
+    const M = this.state.M, g = (n) => "Gs. " + String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const r = M ? M.resumen : null, T = M ? M.tablas : null;
+    const porEstado = T ? (window.TWGCalculo.ESTADOS.map((e) => { const ps = T.presupuestos.filter((p) => p.estado === e && !p.en_papelera); return { estado: e, n: String(ps.length), total: g(ps.reduce((a, p) => a + (p.total_guardado || p.total || 0), 0)) }; }).filter((x) => x.n !== "0")) : [];
+    return {
+      noListo: !this.state.listo, estadoTxt: this.state.estado, hayResumen: !!M,
+      conteos: r ? [["presupuestos", "Presupuestos"], ["en_papelera", "En papelera"], ["clientes", "Clientes"], ["rubros", "Rubros"], ["materiales", "Líneas de materiales"], ["mano_obra", "Líneas de mano de obra"], ["catalogo", "Materiales del catálogo"], ["tigre_items", "Ítems Control Tigre"], ["cronogramas", "Cronogramas"], ["documentos", "Documentos de otros módulos"], ["claves_respaldo", "Claves en el respaldo"]].map(([k, l]) => ({ n: String(r[k]), l })) : [],
+      porEstado,
+      difs: M ? M.diferencias.map((d) => ({ nro: d.nro, obra: d.obra, g: g(d.g), c: g(d.c) })) : [], hayDif: !!(M && M.diferencias.length),
+      difTxt: !M ? "" : M.diferencias.length ? M.diferencias.length + " presupuestos tienen un total guardado distinto del recalculado con el motor de cálculo (suelen ser montos ajustados a mano o redondeos). El ERP importa los dos valores; el guardado queda en total_guardado." : "Todos los totales guardados coinciden con el recálculo.",
+      claves: M ? Object.keys(M.respaldo) : [],
+      onRecalcular: () => this.armar(),
+      onDescargar: () => {
+        if (!M) return;
+        const blob = new Blob([JSON.stringify(M, null, 1)], { type: "application/json" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "migracion-fullservice-" + new Date().toISOString().slice(0, 10) + ".json";
+        document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="./doc-page.js"></script>
+<style>
+  body { margin: 0; }
+  a { color: oklch(0.45 0.09 220); text-decoration: none; }
+  a:hover { color: oklch(0.35 0.09 220); }
+  doc-page:not(:defined) { visibility: hidden; }
+</style>
+</helmet>
+<doc-page size="a4" margin="0.75in">
+<div slot="footer" style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; color: #86817b; border-top: 1px solid #dedbd5; padding-top: 6px;"><span>Full Service · Especificación de migración al ERP</span><span>v1 · 01/11/2026</span></div>
+<div style="font-family: 'IBM Plex Sans', sans-serif; color: #1b1a18; font-size: 10.5pt; line-height: 1.6;">
+
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5pt; letter-spacing: 0.1em; text-transform: uppercase; color: #6f6b64;">The Wealt Group Export Import S.A. · Full Service</div>
+<h1 style="margin: 6px 0 4px; font-size: 24pt; line-height: 1.15;">Especificación funcional y técnica para la migración al ERP</h1>
+<p style="margin: 0 0 18px; color: #55524d;">Sistema de presupuestos, seguimiento comercial, Control Tigre, documentos técnicos y cálculos de ingeniería. Base de datos destino: PostgreSQL. ERP destino: a definir.</p>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">1. Objetivo y alcance</h2>
+<p>Trasladar a un ERP el sistema que hoy funciona como planilla web, sin perder datos, estados ni reglas de cálculo. La migración tiene dos partes: la funcionalidad (este documento, el motor de cálculo y el esquema de base de datos) y los datos (el archivo de migración JSON y su importador).</p>
+<p>Entran todos los módulos actuales: presupuestos, archivo y seguimiento, Control Tigre, adicionales e informes, acuerdos y órdenes de trabajo, agenda, tableros, cálculos técnicos, bocetos 3D, clientes y cuestionarios, y firma, sello y logo. No se migran usuarios ni roles.</p>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">2. Paquete entregado</h2>
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+<thead><tr><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Archivo</th><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Contenido</th></tr></thead>
+<tbody>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">erp/schema.sql</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Tablas, índices, estados iniciales y vista de tablero en el schema <b>fs</b>.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">erp/calculo.js</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Motor de cálculo sin dependencias. Es la referencia: el ERP debe dar los mismos importes.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">erp/importar.js</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Importador Node.js a PostgreSQL. Una transacción, idempotente.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">erp/recursos/</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Logo, logo limpio, sello Full Service y firma de Ing. Edgar Mendez (PNG).</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">Exportar Migracion ERP</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Página que lee los datos del navegador y descarga <b>migracion-fullservice-AAAA-MM-DD.json</b>.</td></tr>
+</tbody></table>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">3. Convenciones</h2>
+<ul style="margin: 0; padding-left: 18px;">
+<li>Moneda principal guaraníes (Gs.), sin decimales. Algunos presupuestos usan USD con 2 decimales: la moneda y los decimales son por presupuesto.</li>
+<li>IVA 10 %. Puede reemplazarse por un monto fijo cuando el cliente lo informa así (campo <b>iva_monto_fijo</b>).</li>
+<li>Numeración de presupuestos <b>P-AAAA-NNN</b> correlativa por año (ej. P-2026-189). Los adicionales usan <b>AD-AAAA-NNN-NN</b> y los acuerdos <b>AC-C-AAAA-NNN</b>, ligados al presupuesto.</li>
+<li>Fechas en pantalla dd/mm/aaaa; en base de datos DATE (ISO).</li>
+<li>Importes en pantalla con separador de miles con punto: 1.250.000.</li>
+</ul>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">4. Módulos</h2>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.1 Presupuestos: costos y propuesta</h3>
+<p>Un presupuesto tiene cabecera (cliente, obra, domicilio, contacto, plazo, forma de pago, validez, alcance, memoria, firma) y una lista ordenada de <b>rubros</b>. Cada rubro tiene líneas de <b>materiales</b>, líneas de <b>mano de obra</b> y costos globales (flete, equipos, subcontratos, varios), más overhead y margen.</p>
+<p>Pantallas: planilla de costos interna (todas las columnas) y propuesta al cliente (solo descripción, cantidad, unitario y total por rubro). Opciones por presupuesto: mostrar u ocultar mano de obra y otros costos, mostrar alcance, descuento global, descuento prorrateado en rubros, IVA por % o monto fijo, incluir o excluir cada rubro, ocultar logo, nombre de empresa, firma, sello y línea "Por empresa".</p>
+<p>Funciones: duplicar, copiar rubros entre presupuestos, catálogo de materiales con proveedor y fecha de precio, lista de compras por rubro, cronograma (Gantt) con curva de avance, resumen de costos y margen por rubro, impresión en A4.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.2 Archivo y seguimiento</h3>
+<p>Listado de todos los presupuestos con filtros por cliente, obra, proveedor, estado y mes, búsqueda por palabra o monto, papelera recuperable y totales cotizado y aprobado. Seguimiento comercial a 1, 2, 3, 5 y 7 días con alta automática en la agenda.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.3 Control Tigre</h3>
+<p>Control de trabajos para Tigre Paraguay S.A. a partir de notas de presupuesto, solicitudes nuevas y presupuestos aprobados del archivo. Por ítem: cantidad, unidad, precio unitario, recargo %, IVA incluido o no, grupo de factura (Factura 1 a 5 o Falta facturar), fecha de factura u OC, estado del trabajo (hecho o pendiente), quién lo solicitó, controlado, no suma, no imprime y eliminado con motivo. Totales por grupo y extracto imprimible.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.4 Adicionales e informes</h3>
+<p>Documentos ligados a un presupuesto: adicionales por paralización o trabajos extra (prorrateo del monto acordado por día), informes técnicos y notas técnicas. Texto editable con formato (fuente, tamaño, negrita, cursiva, subrayado, alineación, color), bloques que se pueden ocultar, líneas que no suman o no se imprimen, firma y sello opcionales.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.5 Acuerdos y órdenes de trabajo</h3>
+<p>Acuerdo de trabajo con cláusulas (incluye la cláusula de adicionales por demoras no imputables a Full Service) y orden de trabajo para el equipo de obra. Ambos se generan desde un presupuesto aprobado.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.6 Agenda y tableros</h3>
+<p>Agenda de tareas con fecha, responsable y nota. Tableros de control de presupuestos (por estado, mes y cliente), por departamento y de clientes calificados.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.7 Cálculos técnicos</h3>
+<p>Calculadoras de ingeniería que generan memoria y cantidades para presupuestar: protección contra incendios (PCI), pararrayos y puesta a tierra, biodigestores, estudios estructurales y fundaciones. Cada proyecto guarda sus parámetros; el ERP los conserva como documentos JSON hasta que cada calculadora se reimplemente.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.8 Bocetos 3D</h3>
+<p>Cada presupuesto puede generar un boceto 3D guardado con su número (visor interactivo con capas, cotas, vista interna y descarga OBJ/GLB). Se migra la referencia del boceto en <b>presupuesto.boceto</b>; los visores existentes pueden integrarse en el ERP como páginas web embebidas.</p>
+
+<h3 style="font-size: 11.5pt; margin: 14px 0 4px;">4.9 Clientes, firma, sello y logo</h3>
+<p>Los clientes se derivan hoy del texto de cada presupuesto; la migración los unifica en la tabla <b>cliente</b>, sin distinguir mayúsculas. El RUC queda vacío para completar. Logo, sello y firma se cargan en <b>recurso_grafico</b>.</p>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">5. Reglas de cálculo</h2>
+<p>Los valores se guardan como texto y se leen con coma o punto decimal. Las fórmulas son las de <b>erp/calculo.js</b>:</p>
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+<thead><tr><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64; width: 32%;">Concepto</th><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Fórmula</th></tr></thead>
+<tbody>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Línea de material</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">cantidad × costo_unit × (1 + desperdicio% / 100)</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Línea de mano de obra</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">max(personas, 1) × horas_o_jornales × valor</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Otros del rubro</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">flete + equipos + subcontratos + varios</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Costo directo</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">materiales + MO (si mostrar_mo) + otros (si mostrar_otros)</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Costo total del rubro</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">costo directo × (1 + overhead% / 100)</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Margen aplicado</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Si todas las líneas del rubro tienen el mismo margen, ese; si no, el común de los materiales; si no, el margen general del rubro.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Precio del rubro</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">costo total × (1 + margen% / 100) × (1 − desc_prorrateado% / 100)</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Precio impreso</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Redondeado a los decimales del documento. Si la descripción lleva cantidad, cantidad × unitario redondeado, salvo que eso mueva el precio más de 0,1 %.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Rubro incluido</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">incluir ≠ falso y precio &gt; 0</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Subtotal</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Suma de precios impresos de los rubros incluidos.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Neto</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">subtotal − subtotal × descuento% / 100</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">IVA</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">iva_monto_fijo si existe; si no, neto × iva% / 100</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Total y ganancia</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">total = neto + IVA · ganancia = neto − Σ costo total</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Fila Control Tigre</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace; font-size: 9pt;">bruto = cant × pu × (1 + recargo%) · con IVA incl.: neto = bruto / 1,1 · sin IVA: total = bruto × 1,1</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Adicional por días</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Monto acordado ÷ días del plazo × días adicionales, editable por línea.</td></tr>
+</tbody></table>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">6. Estados del presupuesto</h2>
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+<thead><tr><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Estado</th><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Significado</th><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Suma en</th></tr></thead>
+<tbody>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">FALTA PRESUPUESTAR</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Pedido recibido, sin cotizar</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">BORRADOR</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">En preparación</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">ENVIADO</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Entregado al cliente</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">EN VERIFICACION</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">El cliente lo está revisando</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">V°B° FALTA ENVIAR</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Aprobado internamente, falta enviar</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">APROBADO</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Aceptado por el cliente</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado y aprobado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">EN EJECUCION</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Obra en curso</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado y aprobado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">FINALIZADO</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Trabajo terminado</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cotizado</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">RECHAZADO</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">No aceptado</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">No suma</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">DE BAJA</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Anulado</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">No suma</td></tr>
+</tbody></table>
+<p>Los presupuestos de Tigre en APROBADO, EN EJECUCION o FINALIZADO pasan automáticamente al Control Tigre. En Control Tigre, un ítem pasa de "Falta facturar" a un grupo de factura al marcarlo facturado (destino por defecto: Factura 5, OC #4200042743, 21/10/2026).</p>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">7. Modelo de datos</h2>
+<table style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+<thead><tr><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Tabla</th><th style="text-align: left; padding: 5px 6px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 8pt; text-transform: uppercase; color: #6f6b64;">Contenido</th></tr></thead>
+<tbody>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">estado_presupuesto</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Los 10 estados con su orden y en qué totales suman.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">cliente</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Clientes únicos con contacto y domicilio.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">presupuesto</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Cabecera, opciones, totales calculados, total guardado, papelera y el objeto original en <b>origen</b> (JSONB).</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">rubro</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Rubros con costos globales, textos de propuesta y resultados de cálculo.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">rubro_material / rubro_mano_obra</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Líneas de costo de cada rubro.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">catalogo_material</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Precios de materiales por proveedor y fecha.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">tigre_grupo_factura / tigre_item</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Grupos de factura y cada ítem del Control Tigre con su estado.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">cronograma</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Inicio, duraciones y curva de avance por presupuesto.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">documento</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Agenda, seguimiento, adicionales, informes, acuerdos, órdenes, cálculos técnicos, cuestionarios y tableros, como JSONB por módulo.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">respaldo_origen</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Copia íntegra de cada clave exportada, sin transformar.</td></tr>
+<tr><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de; font-family: 'IBM Plex Mono', monospace;">recurso_grafico</td><td style="padding: 5px 6px; border-bottom: 1px solid #e6e3de;">Logo, sello y firma.</td></tr>
+</tbody></table>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">8. Archivo de migración</h2>
+<p>Un único JSON con esta estructura:</p>
+<pre style="margin: 0 0 10px; padding: 10px 12px; background: #f6f5f2; border: 1px solid #e6e3de; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 8.5pt; line-height: 1.5; white-space: pre-wrap;">{
+  "formato": "fs-migracion", "version": 1, "exportado": "2026-11-01T…",
+  "resumen":   { presupuestos, clientes, rubros, materiales, … },
+  "tablas": {
+    "estados", "clientes", "presupuestos", "rubros", "materiales", "mano_obra",
+    "catalogo", "tigre_grupos", "tigre_items", "cronogramas", "documentos"
+  },
+  "diferencias": [ { nro, obra, g: total guardado, c: total recalculado } ],
+  "respaldo":    { "&lt;clave del navegador&gt;": &lt;valor original&gt;, … }
+}</pre>
+<p>Cada lista de <b>tablas</b> tiene los mismos nombres de columna que <b>schema.sql</b>. Al exportar en este equipo se leyeron 109 presupuestos, 37 clientes, 334 rubros, 1.734 líneas de materiales, 502 de mano de obra, 247 materiales de catálogo y 83 ítems de Control Tigre.</p>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">9. Procedimiento</h2>
+<ol style="margin: 0; padding-left: 18px;">
+<li>Abrir <b>Exportar Migracion ERP</b> en el equipo y navegador donde se trabaja y descargar el archivo.</li>
+<li>Crear la base y ejecutar <b>schema.sql</b>.</li>
+<li>Ejecutar <b>importar.js</b> con el archivo. Si algo falla, no se importa nada.</li>
+<li>Comparar los conteos del importador con los de la página de exportación.</li>
+<li>Revisar la lista de diferencias de totales: son presupuestos cuyo total guardado no coincide con el recálculo (ajustes a mano, totales viejos o redondeos). Decidir para cada uno si vale el guardado o el recalculado.</li>
+<li>Congelar la planilla (solo lectura) y operar en el ERP. Si hubo cambios en el medio, volver a exportar e importar: el importador actualiza por clave.</li>
+</ol>
+
+<h2 style="font-size: 14pt; margin: 22px 0 6px; border-bottom: 2px solid #1b1a18; padding-bottom: 4px;">10. Pendientes</h2>
+<ul style="margin: 0; padding-left: 18px;">
+<li>Elegir el ERP. Odoo y desarrollos sobre PostgreSQL usan el esquema directo; para otros ERP el JSON sirve de origen para su herramienta de importación.</li>
+<li>Completar RUC de clientes y unificar nombres repetidos con distinta escritura.</li>
+<li>Definir si la facturación electrónica (SIFEN) se emite desde el ERP a partir del presupuesto aprobado y del Control Tigre.</li>
+<li>Reimplementar las calculadoras técnicas como módulos del ERP o mantenerlas como páginas web enlazadas.</li>
+</ul>
+
+</div>
+</doc-page>
+</x-dc>
+</body>
+</html>

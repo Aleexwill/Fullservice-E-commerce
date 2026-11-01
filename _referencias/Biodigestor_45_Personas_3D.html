@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Edificio 15 departamentos · sistema de biodigestores en subsuelo · 3D</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#dfe4e8;font-family:system-ui,sans-serif}
+#v{position:absolute;inset:0}
+#hd{position:absolute;left:12px;top:12px;background:rgba(255,255,255,.95);border:1px solid #d2d8dc;border-radius:10px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;z-index:3;max-width:260px}
+#hd b{font-size:13.5px}#hd label{display:flex;gap:6px;align-items:center;cursor:pointer}#hd i{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+#bt{position:absolute;right:12px;top:12px;display:flex;gap:6px;z-index:3;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
+#bt button{font:600 12px system-ui;padding:6px 10px;border:1px solid #c9c5bd;background:#fff;border-radius:6px;cursor:pointer}
+#bt button.on{background:#14382f;color:#fff;border-color:#14382f}
+#tip{position:absolute;pointer-events:none;background:rgba(16,36,30,.95);color:#fff;font-size:12px;line-height:1.45;padding:7px 10px;border-radius:7px;max-width:290px;display:none;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#tip b{display:block;font-size:13px;margin-bottom:2px}#tip span{color:#cfe3da}
+#e{position:absolute;right:12px;bottom:10px;font-size:11px;color:#3f3b35;background:rgba(255,255,255,.9);padding:4px 8px;border-radius:5px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="v"></div><div id="hd"></div><div id="tip"></div>
+<div id="bt"><button id="b1" class="on">Edificio</button><button id="b2">Subsuelo</button><button id="b3">Equipos bajo el piso</button><button id="b4">Desde arriba</button><button id="bP">Ocultar panel</button></div>
+<div id="e">Arrastrá para girar · rueda para acercar · clic derecho para mover · pasá el cursor sobre cada equipo</div>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = (i) => document.getElementById(i);
+const r = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.0; r.outputColorSpace = T.SRGBColorSpace; $('v').appendChild(r.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#dfe4e8');
+sc.environment = new T.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+const cam = new T.PerspectiveCamera(40, 1, 0.05, 2000);
+sc.add(new T.HemisphereLight('#ffffff', '#7d8a80', 0.55));
+const sun = new T.DirectionalLight('#fff6e8', 1.6); sun.position.set(25, 40, 18); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 120 }); sun.shadow.bias = -0.0004; sc.add(sun);
+const ctl = new OrbitControls(cam, r.domElement); ctl.enableDamping = true; ctl.dampingFactor = 0.1; ctl.minDistance = 0.6; ctl.maxDistance = 140; ctl.screenSpacePanning = true; ctl.zoomSpeed = 0.8;
+ctl.addEventListener('change', () => { const d = cam.position.distanceTo(ctl.target); cam.near = Math.max(0.02, d / 500); cam.updateProjectionMatrix(); });
+const fit = () => { const w = innerWidth || 800, h = innerHeight || 560; r.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+addEventListener('resize', fit); new ResizeObserver(fit).observe($('v')); fit(); requestAnimationFrame(fit);
+// luces del subsuelo
+const subL = [];
+(function loop() { requestAnimationFrame(loop); ctl.update(); r.render(sc, cam); })();
+
+// ---------- texturas simples por canvas
+const texCanvas = (w, h, draw, rep) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; if (rep) t.repeat.set(...rep); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return t; };
+const ruido = (x, w, h, base, v) => { x.fillStyle = base; x.fillRect(0, 0, w, h); for (let i = 0; i < w * h / 6; i++) { const g = Math.random() * v; x.fillStyle = 'rgba(' + (g > v / 2 ? '255,255,255' : '0,0,0') + ',' + (Math.abs(g - v / 2) / v * 0.18) + ')'; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); } };
+const tHorm = texCanvas(256, 256, (x, w, h) => ruido(x, w, h, '#a9a69f', 60), [4, 4]);
+const tPiso = texCanvas(512, 512, (x, w, h) => { ruido(x, w, h, '#8c8b86', 50); x.strokeStyle = 'rgba(40,40,40,.35)'; x.lineWidth = 2; for (let i = 0; i <= 4; i++) { x.beginPath(); x.moveTo(i * w / 4, 0); x.lineTo(i * w / 4, h); x.stroke(); x.beginPath(); x.moveTo(0, i * h / 4); x.lineTo(w, i * h / 4); x.stroke(); } }, [5, 4]);
+const tFach = texCanvas(512, 512, (x, w, h) => { ruido(x, w, h, '#ece6da', 30); }, [3, 3]);
+const tPasto = texCanvas(256, 256, (x, w, h) => ruido(x, w, h, '#6f8f4a', 90), [10, 10]);
+const tPE = texCanvas(64, 256, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); for (let i = 0; i <= 16; i++) { g.addColorStop(i / 16, i % 2 ? '#1f2b25' : '#2c3d34'); } x.fillStyle = g; x.fillRect(0, 0, w, h); }, [1, 1]);
+
+const M = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.7, metalness: 0.0 }, o || {}));
+const capas = {}, pick = [];
+['terreno', 'torre', 'losa', 'subsuelo', 'piso', 'autos', 'equipos', 'tapas', 'canos'].forEach(k => { capas[k] = new T.Group(); sc.add(capas[k]); });
+const reg = (m, n, d, cap, extra) => { m.userData = { n, d, x: extra || '' }; m.castShadow = true; m.receiveShadow = true; if (n) pick.push(m); (capas[cap] || cap).add(m); return m; };
+const box = (w, h, d, x, y, z, mat, n, ds, cap, ex) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); return reg(m, n, ds, cap, ex); };
+const cyl = (rt, rb, h, x, y, z, mat, n, ds, cap, seg, ex) => { const m = new T.Mesh(new T.CylinderGeometry(rt, rb, h, seg || 40), mat); m.position.set(x, y, z); return reg(m, n, ds, cap, ex); };
+const pipe = (pts, rr, mat, n, ds, cap) => { for (let i = 1; i < pts.length; i++) { const A = new T.Vector3(...pts[i - 1]), B = new T.Vector3(...pts[i]), v = B.clone().sub(A), L = v.length(); if (L < 1e-3) continue; const m = new T.Mesh(new T.CylinderGeometry(rr, rr, L, 16), mat); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v.normalize()); reg(m, n, ds, cap); if (i > 1) { const c = new T.Mesh(new T.SphereGeometry(rr * 1.18, 14, 10), mat); c.position.copy(A); reg(c, n, ds, cap); } } };
+
+// ---------- geometría general
+const BW = 22, BD = 18, SUB = 3.0, PISO = 3.0, NP = 5;   // planta, alto subsuelo, alto de piso, 5 pisos × 3 deptos = 15
+const yS = -SUB;          // nivel de piso del subsuelo
+// terreno con hueco del subsuelo
+const gsh = new T.Shape(); gsh.moveTo(-40, -40); gsh.lineTo(40, -40); gsh.lineTo(40, 40); gsh.lineTo(-40, 40); gsh.lineTo(-40, -40);
+const hole = new T.Path(); hole.moveTo(-BW / 2, -BD / 2); hole.lineTo(BW / 2, -BD / 2); hole.lineTo(BW / 2, BD / 2); hole.lineTo(-BW / 2, BD / 2); hole.lineTo(-BW / 2, -BD / 2); gsh.holes.push(hole);
+const ter = new T.Mesh(new T.ShapeGeometry(gsh), M('#7a9450', { map: tPasto, roughness: 1 })); ter.rotation.x = -Math.PI / 2; ter.receiveShadow = true; capas.terreno.add(ter);
+box(BW + 6, 0.12, 3.5, 0, 0.05, BD / 2 + 1.75, M('#b8b4ab', { map: tHorm }), '', '', 'terreno');
+box(BW + 6, 0.02, 7, 0, 0.0, BD / 2 + 7, M('#3b3d40', { roughness: 0.9 }), '', '', 'terreno');
+
+// ---------- subsuelo: muros perimetrales de H°A°, columnas, losa
+const mH = M('#b1ada4', { map: tHorm, roughness: 0.92 });
+const muroSub = (w, d, x, z) => box(w, SUB, d, x, yS + SUB / 2, z, mH, 'Muro perimetral de H°A° del subsuelo', 'Espesor 20 cm', 'subsuelo');
+muroSub(BW, 0.2, 0, -BD / 2); muroSub(0.2, BD, -BW / 2, 0); muroSub(0.2, BD, BW / 2, 0); muroSub(BW - 5, 0.2, 2.5, BD / 2);
+const colX = [-7.5, -2.5, 2.5, 7.5], colZ = [-6, 0, 6];
+colX.forEach(x => colZ.forEach(z => box(0.4, SUB, 0.4, x, yS + SUB / 2, z, mH, 'Columna de H°A° 40 × 40', 'Estructura del edificio', 'subsuelo')));
+const losa = box(BW, 0.25, BD, 0, -0.125, 0, M('#c9c5bc', { map: tHorm }), 'Losa sobre subsuelo', 'Planta baja del edificio', 'losa');
+// rampa de acceso vehicular
+const rampa = new T.Mesh(new T.BoxGeometry(5.6, 0.2, 9), M('#8e8d88', { map: tHorm })); rampa.position.set(-BW / 2 + 2.6, yS / 2 - 0.1, BD / 2 + 3.6); rampa.rotation.x = Math.atan2(SUB, 9); reg(rampa, 'Rampa de acceso al estacionamiento', 'Pendiente aprox. 18 %', 'subsuelo');
+// portón de entrada vehicular (seccional, semiabierto)
+{ const gx = -BW / 2 + 2.6, gw = 4.8, gz = BD / 2, mP = M('#4a5560', { metalness: 0.75, roughness: 0.35 }), mPm = M('#2b2f33', { metalness: 0.8, roughness: 0.3 });
+  [-1, 1].forEach(s => box(0.15, SUB, 0.25, gx + s * (gw / 2 + 0.07), yS + SUB / 2, gz, mPm, 'Marco del portón', 'Perfil metálico', 'subsuelo'));
+  box(gw + 0.3, 0.25, 0.25, gx, -0.15, gz, mPm, 'Dintel del portón', '', 'subsuelo');
+  const nP = 6, hP = 0.48; for (let k = 0; k < nP; k++) { const y = yS + 1.3 + k * hP; if (y > -0.35) break; box(gw, hP - 0.03, 0.05, gx, y + hP / 2, gz, mP, 'Portón de entrada vehicular', 'Seccional metálico 4,80 × 2,80 m · motorizado', 'subsuelo'); }
+  for (let k = 0; k < 4; k++) box(gw, 0.04, 0.6, gx, -0.3, gz - 0.4 - k * 0.6, mP, 'Portón de entrada · paneles recogidos', '', 'subsuelo');
+  [-1, 1].forEach(s => box(0.05, 0.05, 2.6, gx + s * gw / 2, -0.3, gz - 1.3, mPm, 'Riel guía del portón', '', 'subsuelo'));
+  box(0.4, 0.3, 0.6, gx + gw / 2 - 0.4, -0.45, gz - 2.7, M('#1b1d1f', { metalness: 0.6 }), 'Motor del portón', 'Accionamiento a control remoto', 'subsuelo');
+  box(gw, 0.02, 0.3, gx, yS + 0.01, gz - 0.2, M('#f5d34a'), 'Franja de seguridad', '', 'piso'); }
+// piso del subsuelo con marcas
+const mPiso = M('#8d8c87', { map: tPiso, roughness: 0.85, transparent: true, opacity: 1 });
+const piso = box(BW, 0.18, BD, 0, yS - 0.09, 0, mPiso, 'Piso del estacionamiento (contrapiso de H°A°)', 'Las tapas de los equipos quedan al ras del piso', 'piso');
+const linea = (x, z, w, d) => { const m = new T.Mesh(new T.PlaneGeometry(w, d), new T.MeshBasicMaterial({ color: '#f2efe6' })); m.rotation.x = -Math.PI / 2; m.position.set(x, yS + 0.005, z); capas.piso.add(m); };
+for (let i = 0; i <= 6; i++) { const xl = -BW / 2 + 0.6 + i * 2.6; linea(xl, -BD / 2 + 3, 0.1, 5); if (xl > -5.5) linea(xl, BD / 2 - 3, 0.1, 5); }
+{ const fl = new T.Mesh(new T.ShapeGeometry((() => { const s = new T.Shape(); s.moveTo(-0.3, 0); s.lineTo(0.3, 0); s.lineTo(0.3, 1.4); s.lineTo(0.7, 1.4); s.lineTo(0, 2.2); s.lineTo(-0.7, 1.4); s.lineTo(-0.3, 1.4); s.lineTo(-0.3, 0); return s; })()), new T.MeshBasicMaterial({ color: '#f2efe6' })); fl.rotation.x = -Math.PI / 2; fl.rotation.z = Math.PI; fl.position.set(-BW / 2 + 2.6, yS + 0.006, BD / 2 - 2); capas.piso.add(fl); }
+// luminarias del subsuelo
+[-6, 0, 6].forEach(z => [-5, 0, 5].forEach(x => { const l = box(1.2, 0.06, 0.15, x, -0.3, z, M('#ffffff', { emissive: '#fff7e0', emissiveIntensity: 1.2 }), 'Luminaria LED del estacionamiento', '', 'subsuelo'); const pl = new T.PointLight('#fff4dd', 2.2, 10, 1.6); pl.position.set(x, -0.6, z); capas.subsuelo.add(pl); }));
+
+// ---------- torre de 5 pisos, 3 departamentos por piso
+const mFach = M('#ece6da', { map: tFach, roughness: 0.85 }), mVid = M('#7fa3bd', { roughness: 0.08, metalness: 0.6, transparent: true, opacity: 0.75 }), mMarco = M('#2b2d30', { roughness: 0.4, metalness: 0.6 });
+const TW = 18, TD = 14;
+for (let p = 0; p < NP + 1; p++) {
+  const y0 = p * PISO;
+  if (p === 0) { box(TW, PISO, TD, 0, y0 + PISO / 2, -1, M('#d8d2c5', { map: tFach }), 'Planta baja · hall y accesos', '', 'torre'); box(4, 2.6, 0.06, 0, 1.3, TD / 2 - 0.97, mVid, 'Hall de acceso vidriado', '', 'torre'); continue; }
+  const blk = box(TW, PISO - 0.2, TD, 0, y0 + PISO / 2, -1, mFach, 'Piso ' + p + ' · 3 departamentos', 'Deptos ' + p + '01, ' + p + '02 y ' + p + '03', 'torre');
+  box(TW + 0.3, 0.2, TD + 0.3, 0, y0 + PISO - 0.1, -1, M('#c9c3b6'), '', '', 'torre');
+  [-6, 0, 6].forEach((x, k) => {
+    box(4.2, 1.8, 0.06, x, y0 + 1.5, TD / 2 - 0.96, mVid, 'Ventanal · Depto ' + p + '0' + (k + 1), '', 'torre');
+    box(4.4, 0.08, 0.1, x, y0 + 2.42, TD / 2 - 0.95, mMarco, '', '', 'torre');
+    box(4.6, 0.12, 1.3, x, y0 + 0.55, TD / 2 - 0.3, M('#d4cec2'), 'Balcón · Depto ' + p + '0' + (k + 1), '', 'torre');
+    box(4.6, 0.95, 0.04, x, y0 + 1.05, TD / 2 + 0.33, M('#9fc3d6', { transparent: true, opacity: 0.35, roughness: 0.1 }), 'Baranda de vidrio', '', 'torre');
+    box(0.06, 1.8, 3.2, -TW / 2 - 0.02, y0 + 1.5, -1 + (k - 1) * 4.2, mVid, '', '', 'torre'); box(0.06, 1.8, 3.2, TW / 2 + 0.02, y0 + 1.5, -1 + (k - 1) * 4.2, mVid, '', '', 'torre');
+  });
+}
+box(TW + 0.6, 0.35, TD + 0.6, 0, NP * PISO + PISO + 0.17, -1, M('#9c968b'), 'Azotea', '', 'torre');
+box(3, 2.2, 3, 5, NP * PISO + PISO + 1.45, -3, M('#cfc9bd'), 'Sala de máquinas / tanque elevado', '', 'torre');
+
+// ---------- autos en el estacionamiento
+const auto = (x, z, rot, col) => { const g = new T.Group(); g.position.set(x, yS, z); g.rotation.y = rot; capas.autos.add(g);
+  const add = (geo, mat, px, py, pz, rx) => { const m = new T.Mesh(geo, mat); m.position.set(px, py, pz); if (rx) m.rotation.set(...rx); m.castShadow = true; g.add(m); m.userData = { n: 'Vehículo estacionado', d: '' }; pick.push(m); return m; };
+  const pin = M(col, { roughness: 0.25, metalness: 0.65 });
+  add(new T.BoxGeometry(1.8, 0.6, 4.3), pin, 0, 0.55, 0); add(new T.BoxGeometry(1.6, 0.5, 2.2), M('#222b33', { roughness: 0.1, metalness: 0.7 }), 0, 1.07, -0.2);
+  [[-0.8, 1.35], [0.8, 1.35], [-0.8, -1.35], [0.8, -1.35]].forEach(([a, b]) => add(new T.CylinderGeometry(0.33, 0.33, 0.22, 20), M('#1a1a1a'), a, 0.33, b, [0, 0, Math.PI / 2]));
+  add(new T.BoxGeometry(1.5, 0.12, 0.05), M('#fff3c4', { emissive: '#fff3c4', emissiveIntensity: 0.5 }), 0, 0.62, 2.16); };
+[['#8b1e1e', -9.4], ['#d8d8d8', -6.8], ['#1f3e66', -4.2], ['#2a2a2a', 1.0], ['#c9a227', 3.6]].forEach(([c, x]) => auto(x, -BD / 2 + 3, 0, c));
+[['#6b6b6b', 6.2], ['#4a5b3a', -3.6]].forEach(([c, x]) => auto(x, BD / 2 - 3, Math.PI, c));
+
+// ---------- EQUIPOS bajo el piso del subsuelo
+const mPE = M('#24332b', { map: tPE, roughness: 0.55 }), mPEc = M('#2f4237', { roughness: 0.5 }), mTapaPE = M('#1b2620', { roughness: 0.6 });
+const mPVC = M('#e8e3d4', { roughness: 0.35 }), mPVCo = M('#c9721f', { roughness: 0.45 }), mLodo = M('#5f8c3a', { roughness: 0.45 }), mHA = M('#a7a39b', { map: tHorm, roughness: 0.9 }), mRej = M('#4b4f52', { metalness: 0.8, roughness: 0.35 });
+const yF = yS - 0.18;     // cara inferior del contrapiso
+const QS = new URLSearchParams(location.search), nB = Math.max(1, Math.min(6, +QS.get('n') || 3)), conSec = QS.get('sec') !== '0', conCg = QS.get('cg') !== '0', PERS = +QS.get('p') || 45, PROP = QS.get('prop') === '1';
+const pasoB = nB > 4 ? 3.4 : 4.8, bz = 0.5, bxs = Array.from({ length: nB }, (_, i) => (i - (nB - 1) / 2) * pasoB), RB = 0.66, HB = 2.05;
+const biodigestor = (x, z, n) => {
+  // Forma según el esquema del fabricante: cuello ancho arriba, hombro cónico, cuerpo cilíndrico y fondo cónico largo.
+  // Tubo central de extracción que baja hasta el fondo; de él sale el caño horizontal recto al sistema de secado.
+  const nm = 'Biodigestor N° ' + n + ' · 1.800 L', ds = 'Autolimpiable · trata las aguas de ' + Math.ceil(PERS / nB) + ' personas', ex = 'Ø 1,32 m × 2,05 m · polietileno negro';
+  const top = yF - 0.25, base = top - HB, rN = 0.44, hN = 0.32, hH = 0.28, hF = 0.72, hB = HB - hN - hH - hF;
+  const yF0 = base, yB0 = yF0 + hF, yH0 = yB0 + hB, yN0 = yH0 + hH, yTop = yN0 + hN;
+  box(1.9, 0.1, 1.9, x, base - 0.15, z, mHA, 'Base de hormigón 10 cm', nm, 'tapas');
+  const rel = new T.Mesh(new T.CylinderGeometry(0.98, 0.98, HB + 0.25, 40, 1, true), M('#cbbd9e', { transparent: true, opacity: 0.22, side: T.DoubleSide, depthWrite: false })); rel.position.set(x, base + (HB + 0.25) / 2, z); reg(rel, 'Relleno lateral cemento y arena 1:10', 'Compactado en capas de 30 cm · ' + nm, 'tapas');
+  // cuerpo semitransparente para ver el interior (como el corte del fabricante)
+  const mC = M('#1c1e1d', { roughness: 0.5, transparent: true, opacity: 0.62, side: T.DoubleSide, depthWrite: false }), mC2 = M('#2a2d2c', { roughness: 0.5 });
+  cyl(RB, 0.13, hF, x, yF0 + hF / 2, z, mC, nm, ds, 'equipos', 32, ex);
+  cyl(0.14, 0.14, 0.06, x, yF0 - 0.02, z, mC2, nm + ' · fondo', ds, 'equipos', 24);
+  cyl(RB, RB, hB, x, yB0 + hB / 2, z, mC, nm, ds, 'equipos', 32, ex);
+  cyl(rN, RB, hH, x, yH0 + hH / 2, z, mC, nm, ds, 'equipos', 32, ex);
+  cyl(rN, rN, hN, x, yN0 + hN / 2, z, mC, 'Cuello del biodigestor', 'Ø 0,88 m · llega al nivel de la tapa', 'equipos', 32);
+  [yB0 + 0.05, yB0 + hB * 0.5, yH0 - 0.05].forEach(y => { const rg = new T.Mesh(new T.TorusGeometry(RB + 0.01, 0.02, 8, 32), mC2); rg.rotation.x = Math.PI / 2; rg.position.set(x, y, z); reg(rg, nm, ds, 'equipos', ex); });
+  const rgN = new T.Mesh(new T.TorusGeometry(rN + 0.03, 0.03, 8, 32), mC2); rgN.rotation.x = Math.PI / 2; rgN.position.set(x, yTop, z); reg(rgN, 'Borde del cuello', '', 'equipos');
+  cyl(rN + 0.02, rN + 0.02, 0.04, x, yTop + 0.02, z, M('#111', { transparent: true, opacity: 0.85 }), 'Tapa del biodigestor', 'Acceso para inspección', 'equipos');
+  // canasta del filtro con aros (interior)
+  const yK = yH0 - 0.62, mK = M('#7b8a84', { transparent: true, opacity: 0.45, side: T.DoubleSide, depthWrite: false });
+  const cesta = new T.Mesh(new T.CylinderGeometry(rN * 0.9, rN * 0.75, 0.75, 24, 1, true), mK); cesta.position.set(x - 0.08, yK, z); reg(cesta, '③ Filtro biológico', 'Canasta con aros de plástico donde se fijan las bacterias', 'equipos');
+  for (let k = 0; k < 14; k++) { const a = k * 2.3, rr = 0.12 + (k % 3) * 0.08, aro = new T.Mesh(new T.TorusGeometry(0.05, 0.015, 6, 10), M('#2b2b2b')); aro.position.set(x - 0.08 + Math.cos(a) * rr, yK - 0.3 + (k % 5) * 0.14, z + Math.sin(a) * rr); aro.rotation.set(a, a * 0.7, 0); reg(aro, 'Aros del filtro biológico', '', 'equipos'); }
+  // tubo central de extracción de lodos: desde la tapa hasta el fondo
+  const mT = M('#d9dbd6', { roughness: 0.4 });
+  pipe([[x + 0.1, yTop - 0.02, z], [x + 0.1, yF0 + 0.12, z]], 0.045, mT, '⑥ Tubo de extracción de lodos', 'Baja hasta el fondo cónico donde se acumula el lodo (⑤)', 'equipos');
+  // entrada y salida
+  const yIn = yN0 + 0.08, yOut = yN0 - 0.04;
+  cyl(0.065, 0.065, 0.4, x, yIn, z - rN - 0.12, mPVC, '① Entrada de aguas residuales Ø 100 mm', 'Llega del distribuidor de caudal', 'canos').rotation.x = Math.PI / 2;
+  pipe([[x, yIn, z - rN + 0.05], [x - 0.12, yIn, z - 0.12], [x - 0.12, yF0 + hF * 0.6, z - 0.12]], 0.05, mT, '② Tubo de entrada', 'Lleva el agua al fondo', 'equipos');
+  cyl(0.065, 0.065, 0.4, x, yOut, z + rN + 0.12, mPVC, '④ Salida del efluente tratado Ø 100 mm', 'Hacia el colector y el pozo ciego', 'canos').rotation.x = Math.PI / 2;
+  // tapa de H°A° al ras del piso
+  box(1.6, 0.15, 1.6, x, yS - 0.075, z, M('#9a978f', { map: tHorm, roughness: 0.85 }), 'Tapa de H°A° · ' + nm, '1,60 × 1,60 m · hierro Ø 8 c/15 cm · al ras del piso', 'tapas');
+  box(0.7, 0.16, 0.7, x, yS - 0.07, z, mRej, 'Registro metálico sobre la tapa', '', 'tapas');
+  [-0.2, 0.2].forEach(o => box(0.12, 0.03, 0.03, x + o, yS + 0.01, z, mRej, 'Manija de izaje', '', 'tapas'));
+  // nivel del caño horizontal al secado: a la altura del hombro (como en el esquema)
+  return { base, top: yTop, inZ: z - rN - 0.32, outZ: z + rN + 0.32, yIn, yOut, xv: x + 0.1, yV: yH0 + 0.02 };
+};
+const B = bxs.map((x, i) => biodigestor(x, bz, i + 1));
+// sistema de secado: balde cónico con borde ancho arriba, tapa al mismo nivel que el biodigestor
+const secado = (x, z, n, b) => {
+  const nm = 'Sistema de secado N° ' + n, ds = 'Recibe el lodo del biodigestor N° ' + n + ' · drena el agua y deja el lodo seco', ex = '260 L · Ø 0,84 m arriba · 1,05 m de alto';
+  const yT = b.top, hS = 1.05, y0 = yT - hS;
+  box(0.9, 0.08, 0.9, x, y0 - 0.06, z, mHA, 'Base con lecho de grava', nm, 'tapas');
+  const mB = M('#e9e8e4', { roughness: 0.55, transparent: true, opacity: 0.8, side: T.DoubleSide });
+  const cub = new T.Mesh(new T.CylinderGeometry(0.42, 0.3, hS, 32, 1, true), mB); cub.position.set(x, y0 + hS / 2, z); reg(cub, nm, ds, 'equipos', ex);
+  cyl(0.3, 0.3, 0.03, x, y0 + 0.015, z, mB, nm + ' · fondo filtrante', ds, 'equipos');
+  const rim = new T.Mesh(new T.CylinderGeometry(0.52, 0.52, 0.04, 32), M('#f2f1ed', { roughness: 0.5 })); rim.position.set(x, yT + 0.02, z); reg(rim, 'Borde superior del sistema de secado', 'A nivel del cuello del biodigestor', 'equipos');
+  cyl(0.29, 0.29, 0.12, x, y0 + 0.08, z, M('#4a3b2a', { roughness: 1 }), 'Lodo en secado', '', 'equipos');
+  // caño horizontal recto desde el tubo central del biodigestor al secado, con registro junto a la pared del secado
+  const yL = b.yV, xin = x - 0.42 + (yT - yL) * (0.12 / hS);
+  pipe([[b.xv, yL, z], [xin, yL, z]], 0.032, mLodo, 'Caño de lodos PVC Ø 50 mm', 'Recto y a nivel · tubo central del biodigestor N° ' + n + ' → secado', 'canos');
+  cyl(0.055, 0.055, 0.12, xin - 0.14, yL, z, M('#c8261c', { roughness: 0.4, metalness: 0.3 }), '⑦ Registro de lodos (cerrado)', 'Se abre cada 12 a 24 meses para pasar el lodo al secado', 'canos').rotation.z = Math.PI / 2;
+  box(0.03, 0.12, 0.02, xin - 0.14, yL + 0.1, z, M('#c8261c'), 'Palanca del registro', '', 'canos');
+  pipe([[x, y0 + 0.02, z], [x, y0 - 0.2, z], [x, y0 - 0.2, z + 0.6]], 0.022, M('#7da35a'), 'Drenaje del agua del lodo', 'Vuelve al sistema', 'canos');
+  box(1.2, 0.15, 1.2, x, yS - 0.075, z, M('#9a978f', { map: tHorm }), 'Tapa de H°A° · ' + nm, '1,20 × 1,20 m · al ras del piso', 'tapas');
+};
+if (conSec) bxs.forEach((x, i) => secado(x + 1.75, bz, i + 1, Object.assign({ x }, B[i])));
+// caja de grasa
+const cg = [-7.5, -4.2], yCg = yF - 0.95;
+box(0.85, 0.9, 0.7, cg[0], yCg + 0.45, cg[1], M('#5b6c75', { roughness: 0.5 }), 'Caja de grasa 260 L', 'Separa y retiene las grasas de las cocinas de los 15 departamentos antes del sistema', 'equipos', '0,85 × 0,70 × 0,90 m');
+box(0.6, 0.6, 0.02, cg[0], yCg + 0.45, cg[1], M('#3f4b52'), 'Tabique deflector interno', '', 'equipos');
+box(1.05, 0.15, 0.9, cg[0], yS - 0.075, cg[1], M('#9a978f', { map: tHorm }), 'Tapa de H°A° · caja de grasa', 'Con manijas · limpieza mensual', 'tapas');
+// distribuidor de caudal con rejilla trampa
+const dz = [0, -3.0], yD = yF - 0.8;
+box(1.3, 0.7, 0.9, dz[0], yD + 0.35, dz[1], M('#bdb8ae', { map: tHorm }), 'Distribución de caudal con rejilla trampa', 'Módulo 1 × 4 salidas · reparte el agua en partes iguales a los 3 biodigestores', 'equipos', '1,30 × 0,90 × 0,70 m');
+for (let k = 0; k < 7; k++) box(0.02, 0.02, 0.8, dz[0] - 0.4 + k * 0.13, yD + 0.55, dz[1], mRej, 'Rejilla trampa de sólidos', 'Retiene sólidos gruesos', 'equipos');
+box(1.5, 0.15, 1.1, dz[0], yS - 0.075, dz[1], M('#9a978f', { map: tHorm }), 'Tapa de H°A° · distribuidor', '', 'tapas');
+
+// ---------- cañerías: bajadas de los departamentos colgadas de la losa
+const yC = -0.45;
+const bajada = (x, z, tipo) => { const neg = tipo === 'n', rr = neg ? 0.06 : 0.05, mm = neg ? mPVC : mPVCo, nm = neg ? 'Columna de aguas negras Ø 100 mm' : 'Columna de cocinas Ø 75 mm', ds = neg ? 'Baños de los departamentos' : 'Piletas de cocina';
+  pipe([[x, NP * PISO + 1, z], [x, 0, z]], rr, mm, nm, ds, 'torre'); pipe([[x, 0, z], [x, yC, z]], rr, mm, nm, ds, 'canos'); };
+const sop = (x, z) => { box(0.03, 0.4, 0.03, x, yC + 0.2, z, mRej, 'Soporte colgante con abrazadera', 'Cada 1,50 m', 'canos'); };
+// tres columnas negras y una de cocinas que bajan a la losa del subsuelo
+[[-6, -6.5, 'n'], [0, -6.5, 'n'], [6, -6.5, 'n'], [-7.5, -7.4, 'g']].forEach(([x, z, t]) => bajada(x, z, t));
+pipe([[-6, yC, -6.5], [6, yC, -6.5]], 0.065, mPVC, 'Colector de aguas negras Ø 110 mm', 'Colgado bajo la losa · pendiente 1 %', 'canos');
+for (let x = -5; x <= 5; x += 1.5) sop(x, -6.5);
+pipe([[0, yC, -6.5], [0, yC, -4.5], [0, yS + 0.3, -4.5], [0, yS + 0.3, dz[1] - 0.6], [0, yD + 0.55, dz[1] - 0.6], [0, yD + 0.55, dz[1] - 0.45]], 0.065, mPVC, 'Bajada de aguas negras al distribuidor', 'PVC Ø 110 mm', 'canos');
+pipe([[-7.5, yC, -7.4], [-7.5, yS + 0.3, -7.4], [-7.5, yS + 0.3, cg[1] - 0.6], [cg[0], yCg + 0.7, cg[1] - 0.6], [cg[0], yCg + 0.7, cg[1] - 0.35]], 0.05, mPVCo, 'Bajada de cocinas a la caja de grasa', 'PVC Ø 75 mm', 'canos');
+pipe([[cg[0] + 0.42, yCg + 0.6, cg[1]], [-2, yCg + 0.6, cg[1]], [-2, yD + 0.5, dz[1]], [dz[0] - 0.65, yD + 0.5, dz[1]]], 0.055, mPVC, 'Caja de grasa → distribuidor', 'PVC Ø 100 mm · pendiente 2 %', 'canos');
+// ramales del distribuidor a cada biodigestor
+B.forEach((b, i) => { const x = bxs[i]; pipe([[dz[0] + (i - 1) * 0.35, yD + 0.3, dz[1] + 0.45], [dz[0] + (i - 1) * 0.35, yD + 0.3, -1.4], [x, yD + 0.3, -1.4], [x, b.yIn, -1.4], [x, b.yIn, b.inZ]], 0.06, mPVC, 'Ramal Ø 100 mm al biodigestor N° ' + (i + 1), 'Desde la salida ' + (i + 1) + ' del distribuidor · pendiente 2 %', 'canos'); });
+// colector de efluente y salida al pozo ciego existente
+const zc = bz + 2.6;
+B.forEach((b, i) => pipe([[bxs[i], b.yOut, b.outZ], [bxs[i], b.yOut - 0.05, zc]], 0.06, mPVC, 'Salida del efluente · Biodigestor N° ' + (i + 1), 'PVC Ø 100 mm', 'canos'));
+pipe([[bxs[0], B[0].yOut - 0.05, zc], [bxs[2], B[0].yOut - 0.05, zc]], 0.065, mPVC, 'Colector del efluente tratado Ø 100 mm', 'Une las 3 salidas', 'canos');
+const pz = [0.8, 6.8];
+pipe([[pz[0], B[0].yOut - 0.05, zc], [pz[0], B[0].yOut - 0.15, pz[1] - 1.25]], 0.065, mPVC, 'Efluente al pozo ciego existente', 'PVC Ø 100 mm · pendiente 2 %', 'canos');
+const pc = new T.Mesh(new T.CylinderGeometry(1.2, 1.2, 3.0, 40, 1, true), M('#6f4a35', { transparent: true, opacity: 0.6, side: T.DoubleSide })); pc.position.set(pz[0], yF - 1.6, pz[1]); reg(pc, 'Pozo ciego existente', 'Bajo el piso del estacionamiento · recibe el efluente ya tratado · no se modifica', 'equipos', 'Ø 2,40 m');
+cyl(1.2, 1.2, 0.2, pz[0], yF - 3.0, pz[1], M('#8a7a62', { roughness: 1 }), 'Fondo del pozo ciego · infiltración', '', 'equipos');
+box(2.6, 0.15, 2.6, pz[0], yS - 0.075, pz[1], M('#8a8580', { map: tHorm }), 'Tapa del pozo ciego existente', 'Al ras del piso del estacionamiento', 'tapas');
+
+if (!conCg) pick.filter(m => /caja de grasa|Tabique deflector/i.test(m.userData.n)).forEach(m => m.visible = false);
+// ---------- leyenda, capas y vistas
+const LY = [['torre', 'Edificio (5 pisos · 15 deptos)', '#ece6da'], ['losa', 'Losa planta baja', '#c9c5bc'], ['subsuelo', 'Muros y columnas del subsuelo', '#b1ada4'], ['autos', 'Vehículos', '#8b1e1e'], ['piso', 'Piso del estacionamiento', '#8d8c87'], ['tapas', 'Tapas H°A°, bases y relleno', '#9a978f'], ['equipos', 'Biodigestores y cámaras', '#24332b'], ['canos', 'Cañerías y válvulas', '#e8e3d4']];
+$('hd').innerHTML = '<b>Instalación de biodigestores · ' + PERS + ' personas</b><span style="color:#5f5a52">' + nB + (nB === 1 ? ' biodigestor' : ' biodigestores') + ' de 1.800 L' + (conSec ? ' con sistema de secado' : '') + ' bajo el piso del estacionamiento</span>' + LY.map(([k, t, c]) => '<label><input type="checkbox" data-k="' + k + '" checked style="margin:0"><i style="background:' + c + '"></i>' + t + '</label>').join('');
+const setCapa = (k, v) => { capas[k].visible = v; const el = document.querySelector('#hd input[data-k="' + k + '"]'); if (el) el.checked = v; };
+document.querySelectorAll('#hd input').forEach(i => i.onchange = () => setCapa(i.dataset.k, i.checked));
+const pisoVisto = (op) => { mPiso.opacity = op; mPiso.depthWrite = op > 0.9; };
+const marcar = (id) => document.querySelectorAll('#bt button').forEach(b => b.classList.toggle('on', b.id === id));
+const vista = (n) => {
+  ['torre', 'losa', 'subsuelo', 'autos', 'piso', 'tapas', 'equipos', 'canos', 'terreno'].forEach(k => setCapa(k, true)); pisoVisto(1);
+  if (n === 1) { ctl.target.set(0, 4, 0); cam.position.set(30, 20, 36); marcar('b1'); }
+  else if (n === 2) { setCapa('torre', false); setCapa('losa', false); ctl.target.set(0, yS + 0.5, -0.5); cam.position.set(14, 7, 17); marcar('b2'); }
+  else if (n === 3) { setCapa('torre', false); setCapa('losa', false); setCapa('autos', false); setCapa('terreno', false); pisoVisto(0.22); ctl.target.set(0, yS - 1.4, 0.3); cam.position.set(7, yS + 1.2, 6.5); marcar('b3'); }
+  else { setCapa('torre', false); setCapa('losa', false); ctl.target.set(0, yS, 0); cam.position.set(0.01, 26, 0.6); marcar('b4'); }
+  ctl.update(); };
+let panel = true; $('bP').onclick = () => { panel = !panel; $('hd').style.display = panel ? 'flex' : 'none'; $('e').style.display = panel ? 'block' : 'none'; $('bP').textContent = panel ? 'Ocultar panel' : 'Mostrar panel'; };
+$('b1').onclick = () => vista(1); $('b2').onclick = () => vista(2); $('b3').onclick = () => vista(3); $('b4').onclick = () => vista(4); vista(PROP ? 3 : 1); if (PROP) { setCapa('subsuelo', false); capas.torre.visible = false; capas.losa.visible = false; capas.canos.children.forEach(o => { if (o.geometry) { o.updateMatrixWorld(true); o.geometry.computeBoundingBox(); const b2 = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld); if (b2.min.y > yS + 0.2) o.visible = false; } }); }
+if (PROP) { ['hd', 'bt', 'e'].forEach(i => $(i).style.display = 'none');
+  // encuadre automático: toma todo lo instalado (equipos, tapas y cañerías) y lo ajusta al cuadro
+  sc.updateMatrixWorld(true);
+  const bb = new T.Box3(); [capas.equipos, capas.tapas].forEach(gp => gp.traverse(o => { if (o.isMesh && o.visible && o.userData && !/^Pozo ciego|^Fondo del pozo|^Tapa del pozo/.test(o.userData.n || '')) { o.geometry.computeBoundingBox(); const b2 = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld); if (b2.max.y <= yS + 0.05) bb.union(b2); } }));
+  const c = bb.getCenter(new T.Vector3()), sz = bb.getSize(new T.Vector3()), dir = new T.Vector3(0.35, 0.55, 1.0).normalize();
+  const fovV = cam.fov * Math.PI / 180, fovH = 2 * Math.atan(Math.tan(fovV / 2) * cam.aspect), rad = sz.length() / 2;
+  const d = Math.max(rad / Math.sin(fovV / 2), rad / Math.sin(fovH / 2)) * 1.12;
+  ctl.target.copy(c); cam.position.copy(c).addScaledVector(dir, d); ctl.update();
+  r.setPixelRatio(2); fit(); setTimeout(() => { r.render(sc, cam); try { parent.postMessage({ bio3d: 'snap', key: QS.get('k') || '', url: r.domElement.toDataURL('image/jpeg', 0.88) }, '*'); } catch (x) {} }, 900); }
+// tooltip con nombre, función y medida
+const ray = new T.Raycaster(), mp = new T.Vector2(); let hov = null;
+const visible = (o) => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
+r.domElement.addEventListener('pointermove', (e) => { mp.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1); ray.setFromCamera(mp, cam);
+  const h = ray.intersectObjects(pick, false).find(x => visible(x.object) && x.object.userData.n && !(x.object.material.opacity < 0.4 && !/Relleno|Pozo/.test(x.object.userData.n)));
+  if (hov && (!h || h.object !== hov.o)) { hov.o.material = hov.m; hov = null; }
+  const t = $('tip'); if (!h) { t.style.display = 'none'; return; }
+  if (/^(Piso del estacionamiento|Losa sobre|Muro perimetral)/.test(h.object.userData.n) && mPiso.opacity < 0.5) { t.style.display = 'none'; return; }
+  if (!hov && h.object.material.emissive) { const m0 = h.object.material, m1 = m0.clone(); m1.emissive = new T.Color('#ffb300'); m1.emissiveIntensity = 0.25; h.object.material = m1; hov = { o: h.object, m: m0 }; }
+  const u = h.object.userData; t.innerHTML = '<b>' + u.n + '</b>' + (u.d ? u.d : '') + (u.x ? '<br><span>' + u.x + '</span>' : ''); t.style.display = 'block';
+  t.style.left = Math.min(innerWidth - 300, e.clientX + 14) + 'px'; t.style.top = (e.clientY + 12) + 'px'; });
+r.domElement.addEventListener('pointerleave', () => { $('tip').style.display = 'none'; if (hov) { hov.o.material = hov.m; hov = null; } });
+</script></body></html>

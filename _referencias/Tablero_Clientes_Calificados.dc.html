@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  a { color: #1b1a18; } a:hover { color: #6f6b64; }
+</style>
+</helmet>
+<div style="min-height: 100vh; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1b1a18;">
+  <div style="background: #fff; border-bottom: 1px solid #dedbd5; padding: 14px 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px;">
+    <img src="./logo-full-service.png" alt="Full Service" style="height: 34px; width: auto;" />
+    <div style="display: flex; flex-direction: column; gap: 1px; margin-right: auto;">
+      <div style="font-size: 16px; font-weight: 700;">Clientes calificados</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b;">Cuestionario de relevamiento · {{ estadoSync }}</div>
+    </div>
+    <button onClick="{{ copiarLink }}" style="padding: 9px 14px; font-size: 13px; font-weight: 600; color: #fff; background: oklch(0.52 0.19 25); border: 0; border-radius: 7px; cursor: pointer;">{{ copiarTxt }}</button>
+    <button onClick="{{ abrirCuest }}" style="padding: 9px 14px; font-size: 13px; font-weight: 600; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;">Ver cuestionario</button>
+    <button onClick="{{ toggleConfig }}" style="padding: 9px 14px; font-size: 13px; font-weight: 600; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer;">Conexión Google Sheets</button>
+  </div>
+
+  <div style="max-width: 1240px; margin: 0 auto; padding: 22px 26px; display: flex; flex-direction: column; gap: 16px;">
+
+    <sc-if value="{{ verConfig }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 15px; font-weight: 700;">Conectar con Google Sheets · 5 minutos, una sola vez</div>
+        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.55; color: #33312e;">
+          <div>1. Creá una planilla nueva en Google Sheets y abrí <strong>Extensiones → Apps Script</strong>.</div>
+          <div>2. Borrá lo que haya, pegá el código de abajo y guardá.</div>
+          <div>3. Tocá <strong>Implementar → Nueva implementación → Aplicación web</strong>. En "Quién tiene acceso" elegí <strong>Cualquier persona</strong>, e implementá.</div>
+          <div>4. Copiá la URL que termina en <strong>/exec</strong> y pegala acá abajo.</div>
+          <div>5. Tocá "Copiar link del cuestionario": el link ya lleva la conexión y cada respuesta cae sola en la planilla y en este tablero.</div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <input value="{{ sheetsUrl }}" onChange="{{ onSheetsUrl }}" placeholder="https://script.google.com/macros/s/…/exec" style="flex: 1; min-width: 260px; padding: 9px 11px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; border: 1px solid #d6d2ca; border-radius: 6px;" />
+          <button onClick="{{ sincronizar }}" style="padding: 9px 14px; font-size: 13px; font-weight: 600; color: #fff; background: #1b1a18; border: 0; border-radius: 6px; cursor: pointer;">Probar y sincronizar</button>
+        </div>
+        <div style="position: relative;">
+          <button onClick="{{ copiarScript }}" style="position: absolute; top: 8px; right: 8px; padding: 5px 10px; font-size: 11.5px; font-weight: 600; background: #fff; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">{{ copiarScriptTxt }}</button>
+          <pre style="margin: 0; padding: 14px; max-height: 230px; overflow: auto; background: #1b1a18; color: #e9e6df; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 1.5; white-space: pre;">{{ script }}</pre>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+      <div style="background: #1b1a18; color: #f4f3f0; border-radius: 10px; padding: 14px 16px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #b4aea5;">Respuestas</div><div style="font-size: 26px; font-weight: 700;">{{ kTotal }}</div></div>
+      <div style="background: #fff; border: 1px solid #dedbd5; border-left: 4px solid oklch(0.52 0.19 25); border-radius: 10px; padding: 14px 16px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: oklch(0.48 0.17 25);">Prioridad alta</div><div style="font-size: 26px; font-weight: 700;">{{ kAlta }}</div><div style="font-size: 11.5px; color: #6f6b64;">Relevamiento inmediato</div></div>
+      <div style="background: #fff; border: 1px solid #dedbd5; border-left: 4px solid oklch(0.62 0.14 70); border-radius: 10px; padding: 14px 16px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: oklch(0.48 0.12 70);">Agendar relevamiento</div><div style="font-size: 26px; font-weight: 700;">{{ kMedia }}</div><div style="font-size: 11.5px; color: #6f6b64;">Cotizando este mes</div></div>
+      <div style="background: #fff; border: 1px solid #dedbd5; border-left: 4px solid #b4aea5; border-radius: 10px; padding: 14px 16px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #6f6b64;">Sondeo de precios</div><div style="font-size: 26px; font-weight: 700;">{{ kBaja }}</div><div style="font-size: 11.5px; color: #6f6b64;">Sin visita a campo</div></div>
+    </div>
+
+    <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 13px; font-weight: 700;">Cargar mensaje recibido por WhatsApp</div>
+      <div style="font-size: 12px; color: #6f6b64;">Sirve para la respuesta del cuestionario o para cualquier solicitud de presupuesto: se leen RUC, estación, observación, teléfono y ubicación.</div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <textarea value="{{ pegado }}" onChange="{{ onPegado }}" rows="2" placeholder="Pegá acá el mensaje completo que te llegó por WhatsApp" style="flex: 1; min-width: 260px; padding: 9px 11px; font-family: inherit; font-size: 13px; border: 1px solid #d6d2ca; border-radius: 6px; resize: vertical;"></textarea>
+        <button onClick="{{ cargarPegado }}" style="padding: 9px 16px; font-size: 13px; font-weight: 600; color: #fff; background: #1b1a18; border: 0; border-radius: 6px; cursor: pointer; align-self: flex-start;">Cargar</button>
+      </div>
+      <sc-if value="{{ hayAviso }}" hint-placeholder-val="{{ false }}"><div style="font-size: 12.5px; color: {{ avisoColor }};">{{ aviso }}</div></sc-if>
+    </div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+      <input value="{{ buscar }}" onChange="{{ onBuscar }}" placeholder="Buscar por nombre, empresa, teléfono o trabajo…" style="flex: 1; min-width: 240px; padding: 9px 12px; font-size: 13px; border: 1px solid #d6d2ca; border-radius: 6px; background: #fff;" />
+      <select value="{{ filtro }}" onChange="{{ onFiltro }}" style="padding: 9px 10px; font-size: 13px; border: 1px solid #d6d2ca; border-radius: 6px; background: #fff;">
+        <option value="">Todas las clasificaciones</option>
+        <option value="PRIORIDAD ALTA">Prioridad alta</option>
+        <option value="AGENDAR RELEVAMIENTO">Agendar relevamiento</option>
+        <option value="SONDEO DE PRECIOS">Sondeo de precios</option>
+        <option value="SIN CALIFICAR">Sin calificar</option>
+      </select>
+    </div>
+
+    <div style="background: #fff; border: 1px solid #dedbd5; border-radius: 12px; overflow-x: auto;">
+      <div style="min-width: 1080px;">
+        <div style="display: grid; grid-template-columns: 90px minmax(160px, 1.2fr) minmax(170px, 1.4fr) 180px 60px 180px 170px 150px 28px; gap: 10px; padding: 10px 18px; border-bottom: 1px solid #1b1a18; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b;">
+          <span>Fecha</span><span>Cliente</span><span>Trabajo</span><span>Presupuesto</span><span style="text-align: right;">Pts.</span><span>Clasificación</span><span>Seguimiento</span><span>Responder</span><span></span>
+        </div>
+        <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 30px 18px; font-size: 13.5px; color: #6f6b64; text-align: center;">Todavía no hay respuestas. Compartí el link del cuestionario con tus clientes.</div>
+        </sc-if>
+        <sc-for list="{{ filas }}" as="l" hint-placeholder-count="0">
+          <div style="display: grid; grid-template-columns: 90px minmax(160px, 1.2fr) minmax(170px, 1.4fr) 180px 60px 180px 170px 150px 28px; gap: 10px; align-items: center; padding: 10px 18px; border-bottom: 1px solid #efedea; font-size: 12.5px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6f6b64;">{{ l.fechaTxt }}</span>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-weight: 600;">{{ l.nombre }}</span><span style="font-size: 11.5px; color: #6f6b64;">{{ l.empresa }} {{ l.telefono }}</span></div>
+            <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;"><span style="color: #33312e; line-height: 1.4;">{{ l.trabajo }}</span><sc-if value="{{ l.hayUbic }}" hint-placeholder-val="{{ false }}"><a href="{{ l.ubicacion }}" target="_blank" rel="noopener" style="font-size: 11.5px; color: oklch(0.45 0.12 250);">Ver ubicación</a></sc-if></div>
+            <span>{{ l.presupuesto }}</span>
+            <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 700;">{{ l.puntaje }}</span>
+            <select value="{{ l.clase }}" onChange="{{ l.onClase }}" style="{{ l.chip }} border: 0; cursor: pointer; appearance: none;">
+              <option value="PRIORIDAD ALTA">PRIORIDAD ALTA</option>
+              <option value="AGENDAR RELEVAMIENTO">AGENDAR RELEVAMIENTO</option>
+              <option value="SONDEO DE PRECIOS">SONDEO DE PRECIOS</option>
+              <option value="SIN CALIFICAR">SIN CALIFICAR</option>
+            </select>
+            <select value="{{ l.seguimiento }}" onChange="{{ l.onSeg }}" style="padding: 6px 8px; font-size: 12px; border: 1px solid #d6d2ca; border-radius: 5px; background: #fff;">
+              <option value="Nuevo">Nuevo</option>
+              <option value="Contactado">Contactado</option>
+              <option value="Relevamiento agendado">Relevamiento agendado</option>
+              <option value="Presupuestado">Presupuestado</option>
+              <option value="Descartado">Descartado</option>
+            </select>
+            <a href="{{ l.waUrl }}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; justify-content: center; padding: 7px 10px; font-size: 12px; font-weight: 600; color: #fff; background: #1f9e55; border-radius: 6px; text-decoration: none;">{{ l.waTxt }}</a>
+            <button onClick="{{ l.onDel }}" title="Borrar" style="width: 24px; height: 24px; border: 0; background: transparent; color: #a09a92; cursor: pointer; font-size: 15px;">×</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="font-size: 11.5px; color: #86817b;">{{ nota }}</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  KEY = "fs-clientes-calificados-v1";
+  state = { leads: [], sheetsUrl: "", verConfig: false, pegado: "", aviso: "", avisoOk: true, buscar: "", filtro: "", sync: "", copiado: "", copiadoS: "" };
+
+  SCRIPT = [
+    "const HOJA = 'Respuestas';",
+    "const COLS = ['fecha','id','nombre','empresa','telefono','trabajo','etapa','presupuesto','puntaje','clase'];",
+    "function hoja() {",
+    "  const ss = SpreadsheetApp.getActiveSpreadsheet();",
+    "  let sh = ss.getSheetByName(HOJA);",
+    "  if (!sh) { sh = ss.insertSheet(HOJA); sh.appendRow(['Fecha','ID','Nombre','Empresa','Teléfono','Trabajo','Etapa','Presupuesto','Puntaje','Clasificación']); }",
+    "  return sh;",
+    "}",
+    "function doPost(e) {",
+    "  const d = JSON.parse(e.postData.contents);",
+    "  hoja().appendRow(COLS.map(k => k === 'fecha' ? new Date(d.fecha || Date.now()) : (d[k] ?? '')));",
+    "  return ContentService.createTextOutput('ok');",
+    "}",
+    "function doGet() {",
+    "  const v = hoja().getDataRange().getValues(); v.shift();",
+    "  const out = v.map(r => Object.fromEntries(COLS.map((k, i) => [k, r[i] instanceof Date ? r[i].toISOString() : r[i]])));",
+    "  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);",
+    "}"
+  ].join("\n");
+
+  componentDidMount() {
+    try { const d = JSON.parse(localStorage.getItem(this.KEY) || "{}"); this.setState({ leads: d.leads || [], sheetsUrl: d.sheetsUrl || "" }, () => this.sincronizar(true)); } catch (e) {}
+    this._t = setInterval(() => this.sincronizar(true), 60000);
+    this._f = () => this.sincronizar(true); window.addEventListener("focus", this._f);
+  }
+  componentWillUnmount() { clearInterval(this._t); window.removeEventListener("focus", this._f); }
+
+  guardar(patch) {
+    const s = Object.assign({}, this.state, patch);
+    try { localStorage.setItem(this.KEY, JSON.stringify({ leads: s.leads, sheetsUrl: s.sheetsUrl })); } catch (e) {}
+    this.setState(patch);
+  }
+
+  fusionar(nuevos) {
+    const map = {}; this.state.leads.forEach(l => { map[l.id] = l; });
+    let n = 0;
+    nuevos.forEach(x => { if (!x || !x.id) return; if (!map[x.id]) n++; map[x.id] = Object.assign({ seguimiento: "Nuevo" }, x, map[x.id] ? { seguimiento: map[x.id].seguimiento } : {}); });
+    const leads = Object.values(map).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+    this.guardar({ leads });
+    return n;
+  }
+
+  async sincronizar(silencioso) {
+    const u = this.state.sheetsUrl.trim();
+    if (!u) { if (!silencioso) this.setState({ sync: "sin conexión a Google Sheets" }); return; }
+    try {
+      const r = await fetch(u); const data = await r.json();
+      const n = this.fusionar(Array.isArray(data) ? data : []);
+      this.setState({ sync: "sincronizado " + new Date().toLocaleTimeString("es-PY", { hour: "2-digit", minute: "2-digit" }) + (n ? " · " + n + " nuevas" : "") });
+    } catch (e) { this.setState({ sync: "no se pudo leer Google Sheets" }); }
+  }
+
+  linkCuestionario() {
+    const base = window.location.href.split("#")[0].split("?")[0].replace(/[^\/]*$/, "");
+    const u = base + encodeURIComponent("Cuestionario Clientes.dc.html");
+    return this.state.sheetsUrl.trim() ? u + "?s=" + encodeURIComponent(this.state.sheetsUrl.trim()) : u;
+  }
+
+  copiar(txt, campo) {
+    const ok = () => { this.setState({ [campo]: "¡Copiado!" }); setTimeout(() => this.setState({ [campo]: "" }), 1800); };
+    try { navigator.clipboard.writeText(txt).then(ok, ok); } catch (e) { ok(); }
+  }
+
+  respuesta(l) {
+    const n = String(l.nombre || "").split(/\s+/)[0];
+    if (l.clase === "SIN CALIFICAR") return "Hola, gracias por tu solicitud. Para enviarte a la persona indicada y acelerar el proceso, ¿nos respondés dos preguntas rápidas? " + this.linkCuestionario();
+    if (l.clase === "PRIORIDAD ALTA") return "Hola " + n + ", gracias por tus respuestas. Coordinemos el relevamiento técnico cuanto antes: ¿qué día y horario te queda bien?";
+    if (l.clase === "AGENDAR RELEVAMIENTO") return "Hola " + n + ", gracias por tus respuestas. Nos gustaría coordinar el relevamiento técnico esta semana para enviarte un presupuesto a medida. ¿Qué día te queda bien?";
+    return "Hola " + n + ", gracias por completar el cuestionario. Según el trabajo que nos comentaste, el rango estimado es de Gs. ___ a Gs. ___. Si querés avanzar con un presupuesto a medida, coordinamos una visita.";
+  }
+
+  renderVals() {
+    const s = this.state, q = s.buscar.trim().toLowerCase();
+    const chip = (c) => { let m = { "PRIORIDAD ALTA": ["oklch(0.95 0.04 25)", "oklch(0.45 0.17 25)"], "AGENDAR RELEVAMIENTO": ["oklch(0.95 0.05 80)", "oklch(0.45 0.11 70)"] }[c] || ["#efedea", "#55524d"];
+      if (c === "SIN CALIFICAR") m[0] = "#e8eef6", m[1] = "oklch(0.42 0.08 250)";
+      return "display: inline-block; padding: 5px 9px; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-align: center; background: " + m[0] + "; color: " + m[1] + ";"; };
+    const lista = s.leads.filter(l => (!s.filtro || l.clase === s.filtro) && (!q || [l.nombre, l.empresa, l.telefono, l.trabajo].join(" ").toLowerCase().includes(q)))
+      .sort((a, b) => (b.puntaje || 0) - (a.puntaje || 0) || String(b.fecha).localeCompare(String(a.fecha)));
+    const cuenta = (c) => s.leads.filter(l => l.clase === c).length;
+    return {
+      estadoSync: s.sync || (s.sheetsUrl ? "conectado a Google Sheets" : "solo WhatsApp"),
+      copiarTxt: s.copiado || "Copiar link del cuestionario", copiarLink: () => this.copiar(this.linkCuestionario(), "copiado"),
+      abrirCuest: () => window.open(this.linkCuestionario(), "_blank"),
+      verConfig: s.verConfig, toggleConfig: () => this.setState({ verConfig: !s.verConfig }),
+      sheetsUrl: s.sheetsUrl, onSheetsUrl: (e) => this.guardar({ sheetsUrl: e.target.value }), sincronizar: () => this.sincronizar(false),
+      script: this.SCRIPT, copiarScriptTxt: s.copiadoS || "Copiar código", copiarScript: () => this.copiar(this.SCRIPT, "copiadoS"),
+      kTotal: String(s.leads.length) + (cuenta("SIN CALIFICAR") ? "" : ""), kAlta: String(cuenta("PRIORIDAD ALTA")), kMedia: String(cuenta("AGENDAR RELEVAMIENTO")), kBaja: String(cuenta("SONDEO DE PRECIOS")),
+      pegado: s.pegado, onPegado: (e) => this.setState({ pegado: e.target.value, aviso: "" }),
+      cargarPegado: () => {
+        const codes = [...s.pegado.matchAll(/FS1-([A-Za-z0-9+/=]+)/g)].map(m => m[1]);
+        const out = []; codes.forEach(c => { try { out.push(JSON.parse(decodeURIComponent(escape(atob(c))))); } catch (e) {} });
+        if (!out.length) {
+          const t = s.pegado.trim(); if (!t) return this.setState({ aviso: "Pegá un mensaje primero.", avisoOk: false });
+          const campo = (re) => { const m = t.match(re); return m ? m[1].trim() : ""; };
+          const lineas = t.split(/\n+/).map(x => x.trim()).filter(Boolean);
+          const ruc = campo(/RUC\s*:?\s*([0-9.\-]+)/i);
+          const razon = campo(/RUC\s*:?\s*[0-9.\-]+\s+(.+)/i);
+          const estacion = campo(/(?:Estaci[oó]n de servicio|Estaci[oó]n|Local|Sucursal|Obra)\s*:\s*(.+)/i);
+          const obs = campo(/Obs\s*:\s*([^\n]+(?:\n(?!\s*\w+\s*:)[^\n]+)*)/i);
+          const tel = campo(/((?:\+?595|0)9\d[\d\s-]{6,})/);
+          const ubic = campo(/(https?:\/\/(?:maps\.app\.goo\.gl|goo\.gl\/maps|www\.google\.[^\/]+\/maps)[^\s]*)/i);
+          const ref = campo(/Ref\s*\.?\s*:?\s*([\w.\-\/]+)/i);
+          const oc = /orden de compra/i.test(t);
+          const lead = { id: "M" + Date.now().toString(36), fecha: new Date().toISOString(),
+            nombre: razon || estacion || lineas[0] || "Cliente", empresa: [estacion, ruc ? "RUC " + ruc : "", ref ? "Ref. " + ref : ""].filter(Boolean).join(" · "),
+            telefono: tel.replace(/\D/g, ""), trabajo: (obs || lineas.slice(1).join(" ")).replace(/\s+/g, " ").slice(0, 400),
+            etapa: "", presupuesto: "", puntaje: oc ? 50 : "", clase: oc ? "AGENDAR RELEVAMIENTO" : "SIN CALIFICAR", ubicacion: ubic, origen: "Solicitud por mensaje",
+            nota: oc ? "Cliente corporativo con orden de compra: se trata como relevamiento." : "" };
+          this.fusionar([lead]);
+          return this.setState({ pegado: "", aviso: "Cargada la solicitud de " + lead.nombre + (oc ? " como Agendar relevamiento (trabaja con orden de compra)." : " como Sin calificar: enviale el cuestionario para clasificarla."), avisoOk: true });
+        }
+        const n = this.fusionar(out);
+        this.setState({ pegado: "", aviso: n ? "Cargada: " + out.map(x => x.nombre).join(", ") + "." : "Esa respuesta ya estaba cargada.", avisoOk: true });
+      },
+      hayAviso: !!s.aviso, aviso: s.aviso, avisoColor: s.avisoOk ? "oklch(0.42 0.12 150)" : "oklch(0.48 0.17 27)",
+      buscar: s.buscar, onBuscar: (e) => this.setState({ buscar: e.target.value }), filtro: s.filtro, onFiltro: (e) => this.setState({ filtro: e.target.value }),
+      vacio: lista.length === 0,
+      filas: lista.map(l => {
+        const tel = String(l.telefono || "").replace(/\D/g, "").replace(/^0/, "595");
+        return { ...l, fechaTxt: l.fecha ? new Date(l.fecha).toLocaleDateString("es-PY", { day: "2-digit", month: "2-digit" }) : "", puntaje: String(l.puntaje ?? ""),
+          chip: chip(l.clase), hayUbic: !!l.ubicacion, ubicacion: l.ubicacion || "",
+          onClase: (e) => { const v = e.target.value; this.guardar({ leads: this.state.leads.map(x => x.id === l.id ? { ...x, clase: v } : x) }); },
+          waTxt: l.clase === "SIN CALIFICAR" ? "Enviar cuestionario" : l.clase === "SONDEO DE PRECIOS" ? "Responder" : "Agendar", waUrl: "https://wa.me/" + tel + "?text=" + encodeURIComponent(this.respuesta(l)),
+          onSeg: (e) => { const v = e.target.value; this.guardar({ leads: this.state.leads.map(x => x.id === l.id ? { ...x, seguimiento: v } : x) }); },
+          onDel: () => { if (window.confirm("¿Borrar la respuesta de " + l.nombre + "?")) this.guardar({ leads: this.state.leads.filter(x => x.id !== l.id) }); } };
+      }),
+      nota: "Orden: primero los de mayor puntaje. Etapa urgente 60 pts, evaluación 40, comparativo 0; el presupuesto suma de 5 a 35. Con Google Sheets conectado, el tablero se actualiza solo cada minuto y al volver a esta pestaña."
+    };
+  }
+}
+</script>
+</body>
+</html>

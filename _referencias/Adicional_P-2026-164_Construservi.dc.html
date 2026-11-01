@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f4f3f0; }
+  a { color: #1b1a18; } a:hover { color: #5b3fa8; }
+  [data-ad] textarea, [data-ad] input { font-family: inherit; color: inherit; box-sizing: border-box; }
+  [data-ad] textarea { field-sizing: content; resize: none; overflow: hidden; }
+  @media print {
+    [data-noprint] { display: none !important; }
+    html, body, [data-ad] { background: #fff !important; padding: 0 !important; }
+    [data-pg] { box-shadow: none !important; border: 0 !important; margin: 0 !important; padding: 0 !important; width: 100% !important; min-height: 0 !important; }
+    [data-ad] textarea, [data-ad] input { border-color: transparent !important; background: transparent !important; }
+    [data-off] { display: none !important; }
+    [data-pg] { gap: 14px !important; }
+    [data-firmas] { padding-top: 70px !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+    [data-ad] textarea, [data-ad] input { font-size: 10pt; }
+    img { break-inside: avoid; }
+    @page { size: letter portrait; margin: 14mm; }
+  }
+</style>
+</helmet>
+<div data-ad="1" style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; background: #f4f3f0; min-height: 100vh; padding: 22px 20px 60px; color: #1b1a18;">
+
+  <div data-noprint="1" style="width: 816px; max-width: 100%; margin: 0 auto 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: #86817b;">Adicional por paralización · todo el texto es editable</span>
+    <div style="flex: 1;"></div>
+    <button onClick="{{ onReset }}" style="padding: 8px 13px; font-family: inherit; font-size: 12.5px; color: #1b1a18; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 7px; cursor: pointer; white-space: nowrap;">Restablecer datos</button>
+    <button onClick="{{ onPrint }}" style="padding: 8px 15px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #ffffff; background: #1b1a18; border: 0; border-radius: 7px; cursor: pointer; white-space: nowrap;">Imprimir / PDF</button>
+  </div>
+
+  <div data-noprint="1" style="position: sticky; top: 0; z-index: 20; width: 816px; max-width: 100%; box-sizing: border-box; margin: 0 auto 12px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 5px 8px; background: #ffffff; border: 1px solid #dedbd5; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+    <span title="{{ fmtObj }}" style="font-size: 11px; color: #86817b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;">{{ fmtObj }}</span>
+    <select value="{{ fmtFam }}" onChange="{{ onFam }}" title="Letra" style="height: 26px; width: 118px; padding: 0 4px; font-family: inherit; font-size: 11.5px; border: 1px solid #dedbd5; border-radius: 5px; background: #fff;">
+      <sc-for list="{{ familias }}" as="o" hint-placeholder-count="1"><option value="{{ o.v }}">{{ o.n }}</option></sc-for>
+    </select>
+    <select value="{{ fmtTam }}" onChange="{{ onTam }}" title="Tamaño de la letra seleccionada" style="height: 26px; width: 58px; padding: 0 2px; font-family: inherit; font-size: 11.5px; border: 1px solid #dedbd5; border-radius: 5px; background: #fff;">
+      <sc-for list="{{ tamanos }}" as="o" hint-placeholder-count="1"><option value="{{ o.v }}">{{ o.n }}</option></sc-for>
+    </select>
+    <div style="width: 1px; height: 18px; background: #dedbd5; flex: none;"></div>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onB }}" title="Negrita" style="width: 26px; height: 26px; padding: 0; font-family: inherit; font-size: 12px; font-weight: 800; color: #1b1a18; background: {{ actB }}; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">B</button>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onI }}" title="Cursiva" style="width: 26px; height: 26px; padding: 0; font-family: inherit; font-size: 12px; font-style: italic; font-family: Georgia, serif; color: #1b1a18; background: {{ actI }}; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">I</button>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onU }}" title="Subrayado" style="width: 26px; height: 26px; padding: 0; font-family: inherit; font-size: 12px; text-decoration: underline; color: #1b1a18; background: {{ actU }}; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">U</button>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onMay }}" title="Mayúsculas" style="width: 26px; height: 26px; padding: 0; font-family: inherit; font-size: 12px; font-size: 10px; color: #1b1a18; background: {{ actMay }}; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">AA</button>
+    <div style="width: 1px; height: 18px; background: #dedbd5; flex: none;"></div>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onAlL }}" title="Alinear a la izquierda" style="width: 26px; height: 26px; padding: 0; font-family: inherit; font-size: 12px;  color: #1b1a18; background: {{ actAlL }}; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">⇤</button>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onAlC }}" title="Centrar" style="width: 26px; height: 26px; padding: 0; font-family: inherit; font-size: 12px;  color: #1b1a18; background: {{ actAlC }}; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">≡</button>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onAlR }}" title="Alinear a la derecha" style="width: 26px; height: 26px; padding: 0; font-family: inherit; font-size: 12px;  color: #1b1a18; background: {{ actAlR }}; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer;">⇥</button>
+    <div style="width: 1px; height: 18px; background: #dedbd5; flex: none;"></div>
+    <sc-for list="{{ colores }}" as="c" hint-placeholder-count="5"><button onMouseDown="{{ noFoco }}" onClick="{{ c.on }}" title="{{ c.n }}" style="width: 18px; height: 18px; padding: 0; flex: none; background: {{ c.v }}; border: 2px solid {{ c.b }}; border-radius: 50%; cursor: pointer;"></button></sc-for>
+    <div style="width: 1px; height: 18px; background: #dedbd5; flex: none;"></div>
+    <button onMouseDown="{{ noFoco }}" onClick="{{ onLimpiarFmt }}" title="Quitar formato" style="height: 26px; padding: 0 7px; font-family: inherit; font-size: 11px; color: #6f6b64; background: #f0eee9; border: 1px solid #dedbd5; border-radius: 5px; cursor: pointer; white-space: nowrap;">Quitar formato</button>
+  </div>
+
+  <div data-pg="1" style="width: 816px; max-width: 100%; min-height: 1056px; box-sizing: border-box; margin: 0 auto; padding: 56px 64px; background: #ffffff; border: 1px solid #dedbd5; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 26px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 18px; border-bottom: 2px solid #1b1a18;">
+      <img src="logo-fullservice-clean.png" alt="Full Service and Clean" style="height: 54px; width: auto; object-fit: contain;" />
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; width: 240px;">
+        <input data-k="tag" value="{{ v.tag }}" onChange="{{ on.tag }}" style="width: 100%; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; padding: 2px 4px; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        <input data-k="nro" value="{{ v.nro }}" onChange="{{ on.nro }}" style="width: 100%; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; padding: 2px 4px; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        <input data-k="fecha" value="{{ v.fecha }}" onChange="{{ on.fecha }}" style="width: 100%; text-align: right; font-size: 12.5px; color: #4a4741; padding: 2px 4px; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <textarea data-k="titulo" value="{{ v.titulo }}" onChange="{{ on.titulo }}" rows="1" style="width: 100%; margin: 0 -6px; padding: 2px 6px; font-size: 15.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.4; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;"></textarea>
+      <textarea data-k="sub" value="{{ v.sub }}" onChange="{{ on.sub }}" rows="1" style="width: 100%; margin: 0 -6px; padding: 2px 6px; font-size: 12px; color: #4a4741; line-height: 1.45; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;"></textarea>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 170px minmax(0, 1fr); border-top: 1px solid #dedbd5; font-size: 13px;">
+      <sc-for list="{{ datos }}" as="f" hint-placeholder-count="5">
+        <input data-k="{{ f.kl }}" value="{{ f.l }}" onChange="{{ f.onL }}" style="padding: 7px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #86817b; border: 1px solid transparent; border-bottom-color: #efedea; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        <input data-k="{{ f.kv }}" value="{{ f.v }}" onChange="{{ f.on }}" style="padding: 7px 6px; font-size: 13px; border: 1px solid transparent; border-bottom-color: #efedea; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+      </sc-for>
+    </div>
+
+    <div data-off="{{ motOff }}" style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <input data-noprint="1" type="checkbox" checked="{{ verMot }}" onChange="{{ onVerMot }}" title="Mostrar u ocultar en el informe" style="width: 16px; height: 16px; flex: none; margin: 0; cursor: pointer; accent-color: #1b1a18;" />
+        <input data-k="hMot" value="{{ v.hMot }}" onChange="{{ on.hMot }}" style="flex: 1; min-width: 0; padding: 2px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        <sc-if value="{{ motOff }}" hint-placeholder-val="{{ false }}"><span data-noprint="1" style="font-size: 11.5px; color: #86817b; white-space: nowrap;">Oculto en el informe</span></sc-if>
+      </div>
+      <sc-if value="{{ verMot }}" hint-placeholder-val="{{ true }}"><textarea data-k="motivo" value="{{ v.motivo }}" onChange="{{ on.motivo }}" style="width: 100%; min-height: 60px; padding: 6px 8px; font-size: 13px; line-height: 1.6; color: #33312e; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;"></textarea></sc-if>
+    </div>
+
+    <div data-off="{{ clausOff }}" style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <input data-noprint="1" type="checkbox" checked="{{ verClaus }}" onChange="{{ onVerClaus }}" title="Mostrar u ocultar en el informe" style="width: 16px; height: 16px; flex: none; margin: 0; cursor: pointer; accent-color: #1b1a18;" />
+        <input data-k="hClaus" value="{{ v.hClaus }}" onChange="{{ on.hClaus }}" style="flex: 1; min-width: 0; padding: 2px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        <sc-if value="{{ clausOff }}" hint-placeholder-val="{{ false }}"><span data-noprint="1" style="font-size: 11.5px; color: #86817b; white-space: nowrap;">Oculto en el informe</span></sc-if>
+      </div>
+      <sc-if value="{{ verClaus }}" hint-placeholder-val="{{ true }}"><textarea data-k="clausula" value="{{ v.clausula }}" onChange="{{ on.clausula }}" style="width: 100%; min-height: 60px; padding: 14px 18px; background: #f7f6f3; border: 1px solid #e6e3dd; border-radius: 6px; font-size: 13px; line-height: 1.6; color: #33312e; font-style: italic;" style-focus="border-color: #1b1a18; outline: none;"></textarea></sc-if>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+      <input data-noprint="1" type="checkbox" checked="{{ verCalc }}" onChange="{{ onVerCalc }}" title="Mostrar u ocultar el detalle del cálculo" style="width: 16px; height: 16px; flex: none; margin: 0; cursor: pointer; accent-color: #1b1a18;" />
+      <input data-k="hCalc" value="{{ v.hCalc }}" onChange="{{ on.hCalc }}" style="flex: 1; min-width: 0; padding: 2px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #86817b; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+      <span data-noprint="1" style="font-size: 11.5px; color: #86817b; white-space: nowrap;">{{ verCalcTxt }}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 210px; border: 1px solid #1b1a18; font-size: 13px;">
+        <sc-for list="{{ filas }}" as="r" hint-placeholder-count="8">
+          <div data-off="{{ r.off }}" style="display: contents;">
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-bottom: 1px solid #dedbd5; opacity: {{ r.op }};">
+            <input data-noprint="1" type="checkbox" checked="{{ r.ver }}" onChange="{{ r.onVer }}" title="Mostrar en el informe impreso" style="width: 15px; height: 15px; flex: none; margin: 0; cursor: pointer; accent-color: #1b1a18;" />
+            <input data-k="{{ r.kl }}" value="{{ r.l }}" onChange="{{ r.onL }}" style="flex: 1; min-width: 0; padding: 4px; font-size: 13px; color: #33312e; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+            <span style="font-size: 11.5px; color: #86817b; white-space: nowrap;">{{ r.nota }}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px; padding: 4px 12px; border-bottom: 1px solid #dedbd5; border-left: 1px solid #dedbd5; font-variant-numeric: tabular-nums; opacity: {{ r.op }};">
+            <span>{{ r.pre }}</span>
+            <sc-if value="{{ r.edit }}" hint-placeholder-val="{{ false }}"><input data-k="{{ r.kv }}" value="{{ r.v }}" onChange="{{ r.on }}" style="flex: 1; min-width: 0; text-align: right; font-size: 13px; padding: 4px; border: 1px solid transparent; border-radius: 4px; background: #fbfaf7;" style-focus="border-color: #1b1a18; outline: none;" /></sc-if>
+            <sc-if value="{{ r.calc }}" hint-placeholder-val="{{ true }}"><span style="flex: 1; text-align: right; padding: 4px;">{{ r.v }}</span></sc-if>
+          </div>
+          </div>
+        </sc-for>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 8px; background: #ffffff; color: #1b1a18; border-top: 2px solid #1b1a18;">
+          <input data-k="lTot" value="{{ v.lTot }}" onChange="{{ on.lTot }}" style="flex: 1; min-width: 0; padding: 4px; font-size: 13px; font-weight: 700; color: #1b1a18; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        </div>
+        <div style="padding: 12px 16px; background: #ffffff; color: #1b1a18; border-top: 2px solid #1b1a18; border-left: 1px solid #dedbd5; font-weight: 700; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums;">Gs. {{ c.total }}</div>
+      </div>
+      <span style="padding: 0 4px; font-size: 12.5px; color: #33312e;">Son guaraníes {{ c.letras }}.</span>
+      <textarea data-k="nota" value="{{ v.nota }}" onChange="{{ on.nota }}" rows="1" style="width: 100%; padding: 2px 4px; font-size: 12.5px; color: #4a4741; line-height: 1.55; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;"></textarea>
+    </div>
+
+    <div style="flex: 1;"></div>
+
+    <div data-firmas="1" style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; padding-top: 80px; break-inside: avoid; page-break-inside: avoid;">
+      <div style="position: relative; display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #1b1a18; padding-top: 6px;">
+        <sc-if value="{{ selloVer }}" hint-placeholder-val="{{ false }}"><img src="sello-full-service.png" alt="Sello" style="position: absolute; left: 120px; bottom: calc(100% - 34px); height: 86px; width: auto; opacity: 0.85; pointer-events: none;" /></sc-if><sc-if value="{{ firmaVer }}" hint-placeholder-val="{{ false }}"><img src="firma-edgar-mendez.png" alt="Firma" style="position: absolute; left: 24px; bottom: calc(100% - 14px); height: 78px; width: auto; pointer-events: none;" /></sc-if><sc-if value="{{ firmaEd }}" hint-placeholder-val="{{ false }}"><div data-noprint="1" style="position: absolute; right: 0; top: calc(100% + 4px); display: flex; gap: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 400; color: #86817b;"><label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ fsFirma }}" onChange="{{ onFsFirma }}" style="margin: 0; accent-color: #1b1a18;" />Firma</label><label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked="{{ fsSello }}" onChange="{{ onFsSello }}" style="margin: 0; accent-color: #1b1a18;" />Sello</label></div></sc-if>
+        <input data-k="f1n" value="{{ v.f1n }}" onChange="{{ on.f1n }}" style="width: 100%; padding: 2px 4px; font-size: 12.5px; font-weight: 700; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        <textarea data-k="f1c" value="{{ v.f1c }}" onChange="{{ on.f1c }}" rows="1" style="width: 100%; padding: 2px 4px; font-size: 12.5px; color: #4a4741; line-height: 1.45; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;"></textarea>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #1b1a18; padding-top: 6px;">
+        <input data-k="f2n" value="{{ v.f2n }}" onChange="{{ on.f2n }}" style="width: 100%; padding: 2px 4px; font-size: 12.5px; font-weight: 700; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;" />
+        <textarea data-k="f2c" value="{{ v.f2c }}" onChange="{{ on.f2c }}" rows="1" style="width: 100%; padding: 2px 4px; font-size: 12.5px; color: #4a4741; line-height: 1.45; border: 1px solid transparent; border-radius: 4px; background: transparent;" style-hover="border-color: #dedbd5;" style-focus="border-color: #1b1a18; outline: none;"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KEY = 'twg-adicional-AD-2026-164-01';
+const OLD_MOT = "Durante la ejecución, la obra estuvo paralizada 2 días hábiles por causas no imputables a Full Service. El equipo de 5 personas permaneció afectado a la obra sin poder avanzar. Conforme a la cláusula N.º 1, ese tiempo se cuantifica y factura como adicional, prorrateando el monto acordado por día de obra.";
+const DEF = {
+  tag: 'Informe de adicional', nro: 'AD-2026-164-01', fecha: 'Asunción, 31/10/2026',
+  titulo: "Reconocimiento de días adicionales por paralización de obra no imputable a Full Service",
+  sub: "Conforme a la cláusula N.º 1 del acuerdo de trabajo AC-C-2026-164 · propuesta P-2026-164",
+  lCliente: 'Cliente', cliente: 'CONSTRUSERVI E.A.S', lRuc: 'RUC', ruc: '80143102-6', lRep: 'Representante', rep: 'Carlos Poletti',
+  lObra: 'Obra', obra: 'Construcción de muro de contención de piedra bruta colocada · 36 ml', lFechas: 'Fechas de paralización', fechas: '',
+  hClaus: 'Texto de la cláusula N.º 1 del acuerdo',
+  clausula: '“El monto acordado es cerrado y cubre únicamente el alcance explícitamente detallado en la presente propuesta. Cualquier trabajo adicional, así como los retrasos o paralizaciones de obra generados por falta de materiales provistos por el cliente, falta de liberación oportuna de frentes de trabajo o causas no imputables a Full Service, serán cuantificados y facturados como adicionales independientemente del presupuesto inicial.”',
+  hMot: 'Motivo',
+  motivo: "Durante la ejecución de la obra se registraron 2 días hábiles de paralización por causas ajenas a Full Service y fuera de su control. En esas jornadas el equipo asignado de 5 personas permaneció afectado a la obra sin poder avanzar con los trabajos.\n\nEsta situación generó costos no previstos en el presupuesto inicial, principalmente jornales del personal y gastos de movilidad y traslado, que no forman parte del monto cerrado acordado.\n\nLa cláusula N.º 1 del acuerdo AC-C-2026-164 establece que los retrasos o paralizaciones originados en causas no imputables a Full Service se cuantifican y facturan como adicionales, independientemente del presupuesto inicial. En consecuencia, se presenta este adicional, calculado prorrateando el monto acordado por día de obra.",
+  hCalc: 'Cálculo · prorrateo del monto acordado',
+  lMonto: 'Monto total del acuerdo (IVA incluido)', monto: '12.950.025',
+  lPlazo: 'Plazo de ejecución acordado (días hábiles)', plazo: '12',
+  lDia: 'Valor por día de obra',
+  lDias: 'Días de paralización', dias: '2',
+  lPers: 'Personal afectado en obra', pers: '5',
+  lJp: 'Valor por jornada-persona',
+  lNeto: 'Gravado 10 %', lIva: 'IVA 10 %',
+  lTot: 'Total del adicional · IVA incluido',
+  nota: 'El adicional se factura aparte del monto del acuerdo y no modifica el alcance contratado. El plazo de ejecución se extiende en los mismos días de paralización.',
+  f1n: 'Ing. Edgar Mendez', f1c: 'Full Service and Clean · The Wealth Group Import & Export S.A.',
+  f2n: 'Carlos Poletti', f2c: 'CONSTRUSERVI E.A.S · conformidad'
+};
+const num = (s) => Number(String(s || '').replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')) || 0;
+const fmt = (n) => Math.round(n).toLocaleString('es-PY').replace(/,/g, '.');
+const U = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve'];
+const D = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+const C = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+const m999 = (n) => { if (n === 0) return ''; if (n === 100) return 'cien'; const c = Math.floor(n / 100), r = n % 100; const s = r < 30 ? U[r] : D[Math.floor(r / 10)] + (r % 10 ? ' y ' + U[r % 10] : ''); return [C[c], s].filter(Boolean).join(' '); };
+const letras = (n) => { n = Math.round(n); if (n === 0) return 'cero'; const mill = Math.floor(n / 1e6), miles = Math.floor((n % 1e6) / 1000), r = n % 1000; const p = [];
+  if (mill) p.push(mill === 1 ? 'un millón' : m999(mill).replace(/uno$/, 'un') + ' millones');
+  if (miles) p.push(miles === 1 ? 'mil' : m999(miles).replace(/uno$/, 'un') + ' mil');
+  if (r) p.push(m999(r)); return p.join(' '); };
+class Component extends DCLogic {
+  state = (() => { try { const sv = JSON.parse(localStorage.getItem(KEY) || '{}'); if (sv.motivo === OLD_MOT) delete sv.motivo; if (sv.hClaus === 'Cláusula N.º 1 del acuerdo') delete sv.hClaus; return Object.assign({}, DEF, sv); } catch (e) { return Object.assign({}, DEF); } })();
+
+  componentDidMount() { this._fi = (e) => { const t = e.target; const k = t && t.getAttribute && t.getAttribute('data-k'); if (k) this.setState({ selK: k }); }; document.addEventListener('focusin', this._fi); this.aplicarFmt(); }
+  componentWillUnmount() { document.removeEventListener('focusin', this._fi); }
+  componentDidUpdate() { this.aplicarFmt(); }
+  aplicarFmt() { const F = this.state.fmt || {}; document.querySelectorAll('[data-pg] [data-k]').forEach(el => { const k = el.getAttribute('data-k'); if (!k) return; const f = F[k] || {}; const o = el._orig = el._orig || {}; const prev = el._fmtKeys || []; prev.forEach(p => { if (!(p in f)) { el.style.setProperty(p, o[p] || ''); delete o[p]; } }); Object.keys(f).forEach(p => { if (!(p in o)) o[p] = el.style.getPropertyValue(p); el.style.setProperty(p, f[p], 'important'); }); el._fmtKeys = Object.keys(f); }); }
+  cambiarFmt(fn) { const k = this.state.selK; if (!k) { alert('Hacé clic primero en el texto que querés formatear.'); return; } this.setState(t => { const F = Object.assign({}, t.fmt || {}); const cur = Object.assign({}, F[k] || {}); fn(cur); Object.keys(cur).forEach(p => { if (cur[p] === '' || cur[p] == null) delete cur[p]; }); if (Object.keys(cur).length) F[k] = cur; else delete F[k]; return { fmt: F }; }, () => this.guardar()); }
+  fmtVals() { const s = this.state, k = s.selK, f = (s.fmt || {})[k] || {}, ON = '#e8e4dc', OFF = '#ffffff';
+    const tg = (p, v) => () => this.cambiarFmt(c => { c[p] = c[p] === v ? '' : v; });
+    const el = k ? document.querySelector('[data-pg] [data-k="' + k + '"]') : null; const cs = el ? getComputedStyle(el) : null;
+    const is = (p, v) => (f[p] === v) || (!f[p] && cs && String(cs.getPropertyValue(p)).indexOf(v) === 0);
+    return { fmtObj: k ? '' + ((el && (el.value || '').slice(0, 22)) || k) + (el && (el.value || '').length > 22 ? '…' : '') : 'Hacé clic en un texto para darle formato',
+      ...(() => { const FAM = [["'IBM Plex Sans', sans-serif", 'IBM Plex Sans'], ['Arial, Helvetica, sans-serif', 'Arial'], ["Georgia, 'Times New Roman', serif", 'Georgia'], ["'Times New Roman', Times, serif", 'Times New Roman'], ["'IBM Plex Mono', monospace", 'IBM Plex Mono'], ['Verdana, sans-serif', 'Verdana']];
+        const famAct = f['font-family'] || (cs ? (FAM.find(([v]) => cs.fontFamily.replace(/["']/g, '').toLowerCase().indexOf(v.split(',')[0].replace(/["']/g, '').toLowerCase()) === 0) || [''])[0] : '');
+        const px = f['font-size'] ? parseFloat(f['font-size']) : (cs ? Math.round(parseFloat(cs.fontSize) * 2) / 2 : 0);
+        const L = [9, 10, 11, 12, 13, 14, 16, 18, 20, 24, 28]; if (px && L.indexOf(px) < 0) { L.push(px); L.sort((x, y) => x - y); }
+        return { familias: [{ v: '', n: k ? 'Letra' : 'Letra' }].concat(FAM.map(([v, n]) => ({ v, n }))), fmtFam: famAct,
+          tamanos: [{ v: '', n: '—' }].concat(L.map(n => ({ v: n + 'px', n: String(n).replace('.', ',') }))), fmtTam: px ? px + 'px' : '' }; })(), noFoco: (e) => e.preventDefault(), guardarSel: () => {},
+      onFam: (e) => { const v = e.target.value; this.cambiarFmt(c => { c['font-family'] = v; }); }, onTam: (e) => { const v = e.target.value; this.cambiarFmt(c => { c['font-size'] = v; }); },
+      onB: () => this.cambiarFmt(c => { const b = c['font-weight'] ? c['font-weight'] === '700' : (cs && Number(cs.fontWeight) >= 600); c['font-weight'] = b ? '400' : '700'; }), actB: (f['font-weight'] ? f['font-weight'] === '700' : (cs && Number(cs.fontWeight) >= 600)) ? ON : OFF,
+      onI: () => this.cambiarFmt(c => { const b = c['font-style'] ? c['font-style'] === 'italic' : (cs && cs.fontStyle === 'italic'); c['font-style'] = b ? 'normal' : 'italic'; }), actI: (f['font-style'] ? f['font-style'] === 'italic' : (cs && cs.fontStyle === 'italic')) ? ON : OFF,
+      onU: tg('text-decoration', 'underline'), actU: f['text-decoration'] === 'underline' ? ON : OFF,
+      onMay: () => this.cambiarFmt(c => { const b = c['text-transform'] ? c['text-transform'] === 'uppercase' : (cs && cs.textTransform === 'uppercase'); c['text-transform'] = b ? 'none' : 'uppercase'; }), actMay: (f['text-transform'] ? f['text-transform'] === 'uppercase' : (cs && cs.textTransform === 'uppercase')) ? ON : OFF,
+      onAlL: tg('text-align', 'left'), actAlL: f['text-align'] === 'left' ? ON : OFF, onAlC: tg('text-align', 'center'), actAlC: f['text-align'] === 'center' ? ON : OFF, onAlR: tg('text-align', 'right'), actAlR: f['text-align'] === 'right' ? ON : OFF,
+      colores: [['Negro', '#1b1a18'], ['Gris', '#6f6b64'], ['Azul', '#1e4696'], ['Rojo', '#b3261e'], ['Verde', '#2e6b3a']].map(([n, v]) => ({ n, v, b: f.color === v ? '#1b1a18' : '#ffffff', on: () => this.cambiarFmt(c => { c.color = c.color === v ? '' : v; }) })),
+      onLimpiarFmt: () => this.cambiarFmt(c => { Object.keys(c).forEach(p => { c[p] = ''; }); }) }; }
+  guardar() { try { const o = Object.assign({}, this.state); delete o.selK; localStorage.setItem(KEY, JSON.stringify(o)); } catch (x) {} }
+  set(k) { return (e) => { const v = e.target.value; this.setState({ [k]: v }, () => this.guardar()); }; }
+  renderVals() {
+    const s = this.state, on = {};
+    Object.keys(DEF).forEach(k => { on[k] = this.set(k); });
+    const monto = num(s.monto), plazo = num(s.plazo) || 1, dias = num(s.dias), pers = num(s.pers) || 1;
+    const dia = monto / plazo, total = Math.round(dia * dias), neto = Math.round(total / 1.1), jorn = dias * pers;
+    const oculto = s.oculto || {}, verCalc = s.verCalc !== false;
+    const vis = (lk) => { const ver = !oculto[lk]; return { ver, off: (!verCalc || !ver) ? '1' : undefined, op: ver ? 1 : 0.4, onVer: (e) => { const c = e.target.checked; this.setState(t => ({ oculto: Object.assign({}, t.oculto || {}, { [lk]: !c }) }), () => this.guardar()); } }; };
+    const ed = (lk, k, pre) => Object.assign({ kl: lk, kv: k, l: s[lk], onL: on[lk], v: s[k], on: on[k], pre, nota: '', edit: true, calc: false }, vis(lk));
+    const ca = (lk, v, nota) => Object.assign({ kl: lk, kv: '', l: s[lk], onL: on[lk], v, pre: 'Gs.', nota, edit: false, calc: true }, vis(lk));
+    return {
+      ...this.fmtVals(),
+      v: s, on, verCalc,
+      verMot: s.verMot !== false, motOff: s.verMot === false ? '1' : undefined, onVerMot: (e) => { const c = e.target.checked; this.setState({ verMot: c }, () => this.guardar()); },
+      verClaus: s.verClaus !== false, clausOff: s.verClaus === false ? '1' : undefined, onVerClaus: (e) => { const c = e.target.checked; this.setState({ verClaus: c }, () => this.guardar()); }, ...((ed) => { let F = { firma: true, sello: true }; try { F = Object.assign(F, JSON.parse(localStorage.getItem('twg-firma-sello') || '{}')); } catch (x) {} const tg = (k) => (e) => { const v = e.target.checked; try { localStorage.setItem('twg-firma-sello', JSON.stringify(Object.assign({}, F, { [k]: v }))); } catch (x) {} this.forceUpdate(); }; return { firmaEd: ed, firmaVer: ed && F.firma, selloVer: ed && F.sello, fsFirma: F.firma, fsSello: F.sello, onFsFirma: tg('firma'), onFsSello: tg('sello') }; })(/edgar\s+mend[eé]z/i.test(s.f1n || '')),
+      verCalcTxt: verCalc ? 'Destildá una fila para ocultarla al imprimir' : 'Detalle oculto: solo se muestra el total',
+      onVerCalc: (e) => { const c = e.target.checked; this.setState({ verCalc: c }, () => this.guardar()); },
+      datos: [['lCliente', 'cliente'], ['lRuc', 'ruc'], ['lRep', 'rep'], ['lObra', 'obra'], ['lFechas', 'fechas']].map(([lk, k]) => ({ kl: lk, kv: k, l: s[lk], onL: on[lk], v: s[k], on: on[k] })),
+      filas: (verCalc ? null : []) || [
+        ed('lMonto', 'monto', 'Gs.'), ed('lPlazo', 'plazo', ''),
+        ca('lDia', fmt(dia), 'Gs. ' + fmt(monto) + ' ÷ ' + s.plazo),
+        ed('lDias', 'dias', ''), ed('lPers', 'pers', ''),
+        ca('lJp', fmt(jorn ? total / jorn : 0), fmt(jorn) + ' jornadas'),
+        ca('lNeto', fmt(neto), ''), ca('lIva', fmt(total - neto), '')
+      ],
+      c: { total: fmt(total), formTot: s.dias + ' × Gs. ' + fmt(dia), letras: letras(total) },
+      onPrint: () => window.print(),
+      onReset: () => { if (!confirm('¿Volver a los textos y valores originales?')) return; try { localStorage.removeItem(KEY); } catch (x) {} this.setState(Object.assign({}, DEF, { oculto: {}, verCalc: true, verMot: true, verClaus: true, fmt: {} })); }
+    };
+  }
+}
+</script>
+</body>
+</html>

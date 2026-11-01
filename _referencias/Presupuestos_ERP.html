@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presupuesto · Full Service &amp; Clean</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --azul: #1a9be0;
+  --azul-osc: #0f6fa3;
+  --naranja: #f26b21;
+  --tinta: #1c1f22;
+  --tinta-2: #4a5056;
+  --tinta-3: #80868c;
+  --linea: #dfe2e5;
+  --linea-2: #eef0f2;
+  --fondo: #f5f6f7;
+  --blanco: #ffffff;
+  --ok: #2f8a4c;
+  --mal: #c0392b;
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--fondo); color: var(--tinta); font-family: var(--sans); font-size: 14px; }
+a { color: var(--azul-osc); text-decoration: none; }
+a:hover { color: var(--azul); }
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+.mono { font-family: var(--mono); }
+.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+
+/* Barra superior */
+.barra { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 12px 24px; background: var(--blanco); border-bottom: 1px solid var(--linea); }
+.barra-marca { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.barra-marca::before { content: ""; width: 4px; height: 22px; background: var(--azul); border-radius: 2px; }
+.barra-nro { font-family: var(--mono); font-size: 13px; color: var(--tinta-2); }
+.tabs { display: flex; gap: 2px; padding: 3px; background: var(--fondo); border: 1px solid var(--linea); border-radius: 8px; margin-left: auto; }
+.tab { padding: 7px 14px; border: 0; border-radius: 6px; background: transparent; cursor: pointer; font-weight: 500; color: var(--tinta-2); }
+.tab.activo { background: var(--blanco); color: var(--tinta); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.btn { padding: 8px 14px; border: 1px solid var(--linea); border-radius: 7px; background: var(--blanco); cursor: pointer; font-weight: 500; }
+.btn:hover { border-color: var(--tinta-3); }
+.btn-pri { background: var(--tinta); color: var(--blanco); border-color: var(--tinta); }
+.btn-pri:hover { background: #33383d; }
+.btn-chico { padding: 4px 9px; font-size: 12.5px; }
+.btn-texto { border: 0; background: transparent; color: var(--azul-osc); cursor: pointer; padding: 4px 6px; font-size: 12.5px; }
+.btn-texto:hover { color: var(--azul); }
+.btn-quitar { border: 0; background: transparent; color: var(--tinta-3); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.btn-quitar:hover { color: var(--mal); background: #fbeceb; }
+
+/* Edición */
+.edicion { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; max-width: 1360px; margin: 0 auto; padding: 24px; align-items: start; }
+.bloque { background: var(--blanco); border: 1px solid var(--linea); border-radius: 10px; }
+.bloque-tit { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--linea-2); font-weight: 600; }
+.bloque-cuerpo { padding: 16px 18px; }
+.col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.campos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 16px; }
+.campo { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.campo-ancho { grid-column: 1 / -1; }
+.etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--tinta-3); }
+.inp { width: 100%; padding: 8px 10px; border: 1px solid var(--linea); border-radius: 6px; background: var(--blanco); }
+.inp:focus { outline: 2px solid var(--azul); outline-offset: -1px; border-color: var(--azul); }
+textarea.inp { resize: vertical; min-height: 64px; line-height: 1.5; }
+.inp-num { text-align: right; font-family: var(--mono); }
+.estado-sel { display: flex; align-items: center; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 20px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; border: 1px solid transparent; }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.rubro { border: 1px solid var(--linea); border-radius: 8px; background: var(--blanco); }
+.rubro + .rubro { margin-top: 10px; }
+.rubro.fuera { opacity: .6; }
+.rubro-cab { display: grid; grid-template-columns: 26px 30px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
+.rubro-cab:hover { background: #fafbfb; }
+.rubro-flecha { width: 26px; height: 26px; border: 0; background: transparent; cursor: pointer; color: var(--tinta-3); font-size: 12px; transition: transform .15s; }
+.rubro.abierto .rubro-flecha { transform: rotate(90deg); }
+.rubro-n { font-family: var(--mono); font-size: 12px; color: var(--tinta-3); }
+.rubro-nom { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rubro-precio { font-family: var(--mono); font-weight: 600; }
+.rubro-cuerpo { display: flex; flex-direction: column; gap: 18px; padding: 4px 14px 16px; border-top: 1px solid var(--linea-2); }
+.sub-tit { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; margin-bottom: 6px; font-size: 12.5px; font-weight: 600; color: var(--tinta-2); }
+.tabla-wrap { overflow-x: auto; border: 1px solid var(--linea-2); border-radius: 6px; }
+.tabla { width: 100%; border-collapse: collapse; min-width: 640px; }
+.tabla th { padding: 7px 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-3); text-align: left; font-weight: 500; background: #fafbfb; border-bottom: 1px solid var(--linea-2); white-space: nowrap; }
+.tabla th.r { text-align: right; }
+.tabla td { padding: 3px 4px; border-bottom: 1px solid var(--linea-2); vertical-align: middle; }
+.tabla tr:last-child td { border-bottom: 0; }
+.tabla .inp { padding: 6px 7px; border-color: transparent; background: transparent; }
+.tabla .inp:hover { border-color: var(--linea); }
+.tabla .inp:focus { background: var(--blanco); }
+.tabla td.tot { padding-right: 10px; font-family: var(--mono); text-align: right; white-space: nowrap; color: var(--tinta-2); }
+.tabla tfoot td { padding: 7px 10px; font-weight: 600; background: #fafbfb; border-top: 1px solid var(--linea); }
+.otros { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px 14px; }
+.rubro-pie { display: flex; flex-wrap: wrap; gap: 8px 20px; padding-top: 10px; border-top: 1px dashed var(--linea); font-size: 12.5px; color: var(--tinta-2); }
+.rubro-pie b { font-family: var(--mono); color: var(--tinta); font-weight: 600; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--tinta-2); cursor: pointer; white-space: nowrap; }
+.check input { accent-color: var(--azul); width: 15px; height: 15px; margin: 0; }
+
+.totales { position: sticky; top: 76px; }
+.tot-fila { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--linea-2); }
+.tot-fila:last-child { border-bottom: 0; }
+.tot-fila span:first-child { color: var(--tinta-2); }
+.tot-fila .num { font-size: 14px; }
+.tot-final { margin: 6px -18px; padding: 12px 18px; background: #f2f9fd; border-top: 1px solid #cfe8f6; border-bottom: 1px solid #cfe8f6; }
+.tot-final span:first-child { color: var(--tinta); font-weight: 600; }
+.tot-final .num { font-size: 18px; font-weight: 600; color: var(--azul-osc); }
+.tot-gan .num { color: var(--ok); font-weight: 600; }
+.tot-gan.neg .num { color: var(--mal); }
+.tot-ajustes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+
+/* Hoja de propuesta */
+.vista { padding: 28px 16px 60px; }
+.print-sheet { width: 820px; max-width: 100%; margin: 0 auto; padding: 52px 56px 44px; background: var(--blanco); border: 1px solid var(--linea); box-shadow: 0 2px 14px rgba(0,0,0,.06); font-size: 12.5px; line-height: 1.55; color: var(--tinta); }
+.hs-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; padding-bottom: 20px; border-bottom: 2px solid var(--tinta); }
+.hs-emp { display: flex; gap: 18px; align-items: flex-start; min-width: 0; }
+.hs-logo { max-height: 100px; max-width: 170px; object-fit: contain; }
+.hs-emp-txt { display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; color: var(--tinta-2); padding-top: 4px; }
+.hs-emp-txt b { font-size: 14px; color: var(--tinta); }
+.hs-doc { text-align: right; flex: none; }
+.hs-doc-tit { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+.hs-doc-tit::after { content: ""; display: block; width: 36px; height: 3px; background: var(--naranja); margin: 6px 0 8px auto; }
+.hs-doc .mono { font-size: 12px; color: var(--tinta-2); }
+.hs-cli { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; padding: 18px 0; border-bottom: 1px solid var(--linea); }
+.hs-dato { display: flex; flex-direction: column; gap: 1px; }
+.hs-dato .etq { font-size: 9.5px; }
+.hs-tabla { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.hs-tabla th { padding: 7px 6px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--tinta-3); text-align: left; font-weight: 500; border-bottom: 1px solid var(--tinta); }
+.hs-tabla th.r { text-align: right; }
+.hs-tabla td { padding: 9px 6px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+.hs-tabla td.n { width: 28px; font-family: var(--mono); color: var(--tinta-3); }
+.hs-tabla tr { break-inside: avoid; }
+.hs-desc { white-space: pre-line; color: var(--tinta-2); font-size: 11.5px; margin-top: 3px; }
+.hs-tot { display: flex; justify-content: flex-end; margin-top: 14px; }
+.hs-tot-caja { width: 300px; }
+.hs-tot-caja .tot-fila { padding: 5px 0; font-size: 12.5px; }
+.hs-tot-caja .hs-total { margin-top: 4px; padding: 9px 0 0; border-top: 2px solid var(--tinta); border-bottom: 0; font-weight: 700; font-size: 14px; }
+.hs-tot-caja .hs-total span:first-child { color: var(--tinta); }
+.hs-cond3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 26px; border: 1px solid var(--linea); border-radius: 4px; }
+.hs-cond3 > div { padding: 10px 12px; }
+.hs-cond3 > div + div { border-left: 1px solid var(--linea); }
+.hs-cond { margin-top: 18px; break-inside: avoid; }
+.hs-cond ol { margin: 6px 0 0; padding-left: 18px; color: var(--tinta-2); font-size: 11.5px; }
+.hs-firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; margin-top: 40px; break-inside: avoid; }
+.hs-firma { display: flex; flex-direction: column; gap: 6px; }
+.hs-firma-zona { position: relative; height: 96px; }
+.hs-firma-img { position: absolute; left: 28px; bottom: 6px; width: 90px; z-index: 2; }
+.hs-sello-img { position: absolute; left: 88px; bottom: -14px; width: 150px; opacity: .92; z-index: 1; }
+.hs-linea { border-top: 1px solid var(--tinta); }
+.hs-firma-nom { font-weight: 600; }
+.hs-firma-cargo { font-size: 11.5px; color: var(--tinta-2); }
+.hs-pie { margin-top: 30px; padding-top: 10px; border-top: 1px solid var(--linea); font-size: 10px; color: var(--tinta-3); display: flex; justify-content: space-between; gap: 12px; }
+
+.oculto { display: none !important; }
+
+@media (max-width: 1080px) {
+  .edicion { grid-template-columns: minmax(0, 1fr); }
+  .totales { position: static; }
+}
+@media (max-width: 720px) {
+  .print-sheet { padding: 28px 22px; }
+  .hs-cab { flex-direction: column; }
+  .hs-doc { text-align: left; }
+  .hs-doc-tit::after { margin-left: 0; }
+  .hs-cli, .hs-firmas, .hs-cond3 { grid-template-columns: 1fr; }
+  .hs-cond3 > div + div { border-left: 0; border-top: 1px solid var(--linea); }
+}
+@media print {
+  @page { size: A4; margin: 12mm; }
+  html, body { background: #fff; }
+  .noprint { display: none !important; }
+  .vista { padding: 0; display: block !important; }
+  .print-sheet { width: auto; max-width: none; margin: 0; padding: 0; border: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   PROPS · textos fijos de la empresa
+   ========================================================================= */
+var PROPS = {
+  empresa: "Full Service & Clean",
+  razonSocial: "The Wealth Group Import Export S.A.",
+  rubro: "Construcción, mantenimiento y limpieza industrial",
+  direccion: "Asunción, Paraguay",
+  telefono: "+595 981 000 000",
+  email: "comercial@fullservice.com.py",
+  web: "www.fullservice.com.py",
+  logo: "/logo-full-service-clean.png",
+  firma: "/firma-edgar-mendez.png",
+  sello: "/sello.png",
+  moneda: "Gs.",
+  condiciones: [
+    "Los precios incluyen materiales, mano de obra, herramientas y traslados indicados en cada rubro.",
+    "Cualquier trabajo no detallado en esta propuesta se cotiza por separado como adicional.",
+    "Los retrasos o paralizaciones por causas no imputables a Full Service se cuantifican y facturan como adicionales.",
+    "El cliente garantiza el acceso al sitio y la liberación de los frentes de trabajo en las fechas acordadas."
+  ]
+};
+
+var ESTADOS = [
+  { v: "FALTA PRESUPUESTAR", fg: "#ffffff", bg: "#c0392b", bd: "#a5301f" },
+  { v: "BORRADOR",           fg: "#5b6167", bg: "#f1f2f3", bd: "#dfe2e5" },
+  { v: "ENVIADO",            fg: "#ffffff", bg: "#f26b21", bd: "#d65a17" },
+  { v: "EN VERIFICACION",    fg: "#8a5a00", bg: "#fff4d6", bd: "#f1d68a" },
+  { v: "V°B° FALTA ENVIAR",  fg: "#0f6fa3", bg: "#e6f4fc", bd: "#b6dcf2" },
+  { v: "APROBADO",           fg: "#2f6b3f", bg: "#e8f4ec", bd: "#bfdec8" },
+  { v: "EN EJECUCION",       fg: "#ffffff", bg: "#6c3fc4", bd: "#5932a6" },
+  { v: "FINALIZADO",         fg: "#ffffff", bg: "#2f8a4c", bd: "#26733f" },
+  { v: "RECHAZADO",          fg: "#a5301f", bg: "#fbeceb", bd: "#efc7c2" },
+  { v: "DE BAJA",            fg: "#80868c", bg: "#f1f2f3", bd: "#dfe2e5" }
+];
+
+/* =========================================================================
+   DATOS · presupuesto de ejemplo (MAQUETA: se reemplaza al integrar)
+   ========================================================================= */
+var DATOS = {
+  nro: "P-2026-190",
+  fecha: "2026-11-01",
+  cliente: "Shell · Estación Ypacaraí",
+  obra: "Mantenimiento de cubierta y sistema de desagüe pluvial",
+  domicilio: "Ruta PY02 km 37, Ypacaraí",
+  contacto: "Ing. Alexis Benítez",
+  estado: "BORRADOR",
+  iva: "10", descuento: "0", descProrr: "0", decimales: 0,
+  plazo: "12 días corridos desde la aprobación.",
+  pago: "Crédito a 30 días contra factura.",
+  validez: "10 días",
+  firmaNombre: "Ing. Edgar Mendez",
+  firmaCargo: "Ejecutivo Comercial",
+  rubros: [
+    { nombre: "Cambio de chapas de cubierta", descripcion: "Retiro de chapas dañadas y colocación de chapa trapezoidal galvanizada N° 26, con tornillos autoperforantes y sellado.", medida: "48", unidad: "m²",
+      overhead: "5", margen: "30", flete: "250000", equipos: "400000", subcontratos: "0", varios: "0", incluir: true,
+      mats: [
+        { desc: "Chapa trapezoidal galvanizada N° 26 · 1,05 × 6 m", unidad: "un", cant: "8", costo: "315000", desp: "5", marg: "30" },
+        { desc: "Tornillo autoperforante 14 × 2\" con arandela", unidad: "un", cant: "300", costo: "900", desp: "10", marg: "30" },
+        { desc: "Sellador poliuretánico", unidad: "un", cant: "4", costo: "48000", desp: "0", marg: "30" }
+      ],
+      mos: [
+        { desc: "Oficial techista", pers: "2", horas: "3", vh: "200000", marg: "30" },
+        { desc: "Ayudante", pers: "2", horas: "3", vh: "150000", marg: "30" }
+      ] },
+    { nombre: "Canaleta y bajadas pluviales", descripcion: "Provisión y colocación de canaleta de chapa galvanizada con dos bajadas de PVC Ø 100 mm hasta la cámara existente.", medida: "22", unidad: "ml",
+      overhead: "5", margen: "30", flete: "120000", equipos: "0", subcontratos: "0", varios: "80000", incluir: true,
+      mats: [
+        { desc: "Canaleta galvanizada desarrollo 50 cm", unidad: "ml", cant: "22", costo: "62000", desp: "5", marg: "30" },
+        { desc: "Caño PVC Ø 100 mm · 6 m", unidad: "un", cant: "3", costo: "145000", desp: "0", marg: "30" },
+        { desc: "Embudos, codos y abrazaderas", unidad: "gl", cant: "1", costo: "180000", desp: "0", marg: "30" }
+      ],
+      mos: [
+        { desc: "Oficial", pers: "1", horas: "2", vh: "200000", marg: "30" },
+        { desc: "Ayudante", pers: "1", horas: "2", vh: "150000", marg: "30" }
+      ] },
+    { nombre: "Limpieza final y retiro de escombros", descripcion: "Limpieza del sector intervenido y retiro de material sobrante en contenedor.", medida: "1", unidad: "gl",
+      overhead: "0", margen: "25", flete: "0", equipos: "0", subcontratos: "350000", varios: "0", incluir: true,
+      mats: [],
+      mos: [ { desc: "Ayudante", pers: "2", horas: "1", vh: "150000", marg: "25" } ] }
+  ]
+};
+
+/* =========================================================================
+   STUB: se reemplaza por calculo.js
+   Solo para que la maqueta funcione. Al integrar, borrar este bloque y
+   cargar calculo.js, que expone window.TWGCalculo con la misma interfaz.
+   ========================================================================= */
+if (!window.TWGCalculo) window.TWGCalculo = (function () {
+  var N = function (v) { var n = parseFloat(String(v == null ? "" : v).replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
+  var opciones = function (d) { return { usarMO: d.mostrarMO !== false, usarOtros: d.mostrarOtros !== false, descProrr: Math.min(Math.max(N(d.descProrr), 0), 99.99), dec: N(d.decimales) }; };
+  var calcRubro = function (R, o) {
+    o = o || opciones({});
+    var materiales = (R.mats || []).reduce(function (a, r) { return a + N(r.cant) * N(r.costo) * (1 + N(r.desp) / 100); }, 0);
+    var manoObra = o.usarMO ? (R.mos || []).reduce(function (a, r) { return a + Math.max(N(r.pers), 1) * N(r.horas) * N(r.vh); }, 0) : 0;
+    var otros = o.usarOtros ? N(R.flete) + N(R.equipos) + N(R.subcontratos) + N(R.varios) : 0;
+    var costoTotal = (materiales + manoObra + otros) * (1 + N(R.overhead) / 100);
+    var m = (R.mats || []).concat(R.mos || []).map(function (x) { return N(x.marg); });
+    var pctMargen = m.length && m.every(function (x) { return x === m[0]; }) ? m[0] : N(R.margen);
+    var precioRubro = costoTotal * (1 + pctMargen / 100) * (1 - o.descProrr / 100);
+    return { materiales: materiales, manoObra: manoObra, otros: otros, costoTotal: costoTotal, pctMargen: pctMargen, precioRubro: precioRubro, precioHoja: Math.round(precioRubro), incluido: R.incluir !== false && precioRubro > 0 };
+  };
+  var calcPresupuesto = function (d) {
+    var o = opciones(d), rubros = (d.rubros || []).map(function (R) { return calcRubro(R, o); });
+    var inc = rubros.filter(function (r) { return r.incluido; });
+    var costoTotal = inc.reduce(function (a, r) { return a + r.costoTotal; }, 0);
+    var subtotal = inc.reduce(function (a, r) { return a + r.precioHoja; }, 0);
+    var montoDescuento = subtotal * N(d.descuento) / 100, neto = subtotal - montoDescuento, montoIva = neto * N(d.iva) / 100;
+    return { rubros: rubros, costoTotal: costoTotal, subtotal: subtotal, montoDescuento: montoDescuento, neto: neto, montoIva: montoIva, totalFinal: neto + montoIva, ganancia: neto - costoTotal };
+  };
+  return { N: N, opciones: opciones, calcRubro: calcRubro, calcPresupuesto: calcPresupuesto };
+})();
+/* ===================== FIN STUB ===================== */
+
+/* =========================================================================
+   Utilidades de interfaz
+   ========================================================================= */
+function el(tag, atributos) {
+  var nodo = document.createElement(tag), a = atributos || {};
+  Object.keys(a).forEach(function (k) {
+    var v = a[k];
+    if (v == null || v === false) return;
+    if (k === "class") nodo.className = v;
+    else if (k === "style" && typeof v === "object") Object.assign(nodo.style, v);
+    else if (k.slice(0, 2) === "on" && typeof v === "function") nodo.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === "value") nodo.value = v;
+    else if (k === "checked") nodo.checked = !!v;
+    else if (v === true) nodo.setAttribute(k, "");
+    else nodo.setAttribute(k, v);
+  });
+  for (var i = 2; i < arguments.length; i++) agregar(nodo, arguments[i]);
+  return nodo;
+}
+function agregar(padre, hijo) {
+  if (hijo == null || hijo === false) return;
+  if (Array.isArray(hijo)) { hijo.forEach(function (h) { agregar(padre, h); }); return; }
+  padre.appendChild(hijo instanceof Node ? hijo : document.createTextNode(String(hijo)));
+}
+
+function money(n) {
+  var v = Math.round(TWGCalculo.N(n));
+  return (v < 0 ? "-" : "") + PROPS.moneda + " " + String(Math.abs(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+function cifra(n) { return String(Math.round(TWGCalculo.N(n))).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+function cantidad(n) { return TWGCalculo.N(n).toLocaleString("es-PY", { maximumFractionDigits: 2 }); }
+function fechaLarga(iso) {
+  var p = String(iso || "").split("-");
+  if (p.length !== 3) return iso || "";
+  var meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  return Number(p[2]) + " de " + meses[Number(p[1]) - 1] + " de " + p[0];
+}
+/* Opciones de cálculo: usa TWGCalculo.opciones si existe; si no, arma el mismo objeto que espera calcRubro */
+function opcionesCalculo(d) {
+  if (typeof TWGCalculo.opciones === "function") return TWGCalculo.opciones(d);
+  var N = TWGCalculo.N, dec = d.decimales === "" || d.decimales == null ? 0 : Math.max(0, Math.min(4, N(d.decimales)));
+  return { usarMO: d.mostrarMO !== false, usarOtros: d.mostrarOtros !== false, descProrr: Math.min(Math.max(N(d.descProrr), 0), 99.99), dec: dec };
+}
+/* Precio unitario que se muestra en la hoja: monto del rubro / medida (medida vacía o 0 = 1) */
+function precioUnitarioHoja(R, c) { return c.precioHoja / (TWGCalculo.N(R.medida) || 1); }
+function estadoDe(v) { return ESTADOS.filter(function (e) { return e.v === v; })[0] || ESTADOS[1]; }
+function chipEstado(v) { var e = estadoDe(v); return el("span", { class: "chip", style: { color: e.fg, background: e.bg, borderColor: e.bd } }, e.v); }
+
+/* =========================================================================
+   Estado de la vista (no se guarda en DATOS)
+   ========================================================================= */
+var VISTA = { tab: "edicion", abiertos: { 0: true } };
+
+function setDato(obj, campo) {
+  return function (e) { obj[campo] = e.target.type === "checkbox" ? e.target.checked : e.target.value; render(); };
+}
+
+/* Campos editables: data-k identifica cada uno para conservar el foco al redibujar */
+function campoTexto(etq, obj, campo, k, extra) {
+  extra = extra || {};
+  return el("label", { class: "campo" + (extra.ancho ? " campo-ancho" : "") },
+    el("span", { class: "etq" }, etq),
+    extra.area
+      ? el("textarea", { class: "inp", "data-k": k, rows: extra.rows || 3, value: obj[campo] || "", onInput: setDato(obj, campo) })
+      : el("input", { class: "inp" + (extra.num ? " inp-num" : ""), "data-k": k, type: extra.tipo || "text", inputmode: extra.num ? "decimal" : null, value: obj[campo] == null ? "" : obj[campo], onInput: setDato(obj, campo) }));
+}
+function celda(obj, campo, k, num) {
+  return el("td", null, el("input", { class: "inp" + (num ? " inp-num" : ""), "data-k": k, inputmode: num ? "decimal" : null, value: obj[campo] == null ? "" : obj[campo], onInput: setDato(obj, campo) }));
+}
+
+/* =========================================================================
+   Pantalla de edición
+   ========================================================================= */
+function vistaDatosGenerales() {
+  return el("section", { class: "bloque" },
+    el("div", { class: "bloque-tit" }, "Datos del presupuesto", chipEstado(DATOS.estado)),
+    el("div", { class: "bloque-cuerpo" },
+      el("div", { class: "campos" },
+        campoTexto("Cliente", DATOS, "cliente", "g-cliente"),
+        campoTexto("Contacto", DATOS, "contacto", "g-contacto"),
+        campoTexto("Obra", DATOS, "obra", "g-obra", { ancho: true }),
+        campoTexto("Domicilio de la obra", DATOS, "domicilio", "g-domicilio", { ancho: true }),
+        campoTexto("N° de presupuesto", DATOS, "nro", "g-nro"),
+        campoTexto("Fecha", DATOS, "fecha", "g-fecha", { tipo: "date" }),
+        el("label", { class: "campo" },
+          el("span", { class: "etq" }, "Estado"),
+          el("select", { class: "inp", "data-k": "g-estado", value: DATOS.estado, onChange: setDato(DATOS, "estado") },
+            ESTADOS.map(function (e) { return el("option", { value: e.v, selected: e.v === DATOS.estado }, e.v); }))),
+        campoTexto("Validez de la oferta", DATOS, "validez", "g-validez"),
+        campoTexto("Plazo de entrega", DATOS, "plazo", "g-plazo", { ancho: true }),
+        campoTexto("Forma de pago", DATOS, "pago", "g-pago", { ancho: true })
+      )));
+}
+
+function vistaRubro(R, i, c) {
+  var abierto = !!VISTA.abiertos[i];
+  var alternar = function () { VISTA.abiertos[i] = !abierto; render(); };
+  var cab = el("div", { class: "rubro-cab", onClick: alternar },
+    el("button", { class: "rubro-flecha", "aria-label": abierto ? "Cerrar rubro" : "Abrir rubro" }, "▶"),
+    el("span", { class: "rubro-n" }, String(i + 1).padStart(2, "0")),
+    el("span", { class: "rubro-nom" }, R.nombre || "Rubro sin nombre"),
+    el("label", { class: "check", onClick: function (e) { e.stopPropagation(); } },
+      el("input", { type: "checkbox", checked: R.incluir !== false, onChange: setDato(R, "incluir") }), "Incluir"),
+    el("span", { class: "rubro-precio" }, money(c.precioHoja)));
+  if (!abierto) return el("div", { class: "rubro" + (R.incluir === false ? " fuera" : "") }, cab);
+
+  var o = opcionesCalculo(DATOS);
+  var subMat = 0, subMo = 0;
+  var filasMat = (R.mats || []).map(function (m, j) {
+    var t = TWGCalculo.calcRubro({ mats: [m], mos: [] }, o).materiales; subMat += t;
+    return el("tr", null,
+      celda(m, "desc", "m-" + i + "-" + j + "-d"), celda(m, "unidad", "m-" + i + "-" + j + "-u"),
+      celda(m, "cant", "m-" + i + "-" + j + "-c", true), celda(m, "costo", "m-" + i + "-" + j + "-p", true),
+      celda(m, "desp", "m-" + i + "-" + j + "-x", true), celda(m, "marg", "m-" + i + "-" + j + "-g", true),
+      el("td", { class: "tot" }, cifra(t)),
+      el("td", null, el("button", { class: "btn-quitar", title: "Quitar línea", onClick: function () { R.mats.splice(j, 1); render(); } }, "×")));
+  });
+  var filasMo = (R.mos || []).map(function (m, j) {
+    var t = TWGCalculo.calcRubro({ mats: [], mos: [m] }, o).manoObra; subMo += t;
+    return el("tr", null,
+      celda(m, "desc", "o-" + i + "-" + j + "-d"), celda(m, "pers", "o-" + i + "-" + j + "-n", true),
+      celda(m, "horas", "o-" + i + "-" + j + "-h", true), celda(m, "vh", "o-" + i + "-" + j + "-v", true),
+      celda(m, "marg", "o-" + i + "-" + j + "-g", true),
+      el("td", { class: "tot" }, cifra(t)),
+      el("td", null, el("button", { class: "btn-quitar", title: "Quitar línea", onClick: function () { R.mos.splice(j, 1); render(); } }, "×")));
+  });
+
+  return el("div", { class: "rubro abierto" + (R.incluir === false ? " fuera" : "") }, cab,
+    el("div", { class: "rubro-cuerpo" },
+      el("div", { class: "campos", style: { marginTop: "12px" } },
+        campoTexto("Nombre del rubro", R, "nombre", "r-" + i + "-n", { ancho: true }),
+        campoTexto("Descripción en la propuesta", R, "descripcion", "r-" + i + "-ds", { ancho: true, area: true, rows: 2 }),
+        campoTexto("Medida", R, "medida", "r-" + i + "-m", { num: true }),
+        campoTexto("Unidad", R, "unidad", "r-" + i + "-u"),
+        campoTexto("Overhead %", R, "overhead", "r-" + i + "-oh", { num: true }),
+        campoTexto("Margen general %", R, "margen", "r-" + i + "-mg", { num: true })),
+
+      el("div", null,
+        el("div", { class: "sub-tit" }, "Materiales",
+          el("button", { class: "btn-texto", onClick: function () { R.mats.push({ desc: "", unidad: "un", cant: "1", costo: "0", desp: "0", marg: R.margen || "0" }); render(); } }, "+ Agregar material")),
+        el("div", { class: "tabla-wrap" },
+          el("table", { class: "tabla" },
+            el("thead", null, el("tr", null,
+              el("th", { style: { width: "38%" } }, "Descripción"), el("th", null, "Unidad"), el("th", { class: "r" }, "Cant."),
+              el("th", { class: "r" }, "Costo unit."), el("th", { class: "r" }, "Desp. %"), el("th", { class: "r" }, "Marg. %"),
+              el("th", { class: "r" }, "Costo"), el("th", null, ""))),
+            el("tbody", null, filasMat.length ? filasMat : el("tr", null, el("td", { colspan: 8, style: { padding: "10px", color: "var(--tinta-3)" } }, "Sin materiales"))),
+            el("tfoot", null, el("tr", null, el("td", { colspan: 6 }, "Subtotal materiales"), el("td", { class: "num" }, cifra(subMat)), el("td", null, "")))))),
+
+      el("div", null,
+        el("div", { class: "sub-tit" }, "Mano de obra",
+          el("button", { class: "btn-texto", onClick: function () { R.mos.push({ desc: "", pers: "1", horas: "1", vh: "0", marg: R.margen || "0" }); render(); } }, "+ Agregar mano de obra")),
+        el("div", { class: "tabla-wrap" },
+          el("table", { class: "tabla" },
+            el("thead", null, el("tr", null,
+              el("th", { style: { width: "44%" } }, "Descripción"), el("th", { class: "r" }, "Personas"), el("th", { class: "r" }, "Horas / jornales"),
+              el("th", { class: "r" }, "Valor"), el("th", { class: "r" }, "Marg. %"), el("th", { class: "r" }, "Costo"), el("th", null, ""))),
+            el("tbody", null, filasMo.length ? filasMo : el("tr", null, el("td", { colspan: 7, style: { padding: "10px", color: "var(--tinta-3)" } }, "Sin mano de obra"))),
+            el("tfoot", null, el("tr", null, el("td", { colspan: 5 }, "Subtotal mano de obra"), el("td", { class: "num" }, cifra(subMo)), el("td", null, "")))))),
+
+      el("div", null,
+        el("div", { class: "sub-tit" }, "Otros costos del rubro"),
+        el("div", { class: "otros" },
+          campoTexto("Flete", R, "flete", "r-" + i + "-fl", { num: true }),
+          campoTexto("Equipos", R, "equipos", "r-" + i + "-eq", { num: true }),
+          campoTexto("Subcontratos", R, "subcontratos", "r-" + i + "-sc", { num: true }),
+          campoTexto("Varios", R, "varios", "r-" + i + "-va", { num: true }))),
+
+      el("div", { class: "rubro-pie" },
+        el("span", null, "Costo total ", el("b", null, money(c.costoTotal))),
+        el("span", null, "Margen ", el("b", null, cantidad(c.pctMargen) + " %")),
+        el("span", null, "Precio ", el("b", null, money(c.precioHoja))),
+        el("button", { class: "btn-texto", style: { marginLeft: "auto", color: "var(--mal)" }, onClick: function () { if (confirm("¿Eliminar el rubro \"" + (R.nombre || "sin nombre") + "\"?")) { DATOS.rubros.splice(i, 1); VISTA.abiertos = {}; render(); } } }, "Eliminar rubro"))));
+}
+
+function vistaRubros(calc) {
+  return el("section", { class: "bloque" },
+    el("div", { class: "bloque-tit" }, "Rubros",
+      el("button", { class: "btn btn-chico", onClick: function () {
+        DATOS.rubros.push({ nombre: "", descripcion: "", medida: "1", unidad: "gl", overhead: "0", margen: "30", flete: "0", equipos: "0", subcontratos: "0", varios: "0", incluir: true, mats: [], mos: [] });
+        VISTA.abiertos = {}; VISTA.abiertos[DATOS.rubros.length - 1] = true; render();
+      } }, "+ Agregar rubro")),
+    el("div", { class: "bloque-cuerpo" },
+      DATOS.rubros.length ? DATOS.rubros.map(function (R, i) { return vistaRubro(R, i, calc.rubros[i]); })
+        : el("p", { style: { margin: 0, color: "var(--tinta-3)" } }, "Todavía no hay rubros.")));
+}
+
+function vistaTotales(calc) {
+  return el("aside", { class: "bloque totales" },
+    el("div", { class: "bloque-tit" }, "Totales"),
+    el("div", { class: "bloque-cuerpo" },
+      el("div", { class: "tot-fila" }, el("span", null, "Costo total"), el("span", { class: "num" }, money(calc.costoTotal))),
+      el("div", { class: "tot-fila" }, el("span", null, "Subtotal"), el("span", { class: "num" }, money(calc.subtotal))),
+      el("div", { class: "tot-fila" }, el("span", null, "Descuento"), el("span", { class: "num" }, calc.montoDescuento ? "− " + money(calc.montoDescuento) : money(0))),
+      el("div", { class: "tot-fila" }, el("span", null, "IVA " + cantidad(DATOS.iva) + " %"), el("span", { class: "num" }, money(calc.montoIva))),
+      el("div", { class: "tot-fila tot-final" }, el("span", null, "Total al cliente"), el("span", { class: "num" }, money(calc.totalFinal))),
+      el("div", { class: "tot-fila tot-gan" + (calc.ganancia < 0 ? " neg" : "") }, el("span", null, "Ganancia"), el("span", { class: "num" }, money(calc.ganancia))),
+      el("div", { class: "tot-ajustes" },
+        campoTexto("Desc. %", DATOS, "descuento", "t-desc", { num: true }),
+        campoTexto("Prorr. %", DATOS, "descProrr", "t-prorr", { num: true }),
+        campoTexto("IVA %", DATOS, "iva", "t-iva", { num: true }))));
+}
+
+/* =========================================================================
+   Hoja de propuesta imprimible
+   ========================================================================= */
+function hojaPropuesta(calc) {
+  var incluidos = DATOS.rubros.map(function (R, i) { return { R: R, c: calc.rubros[i] }; }).filter(function (x) { return x.c.incluido; });
+  var img = function (src, cls, alt) { return el("img", { src: src, class: cls, alt: alt, onError: function (e) { e.target.style.visibility = "hidden"; } }); };
+
+  return el("article", { class: "print-sheet" },
+    el("header", { class: "hs-cab" },
+      el("div", { class: "hs-emp" },
+        img(PROPS.logo, "hs-logo", PROPS.empresa),
+        el("div", { class: "hs-emp-txt" },
+          el("b", null, PROPS.empresa), el("span", null, PROPS.razonSocial), el("span", null, PROPS.rubro),
+          el("span", null, PROPS.direccion + " · " + PROPS.telefono), el("span", null, PROPS.email + " · " + PROPS.web))),
+      el("div", { class: "hs-doc" },
+        el("div", { class: "hs-doc-tit" }, "Presupuesto"),
+        el("div", { class: "mono", style: { fontWeight: 600, color: "var(--tinta)", fontSize: "14px" } }, DATOS.nro),
+        el("div", { class: "mono" }, fechaLarga(DATOS.fecha)))),
+
+    el("section", { class: "hs-cli" },
+      el("div", { class: "hs-dato" }, el("span", { class: "etq" }, "Cliente"), el("span", { style: { fontWeight: 600 } }, DATOS.cliente)),
+      el("div", { class: "hs-dato" }, el("span", { class: "etq" }, "Contacto"), el("span", null, DATOS.contacto)),
+      el("div", { class: "hs-dato" }, el("span", { class: "etq" }, "Obra"), el("span", null, DATOS.obra)),
+      el("div", { class: "hs-dato" }, el("span", { class: "etq" }, "Domicilio"), el("span", null, DATOS.domicilio))),
+
+    el("table", { class: "hs-tabla" },
+      el("thead", null, el("tr", null,
+        el("th", null, "N°"), el("th", null, "Descripción"), el("th", { class: "r" }, "Cantidad"),
+        el("th", { class: "r" }, "P. unitario"), el("th", { class: "r" }, "Monto"))),
+      el("tbody", null, incluidos.map(function (x, k) {
+        var med = TWGCalculo.N(x.R.medida) || 1;
+        return el("tr", null,
+          el("td", { class: "n" }, String(k + 1)),
+          el("td", null, el("div", { style: { fontWeight: 600 } }, x.R.nombre), x.R.descripcion ? el("div", { class: "hs-desc" }, x.R.descripcion) : null),
+          el("td", { class: "num" }, cantidad(med) + " " + (x.R.unidad || "")),
+          el("td", { class: "num" }, cifra(precioUnitarioHoja(x.R, x.c))),
+          el("td", { class: "num", style: { fontWeight: 600 } }, cifra(x.c.precioHoja)));
+      }))),
+
+    el("div", { class: "hs-tot" }, el("div", { class: "hs-tot-caja" },
+      el("div", { class: "tot-fila" }, el("span", null, "Subtotal"), el("span", { class: "num" }, money(calc.subtotal))),
+      calc.montoDescuento ? el("div", { class: "tot-fila" }, el("span", null, "Descuento " + cantidad(DATOS.descuento) + " %"), el("span", { class: "num" }, "− " + money(calc.montoDescuento))) : null,
+      el("div", { class: "tot-fila" }, el("span", null, "IVA " + cantidad(DATOS.iva) + " %"), el("span", { class: "num" }, money(calc.montoIva))),
+      el("div", { class: "tot-fila hs-total" }, el("span", null, "Total"), el("span", { class: "num" }, money(calc.totalFinal))))),
+
+    el("section", { class: "hs-cond3" },
+      el("div", { class: "hs-dato" }, el("span", { class: "etq" }, "Plazo de entrega"), el("span", null, DATOS.plazo)),
+      el("div", { class: "hs-dato" }, el("span", { class: "etq" }, "Forma de pago"), el("span", null, DATOS.pago)),
+      el("div", { class: "hs-dato" }, el("span", { class: "etq" }, "Validez de la oferta"), el("span", null, DATOS.validez))),
+
+    el("section", { class: "hs-cond" },
+      el("span", { class: "etq" }, "Condiciones"),
+      el("ol", null, PROPS.condiciones.map(function (t) { return el("li", null, t); }))),
+
+    el("section", { class: "hs-firmas" },
+      el("div", { class: "hs-firma" },
+        el("span", { class: "etq" }, "Por " + PROPS.empresa),
+        el("div", { class: "hs-firma-zona" }, img(PROPS.sello, "hs-sello-img", "Sello"), img(PROPS.firma, "hs-firma-img", "Firma")),
+        el("div", { class: "hs-linea" }),
+        el("span", { class: "hs-firma-nom" }, DATOS.firmaNombre),
+        el("span", { class: "hs-firma-cargo" }, DATOS.firmaCargo)),
+      el("div", { class: "hs-firma" },
+        el("span", { class: "etq" }, "Conformidad del cliente"),
+        el("div", { class: "hs-firma-zona" }),
+        el("div", { class: "hs-linea" }),
+        el("span", { class: "hs-firma-cargo" }, "Firma, aclaración y fecha"))),
+
+    el("footer", { class: "hs-pie" }, el("span", null, PROPS.razonSocial), el("span", { class: "mono" }, DATOS.nro)));
+}
+
+/* =========================================================================
+   render(): redibuja todo desde DATOS, conservando el campo con foco
+   ========================================================================= */
+function render() {
+  var app = document.getElementById("app");
+  var activo = document.activeElement, clave = activo && activo.getAttribute && activo.getAttribute("data-k");
+  var sel = clave && activo.selectionStart != null ? [activo.selectionStart, activo.selectionEnd] : null;
+  var scroll = window.scrollY;
+
+  var calc = TWGCalculo.calcPresupuesto(DATOS);
+  var setTab = function (t) { return function () { VISTA.tab = t; render(); }; };
+
+  var barra = el("header", { class: "barra noprint" },
+    el("span", { class: "barra-marca" }, "Presupuestos"),
+    el("span", { class: "barra-nro" }, DATOS.nro), chipEstado(DATOS.estado),
+    el("div", { class: "tabs" },
+      el("button", { class: "tab" + (VISTA.tab === "edicion" ? " activo" : ""), onClick: setTab("edicion") }, "Edición"),
+      el("button", { class: "tab" + (VISTA.tab === "propuesta" ? " activo" : ""), onClick: setTab("propuesta") }, "Hoja de propuesta")),
+    el("button", { class: "btn btn-pri", onClick: function () { window.print(); } }, "Imprimir"));
+
+  var edicion = el("main", { class: "edicion noprint" + (VISTA.tab === "edicion" ? "" : " oculto") },
+    el("div", { class: "col" }, vistaDatosGenerales(), vistaRubros(calc)),
+    vistaTotales(calc));
+
+  var vista = el("div", { class: "vista" + (VISTA.tab === "propuesta" ? "" : " oculto") }, hojaPropuesta(calc));
+
+  app.replaceChildren(barra, edicion, vista);
+
+  if (clave) {
+    var nuevo = app.querySelector('[data-k="' + clave + '"]');
+    if (nuevo) { nuevo.focus(); if (sel && nuevo.setSelectionRange) try { nuevo.setSelectionRange(sel[0], sel[1]); } catch (e) {} }
+  }
+  window.scrollTo(0, scroll);
+}
+
+render();
+</script>
+</body>
+</html>

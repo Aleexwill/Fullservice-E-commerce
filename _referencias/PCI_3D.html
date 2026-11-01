@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>PCI 3D</title>
+<style>
+html,body{margin:0;height:100%;background:#eceae6;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+#v{position:absolute;inset:0}#v canvas{display:block;outline:none}
+#e{position:absolute;right:12px;bottom:10px;font-size:11px;color:#4f4b45;background:rgba(255,255,255,.9);padding:4px 8px;border-radius:5px;pointer-events:none}
+#tb{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#tb .g{display:flex;gap:3px;padding:3px;background:rgba(255,255,255,.94);border:1px solid #dedbd5;border-radius:8px}
+#tb button{border:0;background:transparent;padding:6px 11px;font:600 12px inherit;font-family:inherit;color:#33312e;border-radius:5px;cursor:pointer;white-space:nowrap}
+#tb button.on{background:#1b1a18;color:#fff}
+#ayuda{max-width:260px;font-size:11px;line-height:1.45;color:#4f4b45;background:rgba(255,255,255,.92);border:1px solid #e6e2da;border-radius:7px;padding:7px 10px;text-align:right}
+#tip{position:absolute;pointer-events:none;display:none;max-width:280px;padding:6px 9px;font-size:12px;line-height:1.35;color:#fff;background:rgba(27,26,24,.92);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#tip{max-width:300px}#tip b{display:block;font-size:13px;margin-bottom:3px}#tip .m{font-size:11.5px;color:#ffd78a;margin-bottom:3px}#tip .u{font-size:11.5px;line-height:1.4;margin-bottom:3px}#tip span{display:block;opacity:.65;font-size:10.5px;border-top:1px solid rgba(255,255,255,.18);padding-top:3px}
+#mira{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1.5px solid rgba(27,26,24,.7);border-radius:50%;pointer-events:none;display:none}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="v"></div>
+<div id="tb">
+  <div class="g"><button id="bGen" class="on">Vista general</button><button id="bIn">Recorrer adentro</button></div>
+  <div class="g" id="gPiso" style="display:none"><button id="pAb">▼ Piso</button><button id="pTx" style="cursor:default">Planta baja</button><button id="pAr">Piso ▲</button></div>
+  <div class="g"><label style="display:flex;align-items:center;gap:6px;padding:0 8px;font-size:12.5px;font-weight:600">Ver piso <select id="selPiso" style="padding:5px 6px;font-size:12.5px;border:1px solid #d6d2ca;border-radius:5px;background:#fff;max-width:150px"><option value="-1">Todos</option></select></label></div>
+  <div class="g"><button id="bMuros" class="on">Muros</button><button id="bTecho">Techo</button></div>
+  <div class="g"><button id="bWaImg" title="Imágenes JPG: vista en planta y 3D, se abren en cualquier celular">⬇ Imágenes WhatsApp</button><button id="bWaVid" title="Video que recorre el proyecto punto por punto, con cada equipo, su cantidad y para qué sirve">⬇ Video recorrido</button><button id="bWaSend" title="Graba el video en MP4 y lo comparte por WhatsApp" style="background:#25d366;color:#fff;font-weight:700">📲 Enviar por WhatsApp</button></div>
+  <div id="ayuda">Rueda: acercar y alejar · Arrastrar: girar · Clic derecho: mover</div>
+</div>
+<div id="tip"></div><div id="mira"></div>
+<div id="waBox" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(20,19,17,.55);z-index:20">
+  <div style="width:min(420px,90%);background:#fff;border-radius:12px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.5;color:#1b1a18;box-shadow:0 10px 30px rgba(0,0,0,.3)">
+    <div style="font-size:16px;font-weight:700">Video listo para WhatsApp</div>
+    <div id="waInfo" style="color:#4f4b45"></div>
+    <a id="waLink" href="#" download="" style="display:block;text-align:center;padding:12px 14px;font-size:14.5px;font-weight:700;color:#fff;background:#1b1a18;border-radius:8px;text-decoration:none">⬇ Descargar el video MP4</a>
+    <button id="waShare" style="padding:11px 14px;font-size:14px;font-weight:700;color:#fff;background:#25d366;border:0;border-radius:8px;cursor:pointer">📲 Compartir en WhatsApp</button>
+    <button id="waDown" style="padding:9px 14px;font-size:13px;font-weight:600;color:#1b1a18;background:#fff;border:1px solid #c9c5bd;border-radius:8px;cursor:pointer">Abrir WhatsApp Web para adjuntarlo</button>
+    <button id="waClose" style="padding:6px;font-size:12px;color:#6f6b64;background:transparent;border:0;cursor:pointer">Cerrar</button>
+  </div>
+</div>
+<div id="foco" style="position:absolute;left:12px;bottom:12px;max-width:340px;display:none;z-index:6;padding:12px 14px;background:rgba(27,26,24,.94);color:#fff;border-radius:9px;font-size:12px;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.25)"></div>
+<div id="e">Cargando visor 3D…</div>
+<script>
+window.__t3 = setTimeout(() => { const e = document.getElementById('e'); if (e && !window.__ok3) e.textContent = 'No se pudo cargar el visor 3D. Revisá la conexión a internet y volvé a tocar "Vista 3D".'; }, 12000);
+</script>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+window.__ok3 = true; clearTimeout(window.__t3);
+const $ = (id) => document.getElementById(id);
+const el = $('v'), est = (t) => { $('e').textContent = t; try { parent.postMessage({ pci3d: 'estado', t }, '*'); } catch (x) {} };
+let r;
+try { r = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); }
+catch (x) { est('Este navegador no tiene WebGL activado: no se puede mostrar el 3D.'); throw x; }
+r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
+r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+el.appendChild(r.domElement); r.domElement.tabIndex = 0;
+const sc = new T.Scene(); sc.background = new T.Color('#e9eef3'); sc.fog = new T.Fog('#e9eef3', 120, 320);
+// Iluminación de ambiente tipo estudio: reflejos reales en metales, vidrios y pintura.
+import('three/addons/environments/RoomEnvironment.js').then(({ RoomEnvironment }) => { try { const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; r.toneMappingExposure = 0.95; } catch (x) {} }).catch(() => {});
+const logoImg = new Image(); logoImg.src = 'logo-fullservice-clean.png';
+const pm = new T.PMREMGenerator(r); sc.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+const cam = new T.PerspectiveCamera(50, 1, 0.03, 4000);
+sc.add(new T.HemisphereLight('#ffffff', '#a39d93', 0.55));
+const sun = new T.DirectionalLight('#fff6e8', 2.2); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); sun.shadow.radius = 3; sun.shadow.bias = -0.0004; sc.add(sun); sc.add(sun.target);
+const ctl = new OrbitControls(cam, r.domElement);
+ctl.enableDamping = true; ctl.dampingFactor = 0.08; ctl.enableZoom = false; ctl.minDistance = 0.2; ctl.maxDistance = 800; ctl.maxPolarAngle = Math.PI * 0.495; ctl.screenSpacePanning = true;
+const fit = () => { const w = innerWidth || 800, h = innerHeight || 560; r.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+addEventListener('resize', fit); fit();
+
+// ---------- texturas simples hechas en canvas
+const tex = (fn, rep) => { const c = document.createElement('canvas'); c.width = c.height = 256; fn(c.getContext('2d')); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.wrapS = t.wrapT = T.RepeatWrapping; t.anisotropy = 8; if (rep) t.repeat.set(rep[0], rep[1]); return t; };
+const piso = () => tex(g => { g.fillStyle = '#d9d5ce'; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 2600; i++) { g.fillStyle = 'rgba(' + (120 + Math.random() * 60 | 0) + ',' + (115 + Math.random() * 55 | 0) + ',' + (105 + Math.random() * 50 | 0) + ',0.12)'; g.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); } g.strokeStyle = '#b9b3aa'; g.lineWidth = 3; g.strokeRect(0, 0, 256, 256); });
+const pasto = () => tex(g => { g.fillStyle = '#8fa47a'; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 5000; i++) { g.fillStyle = 'rgba(' + (60 + Math.random() * 60 | 0) + ',' + (100 + Math.random() * 60 | 0) + ',' + (50 + Math.random() * 40 | 0) + ',0.25)'; g.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 3); } });
+const revoque = () => tex(g => { g.fillStyle = '#f2efe9'; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 3000; i++) { g.fillStyle = 'rgba(0,0,0,' + (Math.random() * 0.035) + ')'; g.fillRect(Math.random() * 256, Math.random() * 256, 3, 3); } });
+
+let grp = null, sig = '', D0 = null, modo = 'gen', pisoAct = 0, verMuros = true, verTecho = false;
+const muros = [], techos = [], pickables = [];
+function modelo(C) {
+  muros.length = 0; techos.length = 0; pickables.length = 0;
+  const fin = (v, d, mx) => (isFinite(v) && v > 0 ? Math.min(v, mx) : d);
+  const PL = C.planta && Array.isArray(C.planta.P) ? C.planta : null;
+  const G = new T.Group(), W = PL ? PL.W + 0.5 : fin(C.BW, 12, 200), D = PL ? PL.D + 0.5 : fin(C.BD, 8, 200), H = fin(C.alt, 3, 10), n = Math.max(1, Math.min(Math.round(fin(C.pisos, 1, 40)), 40));
+  const fl = Array.isArray(C.fl) ? C.fl : [];
+  const tubD = C.tubD || '2½"', sucD = C.sucD || '3"';
+  const cache = {};
+  const M = (c, o = {}) => { const k = c + JSON.stringify(o); if (cache[k]) return cache[k]; const m = new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.7, metalness: 0.05 }, o)); if (o.opacity != null && o.opacity < 1) { m.transparent = true; m.depthWrite = o.opacity > 0.5; } return (cache[k] = m); };
+  const MET = (c) => M(c, { roughness: 0.32, metalness: 0.65 });
+  let curMed = '';
+  const reg = (m, name, det) => { m.castShadow = true; m.receiveShadow = true; if (name) { m.userData.name = name; m.userData.det = det || ''; if (curMed) m.userData.med = curMed; pickables.push(m); } G.add(m); return m; };
+  const conMed = (med, fn) => { const p = curMed; curMed = med; try { fn(); } finally { curMed = p; } };
+  const box = (w, h, d, x, y, z, mat, name, det) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), typeof mat === 'string' ? M(mat) : mat); m.position.set(x + w / 2, y + h / 2, z + d / 2); return reg(m, name, det); };
+  const cyl = (rr, h, x, y, z, mat, name, det, seg = 20) => { const m = new T.Mesh(new T.CylinderGeometry(rr, rr, h, seg), typeof mat === 'string' ? M(mat) : mat); m.position.set(x, y + h / 2, z); return reg(m, name, det); };
+  const tubo = (a, b, rr, mat, name, det) => { const A = new T.Vector3(...a), B = new T.Vector3(...b), d = B.clone().sub(A), L = d.length(); if (L < 1e-3) return; const m = new T.Mesh(new T.CylinderGeometry(rr, rr, L, 14), mat); m.position.copy(A.clone().add(B).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d.normalize()); reg(m, name, det); };
+  const pipe = (pts, rr, mat, name, det) => { for (let i = 1; i < pts.length; i++) tubo(pts[i - 1], pts[i], rr, mat, name, det); for (let i = 1; i < pts.length - 1; i++) { const s = new T.Mesh(new T.SphereGeometry(rr * 1.25, 12, 10), mat); s.position.set(...pts[i]); reg(s, name, det); } };
+  const RED = '#b8261c', GREEN = '#1f8a4c', ORA = '#e07a2a', GRAY = '#4a4743';
+  const mesh = (geo, mat, x, y, z, name, det, rot) => { const m = new T.Mesh(geo, typeof mat === 'string' ? M(mat) : mat); m.position.set(x, y, z); if (rot) m.rotation.set(rot[0] || 0, rot[1] || 0, rot[2] || 0); return reg(m, name, det); };
+  const mAcero = MET('#8a9196'), mInox = M('#c9cdd1', { roughness: 0.22, metalness: 0.85 }), mNegro = M('#1e1e1e', { roughness: 0.5, metalness: 0.4 }), mBronce = M('#b08a3e', { roughness: 0.3, metalness: 0.85 });
+  const mMotor = M('#2d4e6e', { roughness: 0.42, metalness: 0.45 }), mBombaR = M('#a91f17', { roughness: 0.38, metalness: 0.45 }), mGris7035 = M('#d5d6d2', { roughness: 0.45, metalness: 0.25 }), mH = M('#bdb8ae', { roughness: 0.95 });
+  // texturas de texto para frentes de equipos
+  const texTxt = (w, h, bg, fg, lines, opt) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const x = cv.getContext('2d'); x.fillStyle = bg; x.fillRect(0, 0, w, h);
+    if (opt && opt.borde) { x.strokeStyle = opt.borde; x.lineWidth = Math.max(4, w / 40); x.strokeRect(x.lineWidth / 2, x.lineWidth / 2, w - x.lineWidth, h - x.lineWidth); }
+    x.fillStyle = fg; x.textAlign = 'center'; x.textBaseline = 'middle'; lines.forEach(([t, fs, y]) => { x.font = '700 ' + fs + 'px Arial, Helvetica, sans-serif'; x.fillText(t, w / 2, y); }); if (opt && opt.extra) opt.extra(x, w, h);
+    const t = new T.CanvasTexture(cv); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 4; return t; };
+  const frente = (w, h, tex, x, y, z, ry, name, det) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshStandardMaterial({ map: tex, roughness: 0.45 })); m.position.set(x, y, z); m.rotation.y = ry || 0; return reg(m, name, det); };
+  const tSalida = texTxt(512, 256, '#1f8a4c', '#ffffff', [['SALIDA', 92, 150]], { extra: (x, w) => { x.fillStyle = '#fff'; x.beginPath(); x.arc(70, 70, 22, 0, 7); x.fill(); x.fillRect(58, 95, 26, 70); x.fillRect(30, 110, 90, 16); x.fillRect(50, 160, 16, 70); x.fillRect(80, 160, 16, 60); x.beginPath(); x.moveTo(w - 140, 128); x.lineTo(w - 60, 128); x.lineTo(w - 90, 98); x.moveTo(w - 60, 128); x.lineTo(w - 90, 158); x.lineWidth = 16; x.strokeStyle = '#fff'; x.stroke(); } });
+  const tExt = texTxt(256, 512, '#c8261c', '#ffffff', [['EXTINTOR', 40, 430]], { extra: (x) => { x.fillStyle = '#fff'; x.fillRect(98, 120, 60, 210); x.beginPath(); x.arc(128, 120, 30, Math.PI, 0); x.fill(); x.fillRect(118, 60, 20, 40); x.fillRect(138, 66, 50, 12); } });
+  const tPuls = texTxt(256, 256, '#c8261c', '#ffffff', [['ALARMA', 34, 40], ['PULSAR', 30, 222]], { extra: (x) => { x.fillStyle = '#f2efe6'; x.fillRect(58, 70, 140, 120); x.strokeStyle = '#c8261c'; x.lineWidth = 6; x.strokeRect(58, 70, 140, 120); x.fillStyle = '#1b1a18'; x.beginPath(); x.moveTo(100, 105); x.lineTo(150, 130); x.lineTo(100, 155); x.fill(); } });
+  const tCentral = texTxt(384, 512, '#e9e6df', '#1b1a18', [['CENTRAL DE ALARMA', 26, 40]], { extra: (x) => { x.fillStyle = '#2b3a2e'; x.fillRect(42, 70, 300, 90); x.fillStyle = '#8ef0a0'; x.font = '700 24px monospace'; x.textAlign = 'left'; x.fillText('SISTEMA NORMAL', 60, 120);
+    for (let i = 0; i < 8; i++) { x.fillStyle = i === 0 ? '#22c55e' : '#d6d2ca'; x.beginPath(); x.arc(70 + (i % 4) * 82, 210 + Math.floor(i / 4) * 48, 12, 0, 7); x.fill(); x.fillStyle = '#4f4b45'; x.font = '18px Arial'; x.fillText('Z' + (i + 1), 88 + (i % 4) * 82, 216 + Math.floor(i / 4) * 48); }
+    ['SILENCIO', 'RESET', 'EVACUAR'].forEach((t, i) => { x.fillStyle = i === 2 ? '#c8261c' : '#55524d'; x.fillRect(42 + i * 104, 330, 92, 52); x.fillStyle = '#fff'; x.font = '700 17px Arial'; x.textAlign = 'center'; x.fillText(t, 88 + i * 104, 362); x.textAlign = 'left'; }); } });
+  const tBIE = texTxt(256, 384, '#c8261c', '#ffffff', [['BIE', 56, 340]], { borde: '#7a140e' });
+  // brida con bulones (eje 'x' | 'y' | 'z')
+  const brida = (x, y, z, rr, eje, name, det) => {
+    const rot = eje === 'x' ? [0, 0, Math.PI / 2] : eje === 'z' ? [Math.PI / 2, 0, 0] : [0, 0, 0];
+    mesh(new T.CylinderGeometry(rr * 1.9, rr * 1.9, 0.025, 24), mAcero, x, y, z, name, det, rot);
+    for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, u = Math.cos(a) * rr * 1.55, v = Math.sin(a) * rr * 1.55;
+      const p = eje === 'x' ? [x, y + u, z + v] : eje === 'z' ? [x + u, y + v, z] : [x + u, y, z + v];
+      mesh(new T.CylinderGeometry(0.008, 0.008, 0.05, 6), mNegro, p[0], p[1], p[2], name, det, rot); }
+  };
+  // válvula esclusa con volante
+  const esclusa = (x, y, z, rr, eje, name, dl) => conMed(dl || curMed, () => { const nm = name || 'Válvula esclusa', det = 'Bridada · volante de maniobra · indicador de posición';
+    const rot = eje === 'x' ? [0, 0, Math.PI / 2] : eje === 'z' ? [Math.PI / 2, 0, 0] : [0, 0, 0];
+    mesh(new T.CylinderGeometry(rr * 1.5, rr * 1.5, rr * 3.2, 20), mBombaR, x, y, z, nm, det, rot);
+    brida(eje === 'x' ? x - rr * 1.7 : x, eje === 'y' ? y - rr * 1.7 : y, eje === 'z' ? z - rr * 1.7 : z, rr, eje, nm, det);
+    brida(eje === 'x' ? x + rr * 1.7 : x, eje === 'y' ? y + rr * 1.7 : y, eje === 'z' ? z + rr * 1.7 : z, rr, eje, nm, det);
+    const up = eje === 'y' ? [rr * 2.6, 0, 0] : [0, rr * 2.6, 0], ax = eje === 'y' ? [0, 0, Math.PI / 2] : [0, 0, 0];
+    mesh(new T.CylinderGeometry(rr * 0.75, rr * 1.1, rr * 2.2, 14), mBombaR, x + up[0] * 0.55, y + up[1] * 0.55, z, nm, det, ax);
+    mesh(new T.CylinderGeometry(0.008, 0.008, rr * 2.2, 8), mInox, x + up[0] * 1.05, y + up[1] * 1.05, z, nm, det, ax);
+    const vol = new T.Mesh(new T.TorusGeometry(rr * 1.7, 0.012, 8, 28), mNegro); vol.position.set(x + up[0] * 1.45, y + up[1] * 1.45, z); vol.rotation.set(eje === 'y' ? 0 : Math.PI / 2, eje === 'y' ? Math.PI / 2 : 0, 0); reg(vol, nm, det);
+    for (let k = 0; k < 3; k++) { const s = new T.Mesh(new T.CylinderGeometry(0.006, 0.006, rr * 3.4, 6), mNegro); s.position.copy(vol.position); s.rotation.copy(vol.rotation); s.rotateZ(k * Math.PI / 3); reg(s, nm, det); }
+  });
+  // válvula de retención
+  const retencion = (x, y, z, rr, eje, dl) => conMed(dl || curMed, () => { const nm = 'Válvula de retención', det = 'Tipo clapeta · bridada · evita el retorno del agua';
+    const rot = eje === 'x' ? [0, 0, Math.PI / 2] : eje === 'z' ? [Math.PI / 2, 0, 0] : [0, 0, 0];
+    mesh(new T.CylinderGeometry(rr * 1.45, rr * 1.45, rr * 3.4, 20), mBombaR, x, y, z, nm, det, rot);
+    mesh(new T.SphereGeometry(rr * 1.35, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), mBombaR, x, y + rr * 1.2, z, nm, det);
+    mesh(new T.CylinderGeometry(rr * 0.9, rr * 0.9, 0.02, 16), mAcero, x, y + rr * 2.45, z, nm, det);
+    brida(eje === 'x' ? x - rr * 1.8 : x, eje === 'y' ? y - rr * 1.8 : y, eje === 'z' ? z - rr * 1.8 : z, rr, eje, nm, det);
+    brida(eje === 'x' ? x + rr * 1.8 : x, eje === 'y' ? y + rr * 1.8 : y, eje === 'z' ? z + rr * 1.8 : z, rr, eje, nm, det);
+  });
+  const manometro = (x, y, z) => { const nm = 'Manómetro', det = 'Glicerina 0–16 kg/cm² · con llave de corte';
+    mesh(new T.CylinderGeometry(0.01, 0.01, 0.12, 8), mBronce, x, y + 0.06, z, nm, det);
+    mesh(new T.CylinderGeometry(0.055, 0.055, 0.035, 24), mInox, x, y + 0.17, z, nm, det, [Math.PI / 2, 0, 0]);
+    const cara = new T.Mesh(new T.CircleGeometry(0.048, 24), new T.MeshStandardMaterial({ color: '#fbfaf6', roughness: 0.3 })); cara.position.set(x, y + 0.17, z + 0.019); reg(cara, nm, det);
+    const aguja = new T.Mesh(new T.BoxGeometry(0.003, 0.038, 0.002), M('#c8261c')); aguja.position.set(x + 0.008, y + 0.18, z + 0.021); aguja.rotation.z = -0.7; G.add(aguja); };
+  // abrazadera + soporte (tipo: 'piso' | 'techo' | 'muro')
+  const soporte = (p, rr, tipo, tope, eje) => { const nm = tipo === 'techo' ? 'Soporte colgante con varilla roscada' : tipo === 'muro' ? 'Abrazadera a muro' : 'Soporte de piso (perfil C)', det = 'Abrazadera tipo pera / U-bolt galvanizada · cada 2,5 m';
+    const ab = new T.Mesh(new T.TorusGeometry(rr * 1.18, Math.max(0.006, rr * 0.12), 8, 22), MET('#a7adb2')); ab.position.set(...p);
+    if (eje === 'x') ab.rotation.y = Math.PI / 2; else if (eje === 'y') ab.rotation.x = Math.PI / 2; reg(ab, nm, det);
+    if (tipo === 'techo') { mesh(new T.CylinderGeometry(0.006, 0.006, tope - p[1], 6), mInox, p[0], (tope + p[1]) / 2, p[2], nm, det); mesh(new T.BoxGeometry(0.08, 0.01, 0.08), mAcero, p[0], tope - 0.005, p[2], nm, det); }
+    else if (tipo === 'piso') { const h = p[1] - rr * 1.2; mesh(new T.BoxGeometry(0.041, h, 0.041), M('#9da3a8', { roughness: 0.4, metalness: 0.6 }), p[0], h / 2, p[2], nm, det); mesh(new T.BoxGeometry(0.16, 0.012, 0.16), mAcero, p[0], 0.006, p[2], nm, det); mesh(new T.BoxGeometry(rr * 3, 0.035, 0.05), M('#9da3a8', { roughness: 0.4, metalness: 0.6 }), p[0], p[1] - rr * 1.2, p[2], nm, det, eje === 'z' ? [0, Math.PI / 2, 0] : null); }
+    else { mesh(new T.BoxGeometry(0.05, 0.05, 0.12), M('#9da3a8', { roughness: 0.4, metalness: 0.6 }), p[0], p[1], p[2] - rr - 0.06, nm, det); }
+  };
+  // cañería con soportes automáticos cada 2,5 m
+  const red = (pts, rr, mat, name, det, tipo, tope) => { const dm = (name.match(/Ø\s*[^\s·]+/) || [''])[0]; if (dm) conMed(dm, () => pipe(pts, rr, mat, name, det)); else pipe(pts, rr, mat, name, det);
+    for (let i = 1; i < pts.length; i++) { const A = pts[i - 1], B = pts[i], L = Math.hypot(B[0] - A[0], B[1] - A[1], B[2] - A[2]); const eje = Math.abs(B[0] - A[0]) > 1e-3 ? 'x' : Math.abs(B[2] - A[2]) > 1e-3 ? 'z' : 'y';
+      const n = Math.floor(L / 2.5); for (let k = 1; k <= n; k++) { const t = k / (n + 1); const p = [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t]; soporte(p, rr, eje === 'y' ? 'muro' : tipo, tope, eje); } } };
+  // extintor realista con soporte de pared
+  const extintor = (x, y, z, ry, tipo) => { const co2 = tipo === 'co2', nm = co2 ? 'Extintor CO₂ 6 kg' : 'Extintor PQS ABC 6 kg', det = 'Colgado con la parte superior a ≤ 1,70 m · cartel 20 × 40 cm · Art. 41–43';
+    const g2 = new T.Group(); g2.position.set(x, y, z); g2.rotation.y = ry; G.add(g2);
+    const add = (geo, mat, px, py, pz, rot) => { const m = new T.Mesh(geo, mat); m.position.set(px, py, pz); if (rot) m.rotation.set(...rot); m.castShadow = true; m.userData.name = nm; m.userData.det = det; pickables.push(m); g2.add(m); };
+    const cuerpo = co2 ? M('#b3221a', { roughness: 0.3, metalness: 0.3 }) : M('#c9261c', { roughness: 0.28, metalness: 0.25 });
+    add(new T.CylinderGeometry(0.08, 0.08, 0.42, 28), cuerpo, 0, 0.21, 0);
+    add(new T.SphereGeometry(0.08, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), cuerpo, 0, 0.42, 0);
+    add(new T.SphereGeometry(0.08, 24, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), cuerpo, 0, 0.0, 0);
+    add(new T.CylinderGeometry(0.11, 0.11, 0.07, 24), new T.MeshStandardMaterial({ color: '#f2efe6', roughness: 0.6 }), 0, 0.24, 0);
+    add(new T.CylinderGeometry(0.022, 0.026, 0.05, 12), mBronce, 0, 0.52, 0);
+    add(new T.BoxGeometry(0.05, 0.04, 0.05), mNegro, 0, 0.565, 0);
+    add(new T.BoxGeometry(0.11, 0.012, 0.025), mNegro, 0.04, 0.6, 0, [0, 0, -0.18]);
+    add(new T.BoxGeometry(0.1, 0.01, 0.022), mNegro, 0.035, 0.575, 0, [0, 0, -0.05]);
+    if (!co2) { add(new T.CylinderGeometry(0.016, 0.016, 0.012, 14), mInox, -0.03, 0.56, 0.026, [Math.PI / 2, 0, 0]); }
+    const curva = new T.CatmullRomCurve3([new T.Vector3(0.02, 0.56, 0.02), new T.Vector3(0.12, 0.5, 0.05), new T.Vector3(0.1, 0.2, 0.08), new T.Vector3(0.06, 0.05, 0.085)]);
+    add(new T.TubeGeometry(curva, 20, 0.009, 8), mNegro, 0, 0, 0);
+    add(new T.CylinderGeometry(co2 ? 0.04 : 0.014, 0.012, co2 ? 0.12 : 0.06, 12), mNegro, 0.06, 0.04, 0.085);
+    add(new T.BoxGeometry(0.06, 0.12, 0.025), mAcero, 0, 0.38, -0.095); add(new T.TorusGeometry(0.085, 0.006, 6, 24, Math.PI), mAcero, 0, 0.36, 0, [Math.PI / 2, 0, 0]);
+  };
+  // bomba centrífuga + motor sobre bastidor
+  const bomba = (x, z, esc, nm, det) => { const s = esc;
+    mesh(new RoundedBoxGeometry(1.25 * s, 0.1, 0.42 * s, 2, 0.015), M('#3c3b38', { roughness: 0.5, metalness: 0.5 }), x, 0.2, z, nm, det);
+    mesh(new T.BoxGeometry(1.35 * s, 0.05, 0.52 * s), mH, x, 0.17, z, 'Base de H°A° antivibratoria');
+    // motor
+    mesh(new T.CylinderGeometry(0.19 * s, 0.19 * s, 0.55 * s, 28), mMotor, x - 0.25 * s, 0.25 + 0.24 * s, z, nm, det, [0, 0, Math.PI / 2]);
+    for (let k = 0; k < 9; k++) mesh(new T.TorusGeometry(0.192 * s, 0.006 * s, 6, 28), mMotor, x - 0.47 * s + k * 0.055 * s, 0.25 + 0.24 * s, z, nm, det, [0, Math.PI / 2, 0]);
+    mesh(new T.CylinderGeometry(0.17 * s, 0.17 * s, 0.1 * s, 24), M('#24405c', { roughness: 0.5, metalness: 0.4 }), x - 0.57 * s, 0.25 + 0.24 * s, z, nm + ' · tapa del ventilador', det, [0, 0, Math.PI / 2]);
+    mesh(new T.BoxGeometry(0.16 * s, 0.13 * s, 0.14 * s), mMotor, x - 0.25 * s, 0.25 + 0.48 * s, z, nm + ' · caja de bornes', det);
+    mesh(new T.BoxGeometry(0.36 * s, 0.06, 0.06 * s), mMotor, x - 0.25 * s, 0.27, z - 0.15 * s, nm, det); mesh(new T.BoxGeometry(0.36 * s, 0.06, 0.06 * s), mMotor, x - 0.25 * s, 0.27, z + 0.15 * s, nm, det);
+    // acople y protección
+    mesh(new T.CylinderGeometry(0.11 * s, 0.11 * s, 0.16 * s, 20, 1, true, 0, Math.PI), M(ORA, { roughness: 0.5, metalness: 0.3, side: T.DoubleSide }), x + 0.1 * s, 0.25 + 0.24 * s, z, 'Protección de acople', 'Cubre-acople de seguridad', [0, 0, Math.PI / 2]);
+    // voluta
+    mesh(new T.CylinderGeometry(0.22 * s, 0.22 * s, 0.16 * s, 30), mBombaR, x + 0.33 * s, 0.25 + 0.24 * s, z, nm, det, [0, 0, Math.PI / 2]);
+    mesh(new T.TorusGeometry(0.2 * s, 0.05 * s, 12, 30), mBombaR, x + 0.33 * s, 0.25 + 0.24 * s, z, nm, det, [0, Math.PI / 2, 0]);
+    mesh(new T.CylinderGeometry(0.07 * s, 0.07 * s, 0.18 * s, 18), mBombaR, x + 0.5 * s, 0.25 + 0.24 * s, z, nm + ' · boca de succión', det, [0, 0, Math.PI / 2]);
+    brida(x + 0.6 * s, 0.25 + 0.24 * s, z, 0.045 * s, 'x', nm, det);
+    mesh(new T.CylinderGeometry(0.055 * s, 0.055 * s, 0.2 * s, 18), mBombaR, x + 0.33 * s, 0.25 + 0.5 * s, z, nm + ' · boca de impulsión', det);
+    brida(x + 0.33 * s, 0.25 + 0.61 * s, z, 0.04 * s, 'y', nm, det);
+    mesh(new T.BoxGeometry(0.1 * s, 0.03, 0.06 * s), M('#e8e4d8'), x - 0.25 * s, 0.25 + 0.25 * s, z + 0.19 * s, 'Placa de datos del motor', det);
+    return { suc: [x + 0.62 * s, 0.25 + 0.24 * s, z], imp: [x + 0.33 * s, 0.25 + 0.63 * s, z] };
+  };
+  const tablero = (x, y, z, w, h, nm, det) => {
+    mesh(new T.BoxGeometry(w, 0.1, 0.32), M('#3c3b38'), x, y + 0.05, z, nm, det);
+    mesh(new RoundedBoxGeometry(w, h, 0.3, 4, 0.025), mGris7035, x, y + 0.1 + h / 2, z, nm, det);
+    mesh(new T.BoxGeometry(w - 0.06, h - 0.06, 0.02), M('#dedfdb', { roughness: 0.4, metalness: 0.2 }), x, y + 0.1 + h / 2, z + 0.16, nm, det);
+    mesh(new T.BoxGeometry(0.025, 0.14, 0.03), mNegro, x + w / 2 - 0.08, y + 0.1 + h / 2, z + 0.18, nm + ' · manija con llave', det);
+    const luces = [['#22c55e', 'Piloto: en servicio'], ['#ef4444', 'Piloto: falla'], ['#f59e0b', 'Piloto: bomba en marcha']];
+    luces.forEach(([c, t], k) => { const l = new T.Mesh(new T.CylinderGeometry(0.018, 0.018, 0.02, 14), new T.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.9 })); l.rotation.x = Math.PI / 2; l.position.set(x - w / 2 + 0.12 + k * 0.08, y + 0.1 + h - 0.15, z + 0.18); reg(l, t, nm); });
+    mesh(new T.CylinderGeometry(0.032, 0.032, 0.03, 18), M('#c8261c', { emissive: '#5a0d08', emissiveIntensity: 0.3 }), x - w / 2 + 0.36, y + 0.1 + h - 0.15, z + 0.18, 'Pulsador de parada de emergencia', nm, [Math.PI / 2, 0, 0]);
+    mesh(new T.BoxGeometry(0.16, 0.05, 0.005), M('#f5f2e8'), x, y + 0.1 + h - 0.32, z + 0.172, 'Rótulo del tablero', 'Tablero de bombas de incendio');
+    mesh(new T.CylinderGeometry(0.025, 0.025, 1.2, 12), M('#6b6b6b', { roughness: 0.4, metalness: 0.6 }), x - w / 2 + 0.1, y + 0.1 + h + 0.6, z, 'Caño de acometida', 'Alimentación exclusiva resistente al fuego');
+  };
+  const tanque = (x, z, rr, h, existente) => { const nm = 'Reserva técnica de agua', det = (existente ? 'Reservorio existente con toma diferenciada' : 'Tanque de reserva') + ' · Art. 47';
+    mesh(new T.CylinderGeometry(rr + 0.25, rr + 0.25, 0.25, 40), mH, x, 0.125, z, 'Base de H°A° del tanque');
+    const mt = M(existente ? '#9fb3c6' : '#2f5f8a', { roughness: 0.35, metalness: 0.55 });
+    mesh(new T.CylinderGeometry(rr, rr, h, 48), mt, x, 0.25 + h / 2, z, nm, det);
+    mesh(new T.SphereGeometry(rr, 48, 14, 0, Math.PI * 2, 0, Math.PI * 0.22), mt, x, 0.25 + h - rr * Math.cos(Math.PI * 0.22), z, nm, det);
+    for (let k = 1; k < 5; k++) mesh(new T.TorusGeometry(rr + 0.012, 0.018, 8, 48), M(existente ? '#8aa0b4' : '#274f73', { roughness: 0.4, metalness: 0.6 }), x, 0.25 + k * h / 5, z, nm + ' · anillo de refuerzo', det, [Math.PI / 2, 0, 0]);
+    mesh(new T.CylinderGeometry(0.3, 0.3, 0.1, 24), mAcero, x + rr * 0.35, 0.25 + h + rr * 0.08, z, 'Boca de inspección', 'Tapa abulonada 60 cm');
+    // escalera marinera con guardahombre
+    const ex = x + rr + 0.06, ez = z - 0.22;
+    [-0.2, 0.2].forEach(o => mesh(new T.CylinderGeometry(0.018, 0.018, h + 0.9, 8), mAcero, ex + 0.04, 0.25 + (h + 0.9) / 2, z + o, 'Escalera marinera', 'Acero galvanizado con guardahombre'));
+    for (let yy = 0.55; yy < h + 0.9; yy += 0.3) mesh(new T.CylinderGeometry(0.012, 0.012, 0.4, 6), mAcero, ex + 0.04, 0.25 + yy, z, 'Escalera marinera', 'Peldaños cada 30 cm', [Math.PI / 2, 0, 0]);
+    for (let yy = 2.2; yy < h + 0.9; yy += 0.6) mesh(new T.TorusGeometry(0.36, 0.012, 6, 20, Math.PI), mAcero, ex + 0.04, 0.25 + yy, z, 'Guardahombre', '', [Math.PI / 2, 0, -Math.PI / 2]);
+    // indicador de nivel
+    mesh(new T.CylinderGeometry(0.02, 0.02, h * 0.9, 10), new T.MeshStandardMaterial({ color: '#d7eef8', transparent: true, opacity: 0.6, roughness: 0.05 }), x, 0.25 + h * 0.5, z + rr + 0.05, 'Indicador de nivel', 'Tubo visor con escala');
+  };
+  const mRed = M(RED, { roughness: 0.35, metalness: 0.25 }), mPipe = M('#c03224', { roughness: 0.4, metalness: 0.5 }), mGal = MET('#9aa1a6');
+  const mGlass = new T.MeshStandardMaterial({ color: '#bcd8ea', roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false, envMapIntensity: 1.4 });
+  const mMarco = MET('#5d6266'), mPiso = new T.MeshStandardMaterial({ map: (() => { const t = piso(); t.repeat.set(W / 0.6, D / 0.6); return t; })(), roughness: 0.55, metalness: 0.02 });
+  const mMuro = new T.MeshStandardMaterial({ map: (() => { const t = revoque(); t.repeat.set(4, 2); return t; })(), roughness: 0.9, color: '#ffffff' });
+  const mCielo = M('#f7f5f1', { roughness: 0.95 });
+  // terreno y vereda
+  const gt = pasto(); gt.repeat.set(30, 30);
+  const g = new T.Mesh(new T.PlaneGeometry(W + 80, D + 80), new T.MeshStandardMaterial({ map: gt, roughness: 1 })); g.rotation.x = -Math.PI / 2; g.position.set(W / 2, -0.02, D / 2 - 4); g.receiveShadow = true; g.userData.noFit = true; G.add(g);
+  box(W + 4, 0.06, 3.2, -2, -0.02, D, M('#c9c4bb', { roughness: 0.9 }), 'Vereda de acceso').userData.noFit = true;
+  const muro = (w, h, d, x, y, z) => { const m = box(w, h, d, x, y, z, mMuro.clone(), 'Muro', 'Mampostería revocada y pintada'); m.material.transparent = true; muros.push(m); return m; };
+  // Piso con la planta real del cliente: losa poligonal, fachada vidriada, tabiques, núcleos y PCI en su lugar.
+  const plantaPiso = (i, y, full) => {
+    const sh = new T.Shape(); PL.P.forEach((q, k) => k ? sh.lineTo(q[0], -q[1]) : sh.moveTo(q[0], -q[1]));
+    const losa = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: 0.18, bevelEnabled: false }), M(full ? '#d9d4ca' : '#e3dfd7', { roughness: 0.85 })); losa.rotation.x = -Math.PI / 2; losa.position.y = y; reg(losa, i === 0 ? 'Losa · planta baja' : 'Losa · piso ' + i, PL.A + ' m²'); G.add(losa);
+    PL.P.forEach((a, k) => { const b = PL.P[(k + 1) % PL.P.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); const m = new T.Mesh(new T.BoxGeometry(L, H - 0.2, 0.06), mMuro.clone()); m.material.transparent = true;
+      m.position.set((a[0] + b[0]) / 2, y + 0.18 + (H - 0.2) / 2, (a[1] + b[1]) / 2); m.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); reg(m, 'Fachada vidriada', f1x(L) + ' m'); muros.push(m); G.add(m);
+      const v = new T.Mesh(new T.BoxGeometry(L, 0.08, 0.1), MET('#6f747a')); v.position.set((a[0] + b[0]) / 2, y + H - 0.04, (a[1] + b[1]) / 2); v.rotation.y = m.rotation.y; G.add(v); });
+    if (!full) return;
+    const y0 = y + 0.18, yc = y + H - 0.35;
+    PL.rooms.forEach(r => { const core = r.t === 'core';
+      if (core) { const m = box(r.w, H - 0.2, r.h, r.x, y0, r.y, M('#cfc9bf', { roughness: 0.8 }), 'Núcleo: escalera y ascensores', Math.round(r.a) + ' m²'); return; }
+      [[r.x, r.y, r.w, 0.05], [r.x, r.y + r.h, r.w, 0.05], [r.x, r.y, 0.05, r.h], [r.x + r.w, r.y, 0.05, r.h]].forEach(([x, z, w, d]) => { const m = box(w, 2.6, d, x, y0, z, mMuro.clone(), 'Tabique · ' + r.n, Math.round(r.a) + ' m²'); m.material.transparent = true; muros.push(m); }); });
+    const mR = M(RED, { roughness: 0.4, metalness: 0.4 });
+    conMed('Ø 2" · ' + f1x(PL.Ltr) + ' m', () => { if (PL.troncal.length) pipe(PL.troncal.map(q => [q[0], yc, q[1]]), 0.03, mR, 'Troncal de rociadores Ø 2"', 'Acero SCH 40 ranurado · según planta'); });
+    conMed('Ø 1" · ' + f1x(PL.Lra) + ' m en el piso', () => PL.ramales.forEach(q => tubo([q.a, yc, q.y], [q.b, yc, q.y], 0.017, mR, 'Ramal de rociadores Ø 1"', 'Separación ' + f1x(PL.sp) + ' m')));
+    PL.roc.forEach(([x, z]) => { const c = new T.Mesh(new T.ConeGeometry(0.06, 0.1, 10), MET('#c9a14a')); c.position.set(x, yc - 0.08, z); c.rotation.x = Math.PI; reg(c, 'Rociador automático colgante', 'K 5,6 · 68 °C · grilla ' + f1x(PL.sp) + ' m'); G.add(c); tubo([x, yc, z], [x, yc - 0.03, z], 0.01, mR); });
+    PL.det.forEach(([x, z]) => { cyl(0.09, 0.05, x, y + H - 0.06, z, M('#f4f3ef', { roughness: 0.4 }), 'Detector de humo', '1 cada 60 m² como máximo'); });
+    PL.luz.forEach(([x, z]) => { box(0.42, 0.1, 0.12, x - 0.21, y + 2.45, z - 0.06, M('#f5e7a6', { emissive: '#f5d34a', emissiveIntensity: 0.4 }), 'Luminaria de emergencia LED', 'Autónoma 90 min'); });
+    PL.ext.forEach(([x, z], k) => { if (typeof extintor === 'function') extintor(x, y0 + 0.9, z, 0, k === PL.ext.length - 1 ? 'co2' : 'pqs'); else cyl(0.09, 0.5, x, y0 + 0.9, z, mR, 'Extintor', ''); });
+    PL.bie.forEach(([x, z]) => { box(0.75, 0.9, 0.25, x - 0.37, y0 + 0.8, z - 0.12, mR, 'BIE: boca de incendio equipada', 'Manguera de 30 m'); pipe([[PL.sh[0], y0 + 1.5, PL.sh[1]], [x, y0 + 1.5, PL.sh[1]], [x, y0 + 1.5, z]], 0.035, mR, 'Ramal a BIE', 'Con válvula esclusa'); });
+    PL.salidas.forEach(([x, z], k) => { box(0.5, 0.18, 0.05, x - 0.25, y0 + 2.2, z, M(GREEN, { emissive: GREEN, emissiveIntensity: 0.3 }), 'Señal de SALIDA', 'Escalera ' + (k + 1)); });
+    if (C.redEdif && typeof esclusa === 'function') { esclusa(PL.sh[0], y0 + 1.3, PL.sh[1] + 0.25, 0.035, 'z', 'Empalme a cañería principal · válvula esclusa'); if (typeof manometro === 'function') manometro(PL.sh[0] + 0.14, y0 + 1.35, PL.sh[1] + 0.12); }
+  };
+  if (PL) {
+    const full = new Set(PL.pisos || [0]);
+    for (let i = 0; i < n; i++) { const c0 = G.children.length; plantaPiso(i, i * H, full.has(i)); for (let k = c0; k < G.children.length; k++) G.children[k].userData.pisoIdx = i; }
+    const shp = new T.Shape(); PL.P.forEach((q, k) => k ? shp.lineTo(q[0], -q[1]) : shp.moveTo(q[0], -q[1]));
+    const tch = new T.Mesh(new T.ExtrudeGeometry(shp, { depth: 0.15, bevelEnabled: false }), M('#a7a29a', { roughness: 0.85 })); tch.rotation.x = -Math.PI / 2; tch.position.y = n * H; reg(tch, 'Techo / losa de cubierta'); G.add(tch); techos.push(tch);
+    if (C.hid) pipe([[PL.sh[0], -0.5, PL.sh[1]], [PL.sh[0], n * H + 0.5, PL.sh[1]]], 0.065, M('#8c2a22', { roughness: 0.45, metalness: 0.5 }), C.redEdif ? 'Cañería principal existente del edificio' : 'Montante', C.redEdif ? 'Red de incendio del edificio · no se cotiza' : '');
+    return G;
+  }
+  for (let i = 0; i < n; i++) { const c0 = G.children.length;
+    const y = i * H, fd = fl.find(x => x.n === i + 1) || fl[0] || {}, nomP = i === 0 ? 'Planta baja' : 'Piso ' + i;
+    // ambientes según el uso del edificio
+    const salas = (Array.isArray(C.salas) ? C.salas : []).filter(x => x.piso === i + 1).slice(0, 24);
+    if (salas.length) {
+      const cols = Math.max(1, Math.ceil(Math.sqrt(salas.length * W / D))), filas = Math.ceil(salas.length / cols), mTab = M('#ece8e1', { roughness: 0.85 });
+      for (let r = 0; r < filas; r++) { const fila = salas.slice(r * cols, r * cols + cols), Af = fila.reduce((a, x) => a + x.a, 0) || 1, z0 = 0.3 + r * (D - 0.6) / filas, dz = (D - 0.6) / filas; let x0 = 0.3;
+        fila.forEach((x, k) => { const w = (W - 0.6) * x.a / Af;
+          if (k > 0) { const pz = Math.min(1.0, dz * 0.35); const t1 = box(0.1, H - 0.05, dz - pz - 0.1, x0 - 0.05, y, z0 + pz, mTab.clone(), 'Tabique', 'Separa ' + fila[k - 1].nom + ' de ' + x.nom); t1.material.transparent = true; muros.push(t1); }
+          const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128; const cx = cv.getContext('2d'); cx.fillStyle = 'rgba(255,255,255,0.85)'; cx.fillRect(0, 0, 512, 128); cx.fillStyle = '#1b1a18'; cx.font = '600 44px IBM Plex Sans, sans-serif'; cx.textAlign = 'center'; cx.fillText(String(x.nom).slice(0, 20), 256, 62); cx.font = '32px IBM Plex Sans, sans-serif'; cx.fillStyle = '#6f6b64'; cx.fillText(Math.round(x.a) + ' m²', 256, 106);
+          const tx = new T.CanvasTexture(cv); const lab = new T.Mesh(new T.PlaneGeometry(Math.min(w * 0.85, 3.2), Math.min(w * 0.85, 3.2) / 4), new T.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false }));
+          lab.rotation.x = -Math.PI / 2; lab.position.set(x0 + w / 2, y + 0.03, z0 + dz / 2); lab.userData.name = x.nom; lab.userData.det = Math.round(x.a) + ' m² · ' + nomP; pickables.push(lab); G.add(lab);
+          x0 += w; });
+        if (r > 0) { const t2 = box(W - 0.6 - 1.2, H - 0.05, 0.1, 0.3, y, z0 - 0.05, mTab.clone(), 'Tabique', 'Pasillo de circulación'); t2.material.transparent = true; muros.push(t2); } }
+    }
+    box(W, 0.18, D, 0, y - 0.18, 0, mPiso, 'Losa · ' + nomP, 'Piso de porcelanato sobre losa de H°A°');
+    // muros con vanos: fondo con ventanas, laterales con ventanas, frente con puertas
+    const e = 0.15, hv = 1.1, yv = 1.0;
+    // fondo (z=0)
+    muro(W, yv, e, 0, y, 0); muro(W, H - yv - hv, e, 0, y + yv + hv, 0);
+    const vx = []; for (let x = 1.6; x + 1.4 < W - 1; x += 3.2) vx.push(x);
+    let px = 0; vx.forEach(x => { muro(x - px, hv, e, px, y + yv, 0); box(1.4, hv, 0.02, x, y + yv, 0.06, mGlass, 'Ventana', 'Vidrio 4 mm con marco de aluminio'); box(1.4, 0.05, e + 0.02, x, y + yv - 0.05, -0.01, mMarco); box(1.4, 0.05, e + 0.02, x, y + yv + hv, -0.01, mMarco); px = x + 1.4; }); muro(W - px, hv, e, px, y + yv, 0);
+    // laterales
+    [0, W - e].forEach(xx => { muro(e, yv, D, xx, y, 0); muro(e, H - yv - hv, D, xx, y + yv + hv, 0); let pz = 0; for (let z = 1.6; z + 1.4 < D - 1; z += 3.2) { muro(e, hv, z - pz, xx, y + yv, pz); box(0.02, hv, 1.4, xx + 0.06, y + yv, z, mGlass, 'Ventana', 'Vidrio 4 mm con marco de aluminio'); pz = z + 1.4; } muro(e, hv, D - pz, xx, y + yv, pz); });
+    // frente con puertas de salida
+    const sal = Math.max(1, Math.min(12, fd.sal || 1)), dx = W / sal; let pf = 0;
+    for (let k = 0; k < sal; k++) {
+      const x = (k + 0.5) * dx - 0.6, esSal = k === 0 || i === 0;
+      muro(x - pf, H, e, pf, y, D - e); muro(1.2, H - 2.1, e, x, y + 2.1, D - e); pf = x + 1.2;
+      box(1.2, 2.1, 0.05, x, y, D - e / 2 - 0.02, M(esSal ? '#2b6b45' : '#8b6a4a', { roughness: 0.45, metalness: esSal ? 0.4 : 0 }), esSal ? 'Puerta de salida de emergencia' : 'Puerta interior', esSal ? '1,20 × 2,10 m · apertura hacia afuera · barra antipánico' : '1,20 × 2,10 m');
+      if (esSal) box(1.0, 0.05, 0.06, x + 0.1, y + 1.0, D - e / 2 - 0.08, MET('#c8ccd0'), 'Barra antipánico', 'Altura 1,00 m · apertura por empuje');
+      const cart = new T.Mesh(new T.BoxGeometry(0.4, 0.2, 0.03), [M('#e6e2da'), M('#e6e2da'), M('#e6e2da'), M('#e6e2da'), new T.MeshStandardMaterial({ map: tSalida, emissive: '#1f8a4c', emissiveIntensity: 0.25, emissiveMap: tSalida }), M('#e6e2da')]); cart.position.set(x + 0.6, y + 2.3, D - e - 0.03); reg(cart, 'Señal SALIDA', 'Fotoluminiscente blanco sobre verde · Art. 39');
+    }
+    muro(W - pf, H, e, pf, y, D - e);
+    // cielorraso / losa superior
+    const cie = box(W, 0.06, D, 0, y + H - 0.06, 0, mCielo, 'Cielorraso · ' + nomP); if (i === n - 1) techos.push(cie); else cie.userData.entrepiso = true;
+    // extintores con soporte y cartel
+    const ne = Math.min(200, fd.ext || 0), per = 2 * (W + D);
+    for (let k = 0; k < ne; k++) { let t = (k + 0.5) * per / ne, x, z, ry = 0; if (t < W) { x = t; z = e + 0.14; } else if ((t -= W) < D) { x = W - e - 0.14; z = t; ry = 1; } else if ((t -= D) < W) { x = W - t; z = D - e - 0.14; } else { t -= W; x = e + 0.14; z = D - t; ry = 1; }
+      extintor(x, y + 0.98, z, t >= 0 && ry ? (x < W / 2 ? Math.PI / 2 : -Math.PI / 2) : (z < D / 2 ? 0 : Math.PI), k % 4 === 3 ? 'co2' : 'pqs'); 
+      const sg = new T.Mesh(new T.BoxGeometry(ry ? 0.02 : 0.2, 0.4, ry ? 0.2 : 0.02), new T.MeshStandardMaterial({ map: tExt, roughness: 0.4 })); sg.position.set(x + (ry ? (x < W / 2 ? -0.12 : 0.12) : 0), y + 1.85, z + (ry ? 0 : (z < D / 2 ? -0.12 : 0.12))); reg(sg, 'Cartel de extintor', '20 × 40 cm · Art. 43'); }
+    // luces de emergencia
+    const nl = Math.min(100, fd.luz || 0);
+    for (let k = 0; k < nl; k++) { const x = (k + 0.5) * W / nl - 0.2, yy = y + H - 0.5, zz = e + 0.01, nm = 'Luz de emergencia LED', det = 'Autónoma · 50 lux · 70 min · Art. 36';
+      box(0.34, 0.14, 0.09, x + 0.03, yy, zz, M('#f4f1e8', { roughness: 0.5 }), nm, det); box(0.3, 0.02, 0.005, x + 0.05, yy + 0.02, zz + 0.09, M('#22c55e', { emissive: '#22c55e', emissiveIntensity: 1 }), nm, det);
+      [-1, 1].forEach(sx => { const fa = new T.Mesh(new T.CylinderGeometry(0.035, 0.045, 0.07, 16), M('#e9e6df', { roughness: 0.3 })); fa.position.set(x + 0.2 + sx * 0.1, yy + 0.07, zz + 0.12); fa.rotation.x = 1.1; reg(fa, nm, det);
+        const lu = new T.Mesh(new T.CircleGeometry(0.033, 16), new T.MeshBasicMaterial({ color: '#fff8d6' })); lu.position.set(x + 0.2 + sx * 0.1, yy + 0.04, zz + 0.155); lu.rotation.x = -0.47; G.add(lu); }); }
+    if (0) { const x = 0;; const l = new T.Mesh(new T.BoxGeometry(0.34, 0.03, 0.01), new T.MeshStandardMaterial({ color: '#fffbe0', emissive: '#ffe680', emissiveIntensity: 1.2 })); l.position.set(x + 0.2, y + H - 0.42, e + 0.085); G.add(l); }
+    // detectores
+    const nd = Math.min(400, fd.det || 0);
+    if (nd) { const nx = Math.max(1, Math.round(Math.sqrt(nd * W / D))), nz = Math.max(1, Math.ceil(nd / nx)); let c = 0; for (let a = 0; a < nx; a++) for (let b = 0; b < nz && c < nd; b++, c++) { const xx = (a + 0.5) * W / nx, zz = (b + 0.5) * D / nz; const nmD = 'Detector de humo', dtD = 'Fotoeléctrico · en techo a ≥ 30 cm de paredes · Art. 55'; ESP.det = [W / nx, D / nz]; cyl(0.065, 0.015, xx, y + H - 0.08, zz, M('#f2f0eb', { roughness: 0.5 }), nmD, dtD);
+        cyl(0.055, 0.03, xx, y + H - 0.11, zz, M('#ffffff', { roughness: 0.35 }), nmD, dtD); for (let q = 0; q < 8; q++) { const a = q * Math.PI / 4; box(0.012, 0.018, 0.004, xx + Math.cos(a) * 0.055 - 0.006, y + H - 0.105, zz + Math.sin(a) * 0.055, M('#c9c5bd'), nmD, dtD); }
+        const dm = new T.Mesh(new T.SphereGeometry(0.04, 18, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), M('#fafaf8', { roughness: 0.3 })); dm.position.set(xx, y + H - 0.11, zz); reg(dm, nmD, dtD); const led = new T.Mesh(new T.SphereGeometry(0.008, 8, 6), new T.MeshBasicMaterial({ color: '#ff3b30' })); led.position.set(xx + 0.03, y + H - 0.115, zz); G.add(led); } }
+    // pulsador y sirena
+    if (C.alarma) { const xs = Math.max(0.5, dx / 2 - 1.2); box(0.13, 0.13, 0.05, xs, y + 1.15, D - e - 0.055, mRed, 'Pulsador manual de alarma', 'A 1,20 m de altura junto a la salida · Art. 58'); frente(0.12, 0.12, tPuls, xs + 0.065, y + 1.215, D - e - 0.057, Math.PI, 'Pulsador manual de alarma', 'Romper el vidrio / presionar'); { const sxx = Math.min(W - 0.5, dx / 2 + 0.9), syy = y + H - 0.55, szz = D - e - 0.03, nmS = 'Sirena con luz estroboscópica', dtS = 'Audible en todo el piso · Art. 59';
+      const bS = new T.Mesh(new T.CylinderGeometry(0.075, 0.085, 0.07, 24), M('#c8261c', { roughness: 0.35 })); bS.rotation.x = Math.PI / 2; bS.position.set(sxx, syy, szz - 0.035); reg(bS, nmS, dtS);
+      for (let q = 0; q < 4; q++) { const rr = new T.Mesh(new T.TorusGeometry(0.02 + q * 0.015, 0.004, 6, 24), M('#7a140e')); rr.position.set(sxx, syy, szz - 0.072); reg(rr, nmS, dtS); }
+      const st = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.05, 16), new T.MeshStandardMaterial({ color: '#ffe9a8', transparent: true, opacity: 0.85, emissive: '#ffd34d', emissiveIntensity: 0.8 })); st.position.set(sxx, syy + 0.1, szz - 0.035); st.rotation.x = Math.PI / 2; reg(st, nmS, dtS); } }
+    // rociadores
+    if (fd.roc) { const nx = Math.max(1, Math.min(60, fd.roc.nx || 1)), ny = Math.max(1, Math.min(60, fd.roc.ny || 1)), sx = W / nx, sz = D / ny, _e = (ESP.roc = [W / nx, D / ny]), yy = y + H - 0.3;
+      red([[W - 0.6, yy, 0.6], [W - 0.6, yy, D / 2], [sx / 2, yy, D / 2]], 0.03, mPipe, 'Troncal de rociadores Ø 2"', 'Hierro galvanizado pintado rojo', 'techo', y + H - 0.06);
+      for (let a = 0; a < nx; a++) { const x = (a + 0.5) * sx; red([[x, yy, sz / 2], [x, yy, D - sz / 2]], 0.017, mPipe, 'Ramal de rociadores Ø 1"', '', 'techo', y + H - 0.06); tubo([x, yy, sz / 2], [x, yy, D - sz / 2], 0.017, mPipe, 'Ramal de rociadores Ø 1"', 'Separación ' + sx.toFixed(2).replace('.', ',') + ' × ' + sz.toFixed(2).replace('.', ',') + ' m · Art. 61');
+        for (let b = 0; b < ny; b++) { const z = (b + 0.5) * sz; const nm = 'Rociador automático colgante', det = 'Ampolla 68 °C · separación ' + sx.toFixed(2).replace('.', ',') + ' × ' + sz.toFixed(2).replace('.', ',') + ' m · Art. 61';
+          cyl(0.012, 0.12, x, yy - 0.13, z, MET('#c9a227'), nm, det, 10); const dfl = new T.Mesh(new T.CylinderGeometry(0.04, 0.04, 0.008, 16), MET('#c9a227')); dfl.position.set(x, yy - 0.15, z); reg(dfl, nm, det); const amp = new T.Mesh(new T.SphereGeometry(0.01, 8, 6), new T.MeshStandardMaterial({ color: '#ff4030', transparent: true, opacity: 0.85 })); amp.position.set(x, yy - 0.09, z); G.add(amp); } } }
+    // BIE
+    if (fd.bie && C.hid) { box(0.25, 0.9, 0.75, W - e - 0.25, y + 0.8, 2.2, mRed, 'Boca de incendio equipada (BIE)', 'Gabinete con válvula ' + (C.v25 ? '2½"' : '1½"') + ', manguera de 30 m y pitón · Art. 44'); box(0.02, 0.6, 0.5, W - e - 0.27, y + 0.95, 2.32, mGlass, 'Vidrio del gabinete BIE'); frente(0.12, 0.16, tBIE, W - e - 0.285, y + 1.62, 2.57, -Math.PI / 2, 'Boca de incendio equipada (BIE)', 'Cartel BIE');
+      { const cx = W - e - 0.13, cy = y + 1.25, cz = 2.57, nmB = 'Boca de incendio equipada (BIE)', dtB = 'Manguera plana de 30 m en devanadera';
+        const dv = new T.Mesh(new T.TorusGeometry(0.2, 0.05, 10, 36), M('#d9c39a', { roughness: 0.7 })); dv.position.set(cx, cy, cz); dv.rotation.y = Math.PI / 2; reg(dv, nmB, dtB);
+        const ej = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.12, 12), mInox); ej.rotation.z = Math.PI / 2; ej.position.set(cx, cy, cz); reg(ej, nmB, dtB);
+        const pi = new T.Mesh(new T.CylinderGeometry(0.018, 0.03, 0.22, 12), mBronce); pi.position.set(cx, y + 0.98, cz + 0.22); reg(pi, 'Pitón de chorro regulable', 'Bronce · chorro pleno o niebla');
+        esclusa(cx, y + 1.62, cz - 0.24, 0.025, 'z', 'Válvula de la BIE'); }
+      pipe([[W - 0.6, y + 1.5, 0.6], [W - 0.6, y + 1.5, 2.55], [W - e - 0.25, y + 1.5, 2.55]], 0.035, mPipe, 'Ramal a BIE Ø ' + tubD, 'Con válvula esclusa · Art. 50');
+      const ring = new T.Mesh(new T.RingGeometry(29.7, 30, 96), new T.MeshBasicMaterial({ color: RED, transparent: true, opacity: 0.4, side: T.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.set(W - 0.6, y + 0.02, 2.6); ring.userData.noFit = true; G.add(ring); }
+    for (let k = c0; k < G.children.length; k++) G.children[k].userData.pisoIdx = i;
+  }
+  // techo
+  const tch = box(W + 0.6, 0.12, D + 0.6, -0.3, n * H, -0.3, M('#a7a29a', { roughness: 0.85 }), 'Techo / losa de cubierta'); techos.push(tch);
+  if (C.conCentral) { box(0.1, 0.48, 0.36, 0.16, 1.3, 1.02, M('#d9d5cc', { roughness: 0.5 }), 'Central de alarma', 'Convencional por zonas con baterías · Art. 58'); frente(0.34, 0.45, tCentral, 0.265, 1.535, 1.2, Math.PI / 2, 'Central de alarma', 'Pantalla de estado, zonas y comandos'); pipe([[0.21, 1.72, 1.25], [0.21, n * H - 0.2, 1.25]], 0.012, M(ORA), 'Cableado de lazo', 'Cable 2 × 1,5 mm² resistente al fuego en caño ¾"'); }
+  if (C.hid && C.redEdif) {
+    // Cañería principal existente del edificio, con empalme por piso.
+    const xm = W - 0.6, zm = 0.6, rr = 0.065, top = n * H + 0.6;
+    pipe([[xm, -0.6, zm], [xm, top, zm]], rr, M('#8c2a22', { roughness: 0.45, metalness: 0.5 }), 'Cañería principal existente del edificio', 'Red de incendio del edificio · ya existe, no se cotiza');
+    for (let i = 0; i < n; i++) { const y = i * H + 1.5;
+      esclusa(xm, y, zm + 0.28, 0.035, 'z', 'Empalme a cañería principal · válvula esclusa');
+      manometro(xm + 0.14, y + 0.05, zm + 0.12);
+      soporte([xm, y + 0.9, zm], rr, 'muro', 0, 'y'); }
+  }
+  if (C.hid && !C.redEdif) {
+    const zb = -8, xs = Math.max(0, W - 11), rt = 1.9, ht = 2.9, xt = xs + 8.4, zt = zb - 2.2;
+    // sala: platea, muros bajos y techo liviano
+    mesh(new T.BoxGeometry(6.2, 0.15, 4.2), mH, xs + 3.1, 0.075, zb - 2.2, 'Sala de bombas', 'Platea de H°A° con canaleta de desagüe');
+    [[xs, zb - 4.3, 6.2, 0.15], [xs, zb - 4.3, 0.15, 4.2], [xs + 6.05, zb - 4.3, 0.15, 4.2]].forEach(([x, z, w, d]) => { const m = box(w, 2.6, d, x, 0.15, z, mMuro.clone(), 'Muro de la sala de bombas', 'Mampostería RF 120'); m.material.transparent = true; muros.push(m); });
+    const tsb = box(6.4, 0.06, 4.4, xs - 0.1, 2.75, zb - 4.4, M('#9a958c', { roughness: 0.7, metalness: 0.4 }), 'Techo de la sala de bombas'); techos.push(tsb);
+    tanque(xt, zt, rt, ht, C.resExist);
+    const sp = bomba(xs + 1.2, zb - 3.0, 1.15, 'Bomba principal de incendio', (C.hp ? String(C.hp).replace('.', ',') + ' HP · ' : '') + 'centrífuga · arranque automático por presostato');
+    const sj = bomba(xs + 1.3, zb - 1.5, 0.6, 'Bomba jockey', 'Mantiene la presión de la red');
+    tablero(xs + 4.6, 0.15, zb - 4.05, 0.8, 1.3, 'Tablero de bombas', 'Arranque automático · alimentación 4 × ' + (C.secB || '') + ' mm² + PE resistente al fuego');
+    const rP = 0.06, rJ = 0.03, ySuc = sp.suc[1];
+    // succión desde el tanque
+    red([[xt - rt, 0.45, zt], [xs + 5.4, 0.45, zt], [xs + 5.4, 0.45, sp.suc[2]], [sp.suc[0] + 0.15, ySuc, sp.suc[2]]], rP, mPipe, 'Cañería de succión Ø ' + sucD, 'Acero · con válvula esclusa y colador', 'piso');
+    esclusa(xs + 5.4, 0.45, zt + 0.55, rP, 'z', 'Válvula esclusa de succión', 'Ø ' + sucD);
+    red([[xs + 5.4, 0.45, sj.suc[2] + 0.0], [sj.suc[0] + 0.1, sj.suc[1], sj.suc[2]]], rJ, mPipe, 'Succión de bomba jockey', '', 'piso');
+    // impulsión: sube, retención, esclusa, manómetro y colector
+    const yc = 1.55;
+    pipe([sp.imp, [sp.imp[0], yc, sp.imp[2]]], rP * 0.85, mPipe, 'Impulsión Ø ' + tubD);
+    retencion(sp.imp[0], sp.imp[1] + 0.3, sp.imp[2], rP * 0.85, 'y', 'Ø ' + tubD); esclusa(sp.imp[0], sp.imp[1] + 0.68, sp.imp[2], rP * 0.85, 'y', 'Válvula esclusa de impulsión', 'Ø ' + tubD);
+    pipe([sj.imp, [sj.imp[0], yc, sj.imp[2]]], rJ, mPipe, 'Impulsión de bomba jockey'); retencion(sj.imp[0], sj.imp[1] + 0.25, sj.imp[2], rJ, 'y', 'Ø 1¼"');
+    red([[sj.imp[0], yc, sj.imp[2]], [sp.imp[0], yc, sp.imp[2]], [sp.imp[0], yc, 0.6], [W - 0.6, yc, 0.6]], rP * 0.85, mPipe, 'Colector de impulsión Ø ' + tubD, 'Acero galvanizado pintado rojo', 'piso');
+    manometro(sp.imp[0] + 0.15, yc + rP, sp.imp[2]); mesh(new T.CylinderGeometry(0.03, 0.03, 0.18, 12), mBronce, sp.imp[0] - 0.15, yc + 0.1, sp.imp[2], 'Presostato de arranque', 'Ajuste de presión de arranque y parada');
+    // montante por el muro del edificio
+    red([[W - 0.6, yc, 0.6], [W - 0.6, (n - 1) * H + 1.6, 0.6]], rP * 0.8, mPipe, 'Montante Ø ' + tubD, 'Acero galvanizado · Art. 50', 'muro');
+    esclusa(W - 0.6, yc + 0.5, 0.6, rP * 0.8, 'y', 'Válvula esclusa del montante', 'Ø ' + tubD);
+    // válvula de prueba en el punto más alto
+    esclusa(W - 0.6, (n - 1) * H + 1.75, 0.75, 0.025, 'z', 'Válvula de prueba y drenaje', 'Ø 1"');
+    if (C.bis) { red([[W - 0.6, 0.6, 0.6], [W - 0.6, 0.6, D + 0.25]], 0.05, mPipe, 'Alimentación BIS', 'Con válvula de retención', 'piso'); retencion(W - 0.6, 0.6, D - 1.0, 0.05, 'z', 'Ø 2½"');
+      mesh(new T.BoxGeometry(0.55, 0.45, 0.12), MET('#c99b2a'), W - 0.6, 0.65, D + 0.3, 'Boca siamesa (BIS)', 'Para alimentación por Bomberos · en fachada');
+      [-0.13, 0.13].forEach(o => mesh(new T.CylinderGeometry(0.045, 0.045, 0.1, 18), mBronce, W - 0.6 + o, 0.65, D + 0.4, 'Boca siamesa (BIS)', 'Conexión storz 2½"', [Math.PI / 2, 0, 0])); }
+  }
+  const fm = (v) => Math.round(v || 0).toLocaleString('es-PY'), f2 = (v) => (Math.round((v || 0) * 100) / 100).toString().replace('.', ',');
+  INFO = [
+    ['Bomba principal de incendio', (C.hp ? f2(C.hp) + ' HP · ' : '') + (C.Q ? fm(C.Q) + ' L/min' : '') + (C.Hd ? ' a ' + fm(C.Hd) + ' m.c.a.' : ''), 'Impulsa el agua de la reserva hacia las BIE y los rociadores. Arranca sola cuando la presión de la red cae por un incendio.'],
+    ['Bomba jockey', '≈ 1 a 2 HP · caudal bajo, alta presión', 'Repone las pequeñas pérdidas y mantiene la red siempre presurizada, para que la bomba principal no arranque en falso.'],
+    ['Protección de acople', 'Chapa de acero', 'Cubre el eje que une el motor con la bomba y evita atrapamientos.'],
+    ['Placa de datos', '', 'Indica potencia, tensión, corriente y velocidad del motor.'],
+    ['Base de H°A° antivibratoria', 'Hormigón armado', 'Fija la bomba al piso y absorbe las vibraciones.'],
+    ['Tablero de bombas', '0,80 × 1,30 × 0,30 m · IP54', 'Controla el arranque automático y manual de las bombas, las protege y muestra su estado.'],
+    ['Piloto', 'Ø 22 mm', 'Muestra el estado del sistema de un vistazo.'],
+    ['Pulsador de parada de emergencia', 'Ø 40 mm tipo hongo', 'Detiene las bombas de inmediato en caso de necesidad.'],
+    ['Caño de acometida', 'Ø 1¼"', 'Protege el cable de alimentación eléctrica exclusiva del tablero.'],
+    ['Válvula esclusa', '', 'Abre o corta el paso de agua para hacer mantenimiento sin vaciar la red. En servicio queda siempre abierta y precintada.'],
+    ['Válvula de prueba y drenaje', '', 'Permite probar caudal y presión en el punto más alto y vaciar la red.'],
+    ['Válvula de retención', '', 'Deja pasar el agua en un solo sentido y evita que la red se vacíe hacia la bomba o el tanque.'],
+    ['Manómetro', 'Esfera 100 mm · 0 a 16 kg/cm²', 'Indica la presión de la red.'],
+    ['Presostato', '1 a 12 kg/cm² regulable', 'Detecta la caída de presión y da la orden de arranque a las bombas.'],
+    ['Cañería de succión', '', 'Lleva el agua desde el tanque de reserva hasta las bombas.'],
+    ['Succión de bomba jockey', 'Ø 1¼"', 'Alimenta la bomba jockey desde el colector de succión.'],
+    ['Impulsión de bomba jockey', 'Ø 1¼"', 'Envía el agua de la jockey al colector de impulsión.'],
+    ['Impulsión', '', 'Conduce el agua a presión desde la bomba hacia la red.'],
+    ['Colector de impulsión', '', 'Une la salida de las bombas y distribuye el agua hacia el montante.'],
+    ['Montante', '', 'Sube el agua a presión a todos los pisos.'],
+    ['Reserva técnica de agua', 'Ø 3,80 × 2,90 m' + (C.resB ? ' · reserva mínima ' + fm(C.resB) + ' L' : ''), 'Guarda el agua exclusiva para incendio. No se usa para consumo.'],
+    ['Base de H°A° del tanque', 'Platea de 25 cm', 'Apoya el tanque y reparte su peso al suelo.'],
+    ['Escalera marinera', 'Peldaños cada 30 cm', 'Da acceso seguro a la boca de inspección del tanque.'],
+    ['Guardahombre', 'Aros cada 60 cm', 'Evita caídas al subir por la escalera.'],
+    ['Boca de inspección', 'Ø 60 cm', 'Permite revisar y limpiar el interior del tanque.'],
+    ['Indicador de nivel', 'Tubo visor', 'Muestra cuánta agua queda en la reserva.'],
+    ['Extintor PQS ABC 6 kg', '6 kg · Ø 16 × 55 cm · alcance 5 a 6 m', 'Apaga fuegos clase A (sólidos), B (líquidos) y C (eléctricos) en su inicio.'],
+    ['Extintor CO₂ 6 kg', '6 kg · bocina difusora', 'Para fuegos eléctricos y en tableros. No deja residuos.'],
+    ['Cartel de extintor', '20 × 40 cm', 'Señala la ubicación del extintor desde lejos.'],
+    ['Detector de humo', 'Ø 12 cm', 'Detecta el humo y avisa a la central antes de que el fuego crezca.'],
+    ['Pulsador manual de alarma', '12 × 12 cm · a 1,20 m', 'Permite que cualquier persona active la alarma.'],
+    ['Sirena con luz estroboscópica', '≥ 85 dB a 3 m', 'Avisa con sonido y luz para evacuar el edificio.'],
+    ['Central de alarma', 'Convencional por zonas', 'Recibe las señales de detectores y pulsadores, y activa las sirenas.'],
+    ['Cableado de lazo', '2 × 1,5 mm² resistente al fuego en caño ¾"', 'Conecta detectores, pulsadores y sirenas con la central.'],
+    ['Luz de emergencia LED', '50 lux · autonomía 70 min', 'Ilumina las vías de escape si se corta la energía.'],
+    ['Señal SALIDA', '40 × 20 cm fotoluminiscente', 'Indica el camino hacia la salida, también a oscuras.'],
+    ['Puerta de salida de emergencia', '1,20 × 2,10 m', 'Salida de evacuación. Abre hacia afuera.'],
+    ['Puerta interior', '1,20 × 2,10 m', 'Comunica ambientes.'],
+    ['Barra antipánico', 'Altura 1,00 m', 'Abre la puerta con solo empujar, sin girar picaportes.'],
+    ['Rociador automático colgante', 'K 5,6 · ½" · ampolla 68 °C', 'Se abre solo por el calor y descarga agua sobre el foco del incendio.'],
+    ['Ramal de rociadores', 'Ø 1"', 'Lleva el agua desde la troncal hasta cada rociador.'],
+    ['Troncal de rociadores', 'Ø 2"', 'Distribuye el agua a los ramales de rociadores del piso.'],
+    ['Soporte colgante', 'Varilla roscada 3/8" · cada 2,5 m', 'Sostiene la cañería desde el techo y evita que se curve o vibre.'],
+    ['Abrazadera a muro', 'Cada 2,5 m', 'Fija la cañería vertical al muro.'],
+    ['Soporte de piso', 'Perfil C 41 × 41 mm · cada 2,5 m', 'Sostiene la cañería sobre el piso y evita vibraciones.'],
+    ['Boca de incendio equipada', 'Gabinete 0,75 × 0,90 m · manguera 30 m · válvula ' + (C.v25 ? '2½"' : '1½"'), 'Permite al personal atacar el fuego con agua a presión.'],
+    ['Vidrio del gabinete', '', 'Protege la manguera y deja ver el equipo.'],
+    ['Ramal a BIE', '', 'Lleva el agua del montante a la boca de incendio.'],
+    ['Boca siamesa', '2 conexiones Storz 2½"', 'Bomberos conecta su autobomba para alimentar la red desde afuera.'],
+    ['Alimentación BIS', 'Ø 2½"', 'Une la boca siamesa con la red interna.'],
+    ['Ventana', 'Vidrio 4 mm', 'Ventilación e iluminación natural.'],
+    ['Sala de bombas', '6,20 × 4,20 m', 'Aloja las bombas y el tablero, protegidos del fuego.'],
+    ['Muro de la sala de bombas', 'RF 120', 'Protege los equipos de bombeo del fuego durante 2 horas.']
+  ];
+  return G;
+}
+let INFO = [];
+const info = (nm) => INFO.find(([k]) => nm.startsWith(k));
+let pisoSel = -1, pisosVis = null;
+function aplicarVis() {
+  // Muros semitransparentes por defecto, para ver cañerías y equipos a través de ellos.
+  const op = modo === 'in' ? 0.55 : (verMuros ? 0.22 : 0);
+  muros.forEach(m => { m.material.opacity = op; m.material.depthWrite = false; m.renderOrder = 2; m.visible = op > 0.02; m.castShadow = false; });
+  techos.forEach(m => { m.visible = modo === 'in' || (verTecho && pisoSel < 0); });
+  if (grp) { const esMT = new Set(muros.concat(techos)); grp.children.forEach(o => { const pi = o.userData.pisoIdx; if (pi === undefined) return;
+    const ok = pisosVis ? pisosVis.has(pi) : (pisoSel < 0 || pi === pisoSel); if (!ok) o.visible = false; else if (!esMT.has(o)) o.visible = true; else if (muros.includes(o)) o.visible = op > 0.02; }); }
+  // Radios de alcance de BIE: solo cuando se ve un único piso, para no tapar el edificio.
+  const uno = pisosVis ? pisosVis.size === 1 : pisoSel >= 0;
+  if (grp) grp.traverse(o => { if (o.isMesh && o.geometry && o.geometry.type === 'RingGeometry' && o.geometry.parameters.innerRadius > 20) { let vis = uno; for (let x = o; x; x = x.parent) if (x.userData && x.userData.pisoIdx !== undefined) { vis = vis && (pisosVis ? pisosVis.has(x.userData.pisoIdx) : x.userData.pisoIdx === pisoSel); break; } o.visible = vis; } });
+  const sp = document.getElementById('selPiso'); if (sp && sp.value !== String(pisoSel)) sp.value = String(pisoSel);
+  $('bMuros').className = verMuros ? 'on' : ''; $('bTecho').className = verTecho ? 'on' : '';
+}
+function encuadrar() {
+  if (!grp) return; const bb = new T.Box3();
+  grp.updateMatrixWorld(true); grp.traverse(o => { if (o.isMesh && !o.userData.noFit) bb.expandByObject(o); });
+  if (bb.isEmpty()) bb.setFromObject(grp);
+  const c = bb.getCenter(new T.Vector3()), diag = bb.getSize(new T.Vector3()).length() || 20;
+  const dist = diag * 1.15 / Math.tan((cam.fov * Math.PI / 180) / 2) / 2.2, sz = diag;
+  ctl.target.copy(c); const dir = new T.Vector3(0.62, 0.55, 0.78).normalize(); cam.position.copy(c).addScaledVector(dir, dist); cam.near = 0.03; cam.far = Math.max(2000, sz * 40); cam.updateProjectionMatrix(); sc.fog.near = sz * 3; sc.fog.far = sz * 9;
+  sun.position.set(c.x + sz * 0.6, sz * 1.1, c.z + sz * 0.4); sun.target.position.copy(c);
+  const s = sz * 0.8; Object.assign(sun.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 1, far: sz * 4 }); sun.shadow.camera.updateProjectionMatrix();
+}
+function pintar(C) {
+  const s = JSON.stringify(C); if (s === sig) return; sig = s; D0 = C; focoSel = [];
+  try {
+    if (grp) { sc.remove(grp); grp.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+    grp = modelo(C); sc.add(grp); llenarPisos(); aplicarVis();
+    if (modo === 'gen') { if (pisosVis) verPisos(Array.from(pisosVis)); else encuadrar(); } else entrar();
+    est('Modelo actualizado · ' + Math.round(C.area || 0).toLocaleString('es-PY') + ' m² · ' + (C.pisos || 1) + ((C.pisos || 1) === 1 ? ' planta' : ' plantas'));
+  } catch (x) { est('Error al armar el modelo: ' + (x && x.message || x)); }
+}
+
+// ---------- recorrido en primera persona
+let yaw = Math.PI, pitch = -0.05; const keys = {};
+const nPisos = () => Math.max(1, Math.min(40, Math.round((D0 && D0.pisos) || 1)));
+function etiquetaPiso() { $('pTx').textContent = pisoAct === 0 ? 'Planta baja' : 'Piso ' + pisoAct; }
+function entrar() {
+  if (!D0) return; const W = D0.BW || 12, Dd = D0.BD || 8, H = D0.alt || 3;
+  pisoAct = Math.min(pisoAct, nPisos() - 1);
+  cam.position.set(W / 2, pisoAct * H + 1.6, Dd - 1.2); yaw = Math.PI; pitch = -0.05; etiquetaPiso();
+}
+// Foco desde el filtro de componentes: encuadra, resalta todas las piezas y muestra el detalle.
+var ESP = {};
+let focoSel = [], focoAnim = null, focoMk = null, focoQ = null, focoU = [], focoI = 0;
+const f1x = (v) => String(Math.round(v * 10) / 10).replace('.', ',');
+function limpiarFoco() { focoSel.forEach(([o, m]) => { o.material = m; }); focoSel = []; $('foco').style.display = 'none'; if (focoMk) { sc.remove(focoMk); focoMk = null; } }
+// Agrupa las piezas de un mismo equipo (un detector tiene base, domo y rejillas) en unidades.
+function unidades(hit) {
+  const U = [];
+  hit.forEach(o => { const c = new T.Box3().setFromObject(o).getCenter(new T.Vector3());
+    let u = U.find(x => x.c.distanceTo(c) < 0.45); if (!u) { u = { c: c.clone(), objs: [], bb: new T.Box3() }; U.push(u); }
+    u.objs.push(o); u.bb.expandByObject(o); u.c = u.bb.getCenter(new T.Vector3()); });
+  return U;
+}
+function volar(c, dist, dir) {
+  const to = c.clone().addScaledVector(dir.clone().normalize(), dist);
+  const p0 = cam.position.clone(), t0 = ctl.target.clone(), ini = performance.now(); cancelAnimationFrame(focoAnim);
+  const paso = () => { const k = Math.min(1, (performance.now() - ini) / 900), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    cam.position.lerpVectors(p0, to, e); ctl.target.lerpVectors(t0, c, e); cam.updateProjectionMatrix(); if (k < 1) focoAnim = requestAnimationFrame(paso); };
+  cam.near = 0.02; paso();
+}
+function marcador(c, enTecho) {
+  if (focoMk) sc.remove(focoMk);
+  const g2 = new T.Group(), mat = new T.MeshBasicMaterial({ color: '#ffb300', transparent: true, opacity: 0.9, depthTest: false });
+  const ring = new T.Mesh(new T.TorusGeometry(0.22, 0.018, 8, 40), mat); ring.rotation.x = Math.PI / 2; g2.add(ring);
+  const fl = new T.Mesh(new T.ConeGeometry(0.07, 0.18, 16), mat); fl.position.y = enTecho ? -0.32 : 0.42; fl.rotation.x = enTecho ? 0 : Math.PI; g2.add(fl);
+  g2.position.copy(c); g2.renderOrder = 999; g2.children.forEach(m => { m.renderOrder = 999; });
+  g2.onBeforeRender = () => {}; focoMk = g2; sc.add(g2);
+  const ini = performance.now(); (function lat() { if (focoMk !== g2) return; const t = (performance.now() - ini) / 1000; const s = 1 + Math.sin(t * 5) * 0.15; ring.scale.set(s, s, s); fl.position.y = (enTecho ? -0.32 : 0.42) + Math.sin(t * 5) * 0.04 * (enTecho ? -1 : 1); requestAnimationFrame(lat); })();
+}
+function verUnidad(i) {
+  if (!focoU.length) return; focoI = (i + focoU.length) % focoU.length; const u = focoU[focoI];
+  const sz = Math.max(0.35, u.bb.getSize(new T.Vector3()).length()), enTecho = u.c.y % ((D0 && D0.alt) || 3) > ((D0 && D0.alt) || 3) * 0.7;
+  const dist = Math.max(1.4, sz * 4);
+  volar(u.c, dist, enTecho ? new T.Vector3(0.55, -0.55, 0.62) : new T.Vector3(0.55, 0.42, 0.7));
+  marcador(u.c, enTecho); panelFoco();
+}
+function panelFoco() {
+  const q = focoQ, u = focoU[focoI], o = u ? u.objs[0] : null; if (!q) return;
+  const fi = (o && info(o.userData.name)) || [], med = (o && o.userData.med) || fi[1] || q.med || '', uso = fi[2] || q.uso || '';
+  let esp = q.esp || '';
+  if (/^\^?Detector/.test(q.re) && ESP.det) esp = 'Instalados cada ' + f1x(ESP.det[0]) + ' × ' + f1x(ESP.det[1]) + ' m en el modelo' + (q.esp ? ' · ' + q.esp : '');
+  if (/Rociador/.test(q.re) && ESP.roc) esp = 'Instalados cada ' + f1x(ESP.roc[0]) + ' × ' + f1x(ESP.roc[1]) + ' m en el modelo' + (q.esp ? ' · ' + q.esp : '');
+  const piso = u && D0 && D0.alt ? Math.floor(u.c.y / D0.alt) : 0;
+  const nav = focoU.length > 1 ? '<div style="display:flex;align-items:center;gap:6px;margin-top:9px"><button id="fPrev" style="padding:4px 9px;font-size:12px;font-weight:700;border:0;border-radius:5px;cursor:pointer;background:#f4c430;color:#1b1a18">◀</button><span style="flex:1;text-align:center;font-size:12px">Unidad <b>' + (focoI + 1) + '</b> de ' + focoU.length + (D0 && D0.pisos > 1 ? ' · ' + (piso ? 'Piso ' + piso : 'Planta baja') : '') + '</span><button id="fNext" style="padding:4px 9px;font-size:12px;font-weight:700;border:0;border-radius:5px;cursor:pointer;background:#f4c430;color:#1b1a18">▶</button></div><button id="fTodos" style="margin-top:6px;width:100%;padding:4px;font-size:11px;border:1px solid #55524d;border-radius:5px;background:transparent;color:#e6e2da;cursor:pointer">Ver todas las unidades</button>' : '';
+  $('foco').innerHTML = '<b style="font-size:13.5px">' + q.t + '</b>' + (q.cant ? '<div style="margin-top:4px;font-size:13px">Cantidad en el proyecto: <b style="color:#ffd78a">' + q.cant + '</b></div>' : '') +
+    (med ? '<div style="margin-top:3px;color:#ffd78a">Medida: ' + med + '</div>' : '') + (esp ? '<div style="margin-top:3px;color:#9fe2b4">' + esp + '</div>' : '') + (uso ? '<div style="margin-top:4px">' + uso + '</div>' : '') +
+    (q.norma ? '<div style="margin-top:4px;color:#c9c5bd">' + q.norma + '</div>' : '') + nav;
+  $('foco').style.display = 'block'; $('foco').style.pointerEvents = 'auto';
+  if ($('fPrev')) { $('fPrev').onclick = () => verUnidad(focoI - 1); $('fNext').onclick = () => verUnidad(focoI + 1); $('fTodos').onclick = () => verTodas(); }
+}
+function verTodas() {
+  if (focoMk) { sc.remove(focoMk); focoMk = null; }
+  const bb = new T.Box3(); focoU.forEach(u => bb.union(u.bb)); const c = bb.getCenter(new T.Vector3()), diag = Math.max(1.2, bb.getSize(new T.Vector3()).length());
+  volar(c, Math.max(1.6, diag * 0.9 / Math.tan((cam.fov * Math.PI / 180) / 2)), new T.Vector3(0.55, 0.5, 0.68));
+}
+function enfocar(q) {
+  limpiarFoco(); focoQ = q; focoU = []; focoI = 0; if (!q || !q.re) { encuadrar(); return; }
+  const visO = (o) => { for (let x = o; x; x = x.parent) if (x.userData && x.userData.pisoIdx !== undefined && pisoSel >= 0 && x.userData.pisoIdx !== pisoSel) return false; return true; };
+  const re = new RegExp(q.re, 'i'), hit = pickables.filter(o => o.userData && re.test(o.userData.name || '') && visO(o));
+  if (!hit.length) { $('foco').innerHTML = '<b style="font-size:13px">' + q.t + '</b><div style="color:#ffd78a;margin-top:3px">No aparece en ' + (pisoSel >= 0 ? 'este piso' : 'el modelo de este proyecto') + '.</div>' + (q.cant ? '<div style="margin-top:4px">Cantidad en el cómputo: <b>' + q.cant + '</b></div>' : ''); $('foco').style.display = 'block'; return; }
+  if (modo === 'in') setModo('gen');
+  if (q.ocultarMuros && verMuros) { verMuros = false; aplicarVis(); }
+  hit.forEach(o => { focoSel.push([o, o.material]); const c = o.material.clone(); c.emissive = new T.Color('#ffb300'); c.emissiveIntensity = 0.75; o.material = c; });
+  const U = unidades(hit), chicas = U.every(u => u.bb.getSize(new T.Vector3()).length() < 2.2);
+  if (U.length > 1 && chicas) { // equipos repetidos: ir a la unidad más cercana a la cámara
+    focoU = U; let best = 0, bd = Infinity; U.forEach((u, i) => { const d = u.c.distanceTo(ctl.target); if (d < bd) { bd = d; best = i; } });
+    verUnidad(best); return;
+  }
+  focoU = U.length === 1 ? U : [];
+  const bb = new T.Box3(); hit.forEach(o => bb.expandByObject(o));
+  const c = bb.getCenter(new T.Vector3()), diag = Math.max(1.2, bb.getSize(new T.Vector3()).length());
+  volar(c, Math.max(1.6, diag * 0.9 / Math.tan((cam.fov * Math.PI / 180) / 2)), new T.Vector3(0.55, 0.5, 0.68));
+  if (U.length === 1 && diag < 2.2) marcador(c, false);
+  panelFoco();
+}
+// ---- Exportación para WhatsApp ----
+const descargar = (url, nombre) => { const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 500); };
+const nomBase = () => 'PCI-' + String((D0 && (D0.nombre || D0.uso)) || 'proyecto').replace(/[^\w\-]+/g, '_').slice(0, 40);
+function cajaModelo() { const bb = new T.Box3(); grp.updateMatrixWorld(true); grp.traverse(o => { if (o.isMesh && !o.userData.noFit && o.visible) bb.expandByObject(o); }); return bb; }
+// Vista en planta: cámara ortográfica desde arriba, sin techo, con muros.
+function renderPlanta(w, h) {
+  const tv = techos.map(t => t.visible); techos.forEach(t => { t.visible = false; });
+  const vm = verMuros; verMuros = true; aplicarVis(); techos.forEach(t => { t.visible = false; });
+  const bb = cajaModelo(), c = bb.getCenter(new T.Vector3()), sz = bb.getSize(new T.Vector3());
+  const asp = w / h, mx = Math.max(sz.x, sz.z * asp) * 0.55 + 1.5, my = mx / asp;
+  const oc = new T.OrthographicCamera(-mx, mx, my, -my, 0.1, 500); oc.position.set(c.x, bb.max.y + 60, c.z); oc.up.set(0, 0, -1); oc.lookAt(c.x, 0, c.z); oc.updateProjectionMatrix();
+  const W0 = r.domElement.width, H0 = r.domElement.height, pr = r.getPixelRatio();
+  r.setPixelRatio(1); r.setSize(w, h, false); r.render(sc, oc); const url = r.domElement.toDataURL('image/jpeg', 0.92);
+  r.setPixelRatio(pr); r.setSize(W0 / pr, H0 / pr, false); techos.forEach((t, i) => { t.visible = tv[i]; }); verMuros = vm; aplicarVis(); return url;
+}
+function render3d(w, h, dir) {
+  limpiarFoco(); const bb = cajaModelo(), c = bb.getCenter(new T.Vector3()), diag = bb.getSize(new T.Vector3()).length();
+  const pc = new T.PerspectiveCamera(38, w / h, 0.05, diag * 40); pc.position.copy(c).addScaledVector(dir.clone().normalize(), diag * 1.05); pc.lookAt(c);
+  const W0 = r.domElement.width, H0 = r.domElement.height, pr = r.getPixelRatio();
+  r.setPixelRatio(1); r.setSize(w, h, false); r.render(sc, pc); const url = r.domElement.toDataURL('image/jpeg', 0.92); r.setPixelRatio(pr); r.setSize(W0 / pr, H0 / pr, false); return url;
+}
+// Rótulo con título y logo de texto al pie de cada imagen.
+async function conRotulo(url, titulo) { const im = new Image(); im.src = url; await im.decode(); const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height + 90; const x = cv.getContext('2d');
+  x.fillStyle = '#ffffff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(im, 0, 0); x.fillStyle = '#1b1a18'; x.fillRect(0, im.height, cv.width, 90);
+  x.fillStyle = '#f4c430'; x.fillRect(0, im.height, 14, 90); x.fillStyle = '#ffffff'; x.font = '700 30px IBM Plex Sans, Arial, sans-serif'; x.fillText(titulo, 36, im.height + 40);
+  x.font = '22px IBM Plex Sans, Arial, sans-serif'; x.fillStyle = '#c9c5bd'; x.fillText('Full Service · Sistema de protección contra incendios · ' + (D0 && D0.uso ? D0.uso : '') + (D0 && D0.area ? ' · ' + Math.round(D0.area).toLocaleString('es-PY') + ' m²' : ''), 36, im.height + 72);
+  return cv.toDataURL('image/jpeg', 0.9); }
+async function exportarImagenes() {
+  if (!grp) return; est('Generando imágenes…'); const b = nomBase();
+  const vis = [verMuros, verTecho]; verTecho = false; aplicarVis();
+  const a = await conRotulo(renderPlanta(1600, 1200), 'Vista en planta del sistema PCI');
+  const b3 = await conRotulo(render3d(1600, 1000, new T.Vector3(0.62, 0.55, 0.78)), 'Vista 3D del sistema PCI');
+  verMuros = false; aplicarVis(); const c3 = await conRotulo(render3d(1600, 1000, new T.Vector3(-0.55, 0.75, 0.6)), 'Vista 3D sin muros: equipos y cañerías');
+  verMuros = vis[0]; verTecho = vis[1]; aplicarVis();
+  descargar(a, b + '-planta.jpg'); setTimeout(() => descargar(b3, b + '-3D.jpg'), 400); setTimeout(() => descargar(c3, b + '-3D-equipos.jpg'), 800);
+  est('Listo: 3 imágenes JPG descargadas para enviar por WhatsApp.');
+}
+async function exportarVideo() {
+  if (!grp || !window.MediaRecorder) { est('Este navegador no permite grabar video.'); return; }
+  const tipos = ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'], tipo = tipos.find(t => MediaRecorder.isTypeSupported(t));
+  if (!tipo) { est('Este navegador no permite grabar video.'); return; }
+  limpiarFoco(); if (modo === 'in') setModo('gen');
+  const VW = window.__waMode ? 1280 : 1600, VH = window.__waMode ? 720 : 900, W0 = innerWidth, H0 = innerHeight, pr = r.getPixelRatio(); r.setPixelRatio(1); r.setSize(VW, VH, false);
+  const sm0 = sun && sun.shadow ? sun.shadow.mapSize.x : 0; if (sun && sun.shadow) { sun.shadow.mapSize.set(4096, 4096); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
+  const vm0 = verMuros, vt0 = verTecho; verTecho = false; verMuros = true; aplicarVis();
+  // paradas del recorrido
+  const bbAll = cajaModelo(), cAll = bbAll.getCenter(new T.Vector3()), dAll = bbAll.getSize(new T.Vector3()).length();
+  const ORDEN = ['tan', 'bp', 'bj', 'tab', 'esc', 'ret', 'man', 'suc', 'imp', 'mon', 'sop', 'bis', 'bie', 'roc', 'rra', 'ext', 'co2', 'b10', 'cart', 'det', 'pul', 'sir', 'cen', 'cab', 'luz', 'sen', 'pue'];
+  const lista = (D0 && Array.isArray(D0.tour) ? D0.tour : []).slice().sort((a, b) => (ORDEN.indexOf(a.v) + 99) % 999 - (ORDEN.indexOf(b.v) + 99) % 999);
+  const stops = [{ t: (D0 && D0.uso ? D0.uso : 'Proyecto') + ' · vista general', sub: (D0 && D0.area ? Math.round(D0.area).toLocaleString('es-PY') + ' m² · ' : '') + (D0 && D0.pisos ? D0.pisos + (D0.pisos === 1 ? ' planta' : ' plantas') : ''), uso: 'Sistema de protección contra incendios según la ordenanza municipal.', c: cAll, dist: dAll * 1.05, dir: new T.Vector3(0.62, 0.55, 0.78), hit: [], muros: true, hold: 2.4 }];
+  lista.forEach(q => { let re; try { re = new RegExp(q.re, 'i'); } catch (x) { return; } const hit = pickables.filter(o => o.userData && re.test(o.userData.name || '')); if (!hit.length) return;
+    const bb = new T.Box3(); hit.forEach(o => bb.expandByObject(o)); const c = bb.getCenter(new T.Vector3()), dg = Math.max(1.4, bb.getSize(new T.Vector3()).length());
+    const fi = info(hit[0].userData.name) || [], USO = { tan: 'Guardar la reserva de agua exclusiva para incendio.', bp: 'Dar el caudal y la presión que necesita la red cuando se abre una boca o un rociador.', bj: 'Mantener la red siempre presurizada y evitar arranques innecesarios de la bomba principal.', tab: 'Arrancar las bombas en forma automática y mostrar su estado.', esc: 'Cortar o abrir el paso del agua para hacer mantenimiento sin vaciar la red.', ret: 'Evitar que el agua vuelva hacia la bomba.', man: 'Controlar la presión de la red y dar la orden de arranque.', suc: 'Llevar el agua desde el tanque hasta la bomba.', imp: 'Llevar el agua con presión desde la bomba hacia el edificio.', mon: 'Subir el agua a todos los pisos.', sop: 'Fijar las cañerías y evitar vibraciones.', bis: 'Que los Bomberos inyecten agua a la red desde la calle.', bie: 'Que el personal ataque el fuego con agua a presión y manguera de 30 m.', roc: 'Abrirse solos con el calor y apagar el fuego en su origen.', rra: 'Distribuir el agua a cada rociador.', ext: 'Apagar un fuego en su inicio.', co2: 'Apagar fuegos eléctricos sin dejar residuos.', b10: 'Proteger sectores con combustibles.', cart: 'Ubicar el extintor desde lejos.', det: 'Detectar el humo y avisar a la central antes de que el fuego crezca.', pul: 'Que cualquier persona active la alarma.', sir: 'Avisar con sonido y luz para evacuar.', cen: 'Recibir las señales de detectores y pulsadores y activar las sirenas.', cab: 'Conectar los equipos de alarma con la central.', luz: 'Iluminar la salida si se corta la energía.', sen: 'Indicar el camino a la salida, también a oscuras.', pue: 'Evacuar el edificio en forma rápida y segura.' };
+    if (!fi[2] && USO[q.v]) fi[2] = USO[q.v];
+    stops.push({ t: q.t, sub: (q.cant ? 'Cantidad: ' + q.cant : '') + ((hit[0].userData.med || fi[1]) ? (q.cant ? ' · ' : '') + 'Medida: ' + (hit[0].userData.med || fi[1]) : ''), uso: fi[2] || '', norma: q.norma || '', c, dist: Math.max(1.8, dg * 0.95 / Math.tan((38 * Math.PI / 180) / 2)), dir: new T.Vector3(0.55, 0.5, 0.68), hit, muros: !q.ocultarMuros, hold: window.__waMode ? 1.6 : 2.1 });
+    // Detalle: acercamiento a cada unidad (hasta 3 por componente) para ver el equipo de cerca.
+    let U = []; try { U = unidades(hit); } catch (x) {} const PRIN = ['bp', 'esc', 'ret', 'man', 'emp', 'bie', 'roc', 'ext', 'det', 'pul', 'sir', 'luz'], nU = U.length;
+    const elegidos = window.__waMode ? (PRIN.includes(q.v) && U[0] ? [U[0]] : []) : (nU <= 3 ? U : [U[0], U[Math.floor(nU / 2)], U[nU - 1]]);
+    elegidos.forEach((u, k) => { if (!u || !u.bb) return; const sz = Math.max(0.35, u.bb.getSize(new T.Vector3()).length()), cu = u.bb.getCenter(new T.Vector3());
+      stops.push({ t: q.t + ' · detalle', sub: 'Unidad ' + (nU <= 3 ? k + 1 : [1, Math.floor(nU / 2) + 1, nU][k]) + ' de ' + nU + ((hit[0].userData.med || fi[1]) ? ' · ' + (hit[0].userData.med || fi[1]) : ''), uso: fi[2] || '', norma: '', c: cu, dist: Math.max(0.9, sz * 2.6), dir: new T.Vector3(0.7, 0.45, 0.6).applyAxisAngle(new T.Vector3(0, 1, 0), k * 0.9), hit: u.objs || hit, muros: false, hold: 1.5, det: true }); }); });
+  stops.push({ t: 'Full Service', sub: 'Ing. Edgar Mendez · Ejecutivo Comercial', uso: 'Provisión e instalación del sistema completo, con pruebas y documentación para la habilitación.', c: cAll, dist: dAll * 1.15, dir: new T.Vector3(-0.6, 0.6, 0.7), hit: [], muros: true, hold: 2.4, fin: true });
+  const durEst = stops.reduce((a, s, i) => a + (i === 0 ? 0.6 : 1.0) + s.hold, 0), mbEst = durEst * (window.__waMode ? 2.5 : 9) / 8;
+  est('Grabando recorrido de ' + Math.round(durEst) + ' s (≈ ' + Math.round(mbEst) + ' MB)…'); await new Promise(res => setTimeout(res, 900));
+  // lienzo de composición con rótulos
+  const cv = document.createElement('canvas'); cv.width = VW; cv.height = VH; const x2 = cv.getContext('2d');
+  const vc = new T.PerspectiveCamera(38, VW / VH, 0.05, dAll * 40);
+  const st = cv.captureStream(30), rec = new MediaRecorder(st, { mimeType: tipo, videoBitsPerSecond: window.__waMode ? 2500000 : 9000000 }), trozos = [];
+  rec.ondataavailable = e => { if (e.data.size) trozos.push(e.data); };
+  const fin = new Promise(res => { rec.onstop = res; });
+  const envolver = (txt, maxW) => { const pal = String(txt || '').split(' '), out = []; let l = ''; pal.forEach(w => { const t = l ? l + ' ' + w : w; if (x2.measureText(t).width > maxW && l) { out.push(l); l = w; } else l = t; }); if (l) out.push(l); return out.slice(0, 2); };
+  const rotulo = (s, i, a) => {
+    x2.globalAlpha = a; x2.fillStyle = 'rgba(20,19,17,0.86)'; x2.fillRect(0, VH - 150, VW, 150); x2.fillStyle = '#f4c430'; x2.fillRect(0, VH - 150, 10, 150);
+    x2.fillStyle = '#c9c5bd'; x2.font = '600 17px Arial, Helvetica, sans-serif'; x2.fillText(s.fin || i === 0 ? '' : 'ESTAMOS VIENDO', 40, VH - 124);
+    x2.fillStyle = '#ffffff'; x2.font = '700 32px Arial, Helvetica, sans-serif'; x2.fillText(s.t, 40, VH - 92);
+    x2.font = '600 21px Arial, Helvetica, sans-serif'; x2.fillStyle = '#ffd78a'; x2.fillText(s.sub || '', 40, VH - 62);
+    x2.font = '20px Arial, Helvetica, sans-serif'; x2.fillStyle = '#ffffff'; envolver((s.uso ? (s.fin || i === 0 ? '' : 'Sirve para: ') + s.uso.charAt(0).toLowerCase() + s.uso.slice(1) : '') + (s.norma ? ' · ' + s.norma : ''), VW - 80).forEach((l, k) => x2.fillText(i === 0 || s.fin ? (k ? l : s.uso) : l, 40, VH - 32 + k * 24));
+    x2.globalAlpha = 1; x2.fillStyle = 'rgba(255,255,255,0.94)'; x2.fillRect(24, 20, 250, 74);
+    if (logoImg.complete && logoImg.naturalWidth) x2.drawImage(logoImg, 32, 26, 160, 54); else { x2.fillStyle = '#1b1a18'; x2.font = '700 18px Arial, sans-serif'; x2.fillText('FULL SERVICE', 36, 60); }
+    x2.fillStyle = '#1b1a18'; x2.font = '700 15px Arial, sans-serif'; x2.fillText('TWG S.A.', 198, 52); x2.font = '12px Arial, sans-serif'; x2.fillStyle = '#6f6b64'; x2.fillText('Sistema PCI', 198, 70);
+    x2.fillStyle = 'rgba(255,255,255,0.9)'; x2.fillRect(VW - 120, 22, 96, 40); x2.fillStyle = '#1b1a18'; x2.font = '600 18px Arial, sans-serif'; x2.textAlign = 'center'; x2.fillText((i + 1) + ' / ' + stops.length, VW - 72, 48); x2.textAlign = 'left';
+    if (s.det) { x2.fillStyle = 'rgba(244,196,48,0.95)'; x2.fillRect(VW - 230, 22, 100, 40); x2.fillStyle = '#1b1a18'; x2.font = '700 16px Arial, sans-serif'; x2.textAlign = 'center'; x2.fillText('DETALLE', VW - 180, 48); x2.textAlign = 'left'; }
+  };
+  const marcar = (s, on) => s.hit.forEach(o => { if (on) { o.userData._m = o.material; const c = o.material.clone(); c.emissive = new T.Color('#ffb300'); c.emissiveIntensity = 0.75; o.material = c; } else if (o.userData._m) { o.material = o.userData._m; delete o.userData._m; } });
+  window.__videoCam = vc; rec.start(250);
+  const TR = 1.0; let prevPos = cAll.clone().addScaledVector(stops[0].dir.clone().normalize(), stops[0].dist * 1.3), prevT = cAll.clone();
+  for (let i = 0; i < stops.length; i++) {
+    const s = stops[i]; est('Grabando recorrido… ' + (i + 1) + ' de ' + stops.length + ': ' + s.t);
+    verMuros = s.muros; aplicarVis(); marcar(s, true);
+    const total = (i === 0 ? 0.6 : TR) + s.hold, t0 = performance.now();
+    await new Promise(res => { const paso = () => { const tt = (performance.now() - t0) / 1000; if (tt >= total) return res();
+      const kT = i === 0 ? Math.min(1, tt / 0.6) : Math.min(1, tt / TR), e = kT < 0.5 ? 2 * kT * kT : 1 - Math.pow(-2 * kT + 2, 2) / 2;
+      const ang = Math.max(0, tt - TR) * 0.12, dir = s.dir.clone().applyAxisAngle(new T.Vector3(0, 1, 0), ang).normalize(), to = s.c.clone().addScaledVector(dir, s.dist);
+      vc.position.lerpVectors(prevPos, to, e); const tg = new T.Vector3().lerpVectors(prevT, s.c, e); vc.lookAt(tg); vc.near = Math.max(0.02, s.dist / 300); vc.updateProjectionMatrix();
+      r.render(sc, vc); x2.drawImage(r.domElement, 0, 0, VW, VH); rotulo(s, i, Math.min(1, Math.max(0, (tt - (i === 0 ? 0 : TR * 0.6)) / 0.4)));
+      if (tt > total - 0.05) { prevPos = vc.position.clone(); prevT = s.c.clone(); }
+      requestAnimationFrame(paso); }; paso(); });
+    marcar(s, false);
+  }
+  rec.stop(); await fin; window.__videoCam = null; if (sun && sun.shadow && sm0) { sun.shadow.mapSize.set(sm0, sm0); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } } r.setPixelRatio(pr); r.setSize(W0, H0, false); verMuros = vm0; verTecho = vt0; aplicarVis();
+  const ext = tipo.startsWith('video/mp4') ? 'mp4' : 'webm', blob = new Blob(trozos, { type: tipo.split(';')[0] }), url = URL.createObjectURL(blob);
+  window.__ultVideo = { blob, ext, url, nombre: nomBase() + '-recorrido.' + ext };
+  if (window.__waMode) { window.__waMode = false; mostrarWa(); return; }
+  descargar(url, nomBase() + '-recorrido.' + ext);
+  est(ext === 'mp4' ? 'Listo: video MP4 del recorrido (' + stops.length + ' puntos) descargado, compatible con WhatsApp.' : 'Video descargado en WebM: este navegador no graba MP4. Para WhatsApp usá Chrome actualizado o las imágenes JPG.');
+}
+function mostrarWa() {
+  const v = window.__ultVideo; if (!v) return;
+  // Descarga: se intenta automática y además se ofrece el enlace directo (algunos navegadores bloquean la descarga sin clic dentro de un marco).
+  $('waLink').href = v.url; $('waLink').download = v.nombre;
+  if (!v.bajado) { v.bajado = true; try { descargar(v.url, v.nombre); } catch (x) {} try { parent.postMessage({ pci3d: 'video', blob: v.blob, nombre: v.nombre }, '*'); } catch (x) {} } const mb = (v.blob.size / 1048576).toFixed(1).replace('.', ',');
+  const file = new File([v.blob], v.nombre, { type: v.ext === 'mp4' ? 'video/mp4' : 'video/webm' });
+  const puede = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+  $('waInfo').innerHTML = '<b>' + v.nombre + '</b> · ' + mb + ' MB · ' + (v.ext === 'mp4' ? 'formato MP4 (H.264), se reproduce en WhatsApp de Android y iPhone.' : '<span style="color:#b8261c">este navegador grabó en WebM. Para que se vea en WhatsApp, abrí el sistema en Google Chrome actualizado y volvé a enviarlo.</span>') +
+    (+mb > 16 ? '<div style="color:#b8261c;margin-top:4px">Supera 16 MB: si WhatsApp no lo acepta como video, envialo como documento.</div>' : '') +
+    '<div style="margin-top:6px">Si no se descargó solo, tocá <b>"Descargar el video MP4"</b>. Queda en tu carpeta de Descargas: en WhatsApp abrí el chat, tocá el clip 📎 y elegí el archivo.</div>';
+  $('waShare').style.display = puede ? 'block' : 'none';
+  $('waShare').onclick = async () => { try { await navigator.share({ files: [file], title: 'Recorrido del sistema PCI', text: 'Full Service · Recorrido 3D del sistema de protección contra incendios' }); $('waBox').style.display = 'none'; } catch (x) { if (x && x.name !== 'AbortError') $('waInfo').innerHTML += '<div style="color:#b8261c;margin-top:6px">No se pudo compartir: usá "Descargar".</div>'; } };
+  $('waDown').onclick = () => { window.open('https://web.whatsapp.com/', '_blank', 'noopener'); };
+  $('waClose').onclick = () => { $('waBox').style.display = 'none'; };
+  $('waBox').style.display = 'flex'; est('Video listo: ' + mb + ' MB.');
+}
+function setModo(m) {
+  modo = m; $('bGen').className = m === 'gen' ? 'on' : ''; $('bIn').className = m === 'in' ? 'on' : '';
+  $('gPiso').style.display = m === 'in' ? 'flex' : 'none'; $('mira').style.display = m === 'in' ? 'block' : 'none';
+  ctl.enabled = m === 'gen'; cam.near = m === 'in' ? 0.02 : 0.03; cam.updateProjectionMatrix();
+  $('ayuda').textContent = m === 'gen' ? 'Rueda: acercar y alejar · Arrastrar: girar · Clic derecho: mover' : 'Arrastrar: mirar alrededor · W A S D o flechas: caminar · Rueda: avanzar y retroceder';
+  aplicarVis(); if (m === 'in') entrar(); else encuadrar(); r.domElement.focus();
+}
+$('bGen').onclick = () => setModo('gen'); $('bIn').onclick = () => setModo('in');
+$('pAr').onclick = () => { if (pisoAct < nPisos() - 1) { pisoAct++; entrar(); } };
+$('pAb').onclick = () => { if (pisoAct > 0) { pisoAct--; entrar(); } };
+$('bMuros').onclick = () => { verMuros = !verMuros; aplicarVis(); };
+function llenarPisos() { const sp = $('selPiso'), n = nPisos(); if (sp.options.length === n + 1) return; sp.innerHTML = '<option value="-1">Todos</option>' + Array.from({ length: n }, (_, i) => '<option value="' + i + '">' + (i === 0 ? 'Planta baja' : 'Piso ' + i) + '</option>').join(''); if (pisoSel >= n) pisoSel = -1; sp.value = String(pisoSel); }
+function encuadrarPisos(list) {
+  const H = (D0 && D0.alt) || 3, W = (D0 && D0.BW) || 12, Dd = (D0 && D0.BD) || 8, lo = Math.min(...list), hi = Math.max(...list);
+  const c = new T.Vector3(W / 2, (lo + hi + 1) * H / 2, Dd / 2), dg = Math.hypot(W, Dd, (hi - lo + 1) * H);
+  const to = c.clone().addScaledVector(new T.Vector3(0.62, 0.7, 0.78).normalize(), dg * 1.05), p0 = cam.position.clone(), t0 = ctl.target.clone(), ini = performance.now();
+  (function paso() { const k = Math.min(1, (performance.now() - ini) / 800), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; cam.position.lerpVectors(p0, to, e); ctl.target.lerpVectors(t0, c, e); if (k < 1) requestAnimationFrame(paso); })();
+}
+function verPisos(list) {
+  list = (list || []).filter(i => i >= 0 && i < nPisos());
+  pisosVis = list.length ? new Set(list) : null; pisoSel = list.length === 1 ? list[0] : -1; limpiarFoco(); aplicarVis(); if (!grp) return;
+  if (modo === 'in') { if (list.length) { pisoAct = list[0]; entrar(); } return; }
+  if (list.length) encuadrarPisos(list); else encuadrar();
+}
+function verPiso(i) {
+  pisoSel = i; pisosVis = i < 0 ? null : new Set([i]); limpiarFoco(); aplicarVis(); if (!grp) return;
+  if (i < 0) { encuadrar(); return; }
+  const H = (D0 && D0.alt) || 3, W = (D0 && D0.BW) || 12, Dd = (D0 && D0.BD) || 8, c = new T.Vector3(W / 2, i * H + H / 2, Dd / 2), dg = Math.hypot(W, Dd, H);
+  if (modo === 'in') { pisoAct = i; entrar(); return; }
+  const to = c.clone().addScaledVector(new T.Vector3(0.62, 0.7, 0.78).normalize(), dg * 1.05);
+  const p0 = cam.position.clone(), t0 = ctl.target.clone(), ini = performance.now();
+  (function paso() { const k = Math.min(1, (performance.now() - ini) / 800), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; cam.position.lerpVectors(p0, to, e); ctl.target.lerpVectors(t0, c, e); if (k < 1) requestAnimationFrame(paso); })();
+}
+$('selPiso').onchange = (e) => { const i = +e.target.value; verPiso(i); try { parent.postMessage({ pci3d: 'pisoSel', i }, '*'); } catch (x) {} };
+$('bTecho').onclick = () => { verTecho = !verTecho; aplicarVis(); };
+let drag = null;
+r.domElement.addEventListener('pointerdown', (e) => { r.domElement.focus(); drag = { x: e.clientX, y: e.clientY, moved: false }; });
+addEventListener('pointerup', () => { drag = null; });
+r.domElement.addEventListener('pointermove', (e) => {
+  if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 2) drag.moved = true;
+    if (modo === 'in') { yaw -= dx * 0.004; pitch = Math.max(-1.3, Math.min(1.3, pitch - dy * 0.004)); drag.x = e.clientX; drag.y = e.clientY; } }
+  mouse.x = e.clientX; mouse.y = e.clientY; mouse.on = true;
+});
+r.domElement.addEventListener('pointerleave', () => { mouse.on = false; $('tip').style.display = 'none'; });
+// Zoom propio: acerca hacia el objeto que está bajo el cursor (nunca hacia el vacío),
+// así la imagen no se "escapa" ni desaparece al acercar.
+r.domElement.addEventListener('wheel', (e) => {
+  if (modo !== 'gen') return; e.preventDefault();
+  const dentro = e.deltaY < 0, k = Math.min(0.35, 0.12 * Math.max(1, Math.abs(e.deltaY) / 100));
+  ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
+  const hit = grp ? ray.intersectObject(grp, true).find(h => h.object.visible && !h.object.userData.noFit && !(h.object.material && h.object.material.opacity < 0.3)) : null;
+  if (dentro) {
+    const p = hit ? hit.point : ctl.target.clone(), d = cam.position.distanceTo(p);
+    if (d < 0.35) return;
+    const step = Math.min(k, 1 - 0.3 / d);
+    cam.position.lerp(p, step); ctl.target.lerp(p, step);
+    if (cam.position.y < 0.3) cam.position.y = 0.3;
+  } else {
+    const v = cam.position.clone().sub(ctl.target), L = v.length();
+    if (L < 800) cam.position.copy(ctl.target).addScaledVector(v.normalize(), Math.min(800, L * (1 + k * 1.4) + 0.2));
+  }
+  cam.near = Math.max(0.01, Math.min(0.5, cam.position.distanceTo(ctl.target) / 300)); cam.updateProjectionMatrix();
+}, { passive: false });
+r.domElement.addEventListener('wheel', (e) => { if (modo !== 'in') return; e.preventDefault(); const f = new T.Vector3(Math.sin(yaw), 0, Math.cos(yaw)); cam.position.addScaledVector(f, -Math.sign(e.deltaY) * 0.6); }, { passive: false });
+addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; if (modo === 'in' && ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) e.preventDefault(); });
+addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+
+// ---------- nombre al pasar el mouse
+const mouse = { x: 0, y: 0, on: false }, ray = new T.Raycaster(), ndc = new T.Vector2(); let last = 0, hover = null;
+const resaltDe = (m) => { const c = m.clone(); c.emissive = new T.Color('#ffb300'); c.emissiveIntensity = 0.35; return c; };
+function pick() {
+  const tip = $('tip');
+  if (!mouse.on || (drag && drag.moved)) { tip.style.display = 'none'; return; }
+  ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
+  const vis = (o) => { for (let x = o; x; x = x.parent) if (!x.visible) return false; return true; };
+  const hits = ray.intersectObjects(pickables.filter(vis), false);
+  const h = hits.find(x => x.object.userData.name && !(x.object.material && x.object.material.opacity < 0.3 && x.object.userData.name === 'Muro'));
+  if (hover && (!h || hover.obj !== h.object)) { hover.obj.material = hover.mat; hover = null; }
+  if (!h) { tip.style.display = 'none'; r.domElement.style.cursor = modo === 'in' ? 'grab' : 'default'; return; }
+  const o = h.object; if (!hover && o.userData.name !== 'Muro' && !/^Losa|^Cielorraso|^Techo|Vereda|^Sala de bombas|^Muro|^Base de H/.test(o.userData.name)) { hover = { obj: o, mat: o.material }; o.material = resaltDe(o.material); }
+  const fi = info(o.userData.name) || [], med = o.userData.med || fi[1] || '', uso = fi[2] || '';
+  tip.innerHTML = '<b>' + o.userData.name + '</b>' + (med ? '<div class="m">Medida: ' + med + '</div>' : '') + (uso ? '<div class="u">' + uso + '</div>' : '') + (o.userData.det ? '<span>' + o.userData.det + '</span>' : '');
+  tip.style.display = 'block'; const tx = Math.min(innerWidth - 310, mouse.x + 14), ty = Math.max(8, mouse.y - 10 - tip.offsetHeight);
+  tip.style.left = tx + 'px'; tip.style.top = ty + 'px'; r.domElement.style.cursor = 'pointer';
+}
+
+const clock = new T.Clock();
+(function loop() {
+  requestAnimationFrame(loop); const dt = Math.min(0.05, clock.getDelta());
+  if (modo === 'in') {
+    const sp = (keys.shift ? 3.2 : 1.6) * dt, f = new T.Vector3(Math.sin(yaw), 0, Math.cos(yaw)), rgt = new T.Vector3(-Math.cos(yaw), 0, Math.sin(yaw));
+    if (keys.w || keys.arrowup) cam.position.addScaledVector(f, sp);
+    if (keys.s || keys.arrowdown) cam.position.addScaledVector(f, -sp);
+    if (keys.a || keys.arrowleft) cam.position.addScaledVector(rgt, sp);
+    if (keys.d || keys.arrowright) cam.position.addScaledVector(rgt, -sp);
+    if (D0) { const W = D0.BW || 12, Dd = D0.BD || 8; cam.position.x = Math.max(-6, Math.min(W + 6, cam.position.x)); cam.position.z = Math.max(-14, Math.min(Dd + 6, cam.position.z)); cam.position.y = pisoAct * (D0.alt || 3) + 1.6; }
+    const look = new T.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+    cam.lookAt(cam.position.clone().add(look));
+  } else { ctl.update(); if (cam.position.y < 0.3) cam.position.y = 0.3; }
+  const now = performance.now(); if (now - last > 60) { last = now; pick(); }
+  if (!window.__videoCam) r.render(sc, cam);
+})();
+
+$('bWaImg').onclick = () => exportarImagenes(); $('bWaVid').onclick = () => exportarVideo();
+$('bWaSend').onclick = () => { if (window.__ultVideo && window.__ultVideo.sig === sig) { window.__ultVideo.bajado = false; mostrarWa(); return; } window.__waMode = true; exportarVideo().then(() => { if (window.__ultVideo) window.__ultVideo.sig = sig; }); };
+addEventListener('message', (ev) => { const d = ev.data; if (!d) return; if (d.pci3d === 'pisos') { verPisos(d.list || []); return; } if (d.pci3d === 'modelo' && d.C) { const f0 = focoSel.length; pintar(d.C); if (f0 && window.__ultFoco) setTimeout(() => enfocar(window.__ultFoco), 50); } else if (d.pci3d === 'foco') { window.__ultFoco = d.q; enfocar(d.q); }
+  else if (d.pci3d === 'snap') {
+    // Captura para la propuesta: vista general, muros semitransparentes, sin resaltados.
+    try { limpiarFoco(); if (modo === 'in') setModo('gen'); const vm = verMuros; verMuros = d.muros !== false; aplicarVis(); encuadrar(); ctl.update();
+      if (d.vista === 'iso') { const t = ctl.target.clone(), dist = cam.position.distanceTo(t); cam.position.copy(t).addScaledVector(new T.Vector3(0.62, 0.62, 0.48).normalize(), dist * 0.92); cam.lookAt(t); }
+      let url; if (d.vista === 'planta') { verMuros = vm; aplicarVis(); url = renderPlanta(1600, 900); } else { r.render(sc, cam); url = r.domElement.toDataURL('image/jpeg', 0.9); } verMuros = vm; aplicarVis();
+      ev.source && ev.source.postMessage({ pci3d: 'snapImg', id: d.id, url }, '*'); } catch (x) { ev.source && ev.source.postMessage({ pci3d: 'snapImg', id: d.id, err: String(x) }, '*'); }
+  } });
+try { const d = JSON.parse(localStorage.getItem('pci-3d-modelo') || 'null'); if (d) pintar(d); } catch (x) {}
+try { parent.postMessage({ pci3d: 'listo' }, '*'); } catch (x) {}
+if (!sig) est('Esperando datos del cálculo…');
+</script></body></html>

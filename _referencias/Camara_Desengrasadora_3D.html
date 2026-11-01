@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Cámara desengrasadora de H°A° 5,20 × 2,50 × 2,80 m · 3D y plano</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#dfe4e8;font-family:system-ui,sans-serif}
+#v{position:absolute;inset:0}
+#hd{position:absolute;left:12px;top:12px;background:rgba(255,255,255,.95);border:1px solid #d2d8dc;border-radius:10px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;z-index:3;max-width:270px}
+#hd b{font-size:13.5px}#hd label{display:flex;gap:6px;align-items:center;cursor:pointer}#hd i{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+#bt{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px;z-index:3;align-items:flex-end}
+#bt div{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#bt button,#plano .tb button{font:600 12px system-ui;padding:6px 10px;border:1px solid #c9c5bd;background:#fff;border-radius:6px;cursor:pointer}
+#bt button.on{background:#14382f;color:#fff;border-color:#14382f}
+#bt button.acc{background:#fff7e0;border-color:#d9b44a}
+#bt button.pl{background:#1b1a18;color:#fff;border-color:#1b1a18}
+#tip{position:absolute;pointer-events:none;background:rgba(16,36,30,.95);color:#fff;font-size:12px;line-height:1.45;padding:7px 10px;border-radius:7px;max-width:290px;display:none;z-index:5}
+#tip b{display:block;font-size:13px;margin-bottom:2px}#tip span{color:#cfe3da}
+#e{position:absolute;right:12px;bottom:10px;font-size:11px;color:#3f3b35;background:rgba(255,255,255,.9);padding:4px 8px;border-radius:5px}
+#plano{display:none;position:fixed;inset:0;background:#fff;z-index:10;overflow:auto}
+#plano .tb{position:sticky;top:0;display:flex;gap:8px;justify-content:flex-end;padding:10px 14px;background:#fff;border-bottom:1px solid #e4e1db;z-index:2}
+#planoSvg{padding:12px 18px}
+@media print{@page{size:A3 landscape;margin:8mm}html,body{overflow:visible;height:auto;background:#fff}#v,#hd,#bt,#e,#tip,#plano .tb{display:none!important}#plano{display:block!important;position:static!important;overflow:visible}#planoSvg{padding:0}#planoSvg svg{width:100%;height:auto}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="v"></div><div id="hd"></div><div id="tip"></div>
+<div id="bt">
+  <div><button id="b1" class="on">Cámara</button><button id="b2">Corte</button><button id="b3">Desde arriba</button><button id="b4">Vista interna</button></div>
+  <div><button id="bT" class="acc">Sacar tapa</button><button id="bB" class="acc">Abrir bocas</button></div>
+  <div><button id="bPl" class="pl" style="display:none">Plano constructivo</button><a style="display:none" href="Plano Constructivo Camara Desengrasadora.dc.html" target="_blank" style="font:600 12px system-ui;padding:6px 10px;border:1px solid #1b1a18;background:#1b1a18;color:#fff;border-radius:6px;text-decoration:none">Imprimir plano A4</a><button id="bP">Ocultar panel</button></div>
+</div>
+<div id="e">Arrastrá para girar · rueda para acercar · clic derecho para mover · pasá el cursor sobre cada parte</div>
+<div id="plano"><div class="tb"><a href="Plano Constructivo Camara Desengrasadora.dc.html" target="_blank" style="font:600 12px system-ui;padding:6px 10px;border:1px solid #1b1a18;background:#1b1a18;color:#fff;border-radius:6px;text-decoration:none">Imprimir en A4 (5 láminas)</a><button id="pPr">Imprimir esta hoja</button><button id="pCl">Volver al 3D</button></div><div id="planoSvg"></div></div>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = (i) => document.getElementById(i);
+const QS = new URLSearchParams(location.search), PROP = QS.get('prop') === '1';
+const r = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+r.toneMapping = T.ACESFilmicToneMapping; r.outputColorSpace = T.SRGBColorSpace; $('v').appendChild(r.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#dfe4e8');
+sc.environment = new T.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+const cam = new T.PerspectiveCamera(38, 1, 0.03, 500);
+sc.add(new T.HemisphereLight('#ffffff', '#7d8a80', 0.6));
+const sun = new T.DirectionalLight('#fff6e8', 1.6); sun.position.set(9, 14, 7); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10, near: 1, far: 50 }); sun.shadow.bias = -0.0004; sc.add(sun);
+const ctl = new OrbitControls(cam, r.domElement); ctl.enableDamping = true; ctl.screenSpacePanning = true; ctl.minDistance = 1; ctl.maxDistance = 60;
+const fit = () => { const w = innerWidth || 800, h = innerHeight || 560; r.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+addEventListener('resize', fit); fit();
+
+const texCanvas = (w, h, draw, rep) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; if (rep) t.repeat.set(...rep); t.colorSpace = T.SRGBColorSpace; return t; };
+const ruido = (x, w, h, base, v) => { x.fillStyle = base; x.fillRect(0, 0, w, h); for (let i = 0; i < w * h / 6; i++) { const g = Math.random() * v; x.fillStyle = 'rgba(' + (g > v / 2 ? '255,255,255' : '0,0,0') + ',' + (Math.abs(g - v / 2) / v * 0.18) + ')'; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); } };
+const tHorm = texCanvas(256, 256, (x, w, h) => ruido(x, w, h, '#b3afa6', 60), [2, 2]);
+const tTierra = texCanvas(256, 256, (x, w, h) => ruido(x, w, h, '#9a6b45', 90), [3, 3]);
+const tPasto = texCanvas(256, 256, (x, w, h) => ruido(x, w, h, '#6f8f4a', 90), [8, 8]);
+const tMad = texCanvas(256, 64, (x, w, h) => { ruido(x, w, h, '#c79a5e', 50); x.strokeStyle = 'rgba(80,50,20,.45)'; for (let i = 0; i < 4; i++) { x.beginPath(); x.moveTo(0, i * 16); x.lineTo(w, i * 16); x.stroke(); } }, [2, 4]);
+const M = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.8 }, o || {}));
+
+const capas = {}, pick = [];
+['terreno', 'excav', 'limpieza', 'camara', 'acero', 'encofrado', 'canos', 'tapa'].forEach(k => { capas[k] = new T.Group(); sc.add(capas[k]); });
+const reg = (m, n, d, cap, x) => { m.userData = { n, d, x: x || '' }; m.castShadow = true; m.receiveShadow = true; if (n) pick.push(m); (typeof cap === 'string' ? capas[cap] : cap).add(m); return m; };
+const box = (w, h, d, x, y, z, mat, n, ds, cap, ex) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); return reg(m, n, ds, cap, ex); };
+const pipe = (a, b, rr, mat, n, ds, cap) => { const A = new T.Vector3(...a), B = new T.Vector3(...b), v = B.clone().sub(A), L = v.length(); const m = new T.Mesh(new T.CylinderGeometry(rr, rr, L, 20), mat); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v.normalize()); return reg(m, n, ds, cap); };
+
+// Según plano AXIS (Desengrasador, hoja 03): 5,20 × 2,50 × 2,80 m con losa de tapa · 1 tabique · fundación a −3,00 m
+const L = 5.2, W = 2.5, H = 2.8, e = 0.2, ef = 0.2, ET = 0.15, et = 0.15, hT = 2.0, SOB = 0.3, yTop = 0.2, yBot = yTop - H, yW = yTop - ET, LIM = 0.05;
+const XE = L + 2 * SOB, ZE = W + 2 * SOB, PROF = H - yTop + LIM, hi = H - ef - ET;
+const C1 = 3.0, xb1 = -L / 2 + e + C1 + et / 2, C2 = L - 2 * e - C1 - et, xi = L - 2 * e;
+const gsh = new T.Shape(); gsh.moveTo(-14, -10); gsh.lineTo(14, -10); gsh.lineTo(14, 10); gsh.lineTo(-14, 10); gsh.lineTo(-14, -10);
+const hole = new T.Path(); hole.moveTo(-XE / 2, -ZE / 2); hole.lineTo(XE / 2, -ZE / 2); hole.lineTo(XE / 2, ZE / 2); hole.lineTo(-XE / 2, ZE / 2); hole.lineTo(-XE / 2, -ZE / 2); gsh.holes.push(hole);
+const ter = new T.Mesh(new T.ShapeGeometry(gsh), M('#7a9450', { map: tPasto, roughness: 1 })); ter.rotation.x = -Math.PI / 2; ter.receiveShadow = true; capas.terreno.add(ter);
+const mT = M('#9a6b45', { map: tTierra, roughness: 1, side: T.DoubleSide });
+const yEx = -PROF / 2;
+box(XE, PROF, 0.02, 0, yEx, -ZE / 2, mT, 'Excavación manual · pared perfilada', 'Hasta la cota de fundación: 3,00 m bajo el terreno natural', 'excav', '5,80 × 3,10 × 3,05 m');
+box(0.02, PROF, ZE, -XE / 2, yEx, 0, mT, 'Excavación manual · pared perfilada', 'Sobreancho de 30 cm por lado', 'excav');
+box(0.02, PROF, ZE, XE / 2, yEx, 0, mT, 'Excavación manual · pared perfilada', 'Sobreancho de 30 cm por lado', 'excav');
+const parFrente = box(XE, PROF, 0.02, 0, yEx, ZE / 2, mT, 'Excavación manual · pared perfilada', '', 'excav');
+box(XE, 0.02, ZE, 0, -PROF, 0, mT, 'Fondo de excavación perfilado y compactado', 'Cota de fundación −3,00 m del terreno natural', 'excav');
+box(XE, LIM, ZE, 0, yBot - LIM / 2, 0, M('#8f8c85', { map: tHorm }), 'Hormigón de limpieza (sellado) · 5 cm', 'Elaborado y colocado in situ sobre el fondo perfilado', 'limpieza');
+const mH = M('#c3bfb6', { map: tHorm, roughness: 0.9 });
+const dsC = 'Hormigón 210 kg/cm² · acero 5000 kg/cm² · recubrimiento 2,5 cm', exC = '5,20 × 2,50 × 2,80 m exterior';
+box(L, ef, W, 0, yBot + ef / 2, 0, mH, 'Losa de fondo de H°A° · 20 cm', 'Armadura inferior y superior · recubrimiento 3 cm', 'camara', exC);
+box(L, hi, e, 0, yBot + ef + hi / 2, -W / 2 + e / 2, mH, 'Muro de H°A° · 20 cm', dsC, 'camara', exC);
+const muroFrente = box(L, hi, e, 0, yBot + ef + hi / 2, W / 2 - e / 2, mH, 'Muro de H°A° · 20 cm', dsC, 'camara', exC);
+box(e, hi, W - 2 * e, -L / 2 + e / 2, yBot + ef + hi / 2, 0, mH, 'Muro de H°A° · 20 cm · lado entrada', dsC, 'camara', exC);
+box(e, hi, W - 2 * e, L / 2 - e / 2, yBot + ef + hi / 2, 0, mH, 'Muro de H°A° · 20 cm · lado salida', dsC, 'camara', exC);
+box(et, hT, W - 2 * e, xb1, yBot + ef + hT / 2, 0, M('#b8b4ab', { map: tHorm }), 'Tabique de H°A° · 15 cm', 'Desde el fondo, deja 0,45 m libres bajo la tapa: separa la cámara de retención (3,00 m) de la de salida (1,65 m)', 'camara', 'Alto 2,00 m');
+const yAg = yW - 0.45;
+const agua = box(xi - 0.02, yAg - (yBot + ef), W - 2 * e - 0.02, 0, (yAg + yBot + ef) / 2, 0, M('#6f8a8f', { transparent: true, opacity: 0.35, roughness: 0.1, depthWrite: false }), 'Nivel de líquido', '', 'camara');
+const grasa = box(C1 - 0.02, 0.06, W - 2 * e - 0.02, -L / 2 + e + C1 / 2, yAg + 0.03, 0, M('#c9a227', { transparent: true, opacity: 0.8 }), 'Grasa retenida en superficie', 'Se retira en la limpieza periódica por el hueco de la cámara 1', 'camara');
+agua.visible = grasa.visible = false;
+const mA = M('#7a4a2a', { metalness: 0.6, roughness: 0.45 });
+for (let i = 0; i <= 26; i++) { const x = -L / 2 + 0.1 + i * (L - 0.2) / 26; pipe([x, yBot + 0.06, W / 2 - 0.03], [x, yW - 0.03, W / 2 - 0.03], 0.006, mA, 'Armadura vertical de muros', 'Doble malla · según planilla del plano', 'acero'); pipe([x, yBot + 0.06, W / 2 - 0.17], [x, yW - 0.03, W / 2 - 0.17], 0.006, mA, 'Armadura vertical de muros', 'Malla interior', 'acero'); }
+for (let j = 0; j <= 12; j++) { const y = yBot + 0.08 + j * (H - ET - 0.14) / 12; pipe([-L / 2 + 0.05, y, W / 2 - 0.04], [L / 2 - 0.05, y, W / 2 - 0.04], 0.006, mA, 'Armadura horizontal de muros', 'Doble malla · según planilla del plano', 'acero'); pipe([-L / 2 + 0.05, y, W / 2 - 0.16], [L / 2 - 0.05, y, W / 2 - 0.16], 0.006, mA, 'Armadura horizontal de muros', 'Malla interior', 'acero'); }
+capas.acero.visible = false;
+const mMad = M('#c79a5e', { map: tMad });
+box(L + 0.06, hi, 0.03, 0, yBot + ef + hi / 2, -W / 2 - 0.03, mMad, 'Encofrado exterior · tablas y puntales', 'Doble encofrado: cara exterior e interior de cada muro', 'encofrado');
+box(xi, hi - 0.05, 0.03, 0, yBot + ef + hi / 2, -W / 2 + e + 0.03, mMad, 'Encofrado interior · tablas y puntales', 'Se retira después del curado', 'encofrado');
+for (let i = 0; i < 6; i++) { const x = -L / 2 + 0.3 + i * (L - 0.6) / 5; const p = new T.Mesh(new T.BoxGeometry(0.07, 0.07, 0.62), mMad); p.position.set(x, yBot + 1.2, -W / 2 - 0.33); p.rotation.x = 0.55; reg(p, 'Puntal del encofrado exterior', 'Apoyado contra la pared de excavación', 'encofrado'); }
+capas.encofrado.visible = false;
+const mPVC = M('#e8e3d4', { roughness: 0.35 });
+pipe([-L / 2 - SOB - 1.2, yW - 0.3, 0], [-L / 2 + e + 0.05, yW - 0.3, 0], 0.08, mPVC, 'Entrada Ø 160 mm', 'Cañería y conexión a cargo del cliente', 'canos');
+pipe([L / 2 - e - 0.05, yW - 0.4, 0], [L / 2 + SOB + 1.2, yW - 0.4, 0], 0.08, mPVC, 'Salida Ø 160 mm', 'Cañería y conexión a cargo del cliente', 'canos');
+
+// Losa de tapa de H°A° 15 cm con un hueco de 0,60 × 0,60 por cámara, reforzado con 2 Ø 12 superior e inferior
+const BOC = 0.6, CX = [-L / 2 + e + C1 / 2, xb1 + et / 2 + C2 / 2];
+const tapaG = new T.Group(); capas.tapa.add(tapaG);
+const sh = new T.Shape(); sh.moveTo(-L / 2, -W / 2); sh.lineTo(L / 2, -W / 2); sh.lineTo(L / 2, W / 2); sh.lineTo(-L / 2, W / 2); sh.closePath();
+CX.forEach(cx => { const p = new T.Path(); p.moveTo(cx - BOC / 2, -BOC / 2); p.lineTo(cx - BOC / 2, BOC / 2); p.lineTo(cx + BOC / 2, BOC / 2); p.lineTo(cx + BOC / 2, -BOC / 2); p.closePath(); sh.holes.push(p); });
+const gT = new T.ExtrudeGeometry(sh, { depth: ET, bevelEnabled: false }); gT.rotateX(-Math.PI / 2);
+reg(new T.Mesh(gT, M('#bdb9b0', { map: tHorm })), 'Losa de tapa de H°A° · 15 cm', 'Armadura inferior y superior · huecos reforzados con 2 Ø 12 arriba y abajo', tapaG, '5,20 × 2,50 m');
+const mMet = M('#6b6f72', { metalness: 0.7, roughness: 0.4 });
+CX.forEach(cx => { [-1, 1].forEach(s => { pipe([cx - BOC / 2 - 0.45, ET + 0.004, s * (BOC / 2 + 0.05)], [cx + BOC / 2 + 0.45, ET + 0.004, s * (BOC / 2 + 0.05)], 0.008, mA, 'Refuerzo de hueco 2 Ø 12', 'Superior e inferior, 45 cm más allá del hueco', tapaG); pipe([cx + s * (BOC / 2 + 0.05), ET + 0.004, -BOC / 2 - 0.45], [cx + s * (BOC / 2 + 0.05), ET + 0.004, BOC / 2 + 0.45], 0.008, mA, 'Refuerzo de hueco 2 Ø 12', 'Superior e inferior, 45 cm más allá del hueco', tapaG); }); });
+const tapas = CX.map((cx, i) => { const g = new T.Group(); g.userData.cx = cx;
+  reg(new T.Mesh(new T.BoxGeometry(0.7, 0.06, 0.7), M('#cbc7be', { map: tHorm })), 'Tapa del hueco ' + (i + 1) + ' · 0,70 × 0,70 m', 'Tapa removible sobre el hueco de 0,60 × 0,60 m (no incluida)', g);
+  [-0.2, 0.2].forEach(dx => { const a = new T.Mesh(new T.TorusGeometry(0.06, 0.008, 8, 16, Math.PI), mMet); a.position.set(dx, 0.03, 0); a.rotation.y = Math.PI / 2; reg(a, '', '', g); });
+  tapaG.add(g); return g; });
+let tT = 1, tGoal = 1, bT = 0, bGoal = 0, last = performance.now();
+const ease = (u) => u * u * (3 - 2 * u), ZOFF = -(W / 2 + SOB + 1.7);
+const aplicar = () => { const u = ease(tT), v = ease(bT); tapaG.position.set(0, u * yW + Math.sin(Math.PI * u) * 2.2, (1 - u) * ZOFF); tapas.forEach(g => g.position.set(g.userData.cx, ET + 0.03 + Math.sin(Math.PI * v) * 0.35, v * 0.85)); };
+aplicar();
+(function loop() { requestAnimationFrame(loop); const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const mv = (c, g, s) => c + Math.sign(g - c) * Math.min(Math.abs(g - c), s); const t0 = tT, b0 = bT; tT = mv(tT, tGoal, dt / 1.8); bT = mv(bT, bGoal, dt / 1.0); if (t0 !== tT || b0 !== bT) aplicar();
+  ctl.update(); r.render(sc, cam); })();
+const txtBtns = () => { $('bT').textContent = tGoal ? 'Sacar losa de tapa' : 'Colocar losa de tapa'; $('bB').textContent = bGoal ? 'Cerrar huecos' : 'Abrir huecos'; };
+$('bT').onclick = () => { tGoal = tGoal ? 0 : 1; setCapa('tapa', true); txtBtns(); };
+$('bB').onclick = () => { bGoal = bGoal ? 0 : 1; setCapa('tapa', true); txtBtns(); };
+txtBtns();
+
+// Cotas 3D
+const gCot = new T.Group(); sc.add(gCot); capas.cotas = gCot; const gCE = new T.Group(), gCI = new T.Group(); gCot.add(gCE, gCI); let gDst = gCE;
+const mCot = new T.LineBasicMaterial({ color: '#c8102e', depthTest: false, transparent: true });
+const etiq = (txt, p, chico) => { const c = document.createElement('canvas'); const w = 64 + txt.length * 30; c.width = w; c.height = 64; const g = c.getContext('2d'); g.fillStyle = 'rgba(255,255,255,.95)'; g.fillRect(0, 0, w, 64); g.strokeStyle = '#c8102e'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, w - 3, 61); g.fillStyle = '#9b0d23'; g.font = 'bold 38px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, w / 2, 34); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; const s = new T.Sprite(new T.SpriteMaterial({ map: t, depthTest: false })); const k = chico ? 0.0034 : 0.0046; s.scale.set(w * k, 64 * k, 1); s.position.copy(p); s.renderOrder = 11; gDst.add(s); };
+const dim3 = (a, b, txt, off, perp, chico) => { const A = new T.Vector3(...a), B = new T.Vector3(...b), P = new T.Vector3(...perp).multiplyScalar(0.07); const pts = [A, B, A.clone().add(P), A.clone().sub(P), B.clone().add(P), B.clone().sub(P)];
+  const g = new T.BufferGeometry().setFromPoints(pts); const ln = new T.LineSegments(g, mCot); ln.renderOrder = 10; gDst.add(ln); etiq(txt, A.clone().add(B).multiplyScalar(0.5).add(new T.Vector3(...off)), chico); };
+const zF = W / 2 + 0.02;
+dim3([-L / 2, yTop + 0.4, zF], [L / 2, yTop + 0.4, zF], '5,20 m', [0, 0.17, 0], [0, 1, 0]);
+dim3([L / 2 + 0.35, yTop + 0.4, -W / 2], [L / 2 + 0.35, yTop + 0.4, W / 2], '2,50 m', [0, 0.17, 0], [1, 0, 0]);
+dim3([-L / 2 - 0.3, yBot, zF], [-L / 2 - 0.3, yTop, zF], '2,80 m', [-0.42, 0, 0], [1, 0, 0]);
+dim3([L / 2 - e, yTop + 0.04, zF], [L / 2, yTop + 0.04, zF], '0,20', [0, 0.16, 0], [0, 1, 0], true);
+dim3([-L / 2, yTop + 0.04, zF], [-L / 2 + e, yTop + 0.04, zF], '0,20', [0, 0.16, 0], [0, 1, 0], true);
+dim3([L / 2 + 0.15, yW, zF], [L / 2 + 0.15, yTop, zF], '0,15 tapa', [0.38, 0, 0], [1, 0, 0], true);
+gDst = gCI;
+dim3([-L / 2 + e, yBot + ef + 0.06, zF], [L / 2 - e, yBot + ef + 0.06, zF], '4,80 m interior', [0, 0.16, 0], [0, 1, 0]);
+dim3([L / 2 + 0.15, yBot, zF], [L / 2 + 0.15, yBot + ef, zF], '0,20', [0.3, 0, 0], [1, 0, 0], true);
+dim3([-L / 2 + e, yBot + ef + 0.5, zF], [xb1 - et / 2, yBot + ef + 0.5, zF], '3,00', [0, 0.14, 0], [0, 1, 0], true);
+dim3([xb1 + et / 2, yBot + ef + 0.5, zF], [L / 2 - e, yBot + ef + 0.5, zF], '1,65', [0, 0.14, 0], [0, 1, 0], true);
+dim3([xb1 - et / 2, yBot + ef + hT + 0.04, W / 2 - e], [xb1 + et / 2, yBot + ef + hT + 0.04, W / 2 - e], '0,15', [0, 0.16, 0], [0, 1, 0], true);
+dim3([xb1 + 0.25, yBot + ef, zF], [xb1 + 0.25, yBot + ef + hT, zF], '2,00', [0.25, 0, 0], [1, 0, 0], true);
+dim3([xb1 + 0.25, yBot + ef + hT, zF], [xb1 + 0.25, yW, zF], '0,45', [0.25, 0, 0], [1, 0, 0], true);
+dim3([-L / 2 + e + 0.3, yBot + ef, zF], [-L / 2 + e + 0.3, yW, zF], '2,45 interior', [0.42, 0, 0], [1, 0, 0], true);
+dim3([L / 2 - e - 0.08, yBot + ef + 0.06, -W / 2 + e], [L / 2 - e - 0.08, yBot + ef + 0.06, W / 2 - e], '2,10 interior', [0, 0.16, 0], [1, 0, 0], true);
+
+const luces = CX.map(x => { const l = new T.PointLight('#fff1dc', 0, 0, 1); l.position.set(x, yW - 0.3, 0.3); sc.add(l); return l; });
+
+const LY = [['excav', 'Excavación manual perfilada', '#9a6b45'], ['limpieza', 'Hormigón de limpieza 5 cm', '#8f8c85'], ['camara', 'Cámara de H°A° 210 kg/cm²', '#c3bfb6'], ['acero', 'Armadura según plano', '#7a4a2a'], ['encofrado', 'Doble encofrado', '#c79a5e'], ['canos', 'Entrada y salida Ø 160', '#e8e3d4'], ['tapa', 'Losa de tapa y huecos', '#cbc7be'], ['cotas', 'Cotas (medidas)', '#c8102e']];
+$('hd').innerHTML = '<b>Cámara desengrasadora de H°A°</b><span style="color:#5f5a52">5,20 × 2,50 × 2,80 m · 11,52 m³ · plano AXIS hoja 03 · H 210 kg/cm²</span>' + LY.map(([k, t, c]) => '<label><input type="checkbox" data-k="' + k + '"' + (capas[k].visible ? ' checked' : '') + ' style="margin:0"><i style="background:' + c + '"></i>' + t + '</label>').join('');
+function setCapa(k, v) { capas[k].visible = v; const el = document.querySelector('#hd input[data-k="' + k + '"]'); if (el) el.checked = v; }
+document.querySelectorAll('#hd input').forEach(i => i.onchange = () => setCapa(i.dataset.k, i.checked));
+const marcar = (id) => ['b1', 'b2', 'b3', 'b4'].forEach(b => $(b).classList.toggle('on', b === id));
+const vista = (n) => {
+  const corte = n === 2, dentro = n === 4;
+  muroFrente.visible = parFrente.visible = !corte; agua.visible = grasa.visible = corte; setCapa('acero', corte); setCapa('encofrado', corte); setCapa('cotas', n === 1 || n === 2); gCI.visible = corte; capas.terreno.visible = !corte;
+  luces.forEach(l => l.intensity = dentro ? 2.4 : 0); ctl.minDistance = dentro ? 0.05 : 1;
+  if (n === 1) { ctl.target.set(0, -1.0, 0); cam.position.set(6.5, 5.2, 8.5); }
+  else if (n === 2) { ctl.target.set(0, -1.2, 0); cam.position.set(1.2, 0.6, 8.2); }
+  else if (n === 3) { ctl.target.set(0, -1, 0); cam.position.set(0.01, 11, 0.4); }
+  else { ctl.target.set(-2.0, yBot + ef + 0.7, -0.2); cam.position.set(1.8, yBot + ef + 1.3, 0.7); }
+  cam.fov = dentro ? 72 : 38; cam.updateProjectionMatrix();
+  marcar('b' + n); ctl.update(); };
+let panel = true; $('bP').onclick = () => { panel = !panel; $('hd').style.display = panel ? 'flex' : 'none'; $('e').style.display = panel ? 'block' : 'none'; $('bP').textContent = panel ? 'Ocultar panel' : 'Mostrar panel'; };
+[1, 2, 3, 4].forEach(n => $('b' + n).onclick = () => vista(n));
+vista(+QS.get('v') || 1);
+if (PROP) { ['hd', 'bt', 'e'].forEach(i => $(i).style.display = 'none'); r.setPixelRatio(2); fit();
+  setTimeout(() => { r.render(sc, cam); try { parent.postMessage({ cam3d: 'snap', v: QS.get('v') || '1', url: r.domElement.toDataURL('image/jpeg', 0.85) }, '*'); } catch (x) {} }, 1200); }
+
+const ray = new T.Raycaster(), mp = new T.Vector2(); let hov = null;
+const vis = (o) => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
+r.domElement.addEventListener('pointermove', (ev) => { mp.set(ev.clientX / innerWidth * 2 - 1, -ev.clientY / innerHeight * 2 + 1); ray.setFromCamera(mp, cam);
+  const h = ray.intersectObjects(pick, false).find(x => vis(x.object) && x.object.userData.n && !(x.object.material.opacity < 0.4));
+  if (hov && (!h || h.object !== hov.o)) { hov.o.material = hov.m; hov = null; }
+  const t = $('tip'); if (!h) { t.style.display = 'none'; return; }
+  if (!hov && h.object.material.emissive) { const m0 = h.object.material, m1 = m0.clone(); m1.emissive = new T.Color('#ffb300'); m1.emissiveIntensity = 0.25; h.object.material = m1; hov = { o: h.object, m: m0 }; }
+  const u = h.object.userData; t.innerHTML = '<b>' + u.n + '</b>' + (u.d || '') + (u.x ? '<br><span>' + u.x + '</span>' : ''); t.style.display = 'block';
+  t.style.left = Math.min(innerWidth - 300, ev.clientX + 14) + 'px'; t.style.top = (ev.clientY + 12) + 'px'; });
+r.domElement.addEventListener('pointerleave', () => { $('tip').style.display = 'none'; if (hov) { hov.o.material = hov.m; hov = null; } });
+
+// ——— Plano constructivo (SVG) ———
+function planoSVG() {
+  const S = 100, f2 = (v) => (Math.round(v * 1000) % 10 ? v.toFixed(3) : v.toFixed(2)).replace('.', ',');
+  let o = '';
+  const rect = (x, y, w, h, a) => { o += `<rect x="${x}" y="${y}" width="${w}" height="${h}" ${a || ''}/>`; };
+  const line = (x1, y1, x2, y2, a) => { o += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${a || ''}/>`; };
+  const text = (x, y, t, a) => { o += `<text x="${x}" y="${y}" ${a || ''}>${t}</text>`; };
+  const HAT = 'fill="url(#hc)" stroke="#1b1a18" stroke-width="1.2"', HAP = 'fill="url(#hp)" stroke="#1b1a18" stroke-width="1"';
+  const DL = 'stroke="#1b1a18" stroke-width="0.7"', EL = 'stroke="#9a958c" stroke-width="0.6"', RB = 'stroke="#9a3412" stroke-width="1"';
+  const DASH = 'fill="none" stroke="#9a6b45" stroke-width="1" stroke-dasharray="6 4"';
+  const tick = (x, y) => line(x - 4, y + 4, x + 4, y - 4, 'stroke="#1b1a18" stroke-width="1.2"');
+  const dimH = (map, xs, y, ref) => { line(map(xs[0]) - 6, y, map(xs[xs.length - 1]) + 6, y, DL);
+    xs.forEach((v, i) => { const X = map(v); tick(X, y); if (ref !== undefined) { const s = Math.sign(y - ref); line(X, ref + 4 * s, X, y + 5 * s, EL); } if (i) text((map(xs[i - 1]) + X) / 2, y - 5, f2(v - xs[i - 1]), 'class="d" text-anchor="middle"'); }); };
+  const dimV = (map, hs, x, ref) => { line(x, map(hs[0]) + 6, x, map(hs[hs.length - 1]) - 6, DL);
+    hs.forEach((v, i) => { const Y = map(v); tick(x, Y); if (ref !== undefined) { const s = Math.sign(x - ref); line(ref + 4 * s, Y, x + 5 * s, Y, EL); } if (i) o += `<text class="d" text-anchor="middle" transform="translate(${x - 5} ${(map(hs[i - 1]) + Y) / 2}) rotate(-90)">${f2(v - hs[i - 1])}</text>`; }); };
+  const co = (n, x1, y1, cx, cy) => { line(x1, y1, cx, cy, DL); o += `<circle cx="${x1}" cy="${y1}" r="2" fill="#1b1a18"/><circle cx="${cx}" cy="${cy}" r="9" fill="#fff" stroke="#1b1a18" stroke-width="1"/>`; text(cx, cy + 3.5, n, 'class="n" text-anchor="middle"'); };
+  const marca = (l, x, y) => { o += `<circle cx="${x}" cy="${y}" r="8" fill="#1b1a18"/>`; text(x, y + 4, l, 'class="m" text-anchor="middle"'); };
+  const C1 = CX[0], C3 = CX[2], XS = [-2.6, -2.4, -0.875, -0.725, 0.725, 0.875, 2.4, 2.6];
+
+  text(150, 46, 'CÁMARA DESENGRASADORA DE H°A° · PLANO CONSTRUCTIVO', 'class="h"');
+  text(150, 68, '5,20 × 2,50 × 2,80 m (exterior) · volumen 11,52 m³ · Fck = 25 MPa · cuantía de acero 93 kg/m³', 'class="s"');
+
+  // PLANTA
+  const P0x = 150, P0y = 170, px = (x) => P0x + (x + 2.6) * S, pz = (z) => P0y + (z + 1.25) * S;
+  text(P0x, 108, 'PLANTA', 'class="t"'); text(P0x + 74, 108, 'corte horizontal a media altura, sin tapa', 'class="s"');
+  rect(px(-2.9), pz(-1.55), 5.8 * S, 3.1 * S, DASH);
+  rect(px(-2.6), pz(-1.25), 5.2 * S, 2.5 * S, HAT);
+  rect(px(-2.4), pz(-1.05), 4.8 * S, 2.1 * S, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.2"');
+  [-0.875, 0.725].forEach(x => rect(px(x), pz(-1.05), 0.15 * S, 2.1 * S, HAT));
+  CX.forEach(cx => { rect(px(cx - 0.3), pz(-0.3), 0.6 * S, 0.6 * S, 'fill="none" stroke="#6f6b64" stroke-width="0.9" stroke-dasharray="4 3"'); line(px(cx - 0.3), pz(-0.3), px(cx + 0.3), pz(0.3), 'stroke="#b5b0a6" stroke-width="0.6" stroke-dasharray="4 3"'); line(px(cx + 0.3), pz(-0.3), px(cx - 0.3), pz(0.3), 'stroke="#b5b0a6" stroke-width="0.6" stroke-dasharray="4 3"'); });
+  text(px(C1), pz(-0.4), 'boca de inspección 0,60 × 0,60', 'class="x" text-anchor="middle"');
+  [['CÁMARA 1', 'retención de grasa', C1], ['CÁMARA 2', 'sedimentación', 0], ['CÁMARA 3', 'salida', C3]].forEach(([a, b, cx]) => { text(px(cx), pz(0.55), a, 'class="k" text-anchor="middle"'); text(px(cx), pz(0.72), b, 'class="x" text-anchor="middle"'); });
+  rect(px(-2.9), pz(-0.08), 0.55 * S, 16, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1"'); rect(px(2.35), pz(-0.08), 0.55 * S, 16, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1"');
+  line(px(-3.25), pz(0), px(-2.95), pz(0), 'stroke="#1b1a18" stroke-width="1.6" stroke-dasharray="10 3 2 3"'); line(px(2.95), pz(0), px(3.25), pz(0), 'stroke="#1b1a18" stroke-width="1.6" stroke-dasharray="10 3 2 3"');
+  marca('A', px(-3.35), pz(0)); marca('A', px(3.35), pz(0));
+  line(px(C3), pz(-1.25) - 20, px(C3), pz(-1.25) - 2, 'stroke="#1b1a18" stroke-width="1.6"'); line(px(C3), pz(1.25) + 2, px(C3), pz(1.25) + 20, 'stroke="#1b1a18" stroke-width="1.6"');
+  marca('B', px(C3) + 14, pz(-1.25) - 12); marca('B', px(C3) + 14, pz(1.25) + 12);
+  co('9', px(-2.75), pz(0.08), px(-3.05), pz(0.6)); co('10', px(2.75), pz(0.08), px(3.05), pz(0.6)); co('2', px(-1.6), pz(-1.15), px(-2.1), pz(-0.72)); co('6', px(-2.9), pz(-1.0), px(-3.2), pz(-0.75));
+  dimH(px, XS, 140, pz(-1.25)); dimH(px, [-2.6, 2.6], 462, pz(1.25)); dimH(px, [-2.9, -2.6, 2.6, 2.9], 487, pz(1.55));
+  dimV(pz, [-1.25, -1.05, 1.05, 1.25], 748, px(2.6)); dimV(pz, [-1.25, 1.25], 52, px(-2.6)); dimV(pz, [-1.55, 1.55], 26, px(-2.9));
+  rect(P0x, 512, 100, 6, 'fill="#1b1a18"'); rect(P0x + 100, 512, 100, 6, 'fill="#fff" stroke="#1b1a18" stroke-width="0.8"');
+  text(P0x, 532, '0', 'class="x" text-anchor="middle"'); text(P0x + 100, 532, '1', 'class="x" text-anchor="middle"'); text(P0x + 200, 532, '2 m', 'class="x" text-anchor="middle"'); text(P0x + 215, 519, 'escala gráfica', 'class="x"');
+
+  // CORTE A-A (longitudinal)
+  const AY0 = 898, ax = (x) => P0x + (x + 2.6) * S, ah = (h) => AY0 - h * S;
+  text(P0x, 560, 'CORTE A-A', 'class="t"'); text(P0x + 90, 560, 'longitudinal', 'class="s"');
+  line(ax(-3.35), ah(2.6), ax(-2.9), ah(2.6), 'stroke="#1b1a18" stroke-width="1.4"'); line(ax(2.9), ah(2.6), ax(3.1), ah(2.6), 'stroke="#1b1a18" stroke-width="1.4"');
+  for (let x = ax(-3.35); x < ax(-2.95); x += 7) line(x, ah(2.6) + 1, x - 5, ah(2.6) + 7, 'stroke="#9a6b45" stroke-width="0.7"');
+  text(ax(-3.35), ah(2.6) - 6, 'N.T. −0,20', 'class="x"');
+  o += `<polyline points="${ax(-2.9)},${ah(2.6)} ${ax(-2.9)},${ah(-0.05)} ${ax(2.9)},${ah(-0.05)} ${ax(2.9)},${ah(2.6)}" ${DASH}/>`;
+  rect(ax(-2.9), ah(0), 5.8 * S, 5, 'fill="url(#hl)" stroke="#1b1a18" stroke-width="0.8"');
+  rect(ax(-2.4), ah(2.3), 4.8 * S, 2.1 * S, 'fill="#d6e7f2" opacity="0.7"'); rect(ax(-2.4), ah(2.36), (C1 + 0.3 - -2.4 + 0.3075) * S, 6, 'fill="#e3c35a"');
+  line(ax(-2.4), ah(2.3), ax(2.4), ah(2.3), 'stroke="#2f6f9f" stroke-width="1" stroke-dasharray="7 4"'); text(ax(1.25), ah(2.3) - 5, 'N.L. −0,50', 'class="x" fill="#2f6f9f"');
+  rect(ax(-2.6), ah(0.2), 5.2 * S, 0.2 * S, HAT); rect(ax(-2.6), ah(2.8), 0.2 * S, 2.6 * S, HAT); rect(ax(2.4), ah(2.8), 0.2 * S, 2.6 * S, HAT);
+  rect(ax(-0.875), ah(2.8), 0.15 * S, 2.1 * S, HAT); rect(ax(0.725), ah(2.1), 0.15 * S, 1.9 * S, HAT);
+  [[-2.6, C1 - 0.3], [C1 + 0.3, -0.3], [0.3, C3 - 0.3], [C3 + 0.3, 2.6]].forEach(([a, b]) => rect(ax(a), ah(2.92), (b - a) * S, 0.12 * S, HAP));
+  CX.forEach(cx => { rect(ax(cx - 0.35), ah(2.98), 0.7 * S, 6, HAP); [-0.2, 0.2].forEach(d => { o += `<path d="M ${ax(cx + d) - 6} ${ah(2.98)} a 6 6 0 0 1 12 0" fill="none" stroke="#1b1a18" stroke-width="1.1"/>`; }); });
+  rect(ax(-2.9), ah(2.53), 0.55 * S, 16, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1"'); rect(ax(2.35), ah(2.46), 0.55 * S, 16, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1"');
+  text(ax(-2.33), ah(2.62), 'entrada · eje −0,35', 'class="x"'); text(ax(2.33), ah(2.62), 'salida · eje −0,42', 'class="x" text-anchor="end"');
+  [-2.57, -2.43, 2.43, 2.57].forEach(x => line(ax(x), ah(0.03), ax(x), ah(2.77), RB)); [0.03, 0.17].forEach(h => line(ax(-2.57), ah(h), ax(2.57), ah(h), RB));
+  [-0.845, -0.755].forEach(x => line(ax(x), ah(0.73), ax(x), ah(2.77), RB)); [0.755, 0.845].forEach(x => line(ax(x), ah(0.05), ax(x), ah(2.07), RB));
+  dimV(ah, [0.2, 0.7], ax(-1.05)); dimV(ah, [0.7, 2.8], ax(-0.6)); dimV(ah, [0.2, 2.1], ax(0.6)); dimV(ah, [2.1, 2.8], ax(1.05));
+  co('1', ax(1.9), ah(0.12), ax(1.9), ah(0.6)); co('2', ax(2.45), ah(1.6), ax(2.1), ah(1.6)); co('3', ax(-0.875), ah(1.6), ax(-1.3), ah(1.6)); co('4', ax(0.875), ah(1.0), ax(1.3), ah(1.0));
+  co('5', ax(-2.85), ah(-0.025), ax(-3.25), ah(0.35)); co('6', ax(-2.9), ah(1.3), ax(-3.25), ah(1.3)); co('7', ax(-2.2), ah(2.86), ax(-2.2), ah(3.22)); co('8', ax(0.1), ah(2.95), ax(0.55), ah(3.22));
+  co('9', ax(-2.7), ah(2.45), ax(-3.25), ah(2.2)); co('10', ax(2.75), ah(2.38), ax(3.0), ah(2.05)); co('11', ax(-2.43), ah(0.9), ax(-2.0), ah(0.9));
+  dimH(ax, XS, AY0 + 37, ah(-0.05)); dimH(ax, [-2.9, -2.6, 2.6, 2.9], AY0 + 62, ah(-0.05));
+  dimV(ah, [0, 0.2, 2.8, 2.92], 725, ax(2.6)); dimV(ah, [0, 2.8], 750, ax(2.6)); dimV(ah, [-0.05, 2.6], 775, ax(2.9));
+
+  // CORTE B-B (transversal, por la cámara 3)
+  const B0x = 900, bz = (z) => B0x + (z + 1.25) * S;
+  text(B0x, 560, 'CORTE B-B', 'class="t"'); text(B0x + 90, 560, 'transversal por la cámara 3', 'class="s"');
+  line(bz(-1.75), ah(2.6), bz(-1.55), ah(2.6), 'stroke="#1b1a18" stroke-width="1.4"'); line(bz(1.55), ah(2.6), bz(1.72), ah(2.6), 'stroke="#1b1a18" stroke-width="1.4"');
+  o += `<polyline points="${bz(-1.55)},${ah(2.6)} ${bz(-1.55)},${ah(-0.05)} ${bz(1.55)},${ah(-0.05)} ${bz(1.55)},${ah(2.6)}" ${DASH}/>`;
+  rect(bz(-1.55), ah(0), 3.1 * S, 5, 'fill="url(#hl)" stroke="#1b1a18" stroke-width="0.8"');
+  rect(bz(-1.05), ah(2.3), 2.1 * S, 2.1 * S, 'fill="#d6e7f2" opacity="0.7"'); line(bz(-1.05), ah(2.3), bz(1.05), ah(2.3), 'stroke="#2f6f9f" stroke-width="1" stroke-dasharray="7 4"'); text(bz(0.25), ah(2.3) - 5, 'N.L. −0,50', 'class="x" fill="#2f6f9f"');
+  o += `<circle cx="${bz(0)}" cy="${ah(2.38)}" r="8" fill="#ffffff" stroke="#1b1a18" stroke-width="1" stroke-dasharray="3 2"/>`;
+  rect(bz(-1.25), ah(0.2), 2.5 * S, 0.2 * S, HAT); rect(bz(-1.25), ah(2.8), 0.2 * S, 2.6 * S, HAT); rect(bz(1.05), ah(2.8), 0.2 * S, 2.6 * S, HAT);
+  rect(bz(-1.25), ah(2.92), 0.95 * S, 0.12 * S, HAP); rect(bz(0.3), ah(2.92), 0.95 * S, 0.12 * S, HAP); rect(bz(-0.35), ah(2.98), 0.7 * S, 6, HAP);
+  [-0.2, 0.2].forEach(d => { o += `<path d="M ${bz(d) - 6} ${ah(2.98)} a 6 6 0 0 1 12 0" fill="none" stroke="#1b1a18" stroke-width="1.1"/>`; });
+  [-1.22, -1.08, 1.08, 1.22].forEach(z => line(bz(z), ah(0.03), bz(z), ah(2.77), RB)); [0.03, 0.17].forEach(h => line(bz(-1.22), ah(h), bz(1.22), ah(h), RB));
+  for (let h = 0.3; h < 2.75; h += 0.2) [-1.2, -1.1, 1.1, 1.2].forEach(z => { o += `<circle cx="${bz(z)}" cy="${ah(h)}" r="1.8" fill="#9a3412"/>`; });
+  for (let z = -1.1; z <= 1.11; z += 0.2) [0.05, 0.15].forEach(h => { o += `<circle cx="${bz(z)}" cy="${ah(h)}" r="1.8" fill="#9a3412"/>`; });
+  line(bz(-1.08), ah(1.7), bz(-0.6), ah(1.7), DL); text(bz(-0.58), ah(1.7) + 3.5, 'vert. Ø 12 c/20', 'class="x"'); line(bz(-1.1), ah(1.3), bz(-0.6), ah(1.3), DL); text(bz(-0.58), ah(1.3) + 3.5, 'horiz. Ø 10 c/20', 'class="x"');
+  text(bz(-0.58), ah(1.3) + 17, 'doble malla · rec. 0,03', 'class="x"');
+  co('10', bz(0), ah(2.38), bz(0.55), ah(2.05)); co('7', bz(0.8), ah(2.86), bz(0.8), ah(3.22)); co('8', bz(0), ah(2.95), bz(-0.6), ah(3.22)); co('1', bz(0.5), ah(0.1), bz(0.5), ah(0.6)); co('2', bz(1.15), ah(1.0), bz(0.75), ah(1.0));
+  dimH(bz, [-1.25, -1.05, 1.05, 1.25], AY0 + 37, ah(-0.05)); dimH(bz, [-1.55, -1.25, 1.25, 1.55], AY0 + 62, ah(-0.05));
+  dimV(ah, [0, 0.2, 2.8, 2.92], 1215, bz(1.25)); dimV(ah, [0, 2.8], 1240, bz(1.25)); dimV(ah, [-0.05, 2.6], 1265, bz(1.55));
+
+  // DETALLE TAPA DE INSPECCIÓN
+  const Q = 220, D0x = 915, D0y = 150, dq = (v) => v * Q;
+  text(900, 108, 'DETALLE TAPA DE INSPECCIÓN', 'class="t"');
+  rect(D0x, D0y, dq(0.7), dq(0.7), HAP); rect(D0x + dq(0.01), D0y + dq(0.01), dq(0.68), dq(0.68), 'fill="none" stroke="#1b1a18" stroke-width="0.8" stroke-dasharray="4 3"'); rect(D0x + dq(0.05), D0y + dq(0.05), dq(0.6), dq(0.6), 'fill="none" stroke="#1b1a18" stroke-width="0.8" stroke-dasharray="4 3"');
+  [-0.2, 0.2].forEach(d => rect(D0x + dq(0.35 + d) - 4, D0y + dq(0.35) - dq(0.06), 8, dq(0.12), 'rx="4" fill="#ffffff" stroke="#1b1a18" stroke-width="1"'));
+  dimH((v) => D0x + dq(v), [0, 0.7], D0y - 14, D0y); dimV((v) => D0y + dq(v), [0, 0.7], D0x - 14, D0x);
+  text(D0x + dq(0.35), D0y + dq(0.7) + 20, 'planta · boca 0,60 × 0,60 en línea de trazos', 'class="x" text-anchor="middle"');
+  const S0x = 1105, S0y = 215, sx = (v) => S0x + dq(v);
+  rect(sx(0), S0y, dq(0.1), dq(0.12), HAT); rect(sx(0.7), S0y, dq(0.1), dq(0.12), HAT);
+  [[0.1, 1], [0.7, -1]].forEach(([x, s]) => { o += `<polyline points="${sx(x) + s * 8.4},${S0y} ${sx(x)},${S0y} ${sx(x)},${S0y + 8.4}" fill="none" stroke="#1b1a18" stroke-width="2.4"/>`; });
+  rect(sx(0.05), S0y - dq(0.06), dq(0.7), dq(0.06), HAP);
+  [-0.2, 0.2].forEach(d => { o += `<path d="M ${sx(0.4 + d) - 13} ${S0y - dq(0.06)} a 13 13 0 0 1 26 0" fill="none" stroke="#1b1a18" stroke-width="1.6"/>`; });
+  dimH(sx, [0.1, 0.7], S0y + dq(0.12) + 22, S0y + dq(0.12)); dimV((h) => S0y - dq(h - 0.12) - dq(0.12), [0, 0.12, 0.18], sx(0.8) + 20, sx(0.8));
+  ['Tapa de H°A° 0,70 × 0,70 × 0,06 m, armada con malla Ø 6 c/10', 'Marco de ángulo 1 ½" × 3/16" anclado a la losa', 'Dos asas de hierro Ø 12 mm', 'Losa de tapa de H°A° e = 0,12 m'].forEach((t, i) => text(900, 372 + i * 16, t, 'class="x"'));
+  co('8', sx(0.6), S0y - dq(0.03), sx(0.6) + 10, S0y - 40); co('7', sx(0.05), S0y + dq(0.06), sx(0.05) - 22, S0y + 40);
+
+  // Referencias y especificaciones
+  const N0 = 1320;
+  text(N0, 108, 'REFERENCIAS', 'class="t"');
+  const REF = [['1', 'Losa de fondo de H°A° · e = 0,20 m', 'doble malla Ø 12 c/20 en ambos sentidos'], ['2', 'Muros perimetrales de H°A° · e = 0,20 m', 'doble malla: vertical Ø 12 c/20, horizontal Ø 10 c/20'], ['3', 'Tabique deflector 1 · e = 0,15 m · alto 2,10 m', 'cuelga desde arriba, paso inferior 0,50 m: retiene la grasa'], ['4', 'Tabique deflector 2 · e = 0,15 m · alto 2,10 m', 'desde el fondo, el agua pasa por encima: retiene sedimentos'], ['5', 'Hormigón de limpieza (sellado) · e = 0,05 m', 'elaborado y colocado in situ sobre el fondo perfilado'], ['6', 'Excavación manual 5,80 × 3,10 × 2,65 m', 'perfilado de paredes y fondo · sobreancho 0,30 m por lado'], ['7', 'Tapa: losa de H°A° · e = 0,12 m', 'con 3 bocas de inspección de 0,60 × 0,60 m'], ['8', 'Tapa de inspección de H°A° 0,70 × 0,70 × 0,06 m', 'marco de ángulo 1 ½" × 3/16" · 2 asas Ø 12 mm'], ['9', 'Entrada Ø 160 mm · eje a −0,35 m', ''], ['10', 'Salida Ø 160 mm · eje a −0,42 m', 'nivel de líquido (N.L.) a −0,50 m'], ['11', 'Armadura · recubrimiento 0,03 m', '≈ 1.077 kg con empalmes · 93,5 kg/m³']];
+  let y = 132; REF.forEach(([n, a, b]) => { o += `<circle cx="${N0 + 9}" cy="${y - 4}" r="9" fill="#fff" stroke="#1b1a18" stroke-width="1"/>`; text(N0 + 9, y - 0.5, n, 'class="n" text-anchor="middle"'); text(N0 + 26, y, a, 'class="r"'); if (b) text(N0 + 26, y + 14, b, 'class="x"'); y += b ? 34 : 24; });
+  y += 14; text(N0, y, 'ESPECIFICACIONES', 'class="t"'); y += 22;
+  [['Hormigón Fck = 25 MPa'], ['Volumen 11,52 m³: losa de fondo, muros y tabiques'], ['Doble encofrado en muros y tabiques'], ['Medidas en metros. Niveles referidos al borde', 'superior de los muros (±0,00)'], ['Borde de la cámara 0,20 m sobre el nivel de terreno'], ['La tapa (7 y 8) no está incluida en los 11,52 m³:', 'confirmar con el cliente']].forEach(ls => { o += `<circle cx="${N0 + 4}" cy="${y - 4}" r="2" fill="#1b1a18"/>`; ls.forEach((t, i) => text(N0 + 14, y + i * 14, t, 'class="r"')); y += 14 * ls.length + 6; });
+  // Rótulo
+  const R0y = 770; rect(N0, R0y, 360, 215, 'fill="#ffffff" stroke="#1b1a18" stroke-width="1.4"');
+  o += `<image href="logo-full-service.png" x="${N0 + 12}" y="${R0y + 10}" width="130" height="42" preserveAspectRatio="xMinYMid meet"/>`;
+  line(N0, R0y + 62, N0 + 360, R0y + 62, 'stroke="#1b1a18" stroke-width="0.8"');
+  [['Obra', 'Cámara desengrasadora de H°A° 5,20 × 2,50 × 2,80 m'], ['Cliente', 'Construservice EAS'], ['Presupuesto', 'P-2026-176'], ['Plano', '01 · Plano constructivo'], ['Escala', 'gráfica · medidas en metros'], ['Fecha', '30/10/2026 · revisión A']].forEach(([k, v], i) => { const yy = R0y + 84 + i * 22; text(N0 + 12, yy, k.toUpperCase(), 'class="lb"'); text(N0 + 100, yy, v, 'class="r"'); if (i) line(N0, yy - 15, N0 + 360, yy - 15, 'stroke="#e4e1db" stroke-width="0.8"'); });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1000" width="100%" style="max-width:1700px;display:block;margin:0 auto;background:#fff">
+<defs><pattern id="hc" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#ece9e2"/><line x1="0" y1="0" x2="0" y2="7" stroke="#8a857c" stroke-width="0.8"/></pattern>
+<pattern id="hp" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="6" height="6" fill="#f6f4ef"/><line x1="0" y1="0" x2="0" y2="6" stroke="#b5b0a6" stroke-width="0.7"/></pattern>
+<pattern id="hl" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#d7d2c8"/><circle cx="3" cy="3" r="0.9" fill="#6f6b64"/></pattern>
+<style>text{font-family:system-ui,sans-serif;fill:#1b1a18}.h{font-size:20px;font-weight:700}.t{font-size:14px;font-weight:700;letter-spacing:.04em}.s{font-size:12px;fill:#5f5a52}.d{font:10.5px ui-monospace,Menlo,monospace}.n{font-size:10px;font-weight:700}.m{font-size:10px;font-weight:700;fill:#fff}.k{font-size:11px;font-weight:700}.x{font-size:10px;fill:#3f3b35}.r{font-size:11.5px}.lb{font:600 9.5px ui-monospace,Menlo,monospace;fill:#6f6b64;letter-spacing:.06em}</style></defs>
+<rect x="8" y="8" width="1684" height="984" fill="none" stroke="#1b1a18" stroke-width="1.4"/>${o}</svg>`;
+}
+$('bPl').onclick = () => { if (!$('planoSvg').innerHTML) $('planoSvg').innerHTML = planoSVG(); $('plano').style.display = 'block'; };
+$('pCl').onclick = () => { $('plano').style.display = 'none'; };
+$('pPr').onclick = () => { if (!$('planoSvg').innerHTML) $('planoSvg').innerHTML = planoSVG(); window.print(); };
+if (QS.get('plano') === '1') $('bPl').onclick();
+</script></body></html>

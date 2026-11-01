@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Estructura 3D</title>
+<style>html,body{margin:0;height:100%;background:#eeece8;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif}#v{position:absolute;inset:0}
+#ley{position:absolute;left:10px;top:10px;background:rgba(255,255,255,.94);border:1px solid #dedbd5;border-radius:8px;padding:8px 10px;font-size:11px;display:flex;flex-direction:column;gap:3px;max-width:290px}
+#ley label{display:flex;align-items:center;gap:6px;cursor:pointer}#ley i{width:12px;height:4px;border-radius:2px;flex:none}
+#tip{position:absolute;pointer-events:none;background:#1b1a18;color:#fff;font-size:11.5px;padding:5px 8px;border-radius:5px;display:none;white-space:nowrap}
+#est{position:absolute;right:10px;bottom:8px;font-size:11px;color:#6f6b64;background:rgba(255,255,255,.85);padding:3px 8px;border-radius:5px}
+#bt{position:absolute;right:10px;top:10px;display:flex;gap:4px}#bt button{font:600 11.5px system-ui;padding:5px 9px;border:1px solid #c9c5bd;background:#fff;border-radius:5px;cursor:pointer}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body><div id="v"></div><div id="ley"></div><div id="tip"></div><div id="est">Cargando…</div>
+<div id="bt"><button data-v="iso">Isométrica</button><button data-v="planta">Planta</button><button data-v="frente">Frente</button><button data-v="lado">Lateral</button></div>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+const $ = (i) => document.getElementById(i), est = (s) => $('est').textContent = s;
+const src = new URLSearchParams(location.search).get('d') || 'estructuras/misericordia/barras.json';
+let D; try { D = await (await fetch(src, { cache: 'no-store' })).json(); } catch (e) { est('No se pudo cargar el modelo'); throw e; }
+const GR = [
+  [/^RSECTION 2C 180/, 'Pilares · 2C 180×80×17×2,5', '#1f4e79'],
+  [/^2LHLI L 3 x 3/, 'Cordón de cabriada · 2L 3"×3"×3/16"', '#b8261c'],
+  [/^2LHLI L 2 1\/2/, 'Cordón de cabriada · 2L 2½"×2½"×3/16"', '#d9534f'],
+  [/^RSECTION 2C 150/, 'Vigas de borde · 2C 150×50×17×2', '#7a3e9d'],
+  [/^C 150/, 'Correas y largueros · C 150×50×17×2', '#c98a1b'],
+  [/^2LHLI (L 2 x 2|L 1 1\/2|LS)/, 'Reticulado (diagonales y montantes)', '#2f8f55'],
+  [/^4LLI/, 'Reticulado · 4L 1½"', '#2f8f55'],
+  [/^SHS/, 'Tubos de arriostre · SHS 100×2', '#0e7c86'],
+  [/^R 16/, 'Tensores y cruces · Ø 16', '#6b6b6b'],
+  [/^L /, 'Contravigas y angulares sueltos', '#8a6d3b'],
+];
+const grupo = (p) => GR.findIndex(g => g[0].test(p || '')) ;
+const ren = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); $('v').appendChild(ren.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#eeece8');
+const cam = new T.PerspectiveCamera(40, 1, 0.1, 2000); const ctl = new OrbitControls(cam, ren.domElement); ctl.enableDamping = true;
+sc.add(new T.HemisphereLight('#fff', '#999', 1));
+const [mn, mx] = D.bbox, cx = (mn[0] + mx[0]) / 2, cy = (mn[1] + mx[1]) / 2;
+const toV = (p) => new T.Vector3(p[0] - cx, p[2], -(p[1] - cy));
+const groups = GR.map(() => []), lines = [];
+D.barras.forEach((b, i) => { const g = grupo(b.p); (groups[g < 0 ? 9 : g]).push(i); });
+groups.forEach((ids, gi) => { if (!ids.length) return; const pos = []; ids.forEach(i => { const b = D.barras[i]; const a = toV(b.a), c = toV(b.b); pos.push(a.x, a.y, a.z, c.x, c.y, c.z); });
+  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+  const ls = new T.LineSegments(geo, new T.LineBasicMaterial({ color: GR[gi][2] })); ls.userData = { gi, ids }; sc.add(ls); lines.push(ls); });
+// suelo, bases y ejes
+const W = mx[0] - mn[0], L = mx[1] - mn[1];
+const pl = new T.Mesh(new T.PlaneGeometry(W + 12, L + 12), new T.MeshBasicMaterial({ color: '#dcd8d0' })); pl.rotation.x = -Math.PI / 2; pl.position.y = -0.02; sc.add(pl);
+const grid = new T.GridHelper(Math.max(W, L) + 12, Math.round((Math.max(W, L) + 12) / 2), '#c3beb4', '#d3cfc6'); grid.position.y = -0.01; sc.add(grid);
+const mB = new T.MeshBasicMaterial({ color: '#8c8579' });
+(D.bases || []).forEach(b => { const m = new T.Mesh(new T.BoxGeometry(1.2, 0.08, 1.2), mB); const v = toV([b.x, b.y, 0]); m.position.set(v.x, 0.04, v.z); m.userData.base = b; sc.add(m); });
+// leyenda
+const kg = {}; (D.perfiles || []).forEach(r => { const g = grupo(r[0]); kg[g < 0 ? 9 : g] = (kg[g < 0 ? 9 : g] || 0) + r[4]; });
+$('ley').innerHTML = '<b style="font-size:11.5px">Elementos · ' + D.barras.length + ' barras</b>' + GR.map((g, i) => groups[i].length ? `<label><input type="checkbox" checked data-g="${i}" style="margin:0"><i style="background:${g[2]}"></i>${g[1]} <span style="color:#6f6b64;margin-left:auto">${Math.round(kg[i] || 0).toLocaleString('es-PY')} kg</span></label>` : '').join('');
+$('ley').addEventListener('change', (e) => { const g = +e.target.dataset.g; lines.filter(l => l.userData.gi === g).forEach(l => l.visible = e.target.checked); });
+const fit = () => { const w = innerWidth, h = innerHeight; ren.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); }; addEventListener('resize', fit); fit();
+const R = Math.max(W, L, mx[2]);
+const vista = (k) => { ctl.target.set(0, mx[2] / 2, 0); const p = { iso: [R * 0.9, R * 0.7, R * 0.95], planta: [0.001, R * 1.6, 0.001], frente: [0, mx[2] / 2, R * 1.5], lado: [R * 1.5, mx[2] / 2, 0] }[k]; cam.position.set(...p); cam.lookAt(ctl.target); ctl.update(); };
+vista('iso'); document.querySelectorAll('#bt button').forEach(b => b.onclick = () => vista(b.dataset.v));
+// tooltip
+const ray = new T.Raycaster(); ray.params.Line.threshold = 0.18; const mo = new T.Vector2();
+ren.domElement.addEventListener('pointermove', (e) => { const r = ren.domElement.getBoundingClientRect(); mo.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(mo, cam);
+  const hit = ray.intersectObjects(lines.filter(l => l.visible), false)[0], tip = $('tip');
+  if (!hit) { tip.style.display = 'none'; return; }
+  const b = D.barras[hit.object.userData.ids[Math.floor(hit.index / 2)]], Lm = Math.hypot(b.b[0] - b.a[0], b.b[1] - b.a[1], b.b[2] - b.a[2]);
+  tip.innerHTML = '<b>' + GR[hit.object.userData.gi][1] + '</b><br>' + b.nm + ' · ' + b.p + '<br>L = ' + Lm.toFixed(2).replace('.', ',') + ' m';
+  tip.style.display = 'block'; tip.style.left = (e.clientX - r.left + 14) + 'px'; tip.style.top = (e.clientY - r.top + 10) + 'px'; });
+est('Planta ' + W.toFixed(1).replace('.', ',') + ' × ' + L.toFixed(1).replace('.', ',') + ' m · altura ' + mx[2].toFixed(2).replace('.', ',') + ' m · ' + (D.bases || []).length + ' bases');
+(function loop() { requestAnimationFrame(loop); ctl.update(); ren.render(sc, cam); })();
+</script></body></html>

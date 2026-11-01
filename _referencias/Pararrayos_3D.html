@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Pararrayos 3D</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#eef1ef;font-family:'IBM Plex Sans',system-ui,sans-serif}
+#v{position:absolute;inset:0}
+#tip{position:absolute;pointer-events:none;background:rgba(14,59,54,.95);color:#fff;font-size:12px;line-height:1.4;padding:6px 9px;border-radius:6px;max-width:260px;display:none;z-index:5}
+#tip b{display:block;font-size:12.5px}
+#ley{position:absolute;left:10px;top:10px;background:rgba(255,255,255,.94);border:1px solid #d6dcd9;border-radius:8px;padding:9px 11px;font-size:11.5px;display:flex;flex-direction:column;gap:4px;z-index:4}
+#ley label{display:flex;align-items:center;gap:6px;cursor:pointer}
+#ley i{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+#tit{font-weight:700;font-size:12.5px;max-width:220px}
+#bt{position:absolute;right:10px;top:10px;display:flex;gap:5px;z-index:4}
+#bt button,#bt2 button{font:600 11.5px system-ui;padding:5px 9px;border:1px solid #c9c5bd;background:#fff;border-radius:5px;cursor:pointer}
+#bt2 button.on{background:#0e3b36;color:#fff;border-color:#0e3b36}
+#pasos{position:absolute;right:10px;bottom:32px;width:240px;overflow-x:hidden;background:rgba(255,255,255,.95);border:1px solid #d6dcd9;border-radius:8px;padding:7px 10px;font-size:11px;line-height:1.4;display:none;z-index:4;max-height:55%;overflow:auto}
+#pasos .hd{display:flex;justify-content:space-between;align-items:center;gap:6px;cursor:pointer;font-weight:700;color:#0e3b36}#pasos.cerr .bd{display:none}
+#pasos b{color:#0e3b36}#pasos ol{margin:4px 0 0 16px;padding:0}#pasos li{margin:2px 0}
+#e{white-space:nowrap;max-width:60%;overflow:hidden;text-overflow:ellipsis;position:absolute;right:10px;bottom:8px;font-size:11px;color:#4f4b45;background:rgba(255,255,255,.88);padding:3px 8px;border-radius:5px;pointer-events:none}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="v"></div><div id="tip"></div><div id="ley"></div>
+<div id="bt"><button id="b1">Vista general</button><button id="b2">Desde arriba</button><button id="b3">Puesta a tierra</button><button id="b4" style="background:#0e3b36;color:#fff;border-color:#0e3b36">Detalle de puesta a tierra</button></div>
+<div id="bt2" style="position:absolute;right:10px;top:44px;display:flex;gap:5px;z-index:4"><button id="tDesc">Descripción: no</button><button id="tEtq">Etiquetas: sí</button><button id="tCap">Capas: sí</button><button id="tFull">⛶ Pantalla completa</button></div><div id="pasos"></div>
+<div id="e">Cargando visor 3D…</div>
+<script>window.__t = setTimeout(() => { if (!window.__ok) document.getElementById('e').textContent = 'No se pudo cargar el visor 3D. Revisá la conexión a internet.'; }, 12000);</script>
+<script type="module">
+import * as T from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+window.__ok = true; clearTimeout(window.__t);
+const $ = (i) => document.getElementById(i), est = (t) => $('e').textContent = t;
+const r = new T.WebGLRenderer({ antialias: true }); r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); r.shadowMap.enabled = true; $('v').appendChild(r.domElement);
+const sc = new T.Scene(); sc.background = new T.Color('#eef1ef'); sc.fog = null;
+const cam = new T.PerspectiveCamera(42, 1, 0.05, 5000);
+sc.add(new T.HemisphereLight('#ffffff', '#9aa59f', 1.0));
+const sun = new T.DirectionalLight('#ffffff', 1.4); sun.position.set(40, 70, 30); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, far: 300 }); sc.add(sun);
+const ctl = new OrbitControls(cam, r.domElement); ctl.enableDamping = true; ctl.dampingFactor = 0.12; ctl.zoomToCursor = false; ctl.zoomSpeed = 0.7; ctl.minDistance = 1.2; ctl.maxDistance = 400; ctl.screenSpacePanning = true;
+const fit = () => { const w = innerWidth || 800, h = innerHeight || 500; r.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+addEventListener('resize', fit); fit();
+(function loop() { requestAnimationFrame(loop); ctl.update(); r.render(sc, cam); })();
+
+const M = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.6, metalness: 0.1 }, o || {}));
+const COBRE = M('#b87333', { metalness: 0.85, roughness: 0.3 }), GALV = M('#a9b0b5', { metalness: 0.8, roughness: 0.3 }), VERDE = '#0f6e5c';
+let G = null, pick = [], capas = {}, D = null, sig = '';
+const reg = (m, n, d, cap) => { m.userData = { n, d }; m.castShadow = true; pick.push(m); (capas[cap] || G).add(m); return m; };
+const cyl = (a, b, rr, mat, n, d, cap) => { const A = new T.Vector3(...a), B = new T.Vector3(...b), v = B.clone().sub(A), L = v.length(); if (L < 1e-3) return;
+  const m = new T.Mesh(new T.CylinderGeometry(rr, rr, L, 10), mat); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v.normalize()); return reg(m, n, d, cap); };
+const etiqueta = (txt, pos, num, cap) => { const c = document.createElement('canvas'), x = c.getContext('2d'), fs = 34; x.font = '600 ' + fs + 'px system-ui';
+  const tw = x.measureText(txt).width, w = Math.ceil(tw + (num ? 70 : 30)), h = 58; c.width = w; c.height = h; x.font = '600 ' + fs + 'px system-ui';
+  x.fillStyle = 'rgba(255,255,255,0.96)'; x.strokeStyle = '#0e3b36'; x.lineWidth = 3; x.beginPath(); x.roundRect(2, 2, w - 4, h - 4, 10); x.fill(); x.stroke();
+  if (num) { x.fillStyle = '#0e3b36'; x.beginPath(); x.arc(30, h / 2, 20, 0, Math.PI * 2); x.fill(); x.fillStyle = '#fff'; x.textAlign = 'center'; x.fillText(num, 30, h / 2 + 12); x.textAlign = 'left'; }
+  x.fillStyle = '#1b1a18'; x.fillText(txt, num ? 58 : 15, h / 2 + 12);
+  const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; const sp = new T.Sprite(new T.SpriteMaterial({ map: t, depthTest: false, transparent: true, sizeAttenuation: false }));
+  const k = 0.00042; sp.scale.set(w * k, h * k, 1); sp.position.set(...pos); sp.renderOrder = 20; (capas[cap] || G).add(sp); return sp; };
+const linea = (pts, color, cap, dash) => { const geo = new T.BufferGeometry().setFromPoints(pts.map(p => new T.Vector3(...p))); const mat = dash ? new T.LineDashedMaterial({ color, dashSize: 0.06, gapSize: 0.04, depthTest: false }) : new T.LineBasicMaterial({ color, depthTest: false }); const l = new T.Line(geo, mat); if (dash) l.computeLineDistances(); l.renderOrder = 19; (capas[cap] || G).add(l); return l; };
+const cota = (a, b, txt, off, cap) => { const A = new T.Vector3(...a), B = new T.Vector3(...b), o = new T.Vector3(...off), a2 = A.clone().add(o), b2 = B.clone().add(o);
+  linea([a, a2.toArray()], '#c8261c', cap); linea([b, b2.toArray()], '#c8261c', cap); linea([a2.toArray(), b2.toArray()], '#c8261c', cap);
+  const d = b2.clone().sub(a2).normalize().multiplyScalar(0.06), n = o.clone().normalize().multiplyScalar(0.06);
+  [a2, b2].forEach((p, i) => { const s = i ? -1 : 1; linea([p.toArray(), p.clone().add(d.clone().multiplyScalar(s)).add(n).toArray()], '#c8261c', cap); linea([p.toArray(), p.clone().add(d.clone().multiplyScalar(s)).sub(n).toArray()], '#c8261c', cap); });
+  const m = a2.clone().add(b2).multiplyScalar(0.5).add(o.clone().normalize().multiplyScalar(0.18)); const sp = etiqueta(txt, m.toArray(), null, cap); sp.material.color.set('#ffffff'); return sp; };
+const f1 = (x) => (Math.round(x * 10) / 10).toFixed(1).replace('.', ',');
+
+function armar(C) {
+  if (G) { sc.remove(G); G.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+  G = new T.Group(); sc.add(G); pick = []; capas = {};
+  ['edif', 'cap', 'zona', 'baj', 'tierra'].forEach(k => { capas[k] = new T.Group(); G.add(capas[k]); });
+  const L = C.L, W = C.W, H = C.H, cx = L / 2, cz = W / 2;
+  // terreno
+  const g = new T.Mesh(new T.PlaneGeometry(L + 120, W + 120), M('#c9cfb8', { roughness: 1 })); g.rotation.x = -Math.PI / 2; g.position.set(cx, 0, cz); g.receiveShadow = true; G.add(g); gPlano = g;
+  // edificio
+  const ed = new T.Mesh(new T.BoxGeometry(L, H, W), M('#e8e4dc', { roughness: 0.85, transparent: true, opacity: 0.92 })); ed.position.set(cx, H / 2, cz); ed.receiveShadow = true;
+  reg(ed, C.nombre || 'Estructura protegida', f1(L) + ' × ' + f1(W) + ' m · altura ' + f1(H) + ' m', 'edif');
+  const eg = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(L, H, W)), new T.LineBasicMaterial({ color: '#6f6b64' })); eg.position.copy(ed.position); capas.edif.add(eg);
+  const tch = new T.Mesh(new T.BoxGeometry(L + 0.3, 0.2, W + 0.3), M('#b9b4aa')); tch.position.set(cx, H + 0.1, cz); reg(tch, 'Cubierta', 'Nivel ' + f1(H) + ' m', 'edif');
+  for (let x = 4; x < L - 2; x += 5) { const vn = new T.Mesh(new T.BoxGeometry(1.6, 1.1, 0.06), M('#9fc6e6', { transparent: true, opacity: 0.8 })); vn.position.set(x, Math.min(H - 1.5, 2.6), -0.03); capas.edif.add(vn); }
+  // captación
+  const top = H + 0.2;
+  C.cap.forEach(([x, z], k) => {
+    const pdc = C.tipo === 'pdc';
+    cyl([x, top, z], [x, top + C.hm, z], pdc ? 0.05 : 0.03, GALV, pdc ? 'Mástil galvanizado' : 'Mástil de punta Franklin', f1(C.hm) + ' m sobre la cubierta', 'cap');
+    const base = new T.Mesh(new T.CylinderGeometry(0.35, 0.4, 0.15, 16), GALV); base.position.set(x, top + 0.07, z); reg(base, 'Base de fijación con riendas', 'Al techo o estructura', 'cap');
+    [0, 1, 2].forEach(i => { const a = i * Math.PI * 2 / 3, p = [x + Math.cos(a) * 1.6, top, z + Math.sin(a) * 1.6]; cyl([x, top + C.hm * 0.6, z], p, 0.008, GALV, 'Rienda de acero', '3 por mástil', 'cap'); });
+    if (pdc) { const cab = new T.Mesh(new T.CylinderGeometry(0.12, 0.08, 0.55, 18), M('#d8dde0', { metalness: 0.9, roughness: 0.2 })); cab.position.set(x, top + C.hm + 0.3, z); reg(cab, 'Pararrayos PDC ' + C.capTxt, 'Radio de protección ' + f1(C.Rp) + ' m', 'cap');
+      const pt = new T.Mesh(new T.ConeGeometry(0.03, 0.4, 10), GALV); pt.position.set(x, top + C.hm + 0.75, z); reg(pt, 'Punta captora', '', 'cap'); }
+    else { const pt = new T.Mesh(new T.ConeGeometry(0.04, 0.5, 10), COBRE); pt.position.set(x, top + C.hm + 0.25, z); reg(pt, 'Punta Franklin', 'Ángulo de protección según nivel', 'cap'); }
+    // zona protegida
+    const R = C.Rp, h0 = top + C.hm;
+    const zg = pdc ? new T.SphereGeometry(R, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2) : new T.ConeGeometry(R, C.hm, 40, 1, true);
+    const zm = new T.Mesh(zg, new T.MeshStandardMaterial({ color: VERDE, transparent: true, opacity: 0.12, side: T.DoubleSide, depthWrite: false }));
+    if (pdc) { zm.scale.y = Math.min(1, h0 / R); zm.position.set(x, top - 0.05, z); } else zm.position.set(x, top + C.hm / 2, z);
+    reg(zm, 'Zona protegida', 'Radio ' + f1(R) + ' m a nivel de cubierta · Nivel ' + C.nivel, 'zona'); zm.castShadow = false;
+    const ring = new T.Mesh(new T.RingGeometry(R - 0.08, R, 64), new T.MeshBasicMaterial({ color: VERDE, side: T.DoubleSide, transparent: true, opacity: 0.6 })); ring.rotation.x = -Math.PI / 2; ring.position.set(x, top + 0.03, z); capas.zona.add(ring);
+  });
+  // conductor de techo hacia bajadas
+  const capC = C.cap.length ? C.cap.reduce((a, p) => [a[0] + p[0] / C.cap.length, a[1] + p[1] / C.cap.length], [0, 0]) : [cx, cz];
+  if (C.tipo !== 'pdc') { const p = [[0, top + 0.05, 0], [L, top + 0.05, 0], [L, top + 0.05, W], [0, top + 0.05, W], [0, top + 0.05, 0]]; for (let i = 1; i < p.length; i++) cyl(p[i - 1], p[i], 0.012, COBRE, 'Conductor perimetral de captación', 'Cobre desnudo 50 mm²', 'baj'); }
+  // bajadas + puesta a tierra
+  const out = (x, z) => x <= 0.01 ? [-1, 0] : x >= L - 0.01 ? [1, 0] : z <= 0.01 ? [0, -1] : [0, 1];
+  C.baj.forEach(([x, z], k) => {
+    const [ox, oz] = out(x, z), xb = x + ox * 0.15, zb = z + oz * 0.15;
+    if (C.tipo === 'pdc') { const c0 = C.cap[k % C.cap.length] || capC; cyl([c0[0], top + 0.3, c0[1]], [c0[0], top + 0.05, c0[1]], 0.012, COBRE, 'Conductor de bajada', 'Cobre desnudo 50 mm²', 'baj'); const pts = [[c0[0], top + 0.05, c0[1]], [xb, top + 0.05, c0[1]], [xb, top + 0.05, zb]]; for (let i = 1; i < pts.length; i++) cyl(pts[i - 1], pts[i], 0.012, COBRE, 'Conductor de bajada sobre cubierta', 'Recorrido más corto hacia la bajada ' + (k + 1), 'baj'); }
+    cyl([xb, top + 0.05, zb], [xb, 2, zb], 0.012, COBRE, 'Bajada ' + (k + 1), 'Cobre desnudo 50 mm² · ' + f1(H + C.hm + 1.5) + ' m', 'baj');
+    for (let y = 1.5; y < H; y += 1.0) { const ab = new T.Mesh(new T.BoxGeometry(0.06, 0.03, 0.06), COBRE); ab.position.set(xb, y, zb); capas.baj.add(ab); }
+    cyl([xb + ox * 0.03, 0, zb + oz * 0.03], [xb + ox * 0.03, 2, zb + oz * 0.03], 0.04, M('#6b7378', { metalness: 0.5 }), 'Tubo de protección mecánica', 'Últimos 2,00 m de la bajada', 'baj');
+    const bm = new T.Mesh(new T.BoxGeometry(0.18, 0.12, 0.08), M('#3c3b38')); bm.position.set(xb + ox * 0.08, 2.1, zb + oz * 0.08); reg(bm, 'Junta de control / barra de medición', 'Permite desconectar y medir la resistencia', 'baj');
+    if (k === 0 && C.tipo === 'pdc') { const ct = new T.Mesh(new T.BoxGeometry(0.16, 0.22, 0.1), M('#c8261c')); ct.position.set(xb + ox * 0.08, 2.5, zb + oz * 0.08); reg(ct, 'Contador de descargas', 'En la bajada principal', 'baj'); }
+    // jabalinas en línea hacia afuera, separadas 2L
+    const sep = 2 * C.Lj, y0 = -0.6; let prev = [xb, y0, zb];
+    cyl([xb, 0, zb], [xb, y0, zb], 0.012, COBRE, 'Bajada enterrada', '', 'tierra');
+    for (let j = 0; j < C.nJ; j++) {
+      const d = 1.2 + j * sep, px = xb + ox * d, pz = zb + oz * d;
+      cyl(prev, [px, y0, pz], 0.012, COBRE, 'Conductor de cobre enterrado', 'A 0,60 m de profundidad · une jabalinas', 'tierra');
+      cyl([px, y0, pz], [px, y0 - C.Lj, pz], 0.012, M('#c48a4a', { metalness: 0.8, roughness: 0.3 }), 'Jabalina cobre-acero', f1(C.Lj) + ' m · R total ' + f1(C.Rtot) + ' Ω', 'tierra');
+      const cj = new T.Mesh(new T.BoxGeometry(0.4, 0.05, 0.4), M('#8a8580')); cj.position.set(px, 0.03, pz); reg(cj, 'Caja de inspección con tapa', 'Jabalina ' + (j + 1) + ' de la bajada ' + (k + 1), 'tierra');
+      const sx = new T.Mesh(new T.SphereGeometry(0.07, 12, 10), M('#e2c26a', { metalness: 0.7 })); sx.position.set(px, y0, pz); reg(sx, 'Soldadura exotérmica', 'Unión cable–jabalina', 'tierra');
+      prev = [px, y0, pz];
+    }
+  });
+  // ---------- DETALLE de puesta a tierra (bajada 1), con corte de suelo, cotas y referencias numeradas
+  capas.det = new T.Group(); capas.det.visible = false; G.add(capas.det);
+  if (C.baj.length) {
+    const [x0, z0] = C.baj[0], [ox, oz] = out(x0, z0), xb = x0 + ox * 0.15, zb = z0 + oz * 0.15, px = -oz, pz = ox, sep = 2 * C.Lj, nV = Math.min(2, C.nJ), Ltot = 1.2 + (nV - 1) * sep + 1.0, prof = C.Lj + 1.2;
+    const at = (d, y, s) => [xb + ox * d + px * (s || 0), y, zb + oz * d + pz * (s || 0)];
+    // bloque de suelo en corte (capas)
+    const capa = (y0, y1, col, op, nom) => { const m = new T.Mesh(new T.BoxGeometry(Ltot, y1 - y0, 1.4), new T.MeshStandardMaterial({ color: col, transparent: true, opacity: op, depthWrite: false, roughness: 1 }));
+      m.position.set(...at(Ltot / 2 - 0.2, (y0 + y1) / 2, 0)); m.rotation.y = -Math.atan2(oz, ox); capas.det.add(m); m.userData = { n: nom, d: '' }; pick.push(m);
+      const e = new T.LineSegments(new T.EdgesGeometry(m.geometry), new T.LineBasicMaterial({ color: '#7a5a3a', transparent: true, opacity: 0.5 })); e.position.copy(m.position); e.rotation.copy(m.rotation); capas.det.add(e); };
+    capa(-0.3, 0, '#6b8f3a', 0.30, 'Capa vegetal / contrapiso');
+    capa(-1.2, -0.3, '#a0714a', 0.20, 'Suelo natural');
+    capa(-prof, -1.2, '#8a6a52', 0.16, 'Suelo profundo · ρ ' + C.rho + ' Ω·m');
+    // zanja
+    const zj = new T.Mesh(new T.BoxGeometry(Ltot - 0.8, 0.6, 0.35), new T.MeshStandardMaterial({ color: '#4a3524', transparent: true, opacity: 0.35, depthWrite: false }));
+    zj.position.set(...at((Ltot - 0.8) / 2, -0.3, 0)); zj.rotation.y = -Math.atan2(oz, ox); capas.det.add(zj); zj.userData = { n: 'Zanja para el conductor', d: '0,35 m de ancho × 0,60 m de profundidad · relleno compactado' }; pick.push(zj);
+    // gel alrededor de cada jabalina
+    for (let j = 0; j < nV; j++) { const d = 1.2 + j * sep, p = at(d, -0.6, 0);
+      if (C.gel) { const gl = new T.Mesh(new T.CylinderGeometry(0.11, 0.11, C.Lj, 18), new T.MeshStandardMaterial({ color: '#4fa3c7', transparent: true, opacity: 0.28, depthWrite: false })); gl.position.set(p[0], -0.6 - C.Lj / 2, p[2]); capas.det.add(gl); gl.userData = { n: 'Gel mejorador de suelo', d: 'Rodea la jabalina · baja la resistencia ~40 %' }; pick.push(gl); }
+      // caja de inspección en detalle (paredes + tapa elevada)
+      const cmat = M('#a8a39a', { roughness: 0.9 }); [[0.3, 0.3, 0.03, 0, -0.135], [0.3, 0.3, 0.03, 0, 0.135], [0.03, 0.3, 0.3, -0.135, 0], [0.03, 0.3, 0.3, 0.135, 0]].forEach(([w, h, dd, a, b]) => { const m = new T.Mesh(new T.BoxGeometry(w, h, dd), cmat); m.position.set(p[0] + a, -0.15, p[2] + b); capas.det.add(m); m.userData = { n: 'Caja de inspección', d: '30 × 30 cm · permite revisar la unión' }; pick.push(m); });
+      const tapa = new T.Mesh(new T.BoxGeometry(0.34, 0.03, 0.34), M('#5c5a55')); tapa.position.set(p[0], 0.35, p[2]); capas.det.add(tapa); tapa.userData = { n: 'Tapa de la caja de inspección', d: 'Se muestra levantada para ver el interior' }; pick.push(tapa);
+      linea([[p[0], 0.33, p[2]], [p[0], 0.02, p[2]]], '#5c5a55', 'det', true);
+      cota([p[0], -0.6, p[2]], [p[0], -0.6 - C.Lj, p[2]], 'Jabalina ' + f1(C.Lj) + ' m', [px * 0.55, 0, pz * 0.55], 'det');
+    }
+    if (C.nJ > nV) etiqueta('+ ' + (C.nJ - nV) + ' jabalinas más en la misma línea, cada ' + f1(sep) + ' m', at(Ltot + 0.3, 0.4, 0), null, 'det');
+    // cotas
+    if (C.nJ > 1) cota(at(1.2, -0.6, 0), at(1.2 + sep, -0.6, 0), 'Separación ' + f1(sep) + ' m (2 × L)', [0, -C.Lj - 0.45, 0], 'det');
+    cota(at(0.6, 0, 0.45), at(0.6, -0.6, 0.45), 'Prof. 0,60 m', [px * 0.3, 0, pz * 0.3], 'det');
+    cota([xb, 0, zb], [xb, 2, zb], 'Tubo 2,00 m', [ox * 0.5 + px * 0.4, 0, oz * 0.5 + pz * 0.4], 'det');
+    // referencias numeradas
+    const R = [
+      ['1', 'Bajada de cobre 50 mm²', [xb, 3.4, zb], [xb, 3.0, zb]],
+      ['2', 'Junta de control (medición)', at(0.08, 2.3, -0.9), [xb + ox * 0.08, 2.1, zb + oz * 0.08]],
+      ['3', 'Tubo de protección 2,00 m', at(0.03, 1.2, -1.0), [xb, 1.0, zb]],
+      ['4', 'Caja de inspección', at(1.2, 0.85, -0.7), at(1.2, 0.0, 0)],
+      ['5', 'Soldadura exotérmica', at(1.2, -0.15, -1.1), at(1.2, -0.6, 0)],
+      ['6', 'Cobre desnudo enterrado a 0,60 m', at(1.2 + (nV > 1 ? sep / 2 : 0.5), -0.15, 1.0), at(1.2 + (nV > 1 ? sep / 2 : 0.5), -0.6, 0)],
+      ['7', 'Jabalina cobre-acero ' + C.dj + '"', at(1.2 + (nV - 1) * sep, -0.6 - C.Lj * 0.5, 1.1), at(1.2 + (nV - 1) * sep, -0.6 - C.Lj * 0.5, 0)]
+    ]; if (C.gel) R.push(['8', 'Gel mejorador de suelo', at(1.2, -0.6 - C.Lj * 0.75, -1.1), at(1.2, -0.6 - C.Lj * 0.75, 0)]);
+    R.forEach(([n, t, pl, pp]) => { etiqueta(t, pl, n, 'det'); linea([pl, pp], '#0e3b36', 'det'); const pt = new T.Mesh(new T.SphereGeometry(0.035, 10, 8), new T.MeshBasicMaterial({ color: '#0e3b36', depthTest: false })); pt.position.set(...pp); pt.renderOrder = 21; capas.det.add(pt); });
+    const dc = Math.max(6, Math.min(9, Ltot * 1.1 + 2));
+    window.__det = { tg: at(1.2 + (nV > 1 ? sep / 2 : 0.3), -0.9, 0), cam: at(1.2 + (nV > 1 ? sep / 2 : 0.3) - dc * 0.35, dc * 0.42, 0).map((v, i) => v + [px, 0, pz][i] * dc * 0.85) };
+    $('pasos').innerHTML = '<div class="hd" id="pasHd"><span style="flex:1;min-width:0">Cómo se instala</span><span id="pasTg">▾</span></div><div class="bd"><ol>' +
+      '<li>La <b>bajada de cobre 50 mm²</b> baja por la pared fijada con grampas cada 1 m.</li>' +
+      '<li>A 2 m del piso va la <b>junta de control</b>, para desconectar y medir.</li>' +
+      '<li>Los últimos 2 m van dentro del <b>tubo de protección</b> contra golpes.</li>' +
+      '<li>Se abre una <b>zanja de 0,60 m</b> y se tiende el cobre desnudo hacia afuera.</li>' +
+      '<li>Se hincan <b>' + C.nJ + ' jabalinas de ' + f1(C.Lj) + ' m</b> separadas <b>' + f1(sep) + ' m</b> (2 veces su largo).</li>' +
+      '<li>Cada unión cable–jabalina se hace con <b>soldadura exotérmica</b>.</li>' + (C.gel ? '<li>Alrededor de cada jabalina se coloca <b>gel</b> para mejorar el suelo.</li>' : '') +
+      '<li>Sobre cada jabalina va una <b>caja de inspección</b> con tapa.</li>' +
+      '<li>Se mide con telurímetro: resultado calculado <b>' + f1(C.Rtot) + ' Ω</b>.</li></ol>' +
+      '<div style="margin-top:4px;color:#6f6b64">Total del proyecto: ' + C.baj.length + ' bajadas × ' + C.nJ + ' = <b>' + (C.baj.length * C.nJ) + ' jabalinas</b>.</div></div>';
+    $('pasHd').onclick = () => { const p = $('pasos'); p.classList.toggle('cerr'); $('pasTg').textContent = p.classList.contains('cerr') ? '▸' : '▾'; };
+    if ((innerWidth || 800) < 640) { $('pasos').classList.add('cerr'); $('pasTg').textContent = '▸'; }
+  }
+  // leyenda
+  const LY = [['edif', 'Estructura', '#e8e4dc'], ['cap', 'Captación', '#a9b0b5'], ['zona', 'Zona protegida', VERDE], ['baj', 'Bajadas', '#b87333'], ['tierra', 'Puesta a tierra', '#c48a4a']];
+  $('ley').innerHTML = '<div id="tit">' + (C.nombre || 'Proyecto sin nombre') + '</div><div style="color:#6f6b64">' + C.resumen + '</div>' + LY.map(([k, t, c]) => '<label><input type="checkbox" data-k="' + k + '" checked style="margin:0"><i style="background:' + c + '"></i>' + t + '</label>').join('');
+  document.querySelectorAll('#ley input').forEach(i => i.onchange = () => { capas[i.dataset.k].visible = i.checked; });
+  vista(1);
+  est(C.nombre ? 'Proyecto: ' + C.nombre : 'Escribí el nombre del proyecto para identificar el esquema');
+}
+let enDet = false, gPlano = null;
+function detalle(on) { enDet = on; if (!capas.det) return; capas.det.visible = on; $('pasos').style.display = on && verDesc ? 'block' : 'none'; $('b4').textContent = on ? 'Salir del detalle' : 'Detalle de puesta a tierra';
+  if (capas.zona) capas.zona.visible = !on && document.querySelector('#ley input[data-k="zona"]').checked; if (capas.cap) capas.cap.visible = !on || true;
+  capas.edif.children.forEach(o => { if (o.material && 'opacity' in o.material) { o.material.transparent = true; o.material.opacity = on ? 0.25 : (o.userData && o.userData.op0) || o.material.opacity; } });
+  if (gPlano) { gPlano.material.transparent = true; gPlano.material.opacity = on ? 0.35 : 1; gPlano.material.depthWrite = !on; }
+  limites(); if (on && window.__det) { ctl.target.set(...window.__det.tg); cam.position.set(...window.__det.cam); ctl.update(); } else if (!on) vista(1); }
+let verDesc = false, verEtq = true, verCap = true;
+const etqs = () => { const out = []; if (capas.det) capas.det.traverse(o => { if (o.isSprite || o.isLine) out.push(o); }); return out; };
+const pint = () => { $('tDesc').textContent = 'Descripción: ' + (verDesc ? 'sí' : 'no'); $('tDesc').classList.toggle('on', verDesc);
+  $('tEtq').textContent = 'Etiquetas: ' + (verEtq ? 'sí' : 'no'); $('tEtq').classList.toggle('on', verEtq);
+  $('tCap').textContent = 'Capas: ' + (verCap ? 'sí' : 'no'); $('tCap').classList.toggle('on', verCap);
+  $('pasos').style.display = enDet && verDesc ? 'block' : 'none'; $('ley').style.display = verCap ? 'flex' : 'none'; etqs().forEach(o => o.visible = verEtq); };
+$('tDesc').onclick = () => { verDesc = !verDesc; pint(); };
+$('tEtq').onclick = () => { verEtq = !verEtq; pint(); };
+$('tCap').onclick = () => { verCap = !verCap; pint(); };
+$('tFull').onclick = () => { const d = document; if (d.fullscreenElement) d.exitFullscreen(); else (d.documentElement.requestFullscreen || d.documentElement.webkitRequestFullscreen).call(d.documentElement); };
+document.addEventListener('fullscreenchange', () => { $('tFull').textContent = document.fullscreenElement ? '✕ Salir de pantalla completa' : '⛶ Pantalla completa'; setTimeout(fit, 50); });
+$('b4').onclick = () => detalle(!enDet);
+// el zoom ajusta los límites según el tamaño del proyecto
+const limites = () => { if (!D) return; const s = Math.max(D.L, D.W, D.H * 2, 10); ctl.minDistance = enDet ? 0.8 : Math.max(1.2, s * 0.04); ctl.maxDistance = s * 6; };
+ctl.addEventListener('change', () => { const d = cam.position.distanceTo(ctl.target); cam.near = Math.max(0.02, d / 500); cam.far = Math.max(500, d * 40); cam.updateProjectionMatrix(); });
+function vista(n) { if (!D) return; limites(); if (enDet && n) { enDet = false; if (capas.det) capas.det.visible = false; $('pasos').style.display = 'none'; $('b4').textContent = 'Detalle de puesta a tierra'; if (gPlano) { gPlano.material.opacity = 1; gPlano.material.depthWrite = true; } } const L = D.L, W = D.W, H = D.H, s = Math.max(L, W, H * 2) ;
+  ctl.target.set(L / 2, n === 3 ? 0 : H / 2, W / 2);
+  if (n === 1) cam.position.set(L / 2 + s * 1.05, H + s * 0.7, W / 2 + s * 1.15);
+  else if (n === 2) cam.position.set(L / 2 + 0.01, H + s * 1.6, W / 2 + 0.01);
+  else { cam.position.set(L / 2 + s * 0.7, s * 0.35, W / 2 + s * 0.9); }
+  ctl.update(); }
+$('b1').onclick = () => vista(1); $('b2').onclick = () => vista(2); $('b3').onclick = () => { if (capas.edif) capas.edif.visible = true; vista(3); if (gPlano) { gPlano.material.transparent = true; gPlano.material.opacity = 0.4; gPlano.material.depthWrite = false; } };
+// tooltip
+const ray = new T.Raycaster(), mp = new T.Vector2();
+r.domElement.addEventListener('pointermove', (e) => { const b = r.domElement.getBoundingClientRect(); mp.set((e.clientX - b.left) / b.width * 2 - 1, -(e.clientY - b.top) / b.height * 2 + 1); ray.setFromCamera(mp, cam);
+  const h = ray.intersectObjects(pick, false).find(x => { for (let q = x.object; q; q = q.parent) if (!q.visible) return false; return x.object.userData.n !== 'Zona protegida' || true; });
+  const tp = $('tip'); if (!h) { tp.style.display = 'none'; return; } const u = h.object.userData; tp.innerHTML = '<b>' + u.n + '</b>' + (u.d || ''); tp.style.display = 'block'; tp.style.left = (e.clientX + 14) + 'px'; tp.style.top = (e.clientY + 12) + 'px'; });
+r.domElement.addEventListener('pointerleave', () => $('tip').style.display = 'none');
+addEventListener('message', (ev) => { const d = ev.data; if (!d || d.pr3d !== 'modelo' || !d.C) return; const s = JSON.stringify(d.C); if (s === sig) return; sig = s; D = d.C; try { armar(D); if (location.hash === '#tierra') { verCap = false; detalle(true); } pint(); } catch (x) { est('Error al armar el modelo: ' + (x.message || x)); } });
+try { parent.postMessage({ pr3d: 'listo' }, '*'); } catch (x) {}
+est('Esperando datos del cálculo…');
+</script></body></html>
