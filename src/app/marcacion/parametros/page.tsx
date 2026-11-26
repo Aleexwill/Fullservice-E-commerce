@@ -3,14 +3,15 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { MarcacionHeader } from '@/components/marcacion/header';
 import { api } from '@/lib/marcacion/client';
-import { DIAS_NOMBRE, PARAMETROS_DEFAULT } from '@/lib/marcacion/reglas';
+import { DIAS_NOMBRE, PARAMETROS_DEFAULT, aniosAntiguedad, diasVacaciones } from '@/lib/marcacion/reglas';
 import type { Dias, Parametros } from '@/lib/marcacion/reglas';
 import { ROLE_LABELS } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 
-interface UsuarioMarca { userKey: string; nombre: string; email: string; rol: string; marca: boolean; marcaOverride: boolean | null; dias: Dias | null }
+interface UsuarioMarca { userKey: string; nombre: string; email: string; rol: string; marca: boolean; marcaOverride: boolean | null; dias: Dias | null; ingreso: string | null }
 interface Feriado { id: string; fecha: string; nombre: string }
 const ORDEN = ['1', '2', '3', '4', '5', '6', '0']; // lunes a domingo
+const hoyIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(new Date());
 const fmt = (x: string) => x.split('-').reverse().join('/');
 
 function EditorDias({ dias, onChange }: { dias: Dias; onChange: (d: Dias) => void }) {
@@ -97,17 +98,18 @@ export default function ParametrosPage() {
         <h2 className="mc-h4">Personas</h2>
         <p className="mc-mut">Por defecto marcan los roles elegidos arriba. Acá podés incluir o excluir a alguien y darle un horario propio.</p>
         <div className="mc-scroll"><table className="mc-table">
-          <thead><tr><th>Persona</th><th>Rol</th><th>Marca asistencia</th><th>Horario</th></tr></thead>
+          <thead><tr><th>Persona</th><th>Rol</th><th>Funcionario</th><th>Marca asistencia</th><th>Horario</th></tr></thead>
           <tbody>{usuarios.map(u => (<Fragment key={u.userKey}>
             <tr>
               <td>{u.nombre}<div className="mc-mut">{u.email}</div></td><td>{ROLE_LABELS[u.rol as Role] ?? u.rol}</td>
+              <td>{u.ingreso ? <>Ingreso {fmt(u.ingreso)}<div className="mc-mut">{aniosAntiguedad(u.ingreso, hoyIso())} años · {diasVacaciones(u.ingreso, hoyIso(), p?.vacacionesDias ?? 12)} días de vacaciones</div></> : <span className="mc-mut">Sin funcionario vinculado</span>}</td>
               <td><select className="mc-input" aria-label={`Marca asistencia: ${u.nombre}`} style={{ minHeight: 40 }} value={u.marcaOverride === null ? 'rol' : u.marcaOverride ? 'si' : 'no'}
                 onChange={e => setU(u, e.target.value === 'rol' ? null : e.target.value === 'si', u.dias)}>
                 <option value="rol">Según su rol ({u.marca && u.marcaOverride === null ? 'sí' : u.marcaOverride === null ? 'no' : '—'})</option><option value="si">Sí</option><option value="no">No</option></select></td>
               <td><button className="mc-link" style={{ width: 'auto' }} onClick={() => setAbierto(abierto === u.userKey ? null : u.userKey)}>{u.dias ? 'Horario propio' : 'Horario general'} · editar</button></td>
             </tr>
             {abierto === u.userKey && (
-              <tr><td colSpan={4}>
+              <tr><td colSpan={5}>
                 <EditorDias dias={u.dias ?? p?.dias ?? PARAMETROS_DEFAULT.dias} onChange={d => setUsuarios(us => us.map(x => x.userKey === u.userKey ? { ...x, dias: d } : x))} />
                 <div className="mc-two" style={{ maxWidth: 420 }}>
                   <button className="mc-btn sm" onClick={() => setU(u, u.marcaOverride, u.dias ?? p?.dias ?? PARAMETROS_DEFAULT.dias)}>Guardar horario propio</button>

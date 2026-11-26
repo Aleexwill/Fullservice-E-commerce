@@ -34,7 +34,7 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 - **Ausente** (automático): día laboral pasado, sin feriado, sin marca y sin ausencia aprobada. Los días con ausencia aprobada se muestran como Vacaciones, Permiso, Reposo médico o Licencia.
 - **Quién marca**: por rol (por defecto `tecnico`), con excepción por persona.
 - Vacaciones: saldo = días anuales − días hábiles aprobados del año (sin feriados). Los días anuales salen de la antigüedad (12 / 18 / 30 días a 0-5 / 5-10 / +10 años) cuando se conoce la fecha de ingreso; si no, del parámetro general.
-- **Antigüedad**: la fecha de ingreso la aporta la ventana de funcionarios. El único punto de conexión es `src/lib/marcacion/funcionarios.ts` (`obtenerFechaIngreso`), hoy devuelve `null`.
+- **Antigüedad**: la fecha de ingreso la aporta la ventana de funcionarios, enlazada al usuario del sistema por `User.id` (el modelo de funcionarios guarda `userId` único y opcional). El único punto de conexión es `src/lib/marcacion/funcionarios.ts` (`obtenerFechasIngreso`), hoy devuelve vacío. Cuando hay ingreso se muestra en Parámetros > Personas, en el saldo de vacaciones y en el PDF mensual.
 - Feriados de Paraguay 2026-2027 precargados; se editan en Parámetros.
 
 ## PWA

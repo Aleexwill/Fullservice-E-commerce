@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth';
 import { hoy, userNameOf } from '@/lib/marcacion/server';
 import { generarReporte } from '@/lib/marcacion/reporte-server';
+import { obtenerFechasIngreso } from '@/lib/marcacion/funcionarios';
 import { generarPdfMensual } from '@/lib/marcacion/pdf-mensual';
 
 /** PDF mensual de asistencia. ?mes=YYYY-MM (por defecto el actual) &userKey (opcional: una sola persona; sin él, una sección por persona). */
@@ -21,7 +22,8 @@ export async function GET(request: NextRequest) {
     const desde = `${mes}-01`, hasta = `${mes}-${String(ultimo).padStart(2, '0')}`;
 
     const rep = await generarReporte({ desde, hasta, userKey, completo: true });
-    const personas = rep.resumen.map(r => ({ resumen: r, filas: rep.filas.filter(f => f.userKey === r.userKey) }));
+    const ingresos = await obtenerFechasIngreso(rep.resumen.map(r => r.userKey));
+    const personas = rep.resumen.map(r => ({ resumen: r, filas: rep.filas.filter(f => f.userKey === r.userKey), ingreso: ingresos.get(r.userKey) ?? null }));
     const generadoEn = new Intl.DateTimeFormat('es-PY', { timeZone: 'America/Asuncion', dateStyle: 'short', timeStyle: 'short' }).format(new Date());
     const pdf = await generarPdfMensual(personas, { mes, params: rep.params, generadoPor: userNameOf(a), generadoEn });
 

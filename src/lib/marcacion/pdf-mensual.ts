@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import type { PDFFont, PDFPage } from 'pdf-lib';
 import { LOGO_PNG_BASE64 } from './logo';
-import { aMin, DIAS_NOMBRE, diaSemana, ESTADO_DIA_LABEL, horasTxt } from './reglas';
+import { aMin, aniosAntiguedad, DIAS_NOMBRE, diaSemana, ESTADO_DIA_LABEL, horasTxt } from './reglas';
 import type { EstadoDia, FilaDia, Parametros } from './reglas';
 import type { ResumenPersona } from './reporte-server';
 
@@ -18,7 +18,7 @@ const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', '
 const safe = (s: string) => s.replace(/[^ -~ -ÿ]/g, '?');
 const fecha = (f: string) => f.split('-').reverse().join('/');
 
-export interface PersonaPdf { resumen: ResumenPersona; filas: FilaDia[] }
+export interface PersonaPdf { resumen: ResumenPersona; filas: FilaDia[]; ingreso?: string | null }
 export interface OpcionesPdf { mes: string; params: Parametros; generadoPor: string; generadoEn: string }
 
 const JUSTIF: EstadoDia[] = ['VACACIONES', 'PERMISO', 'REPOSO_MEDICO', 'LICENCIA', 'FERIADO', 'DESCANSO', 'PENDIENTE'];
@@ -72,12 +72,14 @@ export async function generarPdfMensual(personas: PersonaPdf[], o: OpcionesPdf):
     txt(p, 'Lugar / nota', x, y, 7, bold, MUT);
   }
 
-  for (const { resumen: r, filas } of personas) {
+  for (const { resumen: r, filas, ingreso } of personas) {
     let p = doc.addPage([W, H]); paginas.push(p);
     cabecera(p, r.userName, true);
     let y = H - 48 - 22;
     txt(p, r.userName, M, y, 16, bold);
-    txt(p, `Período: ${fecha(`${o.mes}-01`)} al ${fecha(filas.length ? filas[filas.length - 1].fecha : `${o.mes}-28`)}`, M, y - 13, 8.5, reg, MUT);
+    const fin = filas.length ? filas[filas.length - 1].fecha : `${o.mes}-28`;
+    const ant = ingreso ? `   ·   Ingreso: ${fecha(ingreso)} (${aniosAntiguedad(ingreso, fin)} años de antigüedad)` : '';
+    txt(p, `Período: ${fecha(`${o.mes}-01`)} al ${fecha(fin)}${ant}`, M, y - 13, 8.5, reg, MUT);
 
     // Horas previstas: días que exigían trabajar (incluye faltas), con el almuerzo previsto descontado
     const previstoMin = filas.reduce((a, f) => (f.esperadaEntrada && !JUSTIF.includes(f.estado) ? a + Math.max(0, aMin(f.esperadaSalida) - aMin(f.esperadaEntrada) - o.params.almuerzoMin) : a), 0);
