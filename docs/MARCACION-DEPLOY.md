@@ -87,3 +87,6 @@ El código nuevo no cambia el comportamiento del resto del sitio. Para desactiva
 nuevas pueden quedar vacías sin efecto; no hay que borrarlas.
 
 Detalle funcional y reglas de cálculo: `docs/MARCACION.md`.
+
+## 9. Material para usuarios
+`docs/guias/` trae las guías de **modo de uso** (trabajador, encargado, administración y una tarjeta rápida de una hoja), en Markdown y en PDF listo para imprimir (`docs/guias/pdf/`). Las capturas usan datos de ejemplo. Entregar el PDF del trabajador y la tarjeta rápida a quienes marquen, y el del encargado a quienes aprueban.

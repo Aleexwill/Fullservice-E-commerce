@@ -55,7 +55,9 @@ export async function middleware(request: NextRequest) {
 
   // PWA de marcación en terreno: toda la sección exige sesión, salvo el login y los archivos de la PWA.
   if (pathname.startsWith('/marcacion')) {
-    if (pathname === '/marcacion/login' || pathname === '/marcacion/sw.js' || pathname === '/marcacion/manifest.webmanifest') {
+    // Páginas y archivos públicos de la PWA: login, service worker, manifest, íconos, logo y modelos de reconocimiento
+    // (el navegador los pide sin sesión, por ejemplo los íconos del manifest al instalar)
+    if (pathname === '/marcacion/login' || /^\/marcacion\/(sw\.js|manifest\.webmanifest|isotipo\.png|apple-touch-icon\.png|icon-[\w-]+\.png|models\/[\w.-]+)$/.test(pathname)) {
       return NextResponse.next();
     }
     const session = await getSession(token);

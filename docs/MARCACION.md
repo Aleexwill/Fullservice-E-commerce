@@ -1,5 +1,7 @@
 # Marcación en terreno (PWA `/marcacion`)
 
+> Guías de uso para usuarios: [`docs/guias/`](guias/README.md).
+
 App instalable (solo esta sección del sitio) para marcar jornada con rostro y GPS, registrar traslados y
 verificar el equipo de seguridad (EPP) con aprobación de un encargado.
 
