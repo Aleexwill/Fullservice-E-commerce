@@ -652,3 +652,26 @@ model Ausencia {
   @@index([userKey, desde])
   @@index([estado, desde])
 }
+
+// ============================================================
+// FUNCIONARIOS (personal con fecha de ingreso → antigüedad)
+// Se enlaza de forma opcional al usuario del sistema por User.id.
+// ============================================================
+
+model Funcionario {
+  id           String   @id @default(cuid())
+  userId       String?  @unique // User.id (sin FK: un funcionario puede no tener usuario y viceversa)
+  nombre       String
+  documento    String?  @unique // CI
+  cargo        String   @default("")
+  telefono     String   @default("")
+  email        String   @default("")
+  fechaIngreso String   // YYYY-MM-DD
+  fechaEgreso  String?  // YYYY-MM-DD
+  isActive     Boolean  @default(true)
+  notas        String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+}

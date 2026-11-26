@@ -200,3 +200,15 @@ export function diasVacaciones(ingreso: string | null, ref: string, base: number
   const anios = aniosAntiguedad(ingreso, ref);
   return TRAMOS_VACACIONES.find(t => anios >= t.desde)!.dias;
 }
+
+/** Antigüedad en años y meses cumplidos, y la fecha en que pasa al siguiente tramo de vacaciones (null si ya está en el último). */
+export function antiguedadDetalle(ingreso: string, ref: string): { anios: number; meses: number; proximoTramo: string | null } {
+  const [y1, m1, d1] = ingreso.split('-').map(Number);
+  const [y2, m2, d2] = ref.split('-').map(Number);
+  let meses = (y2 - y1) * 12 + (m2 - m1);
+  if (d2 < d1) meses--;
+  meses = Math.max(0, meses);
+  const anios = Math.floor(meses / 12);
+  const sig = [...TRAMOS_VACACIONES].reverse().find(t => t.desde > anios);
+  return { anios, meses: meses % 12, proximoTramo: sig ? `${y1 + sig.desde}-${String(m1).padStart(2, '0')}-${String(d1).padStart(2, '0')}` : null };
+}

@@ -1,19 +1,18 @@
+import { prisma } from '@/lib/prisma';
+
 /**
- * PUNTO DE CONEXIÓN con la ventana de funcionarios (usuarios del sistema que además son funcionarios, con fecha de ingreso).
- *
- * El enlace es por el `id` del usuario del sistema (`User.id`, el mismo `userKey` de las jornadas y ausencias):
- * el modelo de funcionarios debe guardar `userId` apuntando a `User.id` (único; opcional, porque un usuario puede no ser
- * funcionario y viceversa). Un funcionario sin usuario vinculado no marca asistencia.
- *
- * Cuando exista ese modelo, este es el ÚNICO archivo a tocar: devolver { userId → fecha de ingreso YYYY-MM-DD }.
- * Mientras devuelva vacío, las vacaciones usan el valor general de Parámetros y no se muestra antigüedad.
- *
- * Ejemplo:
- *   const fs = await prisma.funcionario.findMany({ where: { userId: { in: userKeys } }, select: { userId: true, fechaIngreso: true } });
- *   return new Map(fs.map(f => [f.userId!, f.fechaIngreso.toISOString().slice(0, 10)]));
+ * Enlace entre la marcación y la ventana de funcionarios (/admin/funcionarios): `Funcionario.userId` = `User.id`
+ * (el mismo `userKey` de jornadas y ausencias). Devuelve { userId → fecha de ingreso YYYY-MM-DD } de los funcionarios activos.
+ * Es el único punto de lectura: si el modelo de funcionarios cambia (por ejemplo al unificarlo con otra versión),
+ * adaptar solo esta función.
  */
-export async function obtenerFechasIngreso(_userKeys: string[]): Promise<Map<string, string>> {
-  return new Map();
+export async function obtenerFechasIngreso(userKeys: string[]): Promise<Map<string, string>> {
+  if (userKeys.length === 0) return new Map();
+  const fs = await prisma.funcionario.findMany({
+    where: { userId: { in: userKeys }, isActive: true },
+    select: { userId: true, fechaIngreso: true },
+  });
+  return new Map(fs.flatMap(f => (f.userId ? [[f.userId, f.fechaIngreso] as [string, string]] : [])));
 }
 
 export async function obtenerFechaIngreso(userKey: string): Promise<string | null> {

@@ -85,6 +85,7 @@ type RouteRestriction = { path: string; requiredPermission: keyof typeof ROLE_PE
 // Rutas admin restringidas por rol (prefijo)
 export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/usuarios', requiredPermission: 'canManageUsers' },
+  { path: '/admin/funcionarios', requiredPermission: 'canManageUsers' },
   { path: '/admin/config', requiredPermission: 'canManageConfig' },
   { path: '/admin/configuracion', requiredPermission: 'canManageConfig' },
   { path: '/admin/contenido', requiredPermission: 'canManageContent' },
@@ -104,6 +105,7 @@ export const RESTRICTED_ROUTES: RouteRestriction[] = [
 // Se aplica solo a métodos que modifican datos (no GET públicos ya filtrados en isPublicApi)
 export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/usuarios', requiredPermission: 'canManageUsers' },
+  { path: '/api/funcionarios', requiredPermission: 'canManageUsers' },
   { path: '/api/roles', requiredPermission: 'canManageUsers' },
   { path: '/api/config', requiredPermission: 'canManageConfig' },
   { path: '/api/approval-flows', requiredPermission: 'canManageConfig' },

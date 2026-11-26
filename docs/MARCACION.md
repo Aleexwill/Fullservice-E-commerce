@@ -34,8 +34,14 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 - **Ausente** (automático): día laboral pasado, sin feriado, sin marca y sin ausencia aprobada. Los días con ausencia aprobada se muestran como Vacaciones, Permiso, Reposo médico o Licencia.
 - **Quién marca**: por rol (por defecto `tecnico`), con excepción por persona.
 - Vacaciones: saldo = días anuales − días hábiles aprobados del año (sin feriados). Los días anuales salen de la antigüedad (12 / 18 / 30 días a 0-5 / 5-10 / +10 años) cuando se conoce la fecha de ingreso; si no, del parámetro general.
-- **Antigüedad**: la fecha de ingreso la aporta la ventana de funcionarios, enlazada al usuario del sistema por `User.id` (el modelo de funcionarios guarda `userId` único y opcional). El único punto de conexión es `src/lib/marcacion/funcionarios.ts` (`obtenerFechasIngreso`), hoy devuelve vacío. Cuando hay ingreso se muestra en Parámetros > Personas, en el saldo de vacaciones y en el PDF mensual.
+- **Antigüedad**: sale de la ventana de funcionarios (`/admin/funcionarios`, tabla `Funcionario`), enlazada al usuario del sistema por `Funcionario.userId` = `User.id` (único y opcional; sin FK). Se lee en un solo lugar, `src/lib/marcacion/funcionarios.ts` (`obtenerFechasIngreso`, solo funcionarios activos). Se muestra en Parámetros > Personas, en el saldo de vacaciones y en el PDF mensual.
 - Feriados de Paraguay 2026-2027 precargados; se editan en Parámetros.
+
+## Funcionarios (`/admin/funcionarios`)
+Ventana del admin para personal con fecha de ingreso (permiso `canManageUsers`: admin y administración). Alta, edición, baja lógica
+(conserva historial) y enlace opcional a un usuario del sistema (solo se ofrecen usuarios sin funcionario). Calcula antigüedad en años
+y meses, días de vacaciones que corresponden y fecha del próximo tramo. Los cambios quedan en el Log de cambios (entidad `Funcionario`).
+Migración `18_add_funcionario`. Si se unifica con otra versión del modelo, adaptar `src/lib/marcacion/funcionarios.ts` y `src/lib/funcionarios-store.ts`.
 
 ## PWA
 - `public/marcacion/manifest.webmanifest`: `scope` y `start_url` `/marcacion/`. Solo el layout de `/marcacion` lo enlaza.
@@ -46,7 +52,7 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 ## Pendientes conocidos
 - **Verificación de rostro**: hoy la selfie se guarda como evidencia (`src/lib/marcacion/face.ts`, modo `evidencia`).
   Para verificar identidad hay que conectar un proveedor en `verificarRostro`.
-- Vacaciones por antigüedad pendientes de conectar con la ventana de funcionarios; sin arrastre de saldo entre años.
+- Vacaciones por antigüedad: tramos fijos 12/18/30 (`TRAMOS_VACACIONES` en `reglas.ts`); sin arrastre de saldo entre años ni proporcional en el primer año.
 - Las horas se calculan al consultar el reporte con los parámetros vigentes: cambiar el horario recalcula también el pasado.
 - Sin modo offline: marcar requiere conexión.
 - Sin notificaciones push al encargado (la lista se actualiza cada 10 s).
@@ -55,4 +61,4 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 - Foto EPP y selfies: con `BLOB_READ_WRITE_TOKEN` van a Vercel Blob (URL pública); sin token se guardan en la base.
 
 ## Deploy
-`npm run vercel-build` aplica las migraciones `16_add_marcacion` (tablas y oficina por defecto) y `17_marcacion_parametros` (almuerzo, parámetros, feriados y ausencias).
+`npm run vercel-build` aplica las migraciones `16_add_marcacion` (tablas y oficina por defecto) y `17_marcacion_parametros` (almuerzo, parámetros, feriados y ausencias) y `18_add_funcionario`.
