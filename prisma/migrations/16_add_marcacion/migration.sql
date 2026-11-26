@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS "Sitio" (
     "radioM" INTEGER NOT NULL DEFAULT 100,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "Sitio_pkey" PRIMARY KEY ("id")
 );
 CREATE INDEX IF NOT EXISTS "Sitio_tipo_isActive_idx" ON "Sitio"("tipo", "isActive");
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS "Jornada" (
     "sitioNombre" TEXT NOT NULL DEFAULT '',
     "otRef" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "Jornada_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "Jornada_userKey_fecha_key" ON "Jornada"("userKey", "fecha");

@@ -5,7 +5,7 @@ ALTER TABLE "Jornada" ADD COLUMN IF NOT EXISTS "enAlmuerzo" BOOLEAN NOT NULL DEF
 CREATE TABLE IF NOT EXISTS "MarcacionConfig" (
     "id" TEXT NOT NULL DEFAULT 'default',
     "data" JSONB NOT NULL DEFAULT '{}',
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "MarcacionConfig_pkey" PRIMARY KEY ("id")
 );
 
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "HorarioUsuario" (
     "userKey" TEXT NOT NULL,
     "marca" BOOLEAN,
     "dias" JSONB,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "HorarioUsuario_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "HorarioUsuario_userKey_key" ON "HorarioUsuario"("userKey");

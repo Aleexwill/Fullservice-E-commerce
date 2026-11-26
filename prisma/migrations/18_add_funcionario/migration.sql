@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "Funcionario" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "notas" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "Funcionario_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "Funcionario_userId_key" ON "Funcionario"("userId");
