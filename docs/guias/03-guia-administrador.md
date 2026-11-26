@@ -134,8 +134,8 @@ Cambios de rol o permisos: menú **Usuarios** del admin.
 
 - **No se guardan imágenes del rostro.** Solo una huella numérica, ligada al usuario, que se borra al dar de baja.
 - La **foto del equipo de seguridad** sí se guarda, porque el encargado la necesita para aprobar. Puede mostrar a la persona.
-- La huella facial es un **dato sensible**: conseguí el **consentimiento escrito** de cada funcionario antes de enrolarlo y definí cuánto tiempo se conserva. El sistema pide tildar el consentimiento, pero no lo reemplaza.
-- Los cambios en funcionarios y el enrolamiento quedan en el **Log de cambios** del admin.
+- La huella facial es un **dato sensible**: conseguí el **consentimiento escrito** de cada funcionario antes de enrolarlo y definí cuánto tiempo se conserva. Usá el formato **Consentimiento de rostro** (`04-consentimiento-rostro`, en Word y PDF) y leé sus notas (`04-consentimiento-notas`). El sistema pide tildar el consentimiento, pero no lo reemplaza.
+- Los cambios en funcionarios, el enrolamiento y el borrado de huellas quedan en el **Log de cambios** del admin.
 
 ## 8. Preguntas frecuentes
 

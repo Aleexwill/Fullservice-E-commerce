@@ -65,6 +65,7 @@ export const AUDIT_DEFAULTS: Record<string, AuditField[]> = {
     { key: 'fechaIngreso', label: 'Fecha de ingreso',  tracked: true },
     { key: 'fechaEgreso',  label: 'Fecha de egreso',   tracked: true },
     { key: 'isActive',     label: 'Activo',            tracked: true },
+    { key: 'rostro',       label: 'Huella facial',     tracked: true },
   ],
   Lead: [
     { key: 'status',         label: 'Etapa',           tracked: true  },

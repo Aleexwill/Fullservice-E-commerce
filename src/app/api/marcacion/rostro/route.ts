@@ -19,12 +19,18 @@ export async function POST(request: NextRequest) {
   const v = validarEnrolamiento(b.vectores);
   if ('error' in v) return NextResponse.json({ error: v.error }, { status: 422 });
   const enroladoPor = userNameOf(a);
+  const previa = !!(await prisma.rostroPlantilla.findUnique({ where: { userKey: user.id }, select: { id: true } }));
   await prisma.rostroPlantilla.upsert({
     where: { userKey: user.id },
     create: { userKey: user.id, vectores: v.vectores, enroladoPor },
     update: { vectores: v.vectores, enroladoPor },
   });
-  await logChange({ entity: 'Funcionario', entityId: user.id, entityName: user.name, action: 'update', before: { rostro: 'sin enrolar' }, after: { rostro: 'enrolado' }, userId: a.userId, userName: a.displayName, userIp: getIp(request) });
+  const f = await prisma.funcionario.findUnique({ where: { userId: user.id }, select: { id: true, nombre: true } });
+  await logChange({
+    entity: 'Funcionario', entityId: f?.id ?? user.id, entityName: f?.nombre ?? user.name, action: 'update',
+    before: { rostro: previa ? 'enrolado' : 'sin enrolar' }, after: { rostro: previa ? 'enrolado de nuevo' : 'enrolado' },
+    userId: a.userId, userName: a.displayName, userIp: getIp(request),
+  });
   return NextResponse.json({ ok: true });
 }
 
@@ -33,6 +39,13 @@ export async function DELETE(request: NextRequest) {
   if (a instanceof NextResponse) return a;
   const userId = new URL(request.url).searchParams.get('userId');
   if (!userId) return NextResponse.json({ error: 'Falta el usuario' }, { status: 400 });
-  await prisma.rostroPlantilla.deleteMany({ where: { userKey: userId } });
+  const { count } = await prisma.rostroPlantilla.deleteMany({ where: { userKey: userId } });
+  if (count > 0) {
+    const f = await prisma.funcionario.findUnique({ where: { userId }, select: { id: true, nombre: true } });
+    await logChange({
+      entity: 'Funcionario', entityId: f?.id ?? userId, entityName: f?.nombre ?? '', action: 'update',
+      before: { rostro: 'enrolado' }, after: { rostro: 'borrado' }, userId: a.userId, userName: a.displayName, userIp: getIp(request),
+    });
+  }
   return NextResponse.json({ ok: true });
 }

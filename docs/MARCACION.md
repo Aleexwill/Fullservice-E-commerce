@@ -59,7 +59,7 @@ Migraciones `18_add_funcionario` y `19_rostro_plantilla`. Si se unifica con otra
   Con 420 pares de personas distintas: ninguna fue "verificada" en ningún nivel; en "normal" 1 % cayó en dudosa. **Hay que ajustarlo con uso real** (revisar `rostroScore`).
 - **Límites:** sin imágenes guardadas, el encargado no puede revisar visualmente una marca dudosa (solo ve la alerta); la huella la calcula el teléfono, por lo que un usuario técnico
   podría manipularla; la prueba de vida frena fotos pero no un video de la persona. Para mayor seguridad, cambiar `verificarRostro` por un proveedor (AWS Rekognition, etc.).
-- **Datos sensibles:** pedir consentimiento por escrito y definir cuánto se conserva la huella.
+- **Datos sensibles:** pedir consentimiento por escrito (modelo en `docs/guias/04-consentimiento-rostro`, a revisar legalmente) y definir cuánto se conserva la huella. El enrolamiento, el nuevo enrolamiento y el borrado quedan en el Log de cambios.
 
 ## PWA
 - `public/marcacion/manifest.webmanifest`: `scope` y `start_url` `/marcacion/`. Solo el layout de `/marcacion` lo enlaza.
