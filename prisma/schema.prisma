@@ -673,6 +673,27 @@ model Funcionario {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Legajo (RRHH)
+  area              String   @default("")
+  tipoContrato      String   @default("INDEFINIDO") // INDEFINIDO | PLAZO_FIJO | PRUEBA | JORNAL
+  fechaNacimiento   String?  // YYYY-MM-DD
+  estadoCivil       String   @default("")
+  hijosMenores      Int      @default(0)
+  direccion         String   @default("")
+  ciudad            String   @default("")
+  ipsNumero         String   @default("")
+  banco             String   @default("")
+  cuentaBancaria    String   @default("")
+  emergenciaNombre  String   @default("")
+  emergenciaParentesco String @default("")
+  emergenciaTelefono String  @default("")
+
+  cargos         CargoHistorial[]
+  salarios       SalarioFuncionario[]
+  documentos     DocumentoFuncionario[]
+  eppEntregas    EntregaEpp[]
+  capacitaciones Capacitacion[]
+
   @@index([isActive])
 }
 
@@ -685,4 +706,150 @@ model RostroPlantilla {
   enroladoPor  String   @default("")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// RRHH: historial, documentos, EPP, capacitaciones
+// ------------------------------------------------------------
+
+model CargoHistorial {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  cargo         String
+  area          String      @default("")
+  desde         String // YYYY-MM-DD
+  hasta         String?
+  notas         String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId, desde])
+}
+
+// Historial salarial: vale el último registro con vigenteDesde <= fin del período.
+model SalarioFuncionario {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  vigenteDesde  String // YYYY-MM-DD
+  tipo          String      @default("MENSUAL") // MENSUAL | JORNAL
+  monto         Int // guaraníes: sueldo mensual o valor del jornal
+  notas         String      @default("")
+  creadoPor     String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId, vigenteDesde])
+}
+
+model DocumentoFuncionario {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  tipo          String // CONTRATO | CI | CERTIFICADO | SALUD | ANTECEDENTES | OTRO
+  nombre        String
+  url           String // Vercel Blob (o data URL en desarrollo)
+  vence         String? // YYYY-MM-DD
+  notas         String      @default("")
+  subidoPor     String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId])
+  @@index([vence])
+}
+
+model EntregaEpp {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  item          String // casco, chaleco, botas, guantes, lentes u otro del catálogo
+  cantidad      Int         @default(1)
+  talle         String      @default("")
+  fechaEntrega  String // YYYY-MM-DD
+  vence         String? // fecha de reposición (entrega + vida útil del catálogo)
+  observacion   String      @default("")
+  entregadoPor  String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId, fechaEntrega])
+  @@index([vence])
+}
+
+model Capacitacion {
+  id             String      @id @default(cuid())
+  funcionarioId  String
+  funcionario    Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  nombre         String
+  fecha          String // YYYY-MM-DD
+  horas          Int         @default(0)
+  entidad        String      @default("")
+  vence          String? // YYYY-MM-DD (certificaciones con vigencia)
+  certificadoUrl String?
+  notas          String      @default("")
+  createdAt      DateTime    @default(now())
+
+  @@index([funcionarioId, fecha])
+  @@index([vence])
+}
+
+// Parámetros de RRHH (una fila 'default'): catálogo de EPP, alertas y reglas de planilla.
+model RrhhConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// RRHH: planilla de sueldos
+// ------------------------------------------------------------
+
+model Planilla {
+  id         String    @id @default(cuid())
+  periodo    String // YYYY-MM
+  tipo       String    @default("MENSUAL") // MENSUAL | AGUINALDO
+  estado     String    @default("BORRADOR") // BORRADOR | CERRADA
+  reglas     Json      @default("{}") // reglas usadas al calcular (queda fijo al cerrar)
+  cerradaPor String    @default("")
+  cerradaAt  DateTime?
+  creadaPor  String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  recibos    Recibo[]
+
+  @@unique([periodo, tipo])
+}
+
+model Recibo {
+  id                String   @id @default(cuid())
+  planillaId        String
+  planilla          Planilla @relation(fields: [planillaId], references: [id], onDelete: Cascade)
+  funcionarioId     String
+  nombre            String
+  documento         String   @default("")
+  cargo             String   @default("")
+  detalle           Json     @default("[]") // [{tipo: HABER|DESCUENTO, concepto, monto, imponible, nota}]
+  asistencia        Json     @default("{}") // resumen del mes usado para calcular
+  totalHaberes      Int      @default(0)
+  totalDescuentos   Int      @default(0)
+  neto              Int      @default(0)
+  aporteIpsPatronal Int      @default(0)
+  advertencias      Json     @default("[]")
+  createdAt         DateTime @default(now())
+
+  @@unique([planillaId, funcionarioId])
+}
+
+// Conceptos manuales del período (bonificaciones, anticipos, préstamos, premios, descuentos).
+model ConceptoPlanilla {
+  id            String   @id @default(cuid())
+  funcionarioId String
+  periodo       String // YYYY-MM
+  tipo          String // HABER | DESCUENTO
+  nombre        String
+  monto         Int
+  imponible     Boolean  @default(false) // suma a la base de aporte IPS
+  notas         String   @default("")
+  creadoPor     String   @default("")
+  createdAt     DateTime @default(now())
+
+  @@index([periodo, funcionarioId])
 }

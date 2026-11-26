@@ -10,7 +10,7 @@ import { getIp } from '@/lib/rate-limit';
 
 /** Enrola (o reemplaza) la huella facial de un usuario. Recibe solo números: { userId, vectores: number[3-5][128] }. */
 export async function POST(request: NextRequest) {
-  const a = await requireRole('canManageUsers');
+  const a = await requireRole('canManageRRHH');
   if (a instanceof NextResponse) return a;
   const b = await request.json().catch(() => ({}));
   if (typeof b.userId !== 'string') return NextResponse.json({ error: 'Falta el usuario' }, { status: 400 });
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const a = await requireRole('canManageUsers');
+  const a = await requireRole('canManageRRHH');
   if (a instanceof NextResponse) return a;
   const userId = new URL(request.url).searchParams.get('userId');
   if (!userId) return NextResponse.json({ error: 'Falta el usuario' }, { status: 400 });

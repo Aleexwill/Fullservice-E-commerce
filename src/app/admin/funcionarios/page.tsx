@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Pencil, UserX, X, Link2, Search, ScanFace } from 'lucide-react';
 import { FaceCapture } from '@/components/marcacion/face-capture';
@@ -130,7 +131,7 @@ export default function FuncionariosPage() {
             {!loading && visibles.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-steel-400">{items.length === 0 ? 'Todavía no hay funcionarios. Cargá el primero con “Nuevo funcionario”.' : 'Sin resultados.'}</td></tr>}
             {visibles.map(f => (
               <tr key={f.id} className={`border-b border-steel-700/60 ${f.isActive ? '' : 'opacity-60'}`}>
-                <td className="px-4 py-3"><div className="font-medium text-arctic">{f.nombre}</div><div className="text-caption text-steel-400">{f.documento ? `CI ${f.documento}` : 'Sin documento'}{f.isActive ? '' : ` · Baja ${fmt(f.fechaEgreso)}`}</div></td>
+                <td className="px-4 py-3"><Link href={`/admin/funcionarios/${f.id}`} className="font-medium text-arctic hover:underline">{f.nombre}</Link><div className="text-caption text-steel-400">{f.documento ? `CI ${f.documento}` : 'Sin documento'}{f.isActive ? '' : ` · Baja ${fmt(f.fechaEgreso)}`}</div></td>
                 <td className="px-4 py-3 text-steel-300">{f.cargo || '—'}</td>
                 <td className="px-4 py-3 text-steel-300">{fmt(f.fechaIngreso)}</td>
                 <td className="px-4 py-3 text-arctic">{antTxt(f.antiguedad)}{f.antiguedad.proximoTramo && f.isActive && <div className="text-caption text-steel-400">Próximo tramo: {fmt(f.antiguedad.proximoTramo)}</div>}</td>

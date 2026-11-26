@@ -10,14 +10,14 @@ import { getIp } from '@/lib/rate-limit';
 import { listarFuncionarios } from '@/lib/funcionarios-store';
 
 export async function GET() {
-  const a = await requireRole('canManageUsers');
+  const a = await requireRole('canManageRRHH');
   if (a instanceof NextResponse) return a;
   try { return NextResponse.json(await listarFuncionarios()); }
   catch (e) { console.error('GET /api/funcionarios:', e); return NextResponse.json({ error: 'Error al cargar' }, { status: 500 }); }
 }
 
 export async function POST(request: NextRequest) {
-  const a = await requireRole('canManageUsers');
+  const a = await requireRole('canManageRRHH');
   if (a instanceof NextResponse) return a;
   const parsed = await parseBody(request, FuncionarioSchema);
   if (parsed.error) return parsed.error;
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const err = await validarFuncionario(d);
   if (err) return NextResponse.json({ error: err }, { status: 400 });
   try {
-    const f = await prisma.funcionario.create({ data: { ...d, documento: d.documento || null, fechaEgreso: d.fechaEgreso || null, userId: d.userId || null } });
+    const f = await prisma.funcionario.create({ data: { ...d, documento: d.documento || null, fechaEgreso: d.fechaEgreso || null, fechaNacimiento: d.fechaNacimiento || null, userId: d.userId || null } });
     await logChange({ entity: 'Funcionario', entityId: f.id, entityName: f.nombre, action: 'create', userId: a.userId, userName: a.displayName, userIp: getIp(request), after: { fechaIngreso: f.fechaIngreso, cargo: f.cargo, userId: f.userId } });
     return NextResponse.json({ id: f.id }, { status: 201 });
   } catch (e) {

@@ -24,6 +24,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
   canManageInventory: boolean;
   canViewReports: boolean;
   canViewAnalytics: boolean;
+  canManageRRHH: boolean;      // legajos, sueldos y planilla (datos sensibles)
 }> = {
   admin: {
     canManageUsers: true, canManageConfig: true, canManageContent: true,
@@ -31,6 +32,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: true, canManageClients: true, canManageInventory: true,
     canViewReports: true, canViewAnalytics: true,
+    canManageRRHH: true,
   },
   gerencia: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -38,6 +40,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: true,
+    canManageRRHH: false,
   },
   administracion: {
     canManageUsers: true, canManageConfig: true, canManageContent: false,
@@ -45,6 +48,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: false, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: true,
   },
   planner: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -52,6 +56,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: false, canManageClients: false, canManageInventory: true,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: false,
   },
   vendedor: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -59,6 +64,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: false,
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: false,
   },
   tecnico: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -66,6 +72,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: false,
     canManageLeads: false, canManageClients: false, canManageInventory: true,
     canViewReports: false, canViewAnalytics: false,
+    canManageRRHH: false,
   },
   comercial: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -73,6 +80,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: false,
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: false,
   },
 };
 
@@ -85,7 +93,8 @@ type RouteRestriction = { path: string; requiredPermission: keyof typeof ROLE_PE
 // Rutas admin restringidas por rol (prefijo)
 export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/usuarios', requiredPermission: 'canManageUsers' },
-  { path: '/admin/funcionarios', requiredPermission: 'canManageUsers' },
+  { path: '/admin/funcionarios', requiredPermission: 'canManageRRHH' },
+  { path: '/admin/rrhh', requiredPermission: 'canManageRRHH' },
   { path: '/admin/config', requiredPermission: 'canManageConfig' },
   { path: '/admin/configuracion', requiredPermission: 'canManageConfig' },
   { path: '/admin/contenido', requiredPermission: 'canManageContent' },
@@ -105,7 +114,8 @@ export const RESTRICTED_ROUTES: RouteRestriction[] = [
 // Se aplica solo a métodos que modifican datos (no GET públicos ya filtrados en isPublicApi)
 export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/usuarios', requiredPermission: 'canManageUsers' },
-  { path: '/api/funcionarios', requiredPermission: 'canManageUsers' },
+  { path: '/api/funcionarios', requiredPermission: 'canManageRRHH' },
+  { path: '/api/rrhh', requiredPermission: 'canManageRRHH' },
   { path: '/api/roles', requiredPermission: 'canManageUsers' },
   { path: '/api/config', requiredPermission: 'canManageConfig' },
   { path: '/api/approval-flows', requiredPermission: 'canManageConfig' },

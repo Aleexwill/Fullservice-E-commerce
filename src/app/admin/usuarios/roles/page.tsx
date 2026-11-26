@@ -16,6 +16,7 @@ interface Permissions {
   canManageInventory: boolean;
   canViewReports: boolean;
   canViewAnalytics: boolean;
+  canManageRRHH: boolean;
 }
 
 interface CustomRole {
@@ -32,6 +33,7 @@ const PERMISSION_GROUPS: { group: string; items: { key: keyof Permissions; label
     items: [
       { key: 'canManageUsers',  label: 'Usuarios',       description: 'Invitar, activar/desactivar y eliminar usuarios' },
       { key: 'canManageConfig', label: 'Configuración',  description: 'Ajustes generales del sitio' },
+      { key: 'canManageRRHH',  label: 'RRHH',           description: 'Legajos, sueldos y planilla (datos sensibles)' },
     ],
   },
   {
@@ -64,7 +66,7 @@ const EMPTY_PERMS: Permissions = {
   canManageUsers: false, canManageConfig: false, canManageContent: false,
   canManageProducts: false, canManageOrders: false, canManagePresupuestos: false,
   canManageLeads: false, canManageClients: false, canManageInventory: false,
-  canViewReports: false, canViewAnalytics: false,
+  canViewReports: false, canViewAnalytics: false, canManageRRHH: false,
 };
 
 export default function RolesPage() {

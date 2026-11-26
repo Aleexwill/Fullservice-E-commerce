@@ -9,6 +9,8 @@ export interface FuncionarioDTO {
   isActive: boolean; notas: string;
   antiguedad: { anios: number; meses: number; proximoTramo: string | null }; diasVacaciones: number;
   rostro: { enrolado: boolean; fecha: string | null };
+  area: string; tipoContrato: string; fechaNacimiento: string | null; estadoCivil: string; hijosMenores: number; direccion: string; ciudad: string;
+  ipsNumero: string; banco: string; cuentaBancaria: string; emergenciaNombre: string; emergenciaParentesco: string; emergenciaTelefono: string;
 }
 
 /** Lista funcionarios con su usuario enlazado, antigüedad y días de vacaciones que les corresponden hoy. */
@@ -32,6 +34,9 @@ export async function listarFuncionarios(): Promise<{ funcionarios: FuncionarioD
       fechaIngreso: f.fechaIngreso, fechaEgreso: f.fechaEgreso, isActive: f.isActive, notas: f.notas,
       antiguedad: antiguedadDetalle(f.fechaIngreso, ref), diasVacaciones: diasVacaciones(f.fechaIngreso, h, params.vacacionesDias),
       rostro: { enrolado: !!(f.userId && pBy.has(f.userId)), fecha: f.userId ? pBy.get(f.userId) ?? null : null },
+      area: f.area, tipoContrato: f.tipoContrato, fechaNacimiento: f.fechaNacimiento, estadoCivil: f.estadoCivil, hijosMenores: f.hijosMenores,
+      direccion: f.direccion, ciudad: f.ciudad, ipsNumero: f.ipsNumero, banco: f.banco, cuentaBancaria: f.cuentaBancaria,
+      emergenciaNombre: f.emergenciaNombre, emergenciaParentesco: f.emergenciaParentesco, emergenciaTelefono: f.emergenciaTelefono,
     };
   });
   void aniosAntiguedad;
