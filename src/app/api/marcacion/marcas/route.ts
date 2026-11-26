@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rate-limit';
-import { hoy, userKeyOf, userNameOf, getOficina, guardarFoto, GEOFENCE_MODE, MAX_PRECISION_M, JORNADA_INCLUDE, toJornada } from '@/lib/marcacion/server';
-import { verificarRostro } from '@/lib/marcacion/face';
+import { hoy, userKeyOf, userNameOf, getOficina, GEOFENCE_MODE, MAX_PRECISION_M, JORNADA_INCLUDE, toJornada } from '@/lib/marcacion/server';
+import { verificarRostro, validarVector } from '@/lib/marcacion/face';
+import { getParametros } from '@/lib/marcacion/config-server';
 import { haversineM, TIPOS_MARCA, TIPOS_CON_ROSTRO, formatDist } from '@/lib/marcacion/shared';
 import type { Estado, TipoMarca } from '@/lib/marcacion/shared';
 
@@ -103,19 +104,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Rostro: selfie obligatoria en ingreso/salida
-    let fotoUrl: string | null = null;
+    // Rostro: en ingreso/salida el teléfono envía la huella facial (128 números, sin imagen) y se compara con la enrolada
+    let rostroEstado: string | null = null;
     let rostroScore: number | null = null;
     if (TIPOS_CON_ROSTRO.includes(tipo)) {
-      try { fotoUrl = await guardarFoto(body.foto, 'rostro'); }
-      catch (e) { return NextResponse.json({ error: e instanceof Error ? e.message : 'Foto inválida' }, { status: 400 }); }
-      const r = await verificarRostro(userKey, fotoUrl);
-      if (!r.ok) return NextResponse.json({ error: 'No pudimos verificar tu rostro. Intentá de nuevo con buena luz.' }, { status: 422 });
-      rostroScore = r.score;
+      if (!rateLimit(`rostro:${userKey}`, 15, 10 * 60_000).allowed) return NextResponse.json({ error: 'Demasiados intentos de verificación. Esperá unos minutos o pedile ayuda al encargado.' }, { status: 429 });
+      const vector = validarVector(body.rostro);
+      if (!vector) return NextResponse.json({ error: 'Falta la verificación de rostro' }, { status: 400 });
+      const params = await getParametros();
+      const r = await verificarRostro(userKey, vector, params);
+      if (r.estado === 'RECHAZADO') return NextResponse.json({ error: 'No pudimos confirmar que seas vos. Probá de nuevo con buena luz y de frente.', rostro: 'RECHAZADO' }, { status: 422 });
+      if (r.estado === 'SIN_PLANTILLA' && params.rostroObligatorio) return NextResponse.json({ error: 'Todavía no tenés tu rostro enrolado. Pedile al administrador que lo registre.', rostro: 'SIN_PLANTILLA' }, { status: 422 });
+      rostroEstado = r.estado; rostroScore = r.distancia;
     }
 
     const otRef = typeof body.otRef === 'string' ? body.otRef.trim().slice(0, 60) : '';
-    const marcaData = { tipo, metodo: fotoUrl ? 'ROSTRO' : 'GPS', lat, lng, precisionM, distanciaM, fueraDeRango, sitioNombre: sitio?.nombre ?? '', fotoUrl, rostroScore };
+    const marcaData = { tipo, metodo: rostroEstado === 'VERIFICADO' || rostroEstado === 'DUDOSO' ? 'ROSTRO' : 'GPS', lat, lng, precisionM, distanciaM, fueraDeRango, sitioNombre: sitio?.nombre ?? '', rostroEstado, rostroScore };
 
     const saved = await prisma.$transaction(async tx => {
       if (!jornada) {

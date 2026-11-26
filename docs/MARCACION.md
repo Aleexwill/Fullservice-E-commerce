@@ -41,7 +41,23 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 Ventana del admin para personal con fecha de ingreso (permiso `canManageUsers`: admin y administración). Alta, edición, baja lógica
 (conserva historial) y enlace opcional a un usuario del sistema (solo se ofrecen usuarios sin funcionario). Calcula antigüedad en años
 y meses, días de vacaciones que corresponden y fecha del próximo tramo. Los cambios quedan en el Log de cambios (entidad `Funcionario`).
-Migración `18_add_funcionario`. Si se unifica con otra versión del modelo, adaptar `src/lib/marcacion/funcionarios.ts` y `src/lib/funcionarios-store.ts`.
+Migraciones `18_add_funcionario` y `19_rostro_plantilla`. Si se unifica con otra versión del modelo, adaptar `src/lib/marcacion/funcionarios.ts` y `src/lib/funcionarios-store.ts`.
+
+## Reconocimiento facial (ingreso y salida)
+**No se guarda ninguna imagen del rostro.** Se enrola una vez y cada ingreso/salida se compara con esa primera huella.
+- **Enrolamiento** (`/admin/funcionarios` > "Enrolar rostro", requiere consentimiento marcado): 3 capturas de frente con la cámara del dispositivo.
+  Solo se guarda la huella numérica (3 vectores de 128 valores, tabla `RostroPlantilla`, enlazada por `User.id`). Se borra al dar de baja al funcionario o con "Borrar".
+- **Cada marca de ingreso/salida:** el teléfono calcula la huella de la cara (librería `@vladmandic/face-api`, modelos en `public/marcacion/models`, ~6,7 MB, sin imágenes ni datos a terceros)
+  y envía solo ese vector. El servidor lo compara con la plantilla y decide con umbrales de Parámetros > Reconocimiento facial.
+- **Resultados:** `VERIFICADO` (pasa) · `DUDOSO` (pasa y queda señalada como "Rostro dudoso" en el reporte y el PDF) · `RECHAZADO` (no marca) ·
+  `SIN_PLANTILLA` (no está enrolado: marca y queda señalada; con "Exigir rostro enrolado" no puede marcar). La distancia de cada marca queda en `Marca.rostroScore`.
+- **Prueba de vida:** antes de la huella se pide un gesto al azar (parpadear, o girar la cabeza) y se exige *ver* el movimiento, así una foto fija no pasa. Ocurre en el teléfono.
+- **Umbrales** (distancia entre huellas; menor = más parecido): estricta 0,35/0,45 · normal 0,40/0,50 · flexible 0,45/0,55 (verificado / rechazo).
+  Calibrados con caras reales de prueba: la misma cara con cambios de luz, tamaño e inclinación llegó a 0,42; personas distintas, desde 0,47.
+  Con 420 pares de personas distintas: ninguna fue "verificada" en ningún nivel; en "normal" 1 % cayó en dudosa. **Hay que ajustarlo con uso real** (revisar `rostroScore`).
+- **Límites:** sin imágenes guardadas, el encargado no puede revisar visualmente una marca dudosa (solo ve la alerta); la huella la calcula el teléfono, por lo que un usuario técnico
+  podría manipularla; la prueba de vida frena fotos pero no un video de la persona. Para mayor seguridad, cambiar `verificarRostro` por un proveedor (AWS Rekognition, etc.).
+- **Datos sensibles:** pedir consentimiento por escrito y definir cuánto se conserva la huella.
 
 ## PWA
 - `public/marcacion/manifest.webmanifest`: `scope` y `start_url` `/marcacion/`. Solo el layout de `/marcacion` lo enlaza.

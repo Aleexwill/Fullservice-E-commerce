@@ -59,13 +59,13 @@ export default function MarcacionPage() {
   const dist = useMemo(() => (pos && meta ? haversineM(pos, meta) : null), [pos, meta]);
   const dentro = dist !== null && meta !== null && dist <= meta.radioM;
 
-  async function marcar(tipo: TipoMarca, extra: Record<string, unknown> = {}, fotoRostro?: string) {
+  async function marcar(tipo: TipoMarca, extra: Record<string, unknown> = {}, huella?: number[]) {
     setBusy(true); setError('');
     try {
       // En traslado ya hay un GPS en vivo reciente: se reutiliza en vez de pedir otro fix
       const p = viajando && pos && Date.now() - pos.t < 15000 ? pos : await obtenerPosicion();
       const r = await api<{ jornada: JornadaDTO }>('/api/marcacion/marcas', {
-        method: 'POST', body: JSON.stringify({ tipo, lat: p.lat, lng: p.lng, precisionM: p.precisionM, foto: fotoRostro, ...extra }),
+        method: 'POST', body: JSON.stringify({ tipo, lat: p.lat, lng: p.lng, precisionM: p.precisionM, rostro: huella, ...extra }),
       });
       setData(d => d && { ...d, jornada: r.jornada });
       await cargar();
@@ -106,8 +106,9 @@ export default function MarcacionPage() {
       <h1 className="mc-h">Buen día, {data.user.name.split(' ')[0]}</h1>
       <p className="mc-mut">Para marcar tu ingreso se toma tu rostro y se verifica que estés en {data.oficina?.nombre ?? 'la oficina'}.</p>
       {sinOficina && <div className="mc-err">No hay una oficina configurada. Pedile al administrador que la cargue en Sitios.</div>}
+      {!data.user.rostroEnrolado && <div className="mc-card"><h4>Tu rostro todavía no está enrolado</h4><span className="mc-mut">{data.user.rostroObligatorio ? 'Pedile al administrador que lo registre para poder marcar.' : 'Podés marcar, pero la marca queda señalada como “sin rostro enrolado”.'}</span></div>}
     </>);
-    boton = <button className="mc-btn" disabled={busy || sinOficina} onClick={() => setFace('INGRESO')}>Marcar ingreso con rostro</button>;
+    boton = <button className="mc-btn" disabled={busy || sinOficina || (data.user.rostroObligatorio && !data.user.rostroEnrolado)} onClick={() => setFace('INGRESO')}>Marcar ingreso con rostro</button>;
   } else if (estado === 'EN_OFICINA') {
     cuerpo = (<>
       <h1 className="mc-h">Ingreso marcado</h1>
@@ -223,9 +224,10 @@ export default function MarcacionPage() {
       </div>
       {face && (
         <FaceCapture
+          modo="verificar"
           titulo={face === 'INGRESO' ? 'Ingreso de jornada' : 'Salida de jornada'}
           onCancel={() => setFace(null)}
-          onCapture={f => { const t = face; setFace(null); marcar(t, {}, f); }}
+          onHuellas={h => { const t = face; setFace(null); marcar(t, {}, h[0]); }}
         />
       )}
     </div>

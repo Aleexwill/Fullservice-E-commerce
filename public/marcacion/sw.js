@@ -1,6 +1,6 @@
 // Service worker de la PWA de marcación. Alcance: /marcacion/ (solo esta sección).
 // Nunca cachea /api ni fotos: los datos de marcación siempre van a la red.
-const VERSION = 'marcacion-v1';
+const VERSION = 'marcacion-v2';
 const SHELL = ['/marcacion/icon-192.png', '/marcacion/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -20,7 +20,7 @@ self.addEventListener('fetch', e => {
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
 
   // Archivos estáticos de Next y de la PWA: cache primero (llevan hash o cambian poco)
-  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/marcacion/icon')) {
+  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/marcacion/icon') || url.pathname.startsWith('/marcacion/models/')) {
     e.respondWith(
       caches.match(req).then(hit => hit || fetch(req).then(res => {
         if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }

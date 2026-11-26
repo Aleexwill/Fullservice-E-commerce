@@ -11,7 +11,19 @@ export interface Parametros {
   extraDesdeMin: number;      // mínimo de minutos extra para contarlos
   vacacionesDias: number;     // días hábiles de vacaciones por año
   rolesMarcan: string[];      // roles que deben marcar asistencia
+  rostroExigencia: Exigencia; // qué tan parecida debe ser la cara al enrolamiento
+  rostroObligatorio: boolean; // si es true, quien no tiene rostro enrolado no puede marcar ingreso/salida
 }
+
+export type Exigencia = 'estricta' | 'normal' | 'flexible';
+/** Calibrado con caras reales de prueba: la misma cara con variaciones de luz/tamaño/inclinación dio hasta ~0,42 y personas distintas desde ~0,47.
+ *  Hace falta ajustarlo con el uso real (la distancia de cada marca queda en Marca.rostroScore).
+ *  Distancia máxima entre huellas: hasta `ok` es verificado, hasta `rechazo` es dudoso (queda marcado), más allá se rechaza. */
+export const UMBRALES_ROSTRO: Record<Exigencia, { ok: number; rechazo: number }> = {
+  estricta: { ok: 0.35, rechazo: 0.45 },
+  normal: { ok: 0.4, rechazo: 0.5 },
+  flexible: { ok: 0.45, rechazo: 0.55 },
+};
 
 export const PARAMETROS_DEFAULT: Parametros = {
   dias: {
@@ -29,6 +41,8 @@ export const PARAMETROS_DEFAULT: Parametros = {
   extraDesdeMin: 30,
   vacacionesDias: 12,
   rolesMarcan: ['tecnico'],
+  rostroExigencia: 'normal',
+  rostroObligatorio: false,
 };
 
 export const DIAS_NOMBRE = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -58,6 +72,8 @@ export function normalizarParametros(raw: unknown): Parametros {
     extraDesdeMin: n(r.extraDesdeMin, 30, 0, 240),
     vacacionesDias: n(r.vacacionesDias, 12, 0, 60),
     rolesMarcan: Array.isArray(r.rolesMarcan) ? r.rolesMarcan.filter(x => typeof x === 'string').slice(0, 30) : PARAMETROS_DEFAULT.rolesMarcan,
+    rostroExigencia: r.rostroExigencia === 'estricta' || r.rostroExigencia === 'flexible' ? r.rostroExigencia : 'normal',
+    rostroObligatorio: r.rostroObligatorio === true,
   };
 }
 
@@ -96,13 +112,14 @@ export const ESTADO_DIA_LABEL: Record<EstadoDia, string> = {
   REPOSO_MEDICO: 'Reposo médico', LICENCIA: 'Licencia', FERIADO: 'Feriado', DESCANSO: 'Descanso', PENDIENTE: 'En curso',
 };
 
-export interface MarcaCalc { tipo: string; createdAt: string | Date }
+export interface MarcaCalc { tipo: string; createdAt: string | Date; rostroEstado?: string | null }
 export interface FilaDia {
   fecha: string; userKey: string; userName: string; estado: EstadoDia; nota: string;
   esperadaEntrada: string; esperadaSalida: string;
   entrada: string; salida: string;
   almuerzoMin: number; trabajadoMin: number; tardanzaMin: number; anticipadaMin: number; extraMin: number;
   trasladoMin: number; enSitioMin: number; sitio: string;
+  rostro: '' | 'DUDOSO' | 'SIN_PLANTILLA'; // alerta de verificación facial en ingreso/salida
 }
 
 /** Suma el tiempo entre pares de marcas (inicio → fin). */
@@ -130,7 +147,7 @@ export function calcularDia(e: EntradaDia): FilaDia | null {
   const base: FilaDia = {
     fecha: e.fecha, userKey: e.userKey, userName: e.userName, estado: 'PRESENTE', nota: '',
     esperadaEntrada: h.laboral ? h.entrada : '', esperadaSalida: h.laboral ? h.salida : '',
-    entrada: '', salida: '', almuerzoMin: 0, trabajadoMin: 0, tardanzaMin: 0, anticipadaMin: 0, extraMin: 0, trasladoMin: 0, enSitioMin: 0, sitio: e.sitio,
+    entrada: '', salida: '', almuerzoMin: 0, trabajadoMin: 0, tardanzaMin: 0, anticipadaMin: 0, extraMin: 0, trasladoMin: 0, enSitioMin: 0, sitio: e.sitio, rostro: '',
   };
 
   if (!ing) {
@@ -175,9 +192,12 @@ export function calcularDia(e: EntradaDia): FilaDia | null {
       base.extraMin = base.trabajadoMin; // trabajó en día no laboral: todo es extra
     }
   }
+  const conRostro = e.marcas.filter(m => m.tipo === 'INGRESO' || m.tipo === 'SALIDA');
+  base.rostro = conRostro.some(m => m.rostroEstado === 'DUDOSO') ? 'DUDOSO' : conRostro.some(m => m.rostroEstado === 'SIN_PLANTILLA') ? 'SIN_PLANTILLA' : '';
   if (e.feriado) base.nota = `Trabajó feriado: ${e.feriado}`;
   else if (!h.laboral) base.nota = 'Trabajó en día no laboral';
 
+  if (base.rostro) base.nota = [base.nota, base.rostro === 'DUDOSO' ? 'Rostro dudoso' : 'Sin rostro enrolado'].filter(Boolean).join(' · ');
   base.estado = !cerrada ? (e.fecha < e.hoy ? 'INCOMPLETA' : 'PENDIENTE') : base.tardanzaMin > 0 ? 'TARDE' : 'PRESENTE';
   return base;
 }

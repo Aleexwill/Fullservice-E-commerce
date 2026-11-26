@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS "Marca" (
     "distanciaM" INTEGER,
     "fueraDeRango" BOOLEAN NOT NULL DEFAULT false,
     "sitioNombre" TEXT NOT NULL DEFAULT '',
-    "fotoUrl" TEXT,
+    "rostroEstado" TEXT,
     "rostroScore" DOUBLE PRECISION,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Marca_pkey" PRIMARY KEY ("id")

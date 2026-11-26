@@ -19,6 +19,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   if (err) return NextResponse.json({ error: err }, { status: 400 });
   try {
     const f = await prisma.funcionario.update({ where: { id: params.id }, data: { ...d, documento: d.documento || null, fechaEgreso: d.fechaEgreso || null, userId: d.userId || null } });
+    // Privacidad: al darlo de baja se borra su huella facial
+    if (!f.isActive && f.userId) await prisma.rostroPlantilla.deleteMany({ where: { userKey: f.userId } });
     const pick = (x: typeof f) => ({ nombre: x.nombre, documento: x.documento, cargo: x.cargo, userId: x.userId, fechaIngreso: x.fechaIngreso, fechaEgreso: x.fechaEgreso, isActive: x.isActive });
     await logChange({ entity: 'Funcionario', entityId: f.id, entityName: f.nombre, action: 'update', before: pick(before), after: pick(f), userId: a.userId, userName: a.displayName, userIp: getIp(request) });
     return NextResponse.json({ ok: true });
@@ -36,6 +38,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   const f = await prisma.funcionario.findUnique({ where: { id: params.id } });
   if (!f) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   await prisma.funcionario.update({ where: { id: f.id }, data: { isActive: false, fechaEgreso: f.fechaEgreso ?? hoy() } });
+  if (f.userId) await prisma.rostroPlantilla.deleteMany({ where: { userKey: f.userId } }); // privacidad: se borra la huella facial
   await logChange({ entity: 'Funcionario', entityId: f.id, entityName: f.nombre, action: 'delete', userId: a.userId, userName: a.displayName, userIp: getIp(request) });
   return NextResponse.json({ ok: true });
 }

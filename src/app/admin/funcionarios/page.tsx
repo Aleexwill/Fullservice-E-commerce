@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Pencil, UserX, X, Link2, Search } from 'lucide-react';
+import { Plus, Pencil, UserX, X, Link2, Search, ScanFace } from 'lucide-react';
+import { FaceCapture } from '@/components/marcacion/face-capture';
 import { ROLE_LABELS } from '@/lib/roles';
 import type { Role } from '@/lib/roles';
 import type { FuncionarioDTO } from '@/lib/funcionarios-store';
@@ -24,6 +25,10 @@ export default function FuncionariosPage() {
   const [editUser, setEditUser] = useState<UsuarioLibre | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [enrolar, setEnrolar] = useState<FuncionarioDTO | null>(null);
+  const [consentido, setConsentido] = useState(false);
+  const [camara, setCamara] = useState(false);
+  const [enrolMsg, setEnrolMsg] = useState('');
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -68,6 +73,20 @@ export default function FuncionariosPage() {
     if (!r.ok) setError((await r.json().catch(() => ({}))).error ?? 'Error'); else await cargar();
   }
 
+  async function guardarRostro(huellas: number[][]) {
+    if (!enrolar?.userId) return;
+    setCamara(false); setEnrolMsg('Guardando…');
+    const r = await fetch('/api/marcacion/rostro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: enrolar.userId, vectores: huellas }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { setEnrolMsg(d.error ?? 'No se pudo guardar'); return; }
+    setEnrolar(null); setConsentido(false); setEnrolMsg(''); await cargar();
+  }
+  async function quitarRostro(f: FuncionarioDTO) {
+    if (!f.userId || !window.confirm(`¿Borrar la huella facial de ${f.nombre}? Tendrá que enrolarse de nuevo.`)) return;
+    await fetch(`/api/marcacion/rostro?userId=${encodeURIComponent(f.userId)}`, { method: 'DELETE' });
+    await cargar();
+  }
+
   const set = (k: keyof Form, v: string | boolean) => setForm(s => (s ? { ...s, [k]: v } : s));
   const usuarioOpciones = editUser ? [editUser, ...libres] : libres;
 
@@ -100,15 +119,15 @@ export default function FuncionariosPage() {
       {error && !form && <p role="alert" className="mb-3 rounded-md bg-danger-light/10 px-3 py-2 font-body text-caption text-danger-bright">{error}</p>}
 
       <div className="card overflow-x-auto">
-        <table className="w-full min-w-[820px] text-left font-body text-body-sm">
+        <table className="w-full min-w-[960px] text-left font-body text-body-sm">
           <thead>
             <tr className="border-b border-steel-700 text-caption text-steel-400">
-              {['Funcionario', 'Cargo', 'Ingreso', 'Antigüedad', 'Vacaciones', 'Usuario del sistema', ''].map(h => <th key={h} className="px-4 py-3 font-medium">{h}</th>)}
+              {['Funcionario', 'Cargo', 'Ingreso', 'Antigüedad', 'Vacaciones', 'Usuario del sistema', 'Rostro', ''].map(h => <th key={h} className="px-4 py-3 font-medium">{h}</th>)}
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={7} className="px-4 py-6 text-steel-400">Cargando…</td></tr>}
-            {!loading && visibles.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-steel-400">{items.length === 0 ? 'Todavía no hay funcionarios. Cargá el primero con “Nuevo funcionario”.' : 'Sin resultados.'}</td></tr>}
+            {loading && <tr><td colSpan={8} className="px-4 py-6 text-steel-400">Cargando…</td></tr>}
+            {!loading && visibles.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-steel-400">{items.length === 0 ? 'Todavía no hay funcionarios. Cargá el primero con “Nuevo funcionario”.' : 'Sin resultados.'}</td></tr>}
             {visibles.map(f => (
               <tr key={f.id} className={`border-b border-steel-700/60 ${f.isActive ? '' : 'opacity-60'}`}>
                 <td className="px-4 py-3"><div className="font-medium text-arctic">{f.nombre}</div><div className="text-caption text-steel-400">{f.documento ? `CI ${f.documento}` : 'Sin documento'}{f.isActive ? '' : ` · Baja ${fmt(f.fechaEgreso)}`}</div></td>
@@ -117,6 +136,14 @@ export default function FuncionariosPage() {
                 <td className="px-4 py-3 text-arctic">{antTxt(f.antiguedad)}{f.antiguedad.proximoTramo && f.isActive && <div className="text-caption text-steel-400">Próximo tramo: {fmt(f.antiguedad.proximoTramo)}</div>}</td>
                 <td className="px-4 py-3 text-steel-300">{f.diasVacaciones} días</td>
                 <td className="px-4 py-3">{f.usuario ? <span className="inline-flex items-center gap-1.5 text-steel-300"><Link2 className="h-3.5 w-3.5 text-success-bright" />{f.usuario.name}<span className="text-caption text-steel-400">· {ROLE_LABELS[f.usuario.role as Role] ?? f.usuario.role}</span></span> : <span className="text-steel-400">Sin enlazar</span>}</td>
+                <td className="px-4 py-3">{!f.userId ? <span className="text-caption text-steel-400">Enlazá un usuario</span> : f.rostro.enrolado
+                  ? <span className="inline-flex items-center gap-1.5 text-steel-300"><ScanFace className="h-4 w-4 text-success-bright" />Enrolado {fmt(f.rostro.fecha)}</span>
+                  : <span className="text-steel-400">Sin enrolar</span>}
+                  {f.userId && f.isActive && <div className="mt-1 flex gap-3 text-caption">
+                    <button onClick={() => { setEnrolar(f); setConsentido(false); setEnrolMsg(''); }} className="text-blue-bright hover:underline">{f.rostro.enrolado ? 'Volver a enrolar' : 'Enrolar rostro'}</button>
+                    {f.rostro.enrolado && <button onClick={() => quitarRostro(f)} className="text-steel-400 hover:text-danger-bright">Borrar</button>}
+                  </div>}
+                </td>
                 <td className="px-4 py-3"><div className="flex justify-end gap-1">
                   <button onClick={() => abrir(f)} aria-label={`Editar ${f.nombre}`} className="rounded p-2 text-steel-400 hover:text-arctic"><Pencil className="h-4 w-4" /></button>
                   {f.isActive && <button onClick={() => baja(f)} aria-label={`Dar de baja a ${f.nombre}`} className="rounded p-2 text-steel-400 hover:text-danger-bright"><UserX className="h-4 w-4" /></button>}
@@ -126,6 +153,26 @@ export default function FuncionariosPage() {
           </tbody>
         </table>
       </div>
+
+      {enrolar && (
+        <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-carbon/70 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Enrolar rostro">
+          <div className="card w-full max-w-md space-y-4 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-h3 text-arctic">Enrolar rostro</h2>
+              <button type="button" onClick={() => setEnrolar(null)} aria-label="Cerrar" className="rounded p-1 text-steel-500 hover:text-arctic"><X className="h-5 w-5" /></button>
+            </div>
+            <p className="font-body text-body-sm text-steel-300">{enrolar.nombre}</p>
+            <p className="font-body text-caption text-steel-400">Se toman 3 capturas de frente con la cámara de este dispositivo, con la persona presente y buena luz. <b>No se guarda ninguna imagen</b>: solo una huella numérica con la que se compara cada ingreso y salida. La huella se borra al dar de baja al funcionario.</p>
+            <label className="flex items-start gap-2 font-body text-body-sm text-steel-300"><input type="checkbox" checked={consentido} onChange={e => setConsentido(e.target.checked)} className="mt-1 h-4 w-4" /> La persona dio su consentimiento para registrar su huella facial.</label>
+            {enrolMsg && <p role="alert" className="rounded-md bg-danger-light/10 px-3 py-2 font-body text-caption text-danger-bright">{enrolMsg}</p>}
+            <div className="flex gap-2">
+              <button disabled={!consentido} onClick={() => { setEnrolMsg(''); setCamara(true); }} className="btn-primary flex-1 justify-center disabled:opacity-50">Abrir cámara</button>
+              <button onClick={() => setEnrolar(null)} className="btn-ghost flex-1 justify-center">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {camara && enrolar && <FaceCapture modo="enrolar" titulo={`Enrolar a ${enrolar.nombre}`} onHuellas={guardarRostro} onCancel={() => setCamara(false)} />}
 
       {form && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-carbon/70 px-4 py-8 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={editId ? 'Editar funcionario' : 'Nuevo funcionario'}>

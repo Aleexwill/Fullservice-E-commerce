@@ -9,18 +9,19 @@ git fetch origin
 git checkout claude/optimistic-euler-5wkeqd
 npm install
 ```
-`npm install` instala una dependencia nueva: `pdf-lib` (PDF mensual). No hay otras.
+`npm install` instala dos dependencias nuevas: `pdf-lib` (PDF mensual) y `@vladmandic/face-api` (reconocimiento facial en el teléfono, MIT).
 
-## 2. Qué se agrega (65 archivos)
+## 2. Qué se agrega
 | Área | Dónde |
 |---|---|
 | PWA de marcación (páginas) | `src/app/marcacion/*` (jornada, ausencias, aprobaciones, reportes, parámetros, sitios, login) |
 | APIs de marcación | `src/app/api/marcacion/*` |
 | Lógica de marcación | `src/lib/marcacion/*` (reglas de cálculo, servidor, PDF, enlace a funcionarios) |
 | Componentes y estilos | `src/components/marcacion/*`, `src/styles/marcacion.css` |
-| Archivos de la PWA | `public/marcacion/` (manifest, service worker, íconos) |
+| Archivos de la PWA | `public/marcacion/` (manifest, service worker, íconos) y `public/marcacion/models/` (3 modelos de reconocimiento facial, ~6,7 MB: **no borrar ni ignorar**; se sirven como archivos estáticos) |
+| Reconocimiento facial | `src/lib/marcacion/face.ts` (servidor), `face-client.ts` y `src/components/marcacion/face-capture.tsx` (teléfono), `src/app/api/marcacion/rostro` |
 | Funcionarios (admin) | `src/app/admin/funcionarios`, `src/app/api/funcionarios/*`, `src/lib/funcionarios-store.ts`, `src/lib/funcionarios-schema.ts` |
-| Base de datos | `prisma/schema.prisma` + migraciones `16_add_marcacion`, `17_marcacion_parametros`, `18_add_funcionario` |
+| Base de datos | `prisma/schema.prisma` + migraciones `16_add_marcacion`, `17_marcacion_parametros`, `18_add_funcionario`, `19_rostro_plantilla` |
 
 Archivos existentes que se modificaron (revisar si unificás con otros cambios): `src/middleware.ts` (protege `/marcacion/*`),
 `src/lib/roles.ts` (restringe `/admin/funcionarios` y `/api/funcionarios`), `src/app/admin/layout.tsx` (ítem "Funcionarios" en el menú),
@@ -29,15 +30,16 @@ Archivos existentes que se modificaron (revisar si unificás con otros cambios):
 `.env.example`, `package.json`, `package-lock.json`.
 
 ## 3. Base de datos
-Las migraciones nuevas son solo las 3 últimas y se aplican con el mismo comando de siempre (`npm run db:deploy` o `vercel-build`):
+Las migraciones nuevas son solo las 4 últimas y se aplican con el mismo comando de siempre (`npm run db:deploy` o `vercel-build`):
 
 | Migración | Qué hace |
 |---|---|
 | `16_add_marcacion` | Tablas `Sitio`, `Jornada`, `Marca`, `VerificacionEpp`; crea la oficina "Oficina Lambaré" si no hay ninguna |
 | `17_marcacion_parametros` | Columna `Jornada.enAlmuerzo`; tablas `MarcacionConfig`, `HorarioUsuario`, `Feriado`, `Ausencia`; feriados de Paraguay 2026-2027 |
 | `18_add_funcionario` | Tabla `Funcionario` |
+| `19_rostro_plantilla` | Tabla `RostroPlantilla` (solo huellas numéricas, sin imágenes) |
 
-Verificado: sobre una base con el esquema de `main` se aplican las 3 sin errores y sin diferencias con `schema.prisma`.
+Verificado (migraciones 16 a 18; la 19 es una tabla nueva igual de simple): sobre una base con el esquema de `main` se aplican sin errores y sin diferencias con `schema.prisma`.
 Son solo `CREATE TABLE IF NOT EXISTS` y una columna nueva con valor por defecto: no tocan datos existentes ni borran nada.
 
 Nota: las migraciones `0_init` … `15_*` del repositorio no se pueden aplicar sobre una base vacía (ya era así antes). El servidor
@@ -53,12 +55,13 @@ adaptar solo `src/lib/marcacion/funcionarios.ts` (lee la fecha de ingreso por `u
 | `BLOB_READ_WRITE_TOKEN` | Guardar selfies y fotos de equipo en Vercel Blob (URL pública). Sin ella se guardan dentro de la base de datos | Recomendada |
 | `MARCACION_GEOFENCE` | `strict` (por defecto) rechaza marcas fuera del radio; `warn` las guarda como "fuera de rango" | No |
 
-Cámara y GPS solo funcionan con HTTPS.
+Cámara y GPS solo funcionan con HTTPS. El reconocimiento facial no usa servicios externos.
 
 ## 5. Después de publicar (en este orden)
 1. **Sitios** (`/marcacion/sitios`, como administrador): corregir las coordenadas de la oficina (las precargadas son aproximadas) y su radio; cargar los lugares de trabajo.
 2. **Parámetros** (`/marcacion/parametros`): revisar horario por día (lun-vie 08-17, sáb 08-13 por defecto), tolerancia, almuerzo, vacaciones y qué roles marcan asistencia (por defecto solo `tecnico`). Revisar el sábado: está como laboral.
-3. **Funcionarios** (`/admin/funcionarios`): cargar el personal con su fecha de ingreso y enlazar cada uno a su usuario.
+3. **Funcionarios** (`/admin/funcionarios`): cargar el personal con su fecha de ingreso y enlazar cada uno a su usuario. Luego **enrolar el rostro** de cada uno (con su consentimiento, cámara de frente y buena luz).
+   Hasta que alguien esté enrolado, su marca de ingreso/salida queda señalada como "sin rostro enrolado". Cuando todos estén enrolados, activar "Exigir rostro enrolado" en Parámetros.
 4. **Prueba con un teléfono real:** abrir `https://<dominio>/marcacion`, iniciar sesión, marcar ingreso (pide cámara y ubicación) y probar el flujo completo con un encargado.
 5. **Instalar la app:** desde el navegador del teléfono, "Agregar a pantalla de inicio". Solo `/marcacion` es instalable.
 
@@ -72,7 +75,8 @@ Cámara y GPS solo funcionan con HTTPS.
 | `/admin/funcionarios` | Roles con `canManageUsers` (admin, administración) |
 
 ## 7. Limitaciones conocidas
-- La selfie se guarda como evidencia; **no verifica identidad** (ver `src/lib/marcacion/face.ts`).
+- Reconocimiento facial por huella numérica, sin imágenes guardadas. Hay que calibrar la exigencia con uso real; la prueba de vida frena fotos pero no un video; una marca dudosa no se puede revisar visualmente (ver `docs/MARCACION.md`).
+- La primera vez, el teléfono descarga ~6,7 MB de modelos (después quedan en caché).
 - Sin modo offline y sin notificaciones push al encargado.
 - Una jornada por persona y día; una sola oficina activa.
 - Vacaciones por tramos fijos 12/18/30 días; sin proporcional del primer año ni arrastre de saldo.

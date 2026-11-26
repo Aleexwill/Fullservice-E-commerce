@@ -81,7 +81,7 @@ export interface EstadoResponse {
   oficina: SitioDTO | null;
   destino: SitioDTO | null;
   sitios: SitioDTO[];
-  user: { name: string; aprueba: boolean; administra: boolean; reportes: boolean };
+  user: { name: string; aprueba: boolean; administra: boolean; reportes: boolean; rostroEnrolado: boolean; rostroObligatorio: boolean };
 }
 
 export interface MeDTO { name: string; rol: string; aprueba: boolean; administra: boolean; reportes: boolean }

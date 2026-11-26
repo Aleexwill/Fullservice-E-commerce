@@ -585,8 +585,8 @@ model Marca {
   distanciaM   Int?
   fueraDeRango Boolean  @default(false)
   sitioNombre  String   @default("")
-  fotoUrl      String?  // selfie de ingreso/salida (evidencia)
-  rostroScore  Float?
+  rostroEstado String?  // VERIFICADO | DUDOSO | SIN_PLANTILLA (solo en ingreso/salida). No se guarda ninguna imagen.
+  rostroScore  Float?   // distancia entre la huella de la marca y la enrolada (menor = más parecido)
   createdAt    DateTime @default(now())
 
   @@index([jornadaId, createdAt])
@@ -674,4 +674,15 @@ model Funcionario {
   updatedAt    DateTime @updatedAt
 
   @@index([isActive])
+}
+
+// Huella facial de referencia (enrolamiento). Solo guarda números, nunca imágenes.
+// Se compara contra la huella de cada ingreso/salida. Se borra al dar de baja al funcionario.
+model RostroPlantilla {
+  id           String   @id @default(cuid())
+  userKey      String   @unique // User.id
+  vectores     Json     // number[][] de 128 valores, 3 a 5 capturas
+  enroladoPor  String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

@@ -83,6 +83,12 @@ export default function ParametrosPage() {
               <label className="mc-chk"><input type="checkbox" checked={p.almuerzoAuto} onChange={e => setP({ ...p, almuerzoAuto: e.target.checked })} />Descontar el almuerzo si no lo marcaron (jornadas de 5 h o más)</label>
               {num('extraDesdeMin', 'Horas extra desde (minutos)', 'Mínimo de exceso para contarlo como extra.')}
               {num('vacacionesDias', 'Vacaciones por año (días hábiles)', 'Referencia para el saldo de cada persona.', 60)}
+              <h2 className="mc-h4">Reconocimiento facial</h2>
+              <div className="mc-field"><label htmlFor="exig">Exigencia</label>
+                <select id="exig" className="mc-input" value={p.rostroExigencia} onChange={e => setP({ ...p, rostroExigencia: e.target.value as Parametros['rostroExigencia'] })}>
+                  <option value="estricta">Estricta (menos falsos positivos, más reintentos)</option><option value="normal">Normal</option><option value="flexible">Flexible (tolera mala luz, menos seguro)</option></select>
+                <span className="mc-mut">Las marcas parecidas pero no seguras se aceptan y quedan señaladas como “rostro dudoso” en el reporte.</span></div>
+              <label className="mc-chk"><input type="checkbox" checked={p.rostroObligatorio} onChange={e => setP({ ...p, rostroObligatorio: e.target.checked })} />Exigir rostro enrolado para marcar ingreso y salida</label>
               <h2 className="mc-h4">Roles que marcan asistencia</h2>
               {roles.map(r => (
                 <label key={r} className="mc-chk"><input type="checkbox" checked={p.rolesMarcan.includes(r)} onChange={e => setP({ ...p, rolesMarcan: e.target.checked ? [...p.rolesMarcan, r] : p.rolesMarcan.filter(x => x !== r) })} />{ROLE_LABELS[r as Role] ?? r}</label>
