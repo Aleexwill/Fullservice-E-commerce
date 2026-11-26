@@ -9,7 +9,8 @@ import { SettingsProvider } from '@/lib/settings-context';
 
 export function PublicShell({ settings, children }: { settings: SiteSettings; children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith('/admin');
+  // /marcacion es una PWA independiente: sin navbar, footer ni asistente del sitio público
+  const isAdmin = pathname.startsWith('/admin') || pathname.startsWith('/marcacion');
 
   if (isAdmin) {
     return <main>{children}</main>;

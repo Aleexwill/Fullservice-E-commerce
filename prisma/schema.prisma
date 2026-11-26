@@ -530,3 +530,81 @@ model Category {
   @@unique([scope, slug])
   @@index([scope, isActive, order])
 }
+
+// ============================================================
+// MARCACIÓN EN TERRENO (PWA /marcacion)
+// Jornada del día por trabajador, marcas con GPS/rostro y
+// verificación de equipo de seguridad (EPP) aprobada por un encargado.
+// ============================================================
+
+model Sitio {
+  id        String   @id @default(cuid())
+  nombre    String
+  tipo      String   @default("OBRA") // OFICINA | OBRA
+  lat       Float
+  lng       Float
+  radioM    Int      @default(100)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tipo, isActive])
+}
+
+model Jornada {
+  id          String   @id @default(cuid())
+  userKey     String   // User.id, o el username del admin de .env
+  userName    String
+  fecha       String   // YYYY-MM-DD (America/Asuncion)
+  // EN_OFICINA | EN_TRASLADO_IDA | EN_LUGAR | TRABAJANDO | EN_TRASLADO_VUELTA | EN_OFICINA_FIN | CERRADA
+  estado      String   @default("EN_OFICINA")
+  sitioId     String?
+  sitioNombre String   @default("")
+  otRef       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  marcas      Marca[]
+  epps        VerificacionEpp[]
+
+  @@unique([userKey, fecha])
+  @@index([fecha])
+  @@index([estado])
+}
+
+model Marca {
+  id           String   @id @default(cuid())
+  jornadaId    String
+  jornada      Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  // INGRESO | TRASLADO_IDA | LLEGADA_LUGAR | SALIDA_LUGAR | LLEGADA_OFICINA | SALIDA
+  tipo         String
+  metodo       String   @default("GPS") // ROSTRO | GPS
+  lat          Float
+  lng          Float
+  precisionM   Float?
+  distanciaM   Int?
+  fueraDeRango Boolean  @default(false)
+  sitioNombre  String   @default("")
+  fotoUrl      String?  // selfie de ingreso/salida (evidencia)
+  rostroScore  Float?
+  createdAt    DateTime @default(now())
+
+  @@index([jornadaId, createdAt])
+}
+
+model VerificacionEpp {
+  id          String    @id @default(cuid())
+  jornadaId   String
+  jornada     Jornada   @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  fotoUrl     String
+  declarado   Json      @default("{}") // {casco: true, ...} lo que dice el trabajador
+  revisado    Json      @default("{}") // lo que confirma el encargado
+  estado      String    @default("PENDIENTE") // PENDIENTE | APROBADA | RECHAZADA
+  motivo      String    @default("")
+  revisorId   String?
+  revisorName String    @default("")
+  revisadoAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([estado, createdAt])
+  @@index([jornadaId])
+}
