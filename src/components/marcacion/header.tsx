@@ -2,13 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import type { MeDTO } from '@/lib/marcacion/shared';
 
-interface Props { nombre: string; chip?: { texto: string; tono: 'b' | 'o' | 'g' | 'r' | '' }; aprueba?: boolean; administra?: boolean; rol: string }
+interface Props { chip?: { texto: string; tono: 'b' | 'o' | 'g' | 'r' | '' }; titulo?: string }
 
-/** Cabecera común: logo, usuario, estado y navegación entre las pantallas de la PWA. */
-export function MarcacionHeader({ nombre, chip, aprueba, administra, rol }: Props) {
+/** Cabecera común: logo, usuario, estado y navegación. Los enlaces dependen de los permisos del usuario. */
+export function MarcacionHeader({ chip, titulo }: Props) {
   const path = usePathname();
   const router = useRouter();
+  const [me, setMe] = useState<MeDTO | null>(null);
+  useEffect(() => { fetch('/api/marcacion/me', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(setMe).catch(() => {}); }, []);
   async function salir() {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     router.replace('/marcacion/login');
@@ -19,13 +23,16 @@ export function MarcacionHeader({ nombre, chip, aprueba, administra, rol }: Prop
       <div className="mc-bar">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/marcacion/isotipo.png" alt="Full Service" />
-        <div className="mc-who"><b>{nombre}</b><span>{rol}</span></div>
+        <div className="mc-who"><b>{me?.name ?? ' '}</b><span>{titulo ?? me?.rol ?? ' '}</span></div>
         {chip && <span className={`mc-chip ${chip.tono}`}>{chip.texto}</span>}
       </div>
       <nav className="mc-nav" aria-label="Secciones">
         {link('/marcacion', 'Mi jornada')}
-        {aprueba && link('/marcacion/aprobaciones', 'Aprobaciones')}
-        {administra && link('/marcacion/sitios', 'Sitios')}
+        {link('/marcacion/ausencias', 'Ausencias')}
+        {me?.aprueba && link('/marcacion/aprobaciones', 'Aprobaciones')}
+        {me?.reportes && link('/marcacion/reportes', 'Reportes')}
+        {me?.administra && link('/marcacion/parametros', 'Parámetros')}
+        {me?.administra && link('/marcacion/sitios', 'Sitios')}
         <button onClick={salir}>Salir</button>
       </nav>
     </>

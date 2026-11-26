@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { hoy, userKeyOf, userNameOf, getOficina, toSitio, toJornada, JORNADA_INCLUDE, puedeAprobar, puedeAdministrar } from '@/lib/marcacion/server';
+import { hoy, userKeyOf, userNameOf, getOficina, toSitio, toJornada, JORNADA_INCLUDE, puedeAprobar, puedeAdministrar, puedeVerReportes } from '@/lib/marcacion/server';
 import type { EstadoResponse } from '@/lib/marcacion/shared';
 
 export async function GET() {
@@ -21,7 +21,7 @@ export async function GET() {
       oficina,
       destino: destino ? toSitio(destino) : null,
       sitios: sitios.map(toSitio),
-      user: { name: userNameOf(session), aprueba: puedeAprobar(session.role), administra: puedeAdministrar(session.role) },
+      user: { name: userNameOf(session), aprueba: puedeAprobar(session.role), administra: puedeAdministrar(session.role), reportes: puedeVerReportes(session.role) },
     };
     return NextResponse.json(body);
   } catch (e) {

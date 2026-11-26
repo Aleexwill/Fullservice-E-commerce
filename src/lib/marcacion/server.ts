@@ -25,6 +25,10 @@ export function puedeAdministrar(role: string): boolean {
   return role in ROLE_PERMISSIONS && can(role as Role, 'canManageConfig');
 }
 
+export function puedeVerReportes(role: string): boolean {
+  return role in ROLE_PERMISSIONS && can(role as Role, 'canViewReports');
+}
+
 export const toSitio = (s: { id: string; nombre: string; tipo: string; lat: number; lng: number; radioM: number }): SitioDTO =>
   ({ id: s.id, nombre: s.nombre, tipo: s.tipo, lat: s.lat, lng: s.lng, radioM: s.radioM });
 
@@ -38,13 +42,13 @@ export function toEpp(e: { id: string; fotoUrl: string; declarado: unknown; esta
 }
 
 export function toJornada(j: {
-  id: string; fecha: string; estado: string; sitioId: string | null; sitioNombre: string; otRef: string;
+  id: string; fecha: string; estado: string; enAlmuerzo: boolean; sitioId: string | null; sitioNombre: string; otRef: string;
   marcas: { id: string; tipo: string; metodo: string; distanciaM: number | null; fueraDeRango: boolean; sitioNombre: string; createdAt: Date }[];
   epps: { id: string; fotoUrl: string; declarado: unknown; estado: string; motivo: string; revisorName: string; createdAt: Date }[];
 }): JornadaDTO {
   const marcas: MarcaDTO[] = j.marcas.map(m => ({ id: m.id, tipo: m.tipo as TipoMarca, metodo: m.metodo, distanciaM: m.distanciaM, fueraDeRango: m.fueraDeRango, sitioNombre: m.sitioNombre, createdAt: m.createdAt.toISOString() }));
   const last = j.epps[0];
-  return { id: j.id, fecha: j.fecha, estado: j.estado as JornadaDTO['estado'], sitioId: j.sitioId, sitioNombre: j.sitioNombre, otRef: j.otRef, marcas, epp: last ? toEpp(last) : null };
+  return { id: j.id, fecha: j.fecha, estado: j.estado as JornadaDTO['estado'], enAlmuerzo: j.enAlmuerzo, sitioId: j.sitioId, sitioNombre: j.sitioNombre, otRef: j.otRef, marcas, epp: last ? toEpp(last) : null };
 }
 
 export const JORNADA_INCLUDE = {

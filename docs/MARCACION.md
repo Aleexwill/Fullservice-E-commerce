@@ -8,6 +8,9 @@ verificar el equipo de seguridad (EPP) con aprobación de un encargado.
 |---|---|---|
 | `/marcacion` | Todos los usuarios | Jornada guiada paso a paso |
 | `/marcacion/aprobaciones` | Roles con `canAprobarPresupuestos` (admin, gerencia, administración, planner) | Revisa la foto de EPP, aprueba o rechaza |
+| `/marcacion/ausencias` | Todos (los encargados además resuelven y registran por otros) | Vacaciones, permisos, reposos y licencias; saldo de vacaciones |
+| `/marcacion/reportes` | Roles con `canViewReports` | Hoy en vivo, resumen por persona, detalle por día, exportar CSV |
+| `/marcacion/parametros` | Roles con `canManageConfig` | Horario por día, tolerancia, almuerzo, extras, vacaciones, quién marca, horario propio, feriados |
 | `/marcacion/sitios` | Roles con `canManageConfig` (admin, administración) | Alta de oficina y lugares con radio |
 | `/marcacion/login` | — | Mismo usuario y contraseña del admin |
 
@@ -21,6 +24,17 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 - Aprobar exige todos los elementos del EPP confirmados; nadie aprueba su propia foto.
 - Una jornada por persona y día (`@@unique([userKey, fecha])`, zona America/Asuncion).
 
+## Parámetros y reglas de cálculo (`src/lib/marcacion/reglas.ts`)
+- **Horario por día** (entrada/salida y si es laboral), general o propio de cada persona. Por defecto: lun-vie 08:00-17:00, sáb 08:00-13:00.
+- **Tardanza**: entrada posterior a la prevista + tolerancia. **Salida anticipada**: igual en la salida.
+- **Almuerzo**: se marca con GPS (iniciar/volver) en cualquier momento de la jornada. Si no se marca y está activo el descuento automático, se resta la duración prevista en jornadas de 5 h o más.
+- **Horas trabajadas** = salida − entrada − almuerzo. **Horas extra** = exceso sobre lo previsto si llega al mínimo configurado; en día no laboral o feriado todo cuenta como extra.
+- **Traslado** y **tiempo en el lugar** salen de las marcas de ida/vuelta y llegada/salida del lugar.
+- **Ausente** (automático): día laboral pasado, sin feriado, sin marca y sin ausencia aprobada. Los días con ausencia aprobada se muestran como Vacaciones, Permiso, Reposo médico o Licencia.
+- **Quién marca**: por rol (por defecto `tecnico`), con excepción por persona.
+- Vacaciones: saldo = días del parámetro anual − días hábiles aprobados del año (sin feriados). No considera antigüedad.
+- Feriados de Paraguay 2026-2027 precargados; se editan en Parámetros.
+
 ## PWA
 - `public/marcacion/manifest.webmanifest`: `scope` y `start_url` `/marcacion/`. Solo el layout de `/marcacion` lo enlaza.
 - `public/marcacion/sw.js`: alcance `/marcacion/`; no cachea `/api` ni fotos.
@@ -30,6 +44,8 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 ## Pendientes conocidos
 - **Verificación de rostro**: hoy la selfie se guarda como evidencia (`src/lib/marcacion/face.ts`, modo `evidencia`).
   Para verificar identidad hay que conectar un proveedor en `verificarRostro`.
+- Sin cálculo automático de vacaciones por antigüedad ni arrastre de saldo entre años.
+- Las horas se calculan al consultar el reporte con los parámetros vigentes: cambiar el horario recalcula también el pasado.
 - Sin modo offline: marcar requiere conexión.
 - Sin notificaciones push al encargado (la lista se actualiza cada 10 s).
 - Una sola oficina activa (la primera); un solo destino por jornada.
@@ -37,4 +53,4 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 - Foto EPP y selfies: con `BLOB_READ_WRITE_TOKEN` van a Vercel Blob (URL pública); sin token se guardan en la base.
 
 ## Deploy
-`npm run vercel-build` aplica la migración `16_add_marcacion` (crea tablas y la oficina por defecto).
+`npm run vercel-build` aplica las migraciones `16_add_marcacion` (tablas y oficina por defecto) y `17_marcacion_parametros` (almuerzo, parámetros, feriados y ausencias).

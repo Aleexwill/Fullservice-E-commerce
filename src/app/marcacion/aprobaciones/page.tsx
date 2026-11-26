@@ -5,13 +5,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { MarcacionHeader } from '@/components/marcacion/header';
 import { api, hora } from '@/lib/marcacion/client';
 import { EPP_ITEMS, MOTIVOS_RECHAZO, formatDist } from '@/lib/marcacion/shared';
-import type { EppDTO, EppMap, EstadoResponse } from '@/lib/marcacion/shared';
+import type { EppDTO, EppMap } from '@/lib/marcacion/shared';
 
 type Item = EppDTO & { trabajador: string; sitio: string; otRef: string; llegada: string | null; distanciaM: number | null; revisadoAt: string | null };
 interface Cola { pendientes: Item[]; revisadas: Item[] }
 
 export default function AprobacionesPage() {
-  const [yo, setYo] = useState<EstadoResponse['user'] | null>(null);
   const [cola, setCola] = useState<Cola | null>(null);
   const [error, setError] = useState('');
   const [rev, setRev] = useState<EppMap>({});
@@ -24,7 +23,6 @@ export default function AprobacionesPage() {
   }, []);
 
   useEffect(() => {
-    api<EstadoResponse>('/api/marcacion/estado').then(d => setYo(d.user)).catch(() => {});
     cargar();
     const t = setInterval(cargar, 10000);
     return () => clearInterval(t);
@@ -50,8 +48,7 @@ export default function AprobacionesPage() {
   return (
     <div className="mc-root mc-dark" style={{ minHeight: '100dvh' }}>
       <div className="mc-app">
-        <MarcacionHeader nombre={yo?.name ?? 'Encargado'} rol="Aprobación de equipo" aprueba={yo?.aprueba} administra={yo?.administra}
-          chip={{ texto: cola?.pendientes.length ? `${cola.pendientes.length} pendiente${cola.pendientes.length > 1 ? 's' : ''}` : 'Al día', tono: cola?.pendientes.length ? 'o' : 'g' }} />
+        <MarcacionHeader titulo="Aprobación de equipo" chip={{ texto: cola?.pendientes.length ? `${cola.pendientes.length} pendiente${cola.pendientes.length > 1 ? 's' : ''}` : 'Al día', tono: cola?.pendientes.length ? 'o' : 'g' }} />
         <div className="mc-main">
           {error && <div className="mc-err" role="alert">{error}</div>}
           {!cola ? <p className="mc-mut">Cargando…</p> : actual ? (<>

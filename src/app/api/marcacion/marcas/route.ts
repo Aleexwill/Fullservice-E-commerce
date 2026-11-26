@@ -9,7 +9,8 @@ import type { Estado, TipoMarca } from '@/lib/marcacion/shared';
 
 // Máquina de estados: cada marca solo es válida desde un estado y lleva a otro.
 // 'oficina' / 'destino' indican contra qué sitio se valida el radio (null = solo se registra el GPS).
-const FLUJO: Record<TipoMarca, { desde: Estado | null; hasta: Estado; sitio: 'oficina' | 'destino' | null }> = {
+type TipoFlujo = Exclude<TipoMarca, 'INICIO_ALMUERZO' | 'FIN_ALMUERZO'>;
+const FLUJO: Record<TipoFlujo, { desde: Estado | null; hasta: Estado; sitio: 'oficina' | 'destino' | null }> = {
   INGRESO: { desde: null, hasta: 'EN_OFICINA', sitio: 'oficina' },
   TRASLADO_IDA: { desde: 'EN_OFICINA', hasta: 'EN_TRASLADO_IDA', sitio: null },
   LLEGADA_LUGAR: { desde: 'EN_TRASLADO_IDA', hasta: 'EN_LUGAR', sitio: 'destino' },
@@ -42,12 +43,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `La precisión del GPS es baja (±${Math.round(precisionM)} m). Salí a un lugar abierto e intentá de nuevo.` }, { status: 422 });
     }
 
-    const regla = FLUJO[tipo];
     const fecha = hoy();
+
+    // Almuerzo: se puede marcar en cualquier momento de la jornada abierta, solo con GPS
+    if (tipo === 'INICIO_ALMUERZO' || tipo === 'FIN_ALMUERZO') {
+      const inicio = tipo === 'INICIO_ALMUERZO';
+      const j = await prisma.jornada.findUnique({ where: { userKey_fecha: { userKey, fecha } } });
+      if (!j || j.estado === 'CERRADA') return NextResponse.json({ error: 'No hay una jornada abierta' }, { status: 409 });
+      if (j.enAlmuerzo === inicio) return NextResponse.json({ error: inicio ? 'Ya estás en almuerzo' : 'No estás en almuerzo' }, { status: 409 });
+      const saved = await prisma.$transaction(async tx => {
+        const upd = await tx.jornada.updateMany({ where: { id: j.id, enAlmuerzo: !inicio }, data: { enAlmuerzo: inicio } });
+        if (upd.count === 0) throw new Error('CONFLICTO');
+        await tx.marca.create({ data: { jornadaId: j.id, tipo, metodo: 'GPS', lat, lng, precisionM } });
+        return tx.jornada.findUniqueOrThrow({ where: { id: j.id }, include: JORNADA_INCLUDE });
+      });
+      return NextResponse.json({ ok: true, jornada: toJornada(saved) });
+    }
+
+    const regla = FLUJO[tipo];
     let jornada = await prisma.jornada.findUnique({ where: { userKey_fecha: { userKey, fecha } } });
 
     if (regla.desde === null) {
       if (jornada) return NextResponse.json({ error: 'Ya marcaste el ingreso de hoy' }, { status: 409 });
+    } else if (jornada?.enAlmuerzo) {
+      return NextResponse.json({ error: 'Terminá el almuerzo antes de seguir' }, { status: 409 });
     } else if (!jornada || jornada.estado !== regla.desde) {
       return NextResponse.json({ error: 'Esta marca no corresponde al paso actual', estado: jornada?.estado ?? null }, { status: 409 });
     }

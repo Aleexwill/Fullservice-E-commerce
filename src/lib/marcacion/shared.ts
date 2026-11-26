@@ -1,6 +1,6 @@
 // Constantes y utilidades compartidas entre cliente y servidor de /marcacion.
 
-export const TIPOS_MARCA = ['INGRESO', 'TRASLADO_IDA', 'LLEGADA_LUGAR', 'SALIDA_LUGAR', 'LLEGADA_OFICINA', 'SALIDA'] as const;
+export const TIPOS_MARCA = ['INGRESO', 'TRASLADO_IDA', 'LLEGADA_LUGAR', 'SALIDA_LUGAR', 'LLEGADA_OFICINA', 'SALIDA', 'INICIO_ALMUERZO', 'FIN_ALMUERZO'] as const;
 export type TipoMarca = (typeof TIPOS_MARCA)[number];
 
 export const ESTADOS = ['EN_OFICINA', 'EN_TRASLADO_IDA', 'EN_LUGAR', 'TRABAJANDO', 'EN_TRASLADO_VUELTA', 'EN_OFICINA_FIN', 'CERRADA'] as const;
@@ -24,6 +24,8 @@ export const TIPO_LABEL: Record<TipoMarca, string> = {
   SALIDA_LUGAR: 'Salida del lugar',
   LLEGADA_OFICINA: 'Llegada a oficina',
   SALIDA: 'Salida de jornada',
+  INICIO_ALMUERZO: 'Inicio de almuerzo',
+  FIN_ALMUERZO: 'Fin de almuerzo',
 };
 
 /** Marcas que exigen rostro (selfie) además de GPS. El resto es solo GPS. */
@@ -71,7 +73,7 @@ export interface SitioDTO { id: string; nombre: string; tipo: string; lat: numbe
 export interface MarcaDTO { id: string; tipo: TipoMarca; metodo: string; distanciaM: number | null; fueraDeRango: boolean; sitioNombre: string; createdAt: string }
 export interface EppDTO { id: string; fotoUrl: string; declarado: EppMap; estado: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA'; motivo: string; revisorName: string; createdAt: string }
 export interface JornadaDTO {
-  id: string; fecha: string; estado: Estado; sitioId: string | null; sitioNombre: string; otRef: string;
+  id: string; fecha: string; estado: Estado; enAlmuerzo: boolean; sitioId: string | null; sitioNombre: string; otRef: string;
   marcas: MarcaDTO[]; epp: EppDTO | null;
 }
 export interface EstadoResponse {
@@ -79,5 +81,7 @@ export interface EstadoResponse {
   oficina: SitioDTO | null;
   destino: SitioDTO | null;
   sitios: SitioDTO[];
-  user: { name: string; aprueba: boolean; administra: boolean };
+  user: { name: string; aprueba: boolean; administra: boolean; reportes: boolean };
 }
+
+export interface MeDTO { name: string; rol: string; aprueba: boolean; administra: boolean; reportes: boolean }

@@ -99,6 +99,7 @@ export default function MarcacionPage() {
   // --- Contenido central según el estado ---
   let cuerpo: React.ReactNode;
   let boton: React.ReactNode;
+  const enAlm = !!j?.enAlmuerzo;
 
   if (estado === 'FUERA') {
     cuerpo = (<>
@@ -197,7 +198,7 @@ export default function MarcacionPage() {
 
   return (
     <div className="mc-app">
-      <MarcacionHeader nombre={data.user.name} rol="Marcación de jornada" aprueba={data.user.aprueba} administra={data.user.administra} chip={{ texto: ESTADO_LABEL[estado], tono: chipTono }} />
+      <MarcacionHeader titulo="Marcación de jornada" chip={{ texto: j?.enAlmuerzo ? 'En almuerzo' : ESTADO_LABEL[estado], tono: j?.enAlmuerzo ? 'o' : chipTono }} />
       <div className="mc-dots" aria-label={`Marca ${Math.min(m + 1, 6)} de 6`}>{MARCAS_FLUJO.map((x, i) => <i key={x.label} className={i < m ? 'd' : i === m ? 'c' : ''} />)}</div>
       <div className="mc-main">
         {cuerpo}
@@ -213,7 +214,13 @@ export default function MarcacionPage() {
           </ul>
         </>)}
       </div>
-      <div className="mc-act">{boton}</div>
+      <div className="mc-act">
+        {j && estado !== 'CERRADA' && (
+          <button className="mc-pick" style={{ width: '100%', marginBottom: 8 }} disabled={busy}
+            onClick={() => marcar(j.enAlmuerzo ? 'FIN_ALMUERZO' : 'INICIO_ALMUERZO')}>{j.enAlmuerzo ? 'Volver del almuerzo' : 'Iniciar almuerzo'}</button>
+        )}
+        {enAlm ? <button className="mc-btn" disabled>Terminá el almuerzo para seguir</button> : boton}
+      </div>
       {face && (
         <FaceCapture
           titulo={face === 'INGRESO' ? 'Ingreso de jornada' : 'Salida de jornada'}

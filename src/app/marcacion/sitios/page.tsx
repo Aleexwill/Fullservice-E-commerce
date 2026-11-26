@@ -39,7 +39,7 @@ export default function SitiosPage() {
   const puede = yo?.administra;
   return (
     <div className="mc-app">
-      <MarcacionHeader nombre={yo?.name ?? ''} rol="Oficina y lugares de trabajo" aprueba={yo?.aprueba} administra={yo?.administra} />
+      <MarcacionHeader titulo="Oficina y lugares de trabajo" />
       <div className="mc-main">
         <h1 className="mc-h">Sitios</h1>
         {error && <div className="mc-err" role="alert">{error}</div>}

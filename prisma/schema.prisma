@@ -561,6 +561,7 @@ model Jornada {
   sitioId     String?
   sitioNombre String   @default("")
   otRef       String   @default("")
+  enAlmuerzo  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   marcas      Marca[]
@@ -575,7 +576,7 @@ model Marca {
   id           String   @id @default(cuid())
   jornadaId    String
   jornada      Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
-  // INGRESO | TRASLADO_IDA | LLEGADA_LUGAR | SALIDA_LUGAR | LLEGADA_OFICINA | SALIDA
+  // INGRESO | TRASLADO_IDA | LLEGADA_LUGAR | SALIDA_LUGAR | LLEGADA_OFICINA | SALIDA | INICIO_ALMUERZO | FIN_ALMUERZO
   tipo         String
   metodo       String   @default("GPS") // ROSTRO | GPS
   lat          Float
@@ -607,4 +608,47 @@ model VerificacionEpp {
 
   @@index([estado, createdAt])
   @@index([jornadaId])
+}
+
+// Parámetros de asistencia: una sola fila ('default') con horarios por día, tolerancia, almuerzo, etc.
+model MarcacionConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+// Excepciones por persona: si marca asistencia (null = según su rol) y horario propio (null = el general).
+model HorarioUsuario {
+  id        String   @id @default(cuid())
+  userKey   String   @unique
+  marca     Boolean?
+  dias      Json?
+  updatedAt DateTime @updatedAt
+}
+
+model Feriado {
+  id        String   @id @default(cuid())
+  fecha     String   @unique // YYYY-MM-DD
+  nombre    String
+  createdAt DateTime @default(now())
+}
+
+// Vacaciones, permisos, reposos y licencias. Las faltas sin aviso no se cargan: el reporte las detecta.
+model Ausencia {
+  id           String    @id @default(cuid())
+  userKey      String
+  userName     String
+  tipo         String    // VACACIONES | PERMISO | REPOSO_MEDICO | LICENCIA
+  desde        String    // YYYY-MM-DD
+  hasta        String    // YYYY-MM-DD (inclusive)
+  motivo       String    @default("")
+  estado       String    @default("PENDIENTE") // PENDIENTE | APROBADA | RECHAZADA | CANCELADA
+  creadaPor    String    @default("")
+  revisorName  String    @default("")
+  revisorMotivo String   @default("")
+  revisadoAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userKey, desde])
+  @@index([estado, desde])
 }
