@@ -13,7 +13,8 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "db:deploy": "prisma migrate deploy",
-    "vercel-build": "npm run db:deploy && npm run build"
+    "vercel-build": "npm run db:deploy && npm run build",
+    "test:rrhh": "tsx scripts/test-planilla.ts && tsx scripts/test-numero-letras.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

@@ -139,6 +139,7 @@ CREATE TABLE "ConceptoPlanilla" (
     "id" TEXT NOT NULL,
     "funcionarioId" TEXT NOT NULL,
     "periodo" TEXT NOT NULL,
+    "planilla" TEXT NOT NULL DEFAULT 'MENSUAL',
     "tipo" TEXT NOT NULL,
     "nombre" TEXT NOT NULL,
     "monto" INTEGER NOT NULL,

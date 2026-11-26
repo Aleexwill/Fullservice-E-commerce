@@ -120,6 +120,8 @@ export interface FilaDia {
   almuerzoMin: number; trabajadoMin: number; tardanzaMin: number; anticipadaMin: number; extraMin: number;
   trasladoMin: number; enSitioMin: number; sitio: string;
   rostro: '' | 'DUDOSO' | 'SIN_PLANTILLA'; // alerta de verificación facial en ingreso/salida
+  laboral: boolean;  // el horario de esa persona marca el día como laboral
+  feriado: string;   // nombre del feriado, si lo es
 }
 
 /** Suma el tiempo entre pares de marcas (inicio → fin). */
@@ -147,7 +149,7 @@ export function calcularDia(e: EntradaDia): FilaDia | null {
   const base: FilaDia = {
     fecha: e.fecha, userKey: e.userKey, userName: e.userName, estado: 'PRESENTE', nota: '',
     esperadaEntrada: h.laboral ? h.entrada : '', esperadaSalida: h.laboral ? h.salida : '',
-    entrada: '', salida: '', almuerzoMin: 0, trabajadoMin: 0, tardanzaMin: 0, anticipadaMin: 0, extraMin: 0, trasladoMin: 0, enSitioMin: 0, sitio: e.sitio, rostro: '',
+    entrada: '', salida: '', almuerzoMin: 0, trabajadoMin: 0, tardanzaMin: 0, anticipadaMin: 0, extraMin: 0, trasladoMin: 0, enSitioMin: 0, sitio: e.sitio, rostro: '', laboral: h.laboral, feriado: e.feriado ?? '',
   };
 
   if (!ing) {

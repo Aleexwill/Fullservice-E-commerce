@@ -72,6 +72,9 @@ export const AUDIT_DEFAULTS: Record<string, AuditField[]> = {
     { key: 'cuentaBancaria', label: 'Cuenta bancaria', tracked: true },
     { key: 'ipsNumero',    label: 'Nº de IPS',         tracked: true },
   ],
+  Planilla: [
+    { key: 'estado', label: 'Estado', tracked: true },
+  ],
   Lead: [
     { key: 'status',         label: 'Etapa',           tracked: true  },
     { key: 'priority',       label: 'Prioridad',       tracked: true  },

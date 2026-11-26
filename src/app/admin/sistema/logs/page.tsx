@@ -21,9 +21,9 @@ const ACTION_COLORS = {
 };
 const ACTION_LABELS = { create: 'Creado', update: 'Editado', delete: 'Eliminado' };
 
-const ENTITIES = ['Product', 'Pedido', 'Presupuesto', 'Cliente', 'Lead', 'Funcionario'];
+const ENTITIES = ['Product', 'Pedido', 'Presupuesto', 'Cliente', 'Lead', 'Funcionario', 'Planilla'];
 const ENTITY_LABELS: Record<string, string> = {
-  Product: 'Producto', Pedido: 'Pedido', Presupuesto: 'Presupuesto', Cliente: 'Cliente', Lead: 'Lead', Funcionario: 'Funcionario',
+  Product: 'Producto', Pedido: 'Pedido', Presupuesto: 'Presupuesto', Cliente: 'Cliente', Lead: 'Lead', Funcionario: 'Funcionario', Planilla: 'Planilla',
 };
 
 // Traducciones de valores almacenados en inglés

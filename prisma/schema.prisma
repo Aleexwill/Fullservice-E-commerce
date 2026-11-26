@@ -842,7 +842,8 @@ model Recibo {
 model ConceptoPlanilla {
   id            String   @id @default(cuid())
   funcionarioId String
-  periodo       String // YYYY-MM
+  periodo       String // YYYY-MM (para aguinaldo: YYYY-12)
+  planilla      String   @default("MENSUAL") // MENSUAL | AGUINALDO
   tipo          String // HABER | DESCUENTO
   nombre        String
   monto         Int
