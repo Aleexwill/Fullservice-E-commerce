@@ -10,6 +10,7 @@ verificar el equipo de seguridad (EPP) con aprobación de un encargado.
 | `/marcacion/aprobaciones` | Roles con `canAprobarPresupuestos` (admin, gerencia, administración, planner) | Revisa la foto de EPP, aprueba o rechaza |
 | `/marcacion/ausencias` | Todos (los encargados además resuelven y registran por otros) | Vacaciones, permisos, reposos y licencias; saldo de vacaciones |
 | `/marcacion/reportes` | Roles con `canViewReports` | Hoy en vivo, resumen por persona, detalle por día, exportar CSV |
+| `/marcacion/reportes` → PDF | Roles con `canViewReports` | `GET /api/marcacion/reportes/pdf?mes=YYYY-MM[&userKey=]`: A4 apaisado, una hoja por persona con calendario completo, totales y firmas |
 | `/marcacion/parametros` | Roles con `canManageConfig` | Horario por día, tolerancia, almuerzo, extras, vacaciones, quién marca, horario propio, feriados |
 | `/marcacion/sitios` | Roles con `canManageConfig` (admin, administración) | Alta de oficina y lugares con radio |
 | `/marcacion/login` | — | Mismo usuario y contraseña del admin |
@@ -32,7 +33,8 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 - **Traslado** y **tiempo en el lugar** salen de las marcas de ida/vuelta y llegada/salida del lugar.
 - **Ausente** (automático): día laboral pasado, sin feriado, sin marca y sin ausencia aprobada. Los días con ausencia aprobada se muestran como Vacaciones, Permiso, Reposo médico o Licencia.
 - **Quién marca**: por rol (por defecto `tecnico`), con excepción por persona.
-- Vacaciones: saldo = días del parámetro anual − días hábiles aprobados del año (sin feriados). No considera antigüedad.
+- Vacaciones: saldo = días anuales − días hábiles aprobados del año (sin feriados). Los días anuales salen de la antigüedad (12 / 18 / 30 días a 0-5 / 5-10 / +10 años) cuando se conoce la fecha de ingreso; si no, del parámetro general.
+- **Antigüedad**: la fecha de ingreso la aporta la ventana de funcionarios. El único punto de conexión es `src/lib/marcacion/funcionarios.ts` (`obtenerFechaIngreso`), hoy devuelve `null`.
 - Feriados de Paraguay 2026-2027 precargados; se editan en Parámetros.
 
 ## PWA
@@ -44,7 +46,7 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 ## Pendientes conocidos
 - **Verificación de rostro**: hoy la selfie se guarda como evidencia (`src/lib/marcacion/face.ts`, modo `evidencia`).
   Para verificar identidad hay que conectar un proveedor en `verificarRostro`.
-- Sin cálculo automático de vacaciones por antigüedad ni arrastre de saldo entre años.
+- Vacaciones por antigüedad pendientes de conectar con la ventana de funcionarios; sin arrastre de saldo entre años.
 - Las horas se calculan al consultar el reporte con los parámetros vigentes: cambiar el horario recalcula también el pasado.
 - Sin modo offline: marcar requiere conexión.
 - Sin notificaciones push al encargado (la lista se actualiza cada 10 s).

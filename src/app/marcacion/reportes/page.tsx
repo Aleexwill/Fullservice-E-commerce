@@ -21,6 +21,8 @@ export default function ReportesPage() {
   const [desde, setDesde] = useState(`${h.slice(0, 7)}-01`);
   const [hasta, setHasta] = useState(h);
   const [userKey, setUserKey] = useState('');
+  const [mes, setMes] = useState(h.slice(0, 7));
+  const [pdfUser, setPdfUser] = useState('');
   const [rep, setRep] = useState<Rep | null>(null);
   const [vivo, setVivo] = useState<Vivo | null>(null);
   const [error, setError] = useState('');
@@ -79,6 +81,17 @@ export default function ReportesPage() {
           </table></div>
         </>) : (<>
           <h1 className="mc-h">{tab === 'personas' ? 'Resumen por persona' : 'Detalle por día'}</h1>
+          <div className="mc-card" style={{ margin: '4px 0 12px' }}>
+            <h2 className="mc-h4" style={{ margin: 0 }}>Reporte mensual en PDF</h2>
+            <p className="mc-mut" style={{ margin: '2px 0 0' }}>Una hoja por persona con el calendario completo, totales y espacio para firmas.</p>
+            <div className="mc-filters">
+              <div className="mc-field"><label htmlFor="mes">Mes</label><input id="mes" type="month" className="mc-input" value={mes} max={h.slice(0, 7)} onChange={e => setMes(e.target.value)} /></div>
+              <div className="mc-field"><label htmlFor="pp">Persona</label>
+                <select id="pp" className="mc-input" value={pdfUser} onChange={e => setPdfUser(e.target.value)}><option value="">Todas (una hoja por persona)</option>{rep?.personas.map(p => <option key={p.userKey} value={p.userKey}>{p.nombre}</option>)}</select></div>
+              <a className="mc-btn sm" style={{ textDecoration: 'none' }} target="_blank" rel="noopener" aria-disabled={!mes}
+                href={`/api/marcacion/reportes/pdf?mes=${mes}${pdfUser ? `&userKey=${encodeURIComponent(pdfUser)}` : ''}`}>Abrir PDF</a>
+            </div>
+          </div>
           <div className="mc-filters">
             <div className="mc-field"><label htmlFor="d">Desde</label><input id="d" type="date" className="mc-input" value={desde} max={hasta} onChange={e => setDesde(e.target.value)} /></div>
             <div className="mc-field"><label htmlFor="h">Hasta</label><input id="h" type="date" className="mc-input" value={hasta} min={desde} onChange={e => setHasta(e.target.value)} /></div>

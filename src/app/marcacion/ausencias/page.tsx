@@ -8,7 +8,7 @@ import type { TipoAusencia } from '@/lib/marcacion/reglas';
 import type { MeDTO } from '@/lib/marcacion/shared';
 
 interface Aus { id: string; userKey: string; userName: string; tipo: TipoAusencia; desde: string; hasta: string; motivo: string; estado: string; revisorName: string; revisorMotivo: string }
-interface Resp { ausencias: Aus[]; vacaciones: { usados: number; total: number }; aprueba: boolean }
+interface Resp { ausencias: Aus[]; vacaciones: { usados: number; total: number; antiguedadAnios: number | null }; aprueba: boolean }
 interface Persona { userKey: string; nombre: string }
 
 const f = (x: string) => x.split('-').reverse().join('/');
@@ -57,7 +57,7 @@ export default function AusenciasPage() {
         <h1 className="mc-h">Ausencias</h1>
         {error && <div className="mc-err" role="alert">{error}</div>}
         {mias && (
-          <div className="mc-stats"><div><b>{mias.vacaciones.total - mias.vacaciones.usados}</b><span>Días de vacaciones disponibles</span></div><div><b>{mias.vacaciones.usados}</b><span>Usados este año</span></div></div>
+          <div className="mc-stats"><div><b>{mias.vacaciones.total - mias.vacaciones.usados}</b><span>Días de vacaciones disponibles{mias.vacaciones.antiguedadAnios !== null ? ` · ${mias.vacaciones.antiguedadAnios} años de antigüedad` : ''}</span></div><div><b>{mias.vacaciones.usados}</b><span>Usados este año</span></div></div>
         )}
 
         {me?.aprueba && pend.length > 0 && (<>

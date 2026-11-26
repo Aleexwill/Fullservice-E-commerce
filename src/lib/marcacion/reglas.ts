@@ -181,3 +181,22 @@ export function calcularDia(e: EntradaDia): FilaDia | null {
   base.estado = !cerrada ? (e.fecha < e.hoy ? 'INCOMPLETA' : 'PENDIENTE') : base.tardanzaMin > 0 ? 'TARDE' : 'PRESENTE';
   return base;
 }
+
+// Vacaciones por antigüedad (Código del Trabajo de Paraguay, art. 218): 12 días hábiles hasta 5 años, 18 de 5 a 10, 30 desde 10.
+export const TRAMOS_VACACIONES = [{ desde: 10, dias: 30 }, { desde: 5, dias: 18 }, { desde: 0, dias: 12 }];
+
+/** Años cumplidos entre la fecha de ingreso (YYYY-MM-DD) y la de referencia. */
+export function aniosAntiguedad(ingreso: string, ref: string): number {
+  const [y1, m1, d1] = ingreso.split('-').map(Number);
+  const [y2, m2, d2] = ref.split('-').map(Number);
+  let a = y2 - y1;
+  if (m2 < m1 || (m2 === m1 && d2 < d1)) a--;
+  return Math.max(0, a);
+}
+
+/** Días de vacaciones anuales: por antigüedad si se conoce la fecha de ingreso; si no, el valor general de Parámetros. */
+export function diasVacaciones(ingreso: string | null, ref: string, base: number): number {
+  if (!ingreso) return base;
+  const anios = aniosAntiguedad(ingreso, ref);
+  return TRAMOS_VACACIONES.find(t => anios >= t.desde)!.dias;
+}

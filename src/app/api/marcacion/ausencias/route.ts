@@ -5,7 +5,8 @@ import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { puedeAprobar, userKeyOf, userNameOf, hoy } from '@/lib/marcacion/server';
 import { getParametros } from '@/lib/marcacion/config-server';
-import { TIPOS_AUSENCIA, diasEntre, diaSemana } from '@/lib/marcacion/reglas';
+import { TIPOS_AUSENCIA, diasEntre, diaSemana, diasVacaciones, aniosAntiguedad } from '@/lib/marcacion/reglas';
+import { obtenerFechaIngreso } from '@/lib/marcacion/funcionarios';
 import type { TipoAusencia } from '@/lib/marcacion/reglas';
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -34,9 +35,11 @@ export async function GET(request: NextRequest) {
     }
     return n;
   };
+  // Con fecha de ingreso (ventana de funcionarios) el total sale de la antigüedad; sin ella, del valor general
+  const ingreso = scope === 'mias' ? await obtenerFechaIngreso(userKeyOf(s)) : null;
   const vac = scope === 'mias'
-    ? { usados: usados(userKeyOf(s)), total: params.vacacionesDias }
-    : { usados: 0, total: params.vacacionesDias };
+    ? { usados: usados(userKeyOf(s)), total: diasVacaciones(ingreso, hoy(), params.vacacionesDias), antiguedadAnios: ingreso ? aniosAntiguedad(ingreso, hoy()) : null }
+    : { usados: 0, total: params.vacacionesDias, antiguedadAnios: null };
   return NextResponse.json({ ausencias: rows.map(dto), vacaciones: vac, aprueba });
 }
 
