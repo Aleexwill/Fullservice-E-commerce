@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { autorizarIA, medirIA, sesionActual } from '@/lib/ia/uso';
 import { rateLimit, getIp } from '@/lib/rate-limit';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -88,7 +89,13 @@ export async function POST(request: NextRequest) {
 
     if (!texto) return NextResponse.json({ error: 'Texto requerido' }, { status: 400 });
 
-    if (GEMINI_API_KEY && GEMINI_API_KEY.length > 10) {
+    // Si administración desactivó la IA o se alcanzó un límite, se responde con la plantilla (sin IA) y se avisa
+    const sesion = await sesionActual();
+    const hayClave = !!(GEMINI_API_KEY && GEMINI_API_KEY.length > 10);
+    const bloqueo = hayClave ? await autorizarIA('mejorar-titulo', sesion) : null;
+    const avisoIA = bloqueo ? (((await bloqueo.json()) as { error?: string }).error ?? '') : '';
+
+    if (hayClave && !bloqueo) {
       const detalleItems = items.length
         ? items.map((i, idx) => `${idx + 1}. [${i.tipo || 'ítem'}] ${i.descripcion}${i.cantidad ? ` — ${i.cantidad} ${i.unidad || ''}` : ''}`).join('\n')
         : 'No hay ítems cargados en la sección.';
@@ -120,15 +127,19 @@ ${detalleItems}
 Responde SOLO JSON.`;
 
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.2, maxOutputTokens: 500, responseMimeType: 'application/json' },
-          }),
+        const data = await medirIA({ funcion: 'mejorar-titulo', proveedor: 'gemini', modelo: GEMINI_MODEL, session: sesion }, async () => {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.2, maxOutputTokens: 500, responseMimeType: 'application/json' },
+            }),
+          });
+          if (!res.ok) throw new Error(`Gemini respondió ${res.status}`);
+          const d = await res.json();
+          return { valor: d, tokensEntrada: d.usageMetadata?.promptTokenCount, tokensSalida: d.usageMetadata?.candidatesTokenCount };
         });
-        if (res.ok) {
-          const data = await res.json();
+        {
           const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
           try {
             const parsed = JSON.parse(raw);
@@ -143,7 +154,7 @@ Responde SOLO JSON.`;
               });
             }
           } catch { console.error('Gemini JSON parse error'); }
-        } else console.error(`Gemini API error ${res.status}`);
+        }
       } catch (fetchErr) { console.error('Gemini fetch error:', fetchErr); }
     }
 
@@ -151,6 +162,7 @@ Responde SOLO JSON.`;
       corregido: corregirTexto(texto), titulo: corregirTexto(texto),
       alcance: fallbackAlcance(texto, contexto), confianza: items.length ? 'media' : 'baja',
       advertencia: items.length ? '' : 'No hay ítems de la sección para validar el alcance sugerido.', source: 'template',
+      ...(avisoIA ? { iaBloqueada: avisoIA } : {}),
     });
   } catch (error) {
     console.error('Error AI mejorar-titulo:', error);

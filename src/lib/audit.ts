@@ -72,6 +72,9 @@ export const AUDIT_DEFAULTS: Record<string, AuditField[]> = {
     { key: 'cuentaBancaria', label: 'Cuenta bancaria', tracked: true },
     { key: 'ipsNumero',    label: 'Nº de IPS',         tracked: true },
   ],
+  ConfigIA: [
+    { key: 'config', label: 'Configuración', tracked: true },
+  ],
   Planilla: [
     { key: 'estado', label: 'Estado', tracked: true },
   ],

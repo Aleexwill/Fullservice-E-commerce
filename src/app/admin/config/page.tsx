@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { fetchJson } from '@/lib/utils';
 import {
   Save,
@@ -26,6 +27,7 @@ import {
   Upload,
   QrCode,
   Trash2,
+  Sparkles,
 } from 'lucide-react';
 
 interface DbStats {
@@ -39,6 +41,39 @@ function formatBytes(b: number) {
   if (b < 1024) return b + ' B';
   if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
   return (b / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+interface IaResumen { mes: string; total: { llamadas: number; errores: number; bloqueadas: number; tokensEntrada: number; tokensSalida: number }; proveedores: { id: string; nombre: string; configurado: boolean }[]; config: { global: { activo: boolean } } }
+
+/** Resumen del uso de IA del mes, con acceso al panel completo (/admin/ia). */
+function IaResumenPanel() {
+  const [d, setD] = useState<IaResumen | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    fetchJson<IaResumen>('/api/ia/panel').then(r => (r ? setD(r) : setError('No se pudo obtener el uso de IA.')));
+  }, []);
+  return (
+    <div className="card p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 font-display text-h4 text-arctic"><Sparkles className="h-4 w-4 text-blue-bright" /> Uso de IA</h2>
+        <Link href="/admin/ia" className="font-body text-caption text-blue-bright hover:underline">Ver detalle y límites</Link>
+      </div>
+      {error && <p className="font-body text-caption text-red-400">{error}</p>}
+      {d && (
+        <>
+          {!d.config.global.activo && <p className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-caption text-red-400">La IA está desactivada por administración.</p>}
+          <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[['Llamadas del mes', d.total.llamadas], ['Tokens', d.total.tokensEntrada + d.total.tokensSalida], ['Con error', d.total.errores], ['Bloqueadas', d.total.bloqueadas]].map(([l, n]) => (
+              <div key={String(l)} className="rounded-md bg-steel-900/50 p-3"><p className="mb-0.5 font-body text-[0.6rem] uppercase tracking-widest text-steel-500">{l}</p><p className="font-display text-h4 text-arctic">{Number(n).toLocaleString('es-PY')}</p></div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-1">
+            {d.proveedores.map(p => <span key={p.id} className="font-body text-caption text-steel-400">{p.nombre}: <b className={p.configurado ? 'text-green-400' : 'text-steel-500'}>{p.configurado ? 'configurada' : 'sin clave'}</b></span>)}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 function DbStatsPanel() {
@@ -430,6 +465,9 @@ export default function AdminConfigPage() {
 
           {/* DB Stats */}
           <DbStatsPanel />
+
+          {/* Uso de IA */}
+          <IaResumenPanel />
         </div>
       </div>
     </div>

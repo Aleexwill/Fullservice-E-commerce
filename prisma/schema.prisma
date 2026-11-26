@@ -854,3 +854,33 @@ model ConceptoPlanilla {
 
   @@index([periodo, funcionarioId])
 }
+
+// ------------------------------------------------------------
+// Uso de IA: registro de cada llamada (solo metadatos, nunca el texto) y configuración de límites
+// ------------------------------------------------------------
+
+model UsoIA {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  funcion        String   // corregir-texto | mejorar-titulo | mejorar-descripcion | presupuesto-analizar | presupuesto-ajustar | prueba
+  proveedor      String   // gemini | anthropic | openai
+  modelo         String
+  userId         String?
+  userName       String   @default("")
+  tokensEntrada  Int      @default(0)
+  tokensSalida   Int      @default(0)
+  ms             Int      @default(0)
+  estado         String   @default("OK") // OK | ERROR | BLOQUEADA
+  error          String   @default("")
+
+  @@index([createdAt])
+  @@index([funcion, createdAt])
+  @@index([userName, createdAt])
+  @@index([estado, createdAt])
+}
+
+model IaConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}

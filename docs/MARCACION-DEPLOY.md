@@ -21,7 +21,7 @@ npm install
 | Archivos de la PWA | `public/marcacion/` (manifest, service worker, íconos) y `public/marcacion/models/` (3 modelos de reconocimiento facial, ~6,7 MB: **no borrar ni ignorar**; se sirven como archivos estáticos) |
 | Reconocimiento facial | `src/lib/marcacion/face.ts` (servidor), `face-client.ts` y `src/components/marcacion/face-capture.tsx` (teléfono), `src/app/api/marcacion/rostro` |
 | Funcionarios (admin) | `src/app/admin/funcionarios`, `src/app/api/funcionarios/*`, `src/lib/funcionarios-store.ts`, `src/lib/funcionarios-schema.ts` |
-| Base de datos | `prisma/schema.prisma` + migraciones `16_add_marcacion`, `17_marcacion_parametros`, `18_add_funcionario`, `19_rostro_plantilla`, `20_rrhh` |
+| Base de datos | `prisma/schema.prisma` + migraciones `16_add_marcacion`, `17_marcacion_parametros`, `18_add_funcionario`, `19_rostro_plantilla`, `20_rrhh`, `21_ia_uso` |
 
 Archivos existentes que se modificaron (revisar si unificás con otros cambios): `src/middleware.ts` (protege `/marcacion/*`),
 `src/lib/roles.ts` (restringe `/admin/funcionarios` y `/api/funcionarios`), `src/app/admin/layout.tsx` (ítem "Funcionarios" en el menú),
@@ -30,7 +30,7 @@ Archivos existentes que se modificaron (revisar si unificás con otros cambios):
 `.env.example`, `package.json`, `package-lock.json`.
 
 ## 3. Base de datos
-Las migraciones nuevas son solo las 5 últimas y se aplican con el mismo comando de siempre (`npm run db:deploy` o `vercel-build`):
+Las migraciones nuevas son solo las 6 últimas y se aplican con el mismo comando de siempre (`npm run db:deploy` o `vercel-build`):
 
 | Migración | Qué hace |
 |---|---|
@@ -38,6 +38,7 @@ Las migraciones nuevas son solo las 5 últimas y se aplican con el mismo comando
 | `17_marcacion_parametros` | Columna `Jornada.enAlmuerzo`; tablas `MarcacionConfig`, `HorarioUsuario`, `Feriado`, `Ausencia`; feriados de Paraguay 2026-2027 |
 | `18_add_funcionario` | Tabla `Funcionario` |
 | `19_rostro_plantilla` | Tabla `RostroPlantilla` (solo huellas numéricas, sin imágenes) |
+| `21_ia_uso` | Tablas `UsoIA` (registro de llamadas de IA, solo metadatos) e `IaConfig` (límites, interruptores, tarifas) |
 | `20_rrhh` | Legajo del funcionario (columnas nuevas en `Funcionario`) y tablas de RRHH: cargos, salarios, documentos, EPP, capacitaciones, parámetros, planillas, recibos y conceptos |
 
 Verificado (migraciones 16 a 18; la 19 es una tabla nueva igual de simple): sobre una base con el esquema de `main` se aplican sin errores y sin diferencias con `schema.prisma`.
@@ -96,6 +97,14 @@ Detalle en [`RRHH.md`](RRHH.md). Para desplegarlo:
 - **Antes de liquidar sueldos reales**, contabilidad o un asesor laboral debe validar las reglas de *RRHH → Parámetros* (IPS, recargos, jornal, ausencias, aguinaldo). Los valores iniciales son de referencia.
 - Orden de puesta en marcha: Parámetros RRHH → Funcionarios (con usuario enlazado) → salario de cada uno → verificar quién marca asistencia → crear la primera planilla en borrador y compararla con la liquidación vigente antes de usarla.
 - Pruebas del motor de cálculo: `npm run test:rrhh`.
+
+## 8c. Módulo de uso de IA (migración `21_ia_uso`)
+Detalle en [`IA.md`](IA.md). Para desplegarlo:
+- Los 5 puntos de IA existentes ahora **se miden y pueden bloquearse**; por defecto todo queda **activo y sin límites**, así que el comportamiento no cambia hasta que se configure algo en *Sistema → Uso de IA*.
+- Las claves (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) siguen en variables de entorno; el panel solo muestra si están configuradas.
+- Para ver el **costo estimado**, cargar las tarifas vigentes de cada modelo en el panel (sin tarifa no se calcula).
+- No hay permiso nuevo: usa `canManageConfig` (administrador y administración).
+- Pruebas: `npm run test:ia` (borra registros de IA: solo contra una base local).
 
 ## 9. Material para usuarios
 `docs/guias/` trae las guías de **modo de uso** (trabajador, encargado, administración, RRHH y una tarjeta rápida de una hoja), en Markdown y en PDF listo para imprimir (`docs/guias/pdf/`). Las capturas usan datos de ejemplo. Entregar el PDF del trabajador y la tarjeta rápida a quienes marquen, y el del encargado a quienes aprueban.

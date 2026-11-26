@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getIp } from '@/lib/rate-limit';
 import Anthropic from '@anthropic-ai/sdk';
+import { autorizarIA, medirIA, sesionActual } from '@/lib/ia/uso';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -145,12 +146,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Si administración desactivó la IA o se alcanzó un límite, se genera con la plantilla (sin IA) y se avisa
+    const sesion = await sesionActual();
+    const hayIA = !!ANTHROPIC_API_KEY || !!(OPENAI_API_KEY && OPENAI_API_KEY !== 'sk-YOUR-KEY-HERE');
+    const bloqueo = hayIA ? await autorizarIA('mejorar-descripcion', sesion) : null;
+    const avisoIA = bloqueo ? (((await bloqueo.json()) as { error?: string }).error ?? '') : '';
+
     const images: string[] = body.images ?? [];
     const primaryImage = images[0] ?? null;
     const hasImage = !!primaryImage;
 
     /* ── 1. Anthropic Claude (vision when image available) ── */
-    if (ANTHROPIC_API_KEY) {
+    if (ANTHROPIC_API_KEY && !bloqueo) {
       try {
         const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
@@ -168,11 +175,14 @@ export async function POST(request: NextRequest) {
           text: buildUserPrompt({ ...body, hasImage }),
         });
 
-        const msg = await client.messages.create({
-          model: 'claude-haiku-4-5',
-          max_tokens: 1024,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: userContent }],
+        const msg = await medirIA({ funcion: 'mejorar-descripcion', proveedor: 'anthropic', modelo: 'claude-haiku-4-5', session: sesion }, async () => {
+          const m = await client.messages.create({
+            model: 'claude-haiku-4-5',
+            max_tokens: 1024,
+            system: SYSTEM_PROMPT,
+            messages: [{ role: 'user', content: userContent }],
+          });
+          return { valor: m, tokensEntrada: m.usage?.input_tokens, tokensSalida: m.usage?.output_tokens };
         });
 
         const text = (msg.content[0] as Anthropic.TextBlock).text;
@@ -190,8 +200,9 @@ export async function POST(request: NextRequest) {
     }
 
     /* ── 2. OpenAI fallback (text only) ── */
-    if (OPENAI_API_KEY && OPENAI_API_KEY !== 'sk-YOUR-KEY-HERE') {
+    if (OPENAI_API_KEY && OPENAI_API_KEY !== 'sk-YOUR-KEY-HERE' && !bloqueo) {
       try {
+        const aiData = await medirIA({ funcion: 'mejorar-descripcion', proveedor: 'openai', modelo: 'gpt-4o-mini', session: sesion }, async () => {
         const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
@@ -207,9 +218,10 @@ export async function POST(request: NextRequest) {
           }),
         });
 
-        if (!openaiRes.ok) throw new Error('OpenAI API error');
-
-        const aiData = await openaiRes.json();
+        if (!openaiRes.ok) throw new Error(`OpenAI respondió ${openaiRes.status}`);
+        const d = await openaiRes.json();
+        return { valor: d, tokensEntrada: d.usage?.prompt_tokens, tokensSalida: d.usage?.completion_tokens };
+        });
         const content = aiData.choices?.[0]?.message?.content;
         if (!content) throw new Error('No content from AI');
 
@@ -226,7 +238,7 @@ export async function POST(request: NextRequest) {
     }
 
     /* ── 3. Template fallback ── */
-    return NextResponse.json(generateFallbackDescription(body));
+    return NextResponse.json({ ...generateFallbackDescription(body), ...(avisoIA ? { iaBloqueada: avisoIA } : {}) });
 
   } catch {
     return NextResponse.json({ error: 'Error al generar descripciones' }, { status: 500 });

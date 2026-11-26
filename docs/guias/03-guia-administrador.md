@@ -137,13 +137,37 @@ Cambios de rol o permisos: menú **Usuarios** del admin.
 - La huella facial es un **dato sensible**: conseguí el **consentimiento escrito** de cada funcionario antes de enrolarlo y definí cuánto tiempo se conserva. Usá el formato **Consentimiento de rostro** (`04-consentimiento-rostro`, en Word y PDF) y leé sus notas (`04-consentimiento-notas`). El sistema pide tildar el consentimiento, pero no lo reemplaza.
 - Los cambios en funcionarios, el enrolamiento y el borrado de huellas quedan en el **Log de cambios** del admin.
 
-## 8. Preguntas frecuentes
+## 8. Uso de IA
+
+**Menú del admin → Sistema → Uso de IA.** Muestra cuánto se usa la inteligencia artificial del sistema y permite ponerle límites.
+
+| |
+|---|
+| <img src="img/i01-ia-panel.png" width="420" alt="Panel de uso de IA"> |
+
+- **Proveedores:** si cada clave (Gemini, Claude, OpenAI) está configurada y **Probar conexión** para comprobar que funciona. Nunca se muestra la clave.
+- **Resumen del mes:** llamadas, tokens, costo estimado, errores y llamadas bloqueadas. Elegí otro mes arriba a la derecha.
+- **Interruptor y límites generales:** apagá la IA en todo el sistema, o poné un tope mensual de llamadas o de gasto (en US$). Vacío = sin límite.
+- **Funciones:** cada función con IA (corregir texto, mejorar título, descripciones de productos, borrador de presupuesto, ajustes por chat) se puede **apagar** o limitar por mes y **por usuario por día**.
+- **Tarifas por modelo:** para estimar el costo, cargá el precio vigente de cada modelo (US$ por millón de tokens, lo publica cada proveedor). **Sin tarifa, ese modelo no suma al costo.** Es una estimación, no la factura.
+- **Últimas llamadas:** quién usó qué, cuántos tokens y si hubo error o bloqueo. Filtrá por estado.
+- Tocá **Guardar configuración** para aplicar los cambios.
+
+**Qué pasa cuando algo está apagado o llegó al límite:** las funciones que necesitan IA avisan el motivo. *Mejorar título* y *descripciones de productos* siguen funcionando con una plantilla sin IA.
+
+**Privacidad:** el sistema **no guarda el texto** de lo que se consulta ni de lo que responde la IA, solo datos de uso. Los cambios de configuración quedan en el Log de cambios.
+
+---
+
+## 9. Preguntas frecuentes
 
 **Una persona no puede marcar ingreso, ¿qué reviso?** (1) Que su usuario esté activo. (2) Que esté dentro del radio de la oficina. (3) Si *Exigir rostro enrolado* está activo, que esté enrolada. (4) Que la oficina esté bien cargada en *Sitios*.
 
 **Alguien figura ausente y sí vino.** Verificá en el *Detalle por día* si hay marcas. Si no hay, no marcó; hoy la corrección manual de marcas no existe en la app.
 
 **¿Por qué el reporte no muestra a alguien?** Porque su rol no está en *Roles que marcan asistencia* y no tiene jornadas. Activalo en *Parámetros → Personas*.
+
+**¿Se gastó mucho en IA este mes?** Mirá *Sistema → Uso de IA*. Si querés un tope, definí el límite mensual de gasto (necesita las tarifas cargadas).
 
 **¿Se puede cambiar el horario de un solo día?** No, el horario es por día de la semana. Para un día especial, cargá un **feriado** o una **ausencia**.
 
