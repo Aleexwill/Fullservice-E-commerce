@@ -6,6 +6,7 @@ import { SESSION_COOKIE, verifySessionToken } from '@/lib/auth';
 import type { SessionPayload } from '@/lib/auth';
 import { generateWithUsage } from '@/lib/gemini';
 import { costoUsd, FUNCIONES_IA, getConfigIa } from './config';
+import { depurarSiCorresponde } from './depurar';
 import type { FuncionIA, FuncionRegistro, ProveedorIA } from './config';
 
 /** Quién hace la llamada: la sesión del admin. Si no hay (no debería ocurrir), se registra como anónimo. */
@@ -31,6 +32,7 @@ async function registrar(d: {
   } catch (e) {
     console.error('[ia] no se pudo registrar el uso:', e instanceof Error ? e.message : e);
   }
+  await depurarSiCorresponde(); // como máximo una vez por día; nunca lanza
 }
 
 /**

@@ -33,14 +33,21 @@ Para sumar una función nueva: agregarla a `FUNCIONES_IA` (`src/lib/ia/config.ts
 ## Datos (migración `21_ia_uso`)
 `UsoIA` (una fila por llamada, índices por fecha, función, usuario y estado) e `IaConfig` (fila `default` con interruptores, límites, tarifas y días de retención).
 
-## Retención
-Los registros no se borran solos. El panel indica los días de retención (180 por defecto) y se depuran con `DELETE /api/ia/registros?antesDeDias=N` (mínimo 7). Conviene hacerlo de vez en cuando; cada llamada ocupa pocos bytes.
+## Retención y depuración automática
+Los registros más viejos que `retencionDias` (180 por defecto, editable en el panel; mínimo 7) **se borran solos**:
+- Corre **como máximo una vez cada 24 horas**, cuando se registra una llamada de IA o se abre el panel. No necesita un cron ni depende de la plataforma de despliegue.
+- Un **reclamo atómico en la base de datos** (`INSERT … ON CONFLICT DO UPDATE … WHERE`) hace que, aunque varias instancias lo intenten a la vez, solo una depure.
+- La fecha de la última depuración y cuántos registros borró quedan guardadas (se ven en el panel). Esos datos las maneja el servidor: el cliente no puede modificarlas al guardar la configuración.
+- Si la depuración falla, **no afecta** a la IA ni a la llamada en curso: queda el error en el log del servidor.
+- Si pasan días sin ninguna llamada de IA y nadie abre el panel, no se depura (no hay nada nuevo que acumule datos).
+- **Depurar ahora** (panel) o `DELETE /api/ia/registros?antesDeDias=N` (mínimo 7) fuerzan la depuración manual con un plazo a elección; pide confirmación.
+- Al **reducir** la retención, los registros que quedan fuera se borran en la próxima depuración automática (hasta 24 h) o con *Depurar ahora*. Las estadísticas de los meses depurados dejan de estar disponibles.
 
 ## Probar conexión
 `POST /api/ia/probar` hace una llamada mínima ("Respondé solo: ok") al proveedor. **Cuenta como consumo** (función `prueba`), está limitada a 6 por minuto y no pasa por los límites, para poder diagnosticar aunque la IA esté apagada.
 
 ## Pruebas
-`npm run test:ia` ejecuta 22 casos (medición, no guardar claves, interruptores, límites de llamadas, gasto, por función y por usuario) contra la base de datos. **Borra los registros de uso y la configuración de IA**, por eso se niega a correr si `DATABASE_URL` no es una base local.
+`npm run test:ia` ejecuta 29 casos (medición, no guardar claves, interruptores, límites de llamadas, gasto, por función y por usuario, y depuración automática: qué borra, que no se repita en 24 h, retención configurable, concurrencia y disparo al registrar) contra la base de datos. **Borra los registros de uso y la configuración de IA**, por eso se niega a correr si `DATABASE_URL` no es una base local.
 
 ## Limitaciones
 - Las llamadas de **front-end directo** a proveedores (si las hubiera fuera de estos 5 puntos) no se miden. Hoy no hay otras en el código; los asistentes públicos (`public/fsc-assistant.js`, `fsc-login-bot.js`) no usan estas APIs.

@@ -21,6 +21,8 @@ export interface IaConfig {
   /** USD por millón de tokens, por nombre de modelo. Sin tarifa no se estima el costo de ese modelo. */
   tarifas: Record<string, Tarifa>;
   retencionDias: number;
+  /** Lo mantiene el servidor (no se edita): cuándo se depuró por última vez y cuántos registros se borraron. */
+  depuracion: { ultima: string | null; borrados: number };
 }
 
 export const CONFIG_IA_DEFAULT: IaConfig = {
@@ -28,6 +30,7 @@ export const CONFIG_IA_DEFAULT: IaConfig = {
   funciones: Object.fromEntries(Object.keys(FUNCIONES_IA).map(k => [k, { activo: true, limiteMensualLlamadas: null, limiteDiarioPorUsuario: null }])) as Record<FuncionIA, LimiteFuncion>,
   tarifas: {},
   retencionDias: 180,
+  depuracion: { ultima: null, borrados: 0 },
 };
 
 const lim = (v: unknown, max: number) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.min(max, Math.round(v)) : null);
@@ -50,6 +53,7 @@ export function normalizarConfigIa(raw: unknown): IaConfig {
     global: { activo: g.activo !== false, limiteMensualLlamadas: lim(g.limiteMensualLlamadas, 100_000_000), limiteMensualUsd: usd(g.limiteMensualUsd) || null },
     funciones, tarifas,
     retencionDias: typeof r.retencionDias === 'number' && r.retencionDias >= 7 ? Math.min(3650, Math.round(r.retencionDias)) : 180,
+    depuracion: { ultima: typeof r.depuracion?.ultima === 'string' ? r.depuracion.ultima : null, borrados: typeof r.depuracion?.borrados === 'number' ? Math.max(0, Math.round(r.depuracion.borrados)) : 0 },
   };
 }
 

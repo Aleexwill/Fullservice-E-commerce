@@ -104,6 +104,7 @@ Detalle en [`IA.md`](IA.md). Para desplegarlo:
 - Las claves (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) siguen en variables de entorno; el panel solo muestra si están configuradas.
 - Para ver el **costo estimado**, cargar las tarifas vigentes de cada modelo en el panel (sin tarifa no se calcula).
 - No hay permiso nuevo: usa `canManageConfig` (administrador y administración).
+- Los registros de uso de IA **se depuran solos** (180 días por defecto, una vez por día, sin cron): no hace falta configurar nada.
 - Pruebas: `npm run test:ia` (borra registros de IA: solo contra una base local).
 
 ## 9. Material para usuarios

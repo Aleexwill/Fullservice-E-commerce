@@ -151,6 +151,7 @@ Cambios de rol o permisos: menú **Usuarios** del admin.
 - **Funciones:** cada función con IA (corregir texto, mejorar título, descripciones de productos, borrador de presupuesto, ajustes por chat) se puede **apagar** o limitar por mes y **por usuario por día**.
 - **Tarifas por modelo:** para estimar el costo, cargá el precio vigente de cada modelo (US$ por millón de tokens, lo publica cada proveedor). **Sin tarifa, ese modelo no suma al costo.** Es una estimación, no la factura.
 - **Últimas llamadas:** quién usó qué, cuántos tokens y si hubo error o bloqueo. Filtrá por estado.
+- **Conservación de registros:** los registros de uso se **depuran solos** pasado el plazo que definas (180 días por defecto, mínimo 7), una vez por día. Ves cuándo fue la última depuración. **Depurar ahora** los borra al instante (pide confirmación). Al borrarse, las estadísticas de esos meses dejan de estar disponibles.
 - Tocá **Guardar configuración** para aplicar los cambios.
 
 **Qué pasa cuando algo está apagado o llegó al límite:** las funciones que necesitan IA avisan el motivo. *Mejorar título* y *descripciones de productos* siguen funcionando con una plantilla sin IA.

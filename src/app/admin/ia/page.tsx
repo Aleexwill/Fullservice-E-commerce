@@ -49,6 +49,15 @@ export default function IaPage() {
       if (!r.ok) throw new Error(j.error ?? 'No se pudo guardar'); setCfg(j); setOk('Configuración guardada'); await cargar();
     } catch (e) { setError(e instanceof Error ? e.message : 'Error'); } finally { setBusy(false); }
   }
+  async function depurarAhora() {
+    if (!cfg || cfg.retencionDias < 7) return;
+    if (!window.confirm(`Se borrarán de forma permanente los registros de uso de IA con más de ${cfg.retencionDias} días. ¿Continuar?`)) return;
+    setBusy(true); setError(''); setOk('');
+    try {
+      const r = await fetch(`/api/ia/registros?antesDeDias=${cfg.retencionDias}`, { method: 'DELETE' }); const j = await r.json();
+      if (!r.ok) throw new Error(j.error ?? 'No se pudo depurar'); setOk(`Se borraron ${nf(j.borrados)} registros`); await cargar(); await cargarRegs();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); } finally { setBusy(false); }
+  }
   async function probar(id: string) {
     setProbando(id);
     try { const r = await fetch('/api/ia/probar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proveedor: id }) }); const j = await r.json(); setPrueba(x => ({ ...x, [id]: r.ok ? j : { ok: false, error: j.error } })); await cargar(); await cargarRegs(); }
@@ -167,6 +176,16 @@ export default function IaPage() {
         </div>
       </section>
 
+      <section className="card mb-6 p-5">
+        <h2 className="mb-1 font-display text-h3 text-arctic">Conservación de registros</h2>
+        <p className="mb-3 text-body-sm text-steel-400">Los registros más viejos que este plazo se <b>depuran solos</b> (una vez por día). Las estadísticas de meses ya depurados dejan de estar disponibles.</p>
+        <div className="flex flex-wrap items-end gap-4">
+          <div><label htmlFor="ret" className={L}>Conservar durante (días)</label><input id="ret" type="number" min={7} max={3650} value={cfg.retencionDias} onChange={e => setCfg({ ...cfg, retencionDias: Number(e.target.value) })} className="input w-32" /></div>
+          <button onClick={depurarAhora} disabled={busy} className="btn-secondary disabled:opacity-50">Depurar ahora</button>
+          <p className="text-caption text-steel-400">{cfg.depuracion.ultima ? `Última depuración automática: ${new Date(cfg.depuracion.ultima).toLocaleString('es-PY', { timeZone: 'America/Asuncion', dateStyle: 'short', timeStyle: 'short' })} (${nf(cfg.depuracion.borrados)} ${cfg.depuracion.borrados === 1 ? 'registro borrado' : 'registros borrados'})` : 'Todavía no se depuró.'}</p>
+        </div>
+      </section>
+
       <div className="mb-8 flex flex-wrap gap-3">
         <button onClick={guardar} disabled={busy} className="btn-primary disabled:opacity-50"><Save className="h-4 w-4" />{busy ? 'Guardando…' : 'Guardar configuración'}</button>
         <button onClick={() => setCfg(p.config)} className="btn-ghost">Descartar cambios</button>
@@ -194,7 +213,7 @@ export default function IaPage() {
         </table>
         {regs && regs.paginas > 1 && <div className="flex items-center justify-center gap-3 p-4 text-body-sm text-steel-300"><button disabled={pagina <= 1} onClick={() => setPagina(pagina - 1)} className="btn-ghost disabled:opacity-40">Anterior</button>Página {regs.pagina} de {regs.paginas}<button disabled={pagina >= regs.paginas} onClick={() => setPagina(pagina + 1)} className="btn-ghost disabled:opacity-40">Siguiente</button></div>}
       </section>
-      <p className="mt-4 flex items-start gap-2 text-caption text-steel-500"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-none" />Los registros se conservan {cfg.retencionDias} días por defecto; se pueden depurar con la API (<code>DELETE /api/ia/registros?antesDeDias=N</code>).</p>
+      <p className="mt-4 flex items-start gap-2 text-caption text-steel-500"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-none" />Solo se guardan datos de uso (nunca el texto de las consultas). Los registros se conservan {cfg.retencionDias} días y se depuran automáticamente.</p>
     </div>
   );
 }

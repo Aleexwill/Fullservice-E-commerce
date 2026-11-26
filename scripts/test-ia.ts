@@ -9,6 +9,7 @@ if (!/@(localhost|127\.0\.0\.1)[:/]/.test(url) && process.env.TEST_IA_FORZAR !==
 
 import { prisma } from '../src/lib/prisma';
 import { autorizarIA, medirIA } from '../src/lib/ia/uso';
+import { depurarSiCorresponde } from '../src/lib/ia/depurar';
 import { CONFIG_IA_DEFAULT, costoUsd, normalizarConfigIa } from '../src/lib/ia/config';
 import type { IaConfig } from '../src/lib/ia/config';
 import type { SessionPayload } from '../src/lib/auth';
@@ -93,6 +94,33 @@ const limpiar = async () => { await prisma.usoIA.deleteMany({}); await prisma.ia
   await guardar(conf(c => { c.global.limiteMensualLlamadas = 1; }));
   try { await medirIA({ funcion: 'corregir-texto', proveedor: 'gemini', modelo: 'm1', session: ana }, async () => { throw new Error('x'); }); } catch { /* esperado */ }
   eq('una llamada con error no consume el límite', await autorizarIA('corregir-texto', ana), null);
+
+
+  // --- depuración automática ---
+  await limpiar();
+  const hace = (d: number) => new Date(Date.now() - d * 86_400_000);
+  const viejo = (d: number) => prisma.usoIA.create({ data: { funcion: 'corregir-texto', proveedor: 'gemini', modelo: 'm', userName: 'x', estado: 'OK', createdAt: hace(d) } });
+  const ultimaHace = (h: number) => prisma.$executeRaw`UPDATE "IaConfig" SET data = jsonb_set(data, '{depuracion,ultima}', to_jsonb((now() - make_interval(hours => ${h}::int))::text)) WHERE id = 'default'`;
+  await viejo(400); await viejo(200); await viejo(10);
+  const d1 = await depurarSiCorresponde();
+  eq('depuración: borra solo lo anterior a 180 días', [d1.ejecutada, d1.borrados, await prisma.usoIA.count()], [true, 2, 1]);
+  const cfgD = await prisma.iaConfig.findUnique({ where: { id: 'default' } });
+  const dep = (cfgD?.data as { depuracion?: { ultima?: string; borrados?: number } })?.depuracion;
+  eq('depuración: queda registrada la fecha y la cantidad', [typeof dep?.ultima, dep?.borrados], ['string', 2]);
+  eq('depuración: no se repite dentro de las 24 h', (await depurarSiCorresponde()).ejecutada, false);
+  await ultimaHace(25); await viejo(300);
+  const d3 = await depurarSiCorresponde();
+  eq('depuración: a las 25 h vuelve a correr', [d3.ejecutada, d3.borrados], [true, 1]);
+  await guardar(conf(c => { c.retencionDias = 30; }));
+  await viejo(40); await viejo(5);
+  const d4 = await depurarSiCorresponde();
+  eq('depuración: respeta la retención configurada (30 días)', [d4.ejecutada, d4.borrados, await prisma.usoIA.count()], [true, 1, 2]);
+  await ultimaHace(48); await viejo(90);
+  const simultaneas = await Promise.all([1, 2, 3, 4, 5].map(() => depurarSiCorresponde()));
+  eq('depuración: con 5 intentos simultáneos solo uno la ejecuta', simultaneas.filter(x => x.ejecutada).length, 1);
+  await ultimaHace(30); await viejo(500);
+  await medirIA({ funcion: 'corregir-texto', proveedor: 'gemini', modelo: 'm', session: ana }, async () => ({ valor: 1, tokensEntrada: 1, tokensSalida: 1 }));
+  eq('depuración: se dispara sola al registrar una llamada de IA', await prisma.usoIA.count({ where: { createdAt: { lt: hace(30) } } }), 0);
 
   await limpiar();
   console.log(fallos === 0 ? '\nTodo OK' : `\n${fallos} FALLO(S)`);
