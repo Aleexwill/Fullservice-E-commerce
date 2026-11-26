@@ -884,3 +884,81 @@ model IaConfig {
   data      Json     @default("{}")
   updatedAt DateTime @updatedAt
 }
+
+// ------------------------------------------------------------
+// TI: tickets de incidencias y mejoras, puntos de crecimiento de la base de datos y parámetros
+// ------------------------------------------------------------
+
+model Ticket {
+  id            String    @id @default(cuid())
+  numero        Int       @unique @default(autoincrement())
+  tipo          String    // ERROR | CORRECCION | MEJORA
+  titulo        String
+  descripcion   String
+  modulo        String    @default("")
+  pantalla      String    @default("") // ruta donde ocurrió
+  pasos         String    @default("")
+  esperado      String    @default("")
+  prioridad     String    @default("MEDIA") // BAJA | MEDIA | ALTA | CRITICA
+  estado        String    @default("NUEVO") // NUEVO | EN_ANALISIS | ESPERANDO_INFO | EN_CURSO | EN_PRUEBA | RESUELTO | CERRADO | RECHAZADO
+  solicitanteId String
+  solicitante   String
+  asignadoId    String?
+  asignado      String    @default("")
+  adjuntos      Json      @default("[]") // [{url, nombre}]
+  navegador     String    @default("")
+  resolucion    String    @default("")
+  resueltoAt    DateTime?
+  cerradoAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  comentarios   TicketComentario[]
+  eventos       TicketEvento[]
+
+  @@index([estado, prioridad])
+  @@index([solicitanteId])
+  @@index([createdAt])
+}
+
+model TicketComentario {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  autorId   String
+  autor     String
+  texto     String
+  interno   Boolean  @default(false) // nota interna: solo la ve TI
+  adjuntos  Json     @default("[]")
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketEvento {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tipo      String   // CREADO | ESTADO | PRIORIDAD | ASIGNADO | COMENTARIO | COMENTARIO_INTERNO | REABIERTO | CONFIRMADO | CANCELADO | AUTOCERRADO
+  detalle   String   @default("")
+  autorId   String   @default("")
+  autor     String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+  @@index([createdAt])
+}
+
+// Un punto por día con el tamaño de la base de datos, para ver el crecimiento.
+model DbSnapshot {
+  id         String   @id @default(cuid())
+  fecha      String   @unique // YYYY-MM-DD (Asunción)
+  totalBytes BigInt
+  tablas     Json     // [{tabla, bytes, filas}]
+  createdAt  DateTime @default(now())
+}
+
+model TiConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}

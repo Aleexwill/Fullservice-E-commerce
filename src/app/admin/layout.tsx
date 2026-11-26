@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
-  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Users, Inbox, History, Briefcase, CalendarClock, Banknote, SlidersHorizontal, Sparkles,
+  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Users, Inbox, History, Briefcase, CalendarClock, Banknote, SlidersHorizontal, Sparkles, Database, LifeBuoy, Server,
   Image as ImageIcon, Tag, Wallet, CalendarDays, ClipboardCheck, GitBranch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -63,13 +63,18 @@ const navGroups: NavGroup[] = [
     { href: '/admin/rrhh/parametros', label: 'Parámetros RRHH', icon: SlidersHorizontal, permission: 'canManageRRHH' },
     { href: '/marcacion/reportes', label: 'Asistencia y marcación', icon: ClipboardCheck, permission: 'canViewReports' },
   ]},
+  { label: 'TI', items: [
+    { href: '/admin/ti', label: 'Panel TI', icon: Server, exact: true, permission: 'canManageConfig' },
+    { href: '/admin/ti/tickets', label: 'Tickets', icon: LifeBuoy, permission: 'canUseTickets' },
+    { href: '/admin/ti/base-de-datos', label: 'Base de datos', icon: Database, permission: 'canManageConfig' },
+    { href: '/admin/ia', label: 'Uso de IA', icon: Sparkles, permission: 'canManageConfig' },
+    { href: '/admin/config', label: 'Configuración', icon: Settings, permission: 'canManageConfig' },
+  ] },
   { label: 'Sistema', items: [
     { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, permission: 'canManageUsers' },
-    { href: '/admin/ia', label: 'Uso de IA', icon: Sparkles, permission: 'canManageConfig' },
     { href: '/admin/sistema/logs', label: 'Log de cambios', icon: History, permission: 'canManageUsers' },
     { href: '/admin/reportes', label: 'Reporte general', icon: FileText, exact: true, permission: 'canViewReports' },
     { href: '/admin/configuracion/flujo-aprobacion', label: 'Flujo de Aprobación', icon: GitBranch, permission: 'canManageConfig' },
-    { href: '/admin/config', label: 'Configuración', icon: Settings, permission: 'canManageConfig' },
   ]},
 ];
 
@@ -309,6 +314,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
         {children}
+        {userPerms?.canUseTickets && !pathname.startsWith('/admin/ti/tickets') && (
+          <Link
+            href={`/admin/ti/tickets/nuevo?desde=${encodeURIComponent(pathname)}`}
+            className="fixed bottom-4 right-4 z-30 inline-flex items-center gap-2 rounded-full bg-steel-800 px-4 py-2 font-body text-caption text-steel-100 shadow-lg ring-1 ring-steel-600 transition-colors hover:bg-steel-700 hover:text-arctic print:hidden"
+          >
+            <LifeBuoy className="h-4 w-4" />¿Algo no funciona?
+          </Link>
+        )}
       </main>
     </div>
     </ToastProvider>

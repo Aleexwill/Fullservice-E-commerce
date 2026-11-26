@@ -21,7 +21,7 @@ npm install
 | Archivos de la PWA | `public/marcacion/` (manifest, service worker, íconos) y `public/marcacion/models/` (3 modelos de reconocimiento facial, ~6,7 MB: **no borrar ni ignorar**; se sirven como archivos estáticos) |
 | Reconocimiento facial | `src/lib/marcacion/face.ts` (servidor), `face-client.ts` y `src/components/marcacion/face-capture.tsx` (teléfono), `src/app/api/marcacion/rostro` |
 | Funcionarios (admin) | `src/app/admin/funcionarios`, `src/app/api/funcionarios/*`, `src/lib/funcionarios-store.ts`, `src/lib/funcionarios-schema.ts` |
-| Base de datos | `prisma/schema.prisma` + migraciones `16_add_marcacion`, `17_marcacion_parametros`, `18_add_funcionario`, `19_rostro_plantilla`, `20_rrhh`, `21_ia_uso` |
+| Base de datos | `prisma/schema.prisma` + migraciones `16_add_marcacion`, `17_marcacion_parametros`, `18_add_funcionario`, `19_rostro_plantilla`, `20_rrhh`, `21_ia_uso`, `22_ti` |
 
 Archivos existentes que se modificaron (revisar si unificás con otros cambios): `src/middleware.ts` (protege `/marcacion/*`),
 `src/lib/roles.ts` (restringe `/admin/funcionarios` y `/api/funcionarios`), `src/app/admin/layout.tsx` (ítem "Funcionarios" en el menú),
@@ -39,6 +39,7 @@ Las migraciones nuevas son solo las 6 últimas y se aplican con el mismo comando
 | `18_add_funcionario` | Tabla `Funcionario` |
 | `19_rostro_plantilla` | Tabla `RostroPlantilla` (solo huellas numéricas, sin imágenes) |
 | `21_ia_uso` | Tablas `UsoIA` (registro de llamadas de IA, solo metadatos) e `IaConfig` (límites, interruptores, tarifas) |
+| `22_ti` | Tablas `Ticket`, `TicketComentario`, `TicketEvento`, `DbSnapshot` y `TiConfig` (módulo TI) |
 | `20_rrhh` | Legajo del funcionario (columnas nuevas en `Funcionario`) y tablas de RRHH: cargos, salarios, documentos, EPP, capacitaciones, parámetros, planillas, recibos y conceptos |
 
 Verificado (migraciones 16 a 18; la 19 es una tabla nueva igual de simple): sobre una base con el esquema de `main` se aplican sin errores y sin diferencias con `schema.prisma`.
@@ -106,6 +107,12 @@ Detalle en [`IA.md`](IA.md). Para desplegarlo:
 - No hay permiso nuevo: usa `canManageConfig` (administrador y administración).
 - Los registros de uso de IA **se depuran solos** (180 días por defecto, una vez por día, sin cron): no hace falta configurar nada.
 - Pruebas: `npm run test:ia` (borra registros de IA: solo contra una base local).
+
+## 8d. Módulo TI (migración `22_ti`)
+Detalle en [`TI.md`](TI.md). Menú nuevo **TI** (panel, tickets, base de datos, uso de IA, configuración).
+- **Permiso nuevo `canUseTickets`** (admin, gerencia, administración, planner): crear tickets y ver los propios. Los roles personalizados no lo tienen: otorgarlo en *Usuarios → Roles*. TI (gestión de todos los tickets, base de datos) usa `canManageConfig`.
+- `/api/notifications` dejó de estar restringida por middleware (la campana ahora también avisa de tickets); cada sección se filtra por permiso dentro de la ruta.
+- Base de datos en **solo monitoreo**. Ajustar el límite del plan (512 MB por defecto) en *TI → Base de datos → Umbrales*.
 
 ## 9. Material para usuarios
 `docs/guias/` trae las guías de **modo de uso** (trabajador, encargado, administración, RRHH y una tarjeta rápida de una hoja), en Markdown y en PDF listo para imprimir (`docs/guias/pdf/`). Las capturas usan datos de ejemplo. Entregar el PDF del trabajador y la tarjeta rápida a quienes marquen, y el del encargado a quienes aprueban.

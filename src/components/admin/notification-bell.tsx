@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Bell, ShoppingCart, Calculator, Users, X, Trash2, ClipboardCheck } from 'lucide-react';
+import { Bell, ShoppingCart, Calculator, Users, X, Trash2, ClipboardCheck, LifeBuoy } from 'lucide-react';
 import { fetchJson } from '@/lib/utils';
 
 interface NotificationItem {
   id: string;
-  type: 'pedido' | 'presupuesto' | 'lead' | 'aprobacion';
+  type: 'pedido' | 'presupuesto' | 'lead' | 'aprobacion' | 'ticket';
   title: string;
   subtitle: string;
   href: string;
@@ -25,6 +25,7 @@ const ICONS: Record<NotificationItem['type'], typeof ShoppingCart> = {
   presupuesto: Calculator,
   lead: Users,
   aprobacion: ClipboardCheck,
+  ticket: LifeBuoy,
 };
 
 function getDismissed(): Set<string> {

@@ -25,6 +25,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
   canViewReports: boolean;
   canViewAnalytics: boolean;
   canManageRRHH: boolean;      // legajos, sueldos y planilla (datos sensibles)
+  canUseTickets: boolean;      // crear tickets de incidencias y mejoras y ver los propios (TI los gestiona con canManageConfig)
 }> = {
   admin: {
     canManageUsers: true, canManageConfig: true, canManageContent: true,
@@ -33,6 +34,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canManageLeads: true, canManageClients: true, canManageInventory: true,
     canViewReports: true, canViewAnalytics: true,
     canManageRRHH: true,
+    canUseTickets: true,
   },
   gerencia: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -41,6 +43,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: true,
     canManageRRHH: false,
+    canUseTickets: true,
   },
   administracion: {
     canManageUsers: true, canManageConfig: true, canManageContent: false,
@@ -49,6 +52,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canManageLeads: false, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
     canManageRRHH: true,
+    canUseTickets: true,
   },
   planner: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -57,6 +61,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canManageLeads: false, canManageClients: false, canManageInventory: true,
     canViewReports: true, canViewAnalytics: false,
     canManageRRHH: false,
+    canUseTickets: true,
   },
   vendedor: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -65,6 +70,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
     canManageRRHH: false,
+    canUseTickets: false,
   },
   tecnico: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -73,6 +79,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canManageLeads: false, canManageClients: false, canManageInventory: true,
     canViewReports: false, canViewAnalytics: false,
     canManageRRHH: false,
+    canUseTickets: false,
   },
   comercial: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -81,6 +88,7 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
     canManageRRHH: false,
+    canUseTickets: false,
   },
 };
 
@@ -96,6 +104,8 @@ export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/funcionarios', requiredPermission: 'canManageRRHH' },
   { path: '/admin/rrhh', requiredPermission: 'canManageRRHH' },
   { path: '/admin/ia', requiredPermission: 'canManageConfig' },
+  { path: '/admin/ti/tickets', requiredPermission: 'canUseTickets' },
+  { path: '/admin/ti', requiredPermission: 'canManageConfig' },
   { path: '/admin/config', requiredPermission: 'canManageConfig' },
   { path: '/admin/configuracion', requiredPermission: 'canManageConfig' },
   { path: '/admin/contenido', requiredPermission: 'canManageContent' },
@@ -118,6 +128,8 @@ export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/funcionarios', requiredPermission: 'canManageRRHH' },
   { path: '/api/rrhh', requiredPermission: 'canManageRRHH' },
   { path: '/api/ia', requiredPermission: 'canManageConfig' },
+  { path: '/api/ti/tickets', requiredPermission: 'canUseTickets' },
+  { path: '/api/ti', requiredPermission: 'canManageConfig' },
   { path: '/api/roles', requiredPermission: 'canManageUsers' },
   { path: '/api/config', requiredPermission: 'canManageConfig' },
   { path: '/api/approval-flows', requiredPermission: 'canManageConfig' },
@@ -139,5 +151,4 @@ export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/admin', requiredPermission: 'canManageConfig' },
   { path: '/api/upload', requiredPermission: 'canManageContent' },
   { path: '/api/ai', requiredPermission: 'canManagePresupuestos' },
-  { path: '/api/notifications', requiredPermission: 'canManageLeads' },
 ];

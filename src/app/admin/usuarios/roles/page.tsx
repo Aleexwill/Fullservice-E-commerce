@@ -17,6 +17,7 @@ interface Permissions {
   canViewReports: boolean;
   canViewAnalytics: boolean;
   canManageRRHH: boolean;
+  canUseTickets: boolean;
 }
 
 interface CustomRole {
@@ -34,6 +35,7 @@ const PERMISSION_GROUPS: { group: string; items: { key: keyof Permissions; label
       { key: 'canManageUsers',  label: 'Usuarios',       description: 'Invitar, activar/desactivar y eliminar usuarios' },
       { key: 'canManageConfig', label: 'Configuración',  description: 'Ajustes generales del sitio' },
       { key: 'canManageRRHH',  label: 'RRHH',           description: 'Legajos, sueldos y planilla (datos sensibles)' },
+      { key: 'canUseTickets',  label: 'Tickets de TI',  description: 'Reportar errores y pedir mejoras, y ver los propios. TI los gestiona con el permiso de Configuración' },
     ],
   },
   {
@@ -66,7 +68,7 @@ const EMPTY_PERMS: Permissions = {
   canManageUsers: false, canManageConfig: false, canManageContent: false,
   canManageProducts: false, canManageOrders: false, canManagePresupuestos: false,
   canManageLeads: false, canManageClients: false, canManageInventory: false,
-  canViewReports: false, canViewAnalytics: false, canManageRRHH: false,
+  canViewReports: false, canViewAnalytics: false, canManageRRHH: false, canUseTickets: false,
 };
 
 export default function RolesPage() {

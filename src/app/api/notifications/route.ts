@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth';
 import { ROLE_PERMISSIONS } from '@/lib/roles';
+import { ESTADO_LABEL, esTI, quienEs } from '@/lib/ti/tickets';
 
 export const dynamic = 'force-dynamic';
 
 interface NotificationItem {
   id: string;
-  type: 'pedido' | 'presupuesto' | 'lead' | 'aprobacion';
+  type: 'pedido' | 'presupuesto' | 'lead' | 'aprobacion' | 'ticket';
   title: string;
   subtitle: string;
   href: string;
@@ -20,6 +21,14 @@ const LIMIT = 8;
 export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth();
+    if (session instanceof Response) return session;
+    // La ruta ya no la restringe el middleware: cada sección se entrega según el permiso (leads/pedidos como antes, tickets nuevo).
+    const tiene = async (perm: 'canManageLeads' | 'canUseTickets'): Promise<boolean> => {
+      if (session.role in ROLE_PERMISSIONS) return ROLE_PERMISSIONS[session.role as keyof typeof ROLE_PERMISSIONS][perm];
+      const r = await prisma.customRole.findUnique({ where: { name: session.role } }).catch(() => null);
+      return !!(r?.permissions as Record<string, boolean> | undefined)?.[perm];
+    };
+    const [verComercial, verTickets] = await Promise.all([tiene('canManageLeads'), tiene('canUseTickets')]);
     const isAdmin = !(session instanceof Response) &&
       (ROLE_PERMISSIONS[session.role as keyof typeof ROLE_PERMISSIONS]?.canAprobarPresupuestos ?? false);
 
@@ -27,10 +36,41 @@ export async function GET(request: NextRequest) {
     const since = searchParams.get('since');
     const sinceDate = since ? new Date(since) : null;
 
+    // Tickets de TI: TI recibe los nuevos, reabiertos y las respuestas de quien los pidió; el solicitante, los cambios y comentarios de TI.
+    let ticketItems: NotificationItem[] = [];
+    if (verTickets) {
+      try {
+        const yo = quienEs(session);
+        const ti = await esTI(session);
+        const desde = new Date(Date.now() - 14 * 86_400_000);
+        const evs = await prisma.ticketEvento.findMany({
+          where: {
+            createdAt: { gte: desde },
+            autorId: { not: yo.id },
+            tipo: { in: ['CREADO', 'ESTADO', 'COMENTARIO', 'REABIERTO', 'CONFIRMADO', 'CANCELADO'] },
+            ticket: ti ? { OR: [{ solicitanteId: yo.id }, { estado: { notIn: ['CERRADO', 'RECHAZADO'] } }] } : { solicitanteId: yo.id },
+          },
+          orderBy: { createdAt: 'desc' }, take: LIMIT,
+          include: { ticket: { select: { id: true, numero: true, titulo: true, prioridad: true, solicitanteId: true } } },
+        });
+        ticketItems = evs
+          .filter((e) => (e.ticket.solicitanteId === yo.id ? true : ['CREADO', 'COMENTARIO', 'REABIERTO'].includes(e.tipo)))
+          .map((e) => {
+            const base = `Ticket #${e.ticket.numero}`;
+            const titulo = e.tipo === 'CREADO' ? `Nuevo ticket #${e.ticket.numero}` : e.tipo === 'COMENTARIO' ? `${base}: comentario de ${e.autor}` : e.tipo === 'REABIERTO' ? `${base} reabierto` : e.tipo === 'CONFIRMADO' ? `${base} confirmado` : e.tipo === 'CANCELADO' ? `${base} cancelado` : `${base}: ${e.detalle.split('→').pop()?.trim() || ESTADO_LABEL.NUEVO}`;
+            return {
+              id: `ticket-${e.id}`, type: 'ticket' as const, title: titulo, subtitle: e.ticket.titulo,
+              href: ti && e.ticket.solicitanteId !== yo.id ? `/admin/ti/tickets/${e.ticket.id}` : `/admin/ti/tickets/${e.ticket.id}`,
+              createdAt: e.createdAt.toISOString(), urgent: ti && e.tipo === 'CREADO' && e.ticket.prioridad === 'CRITICA',
+            };
+          });
+      } catch (err) { console.error('notificaciones de tickets:', err); }
+    }
+
     const [orders, presupuestos, leads, pendingApproval] = await Promise.all([
-      prisma.order.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }),
-      prisma.presupuesto.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }),
-      prisma.lead.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }),
+      verComercial ? prisma.order.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }) : Promise.resolve([]),
+      verComercial ? prisma.presupuesto.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }) : Promise.resolve([]),
+      verComercial ? prisma.lead.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }) : Promise.resolve([]),
       isAdmin
         ? prisma.presupuesto.findMany({
             where: { status: 'pendiente_aprobacion' },
@@ -56,6 +96,7 @@ export async function GET(request: NextRequest) {
 
     const items: NotificationItem[] = [
       ...approvalItems,
+      ...ticketItems,
       ...orders.map((o) => {
         const customer = o.customer as { name?: string } | null;
         return {
