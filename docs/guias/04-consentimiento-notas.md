@@ -57,7 +57,7 @@ Para poder responder ante una consulta:
 | Se puede eliminar a pedido | Funcionarios → **Borrar** (junto a la fecha de enrolamiento). |
 | El enrolamiento queda registrado | Se guarda quién enroló (`enroladoPor`). El enrolamiento, el nuevo enrolamiento y el **borrado** de la huella quedan en el **Log de cambios** del admin (campo *Huella facial*). |
 | La ubicación no se sigue de forma continua | El GPS en vivo se usa solo en pantalla durante un traslado y no se guarda; se guarda la ubicación de cada marca. |
-| Solo accede personal autorizado | Funcionarios y enrolamiento requieren permiso de gestión de usuarios (administrador y administración). |
+| Solo accede personal autorizado | Funcionarios y enrolamiento requieren el permiso RRHH (administrador y administración). |
 
 A tener en cuenta: los **registros de asistencia** (marcas con hora, ubicación y resultado) **no se borran** al dar de baja a la persona ni al borrar su huella. Por eso el formato aclara un plazo aparte para ellos.
 

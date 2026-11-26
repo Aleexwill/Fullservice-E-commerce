@@ -59,7 +59,7 @@ Un feriado hace que el día no cuente como falta. Si alguien trabaja ese día, t
 
 ## 3. Funcionarios
 
-**Menú del admin → Sistema → Funcionarios.**
+**Menú del admin → RRHH → Funcionarios.** (El legajo completo, los sueldos y la planilla están en la *Guía de RRHH*.)
 
 | | |
 |---|---|
@@ -111,7 +111,7 @@ Las marcas **parecidas pero no seguras** se aceptan y quedan señaladas como **R
 | Aprobaciones | Administrador, administración, gerencia, planner |
 | Reportes (y PDF) | Administrador, administración, gerencia, planner, vendedor, comercial |
 | Parámetros y Sitios | Administrador, administración |
-| Funcionarios (en el admin) | Administrador, administración |
+| Funcionarios y RRHH (en el admin) | Administrador, administración (permiso **RRHH**) |
 
 Cambios de rol o permisos: menú **Usuarios** del admin.
 

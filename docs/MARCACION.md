@@ -40,10 +40,10 @@ foto EPP → aprobación → `SALIDA_LUGAR` → `LLEGADA_OFICINA` (GPS en oficin
 - Feriados de Paraguay 2026-2027 precargados; se editan en Parámetros.
 
 ## Funcionarios (`/admin/funcionarios`)
-Ventana del admin para personal con fecha de ingreso (permiso `canManageUsers`: admin y administración). Alta, edición, baja lógica
+Ventana del admin para personal con fecha de ingreso (permiso `canManageRRHH`: admin y administración; ver [`RRHH.md`](RRHH.md)). Alta, edición, baja lógica
 (conserva historial) y enlace opcional a un usuario del sistema (solo se ofrecen usuarios sin funcionario). Calcula antigüedad en años
 y meses, días de vacaciones que corresponden y fecha del próximo tramo. Los cambios quedan en el Log de cambios (entidad `Funcionario`).
-Migraciones `18_add_funcionario` y `19_rostro_plantilla`. Si se unifica con otra versión del modelo, adaptar `src/lib/marcacion/funcionarios.ts` y `src/lib/funcionarios-store.ts`.
+Migraciones `18_add_funcionario` y `19_rostro_plantilla`. El legajo, la planilla y los vencimientos están en el módulo RRHH (migración `20_rrhh`). Si se unifica con otra versión del modelo, adaptar `src/lib/marcacion/funcionarios.ts` y `src/lib/funcionarios-store.ts`.
 
 ## Reconocimiento facial (ingreso y salida)
 **No se guarda ninguna imagen del rostro.** Se enrola una vez y cada ingreso/salida se compara con esa primera huella.
