@@ -23,6 +23,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 export async function DELETE(_r: NextRequest, { params }: { params: { id: string } }) {
   const a = await requireRole('canManageInventory');
   if (a instanceof NextResponse) return a;
+  const traslados = await prisma.traslado.count({ where: { OR: [{ origenId: params.id }, { destinoId: params.id }] } });
+  if (traslados) return NextResponse.json({ error: 'El depósito tiene traslados registrados: no se puede eliminar, desactivalo' }, { status: 409 });
   const n = await prisma.itemInventario.count({ where: { depositoId: params.id } });
   if (n > 0) return NextResponse.json({ error: `El depósito tiene ${n} artículo(s). Movelos a otro depósito o desactivalo.` }, { status: 409 });
   const r = await prisma.deposito.deleteMany({ where: { id: params.id } });

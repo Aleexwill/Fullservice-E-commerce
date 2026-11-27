@@ -27,7 +27,18 @@ export const ItemSchema = z.object({
   notas: z.string().trim().max(1000).optional(),
   activo: z.boolean().optional(),
 });
-export const ItemPatchSchema = ItemSchema.partial();
+// La cantidad y el depósito ya no se editan directo: cambian solo con movimientos y traslados (queda historial).
+export const ItemPatchSchema = ItemSchema.omit({ cantidad: true, depositoId: true }).partial().strict();
+
+const cant = z.number().finite().positive('La cantidad debe ser mayor que 0').max(1_000_000_000).transform(n => Math.round(n * 1000) / 1000);
+export const MovimientoSchema = z.discriminatedUnion('tipo', [
+  z.object({ tipo: z.literal('ENTRADA'), itemId: z.string().min(1), cantidad: cant, motivo: z.string().trim().max(200).optional(), referencia: z.string().trim().max(80).optional(), foto: foto.optional() }),
+  z.object({ tipo: z.literal('SALIDA'), itemId: z.string().min(1), cantidad: cant, motivo: z.string().trim().min(3, 'Indicá el motivo de la salida').max(200), referencia: z.string().trim().max(80).optional(), destinatario: z.string().trim().max(120).optional(), foto: foto.optional() }),
+  // Ajuste: se informa el conteo real y el sistema calcula la diferencia.
+  z.object({ tipo: z.literal('AJUSTE'), itemId: z.string().min(1), conteo: z.number().finite().min(0).max(1_000_000_000).transform(n => Math.round(n * 1000) / 1000), motivo: z.string().trim().min(3, 'Indicá el motivo del ajuste').max(200), foto: foto.optional() }),
+]);
+export const TrasladoSchema = z.object({ itemId: z.string().min(1), destinoId: z.string().min(1, 'Elegí el depósito de destino'), cantidad: cant, motivo: z.string().trim().max(200).optional() });
+export const AccionTrasladoSchema = z.object({ accion: z.enum(['recibir', 'cancelar']), nota: z.string().trim().max(300).optional() });
 
 interface ItemRow { id: string; depositoId: string; codigo: string; nombre: string; descripcion: string; categoria: string; unidad: string; cantidad: unknown; stockMinimo: unknown; ubicacion: string; fotos: unknown; notas: string; activo: boolean; updatedAt: Date; deposito?: { nombre: string } }
 

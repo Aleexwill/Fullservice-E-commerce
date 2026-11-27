@@ -977,6 +977,8 @@ model Deposito {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   items       ItemInventario[]
+  trasladosOrigen  Traslado[] @relation("TrasladoOrigen")
+  trasladosDestino Traslado[] @relation("TrasladoDestino")
 }
 
 model ItemInventario {
@@ -1000,4 +1002,59 @@ model ItemInventario {
 
   @@index([depositoId, nombre])
   @@index([nombre])
+}
+
+// ------------------------------------------------------------
+// Historial de movimientos y traslados entre depósitos
+// ------------------------------------------------------------
+
+// Registro inmutable de cada cambio de stock. Guarda copias de los nombres para que el historial sobreviva si se borra el artículo.
+model MovimientoInventario {
+  id             String   @id @default(cuid())
+  itemId         String
+  itemNombre     String
+  codigo         String   @default("")
+  unidad         String   @default("un")
+  depositoId     String
+  depositoNombre String
+  tipo           String   // ENTRADA | SALIDA | AJUSTE | TRASLADO_SALIDA | TRASLADO_ENTRADA | TRASLADO_ANULADO
+  delta          Decimal  @db.Decimal(14, 3) // + entra, − sale
+  saldo          Decimal  @db.Decimal(14, 3) // cantidad resultante en ese depósito
+  motivo         String   @default("")
+  referencia     String   @default("") // remito, factura, obra…
+  destinatario   String   @default("") // a quién o a qué trabajo se entregó
+  foto           String   @default("")
+  trasladoId     String?
+  usuario        String
+  createdAt      DateTime @default(now())
+
+  @@index([itemId, createdAt])
+  @@index([depositoId, createdAt])
+  @@index([createdAt])
+  @@index([trasladoId])
+}
+
+model Traslado {
+  id             String    @id @default(cuid())
+  numero         Int       @unique @default(autoincrement())
+  itemId         String
+  itemNombre     String
+  codigo         String    @default("")
+  unidad         String    @default("un")
+  cantidad       Decimal   @db.Decimal(14, 3)
+  origenId       String
+  origen         Deposito  @relation("TrasladoOrigen", fields: [origenId], references: [id], onDelete: Restrict)
+  destinoId      String
+  destino        Deposito  @relation("TrasladoDestino", fields: [destinoId], references: [id], onDelete: Restrict)
+  estado         String    @default("EN_TRANSITO") // EN_TRANSITO | RECIBIDO | CANCELADO
+  motivo         String    @default("")
+  nota           String    @default("") // nota de recepción o de cancelación
+  creadoPor      String
+  resueltoPor    String    @default("")
+  resueltoAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([estado, createdAt])
+  @@index([origenId])
+  @@index([destinoId])
 }

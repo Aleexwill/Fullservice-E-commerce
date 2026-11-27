@@ -279,7 +279,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
       <aside id="admin-sidebar" ref={sidebarRef} aria-label="Navegación admin" className={cn(
-        'fixed left-0 top-0 z-50 flex h-full w-[220px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200',
+        'fixed left-0 top-0 z-50 flex h-full w-[220px] flex-col print:hidden border-r border-steel-900/40 bg-carbon-light transition-transform duration-200',
         'lg:translate-x-0',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
@@ -292,8 +292,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </button>
         <SidebarContent />
       </aside>
-      <main className="min-h-screen flex-1 lg:ml-[220px]">
-        <div className="sticky top-0 z-40 flex h-[52px] items-center gap-3 border-b border-steel-900/40 bg-carbon-light/95 px-4 backdrop-blur-sm">
+      <main className="min-h-screen min-w-0 flex-1 lg:ml-[220px] print:ml-0">
+        <div className="sticky top-0 z-40 flex h-[52px] print:hidden items-center gap-3 border-b border-steel-900/40 bg-carbon-light/95 px-4 backdrop-blur-sm">
           <button
             ref={openBtnRef}
             onClick={() => setSidebarOpen(true)}
