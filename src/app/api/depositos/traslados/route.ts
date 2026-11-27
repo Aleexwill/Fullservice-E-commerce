@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   const p = await parseBody(request, TrasladoSchema);
   if (p.error) return p.error;
   try {
-    const t = await crearTraslado(p.data, a.displayName ?? a.username);
+    const t = await crearTraslado(p.data, a.displayName ?? a.username, a.userId ?? a.username);
     return NextResponse.json(t, { status: 201 });
   } catch (e) { const x = respuestaError(e); return NextResponse.json({ error: x.error }, { status: x.status }); }
 }

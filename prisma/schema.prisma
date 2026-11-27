@@ -972,6 +972,7 @@ model Deposito {
   nombre      String   @unique
   direccion   String   @default("")
   responsable String   @default("")
+  responsableId String? // usuario del sistema encargado: recibe los avisos de traslados
   notas       String   @default("")
   activo      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -1050,6 +1051,7 @@ model Traslado {
   motivo         String    @default("")
   nota           String    @default("") // nota de recepción o de cancelación
   creadoPor      String
+  creadoPorId    String    @default("")
   resueltoPor    String    @default("")
   resueltoAt     DateTime?
   createdAt      DateTime  @default(now())

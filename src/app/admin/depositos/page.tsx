@@ -57,6 +57,8 @@ function Pagina() {
   useEffect(() => { if (tab !== 'historial') return; const t = setTimeout(() => cargarMovs(), fh.q ? 300 : 0); return () => clearTimeout(t); }, [tab, cargarMovs, fh.q]);
 
   // Enlace directo desde un QR: /admin/depositos?item=<id>
+  const tabParam = sp.get('tab');
+  useEffect(() => { if (tabParam === 'traslados' || tabParam === 'historial') { setTab(tabParam); router.replace('/admin/depositos'); } }, [tabParam, router]);
   const itemParam = sp.get('item');
   useEffect(() => {
     if (!itemParam) return;
@@ -110,7 +112,7 @@ function Pagina() {
               <button onClick={() => setFiltro({ ...filtro, depositoId: filtro.depositoId === d.id ? '' : d.id })} className="min-w-0 py-1 text-left" aria-pressed={filtro.depositoId === d.id}>
                 <p className="truncate font-display text-h3 text-arctic">{d.nombre}{!d.activo && <span className="ml-2 text-caption text-steel-500">(desactivado)</span>}</p>
                 <p className="text-caption text-steel-400">{d.articulos} artículo(s){d.bajoStock > 0 && <span className="ml-2 text-orange-bright">· {d.bajoStock} bajo mínimo</span>}</p>
-                {(d.direccion || d.responsable) && <p className="mt-1 truncate text-caption text-steel-500">{[d.direccion, d.responsable && `Resp.: ${d.responsable}`].filter(Boolean).join(' · ')}</p>}
+                {(d.direccion || d.responsable) && <p className="mt-1 truncate text-caption text-steel-500">{[d.direccion, d.responsable && `Encargado: ${d.responsable}`].filter(Boolean).join(' · ')}</p>}
               </button>
               <div className="flex flex-none"><button onClick={() => setFd(d)} aria-label={`Editar ${d.nombre}`} className="flex h-11 w-11 items-center justify-center text-steel-400 hover:text-arctic"><Pencil className="h-4 w-4" /></button><button onClick={() => borrarDep(d)} aria-label={`Eliminar ${d.nombre}`} className="flex h-11 w-11 items-center justify-center text-steel-400 hover:text-danger-bright"><Trash2 className="h-4 w-4" /></button></div>
             </div>

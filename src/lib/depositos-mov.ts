@@ -47,7 +47,7 @@ export async function moverStock(m: EntradaMov, usuario: string): Promise<{ sald
   });
 }
 
-export async function crearTraslado(d: { itemId: string; destinoId: string; cantidad: number; motivo?: string }, usuario: string): Promise<{ id: string; numero: number }> {
+export async function crearTraslado(d: { itemId: string; destinoId: string; cantidad: number; motivo?: string }, usuario: string, usuarioId = ''): Promise<{ id: string; numero: number }> {
   return prisma.$transaction(async tx => {
     const it = await bloquearItem(tx, d.itemId);
     if (!it.activo) throw new ErrorNegocio('El artículo está desactivado');
@@ -56,7 +56,7 @@ export async function crearTraslado(d: { itemId: string; destinoId: string; cant
     if (!dest?.activo) throw new ErrorNegocio('El depósito de destino no existe o está desactivado');
     const saldo = r3(it.cantidad - d.cantidad);
     if (saldo < 0) throw new ErrorNegocio(`Stock insuficiente: hay ${it.cantidad} ${it.unidad} y se quieren trasladar ${d.cantidad}`, 409);
-    const t = await tx.traslado.create({ data: { itemId: it.id, itemNombre: it.nombre, codigo: it.codigo, unidad: it.unidad, cantidad: d.cantidad, origenId: it.depositoId, destinoId: d.destinoId, motivo: d.motivo ?? '', creadoPor: usuario }, select: { id: true, numero: true } });
+    const t = await tx.traslado.create({ data: { itemId: it.id, itemNombre: it.nombre, codigo: it.codigo, unidad: it.unidad, cantidad: d.cantidad, origenId: it.depositoId, destinoId: d.destinoId, motivo: d.motivo ?? '', creadoPor: usuario, creadoPorId: usuarioId }, select: { id: true, numero: true } });
     await setCantidad(tx, it.id, saldo);
     await registrar(tx, it, saldo, { tipo: 'TRASLADO_SALIDA', delta: -d.cantidad, motivo: d.motivo, trasladoId: t.id, referencia: `Traslado #${t.numero}`, usuario });
     return t;
@@ -107,4 +107,11 @@ export function respuestaError(e: unknown): { error: string; status: number } {
   if (e instanceof ErrorNegocio) return { error: e.message, status: e.status };
   console.error('inventario:', e);
   return { error: 'Error al registrar el movimiento', status: 500 };
+}
+
+/** Resuelve el encargado de un depósito a partir del id de usuario (null/'' = sin encargado). */
+export async function resolverEncargado(id: string | null | undefined): Promise<{ responsableId: string | null; responsable: string } | { error: string }> {
+  if (!id) return { responsableId: null, responsable: '' };
+  const u = await prisma.user.findFirst({ where: { id, isActive: true }, select: { id: true, name: true } });
+  return u ? { responsableId: u.id, responsable: u.name } : { error: 'El usuario encargado no existe o está inactivo' };
 }

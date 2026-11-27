@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Camera, X } from 'lucide-react';
 import { IN, L, Modal, api, nf, subirFoto } from './comun';
 import type { Dep, Item } from './comun';
@@ -10,18 +10,20 @@ const MAX_FOTOS = 5;
 export const ITEM_VACIO = { id: '', depositoId: '', nombre: '', codigo: '', descripcion: '', categoria: '', unidad: 'un', cantidad: 0, stockMinimo: 0, ubicacion: '', fotos: [] as string[], notas: '' };
 
 export function FormDeposito({ inicial, onClose, onSaved }: { inicial: Partial<Dep>; onClose: () => void; onSaved: () => void }) {
-  const [d, setD] = useState({ nombre: inicial.nombre ?? '', direccion: inicial.direccion ?? '', responsable: inicial.responsable ?? '', notas: inicial.notas ?? '', activo: inicial.activo ?? true });
+  const [d, setD] = useState({ nombre: inicial.nombre ?? '', direccion: inicial.direccion ?? '', responsableId: inicial.responsableId ?? '', notas: inicial.notas ?? '', activo: inicial.activo ?? true });
   const [err, setErr] = useState('');
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => { fetch('/api/depositos/usuarios').then(r => r.json()).then(j => Array.isArray(j) && setUsers(j)).catch(() => {}); }, []);
   async function guardar(e: React.FormEvent) {
     e.preventDefault(); setErr('');
-    try { await api(inicial.id ? `/api/depositos/${inicial.id}` : '/api/depositos', inicial.id ? 'PATCH' : 'POST', d); onSaved(); } catch (x) { setErr((x as Error).message); }
+    try { await api(inicial.id ? `/api/depositos/${inicial.id}` : '/api/depositos', inicial.id ? 'PATCH' : 'POST', { ...d, responsableId: d.responsableId || null }); onSaved(); } catch (x) { setErr((x as Error).message); }
   }
   return (
     <Modal titulo={inicial.id ? 'Editar depósito' : 'Nuevo depósito'} onClose={onClose}>
       <form onSubmit={guardar} className="space-y-3">
         <div><label htmlFor="d-n" className={L}>Nombre</label><input id="d-n" required minLength={2} maxLength={80} value={d.nombre} onChange={e => setD({ ...d, nombre: e.target.value })} className={IN} placeholder="Depósito central" /></div>
         <div><label htmlFor="d-d" className={L}>Dirección o ubicación</label><input id="d-d" maxLength={200} value={d.direccion} onChange={e => setD({ ...d, direccion: e.target.value })} className={IN} /></div>
-        <div><label htmlFor="d-r" className={L}>Responsable</label><input id="d-r" maxLength={80} value={d.responsable} onChange={e => setD({ ...d, responsable: e.target.value })} className={IN} /></div>
+        <div><label htmlFor="d-r" className={L}>Encargado</label><select id="d-r" value={d.responsableId} onChange={e => setD({ ...d, responsableId: e.target.value })} className={IN}><option value="">Sin encargado</option>{users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select><p className="mt-1 text-caption text-steel-500">Recibe un aviso en la campana cuando llega un traslado a este depósito. Sin encargado, el aviso le llega a la administración.</p></div>
         <div><label htmlFor="d-no" className={L}>Notas</label><textarea id="d-no" rows={2} maxLength={1000} value={d.notas} onChange={e => setD({ ...d, notas: e.target.value })} className={IN} /></div>
         {inicial.id && <label className="flex min-h-[44px] items-center gap-2 text-body-sm text-steel-100"><input type="checkbox" checked={d.activo} onChange={e => setD({ ...d, activo: e.target.checked })} className="h-5 w-5" />Activo (si se desactiva no admite artículos ni traslados nuevos)</label>}
         {err && <p role="alert" className="text-caption text-danger-bright">{err}</p>}

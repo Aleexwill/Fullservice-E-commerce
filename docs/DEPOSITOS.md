@@ -18,6 +18,8 @@ Desde un artículo: **Entrada** (compra, devolución; remito opcional), **Salida
 1. Desde el artículo, **Trasladar** → depósito de destino y cantidad. El stock **sale del origen** y queda **en tránsito**.
 2. En la pestaña **Traslados** (con contador de pendientes), quien recibe toca **Confirmar recepción**: el stock entra al destino. Si el artículo no existe allí (se busca por código o nombre), se crea con sus datos y fotos.
 3. Si no llega o hay un error: **Cancelar / rechazar** → el stock vuelve al origen. Un traslado se resuelve una sola vez (aunque se toque dos veces).
+- **Avisos en la campana:** cada depósito tiene un **encargado** (usuario del sistema, se elige al crear o editar el depósito). Cuando llega un traslado a su depósito le aparece "Traslado #N por recibir" (en rojo) hasta que lo confirma o se cancela; al tocarlo abre la pestaña Traslados. Si el depósito **no tiene encargado**, el aviso le llega a la administración (permiso de configuración). Quien envió el traslado recibe un aviso cuando se **recibe o se cancela** (últimos 7 días).
+- Cualquier usuario con permiso de inventario puede confirmar la recepción; el encargado es quien recibe el aviso, no el único autorizado.
 - No se puede eliminar un artículo con un traslado en tránsito, ni un depósito con traslados registrados (se desactiva).
 
 ## Celular
@@ -32,7 +34,7 @@ Desde el teléfono se puede sacar la foto en el momento o elegirla de la galerí
 Usa `canManageInventory` (admin, planner y técnico por defecto, igual que la lista de precios). Rutas `/admin/depositos` y `/api/depositos` restringidas por middleware.
 
 ## Base de datos
-Migraciones `23_depositos` (`Deposito`, `ItemInventario`) y `24_movimientos` (`MovimientoInventario`, `Traslado`). Solo crean tablas. Dependencias nuevas: `qrcode` (generar etiquetas) y `jsqr` (leer el QR en el teléfono).
+Migraciones `23_depositos` (`Deposito`, `ItemInventario`) `24_movimientos` (`MovimientoInventario`, `Traslado`) y `25_deposito_encargado` (columnas `Deposito.responsableId` y `Traslado.creadoPorId`). Solo crean tablas. Dependencias nuevas: `qrcode` (generar etiquetas) y `jsqr` (leer el QR en el teléfono).
 
 ## Fuera de alcance (posibles siguientes pasos)
-Vínculo con la lista de precios de materiales, importación masiva, exportar el historial, recepción parcial de un traslado y avisos en la campana de traslados pendientes.
+Vínculo con la lista de precios de materiales, importación masiva, exportar el historial, recepción parcial de un traslado.

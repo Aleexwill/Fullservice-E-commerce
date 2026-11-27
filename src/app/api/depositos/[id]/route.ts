@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { parseBody } from '@/lib/schemas';
 import { DepositoSchema } from '@/lib/depositos';
+import { resolverEncargado } from '@/lib/depositos-mov';
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const a = await requireRole('canManageInventory');
@@ -15,7 +16,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const dup = await prisma.deposito.findFirst({ where: { id: { not: d.id }, nombre: { equals: p.data.nombre, mode: 'insensitive' } } });
     if (dup) return NextResponse.json({ error: 'Ya existe un depósito con ese nombre' }, { status: 409 });
   }
-  const r = await prisma.deposito.update({ where: { id: d.id }, data: p.data });
+  const { responsableId, ...resto } = p.data;
+  let enc = {};
+  if (responsableId !== undefined) {
+    const e = await resolverEncargado(responsableId);
+    if ('error' in e) return NextResponse.json({ error: e.error }, { status: 400 });
+    enc = e;
+  }
+  const r = await prisma.deposito.update({ where: { id: d.id }, data: { ...resto, ...enc } });
   return NextResponse.json(r);
 }
 

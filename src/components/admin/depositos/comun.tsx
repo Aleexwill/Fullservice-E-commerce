@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { redimensionar } from '@/lib/redimensionar-imagen';
 
-export interface Dep { id: string; nombre: string; direccion: string; responsable: string; notas: string; activo: boolean; articulos: number; bajoStock: number }
+export interface Dep { id: string; nombre: string; direccion: string; responsable: string; responsableId: string | null; notas: string; activo: boolean; articulos: number; bajoStock: number }
 export interface Item { id: string; depositoId: string; deposito: string; codigo: string; nombre: string; descripcion: string; categoria: string; unidad: string; cantidad: number; stockMinimo: number; bajoStock: boolean; ubicacion: string; fotos: string[]; notas: string; activo: boolean }
 export interface Mov { id: string; itemId: string; itemNombre: string; codigo: string; unidad: string; depositoNombre: string; tipo: string; delta: number; saldo: number; motivo: string; referencia: string; destinatario: string; foto: string; usuario: string; createdAt: string }
 export interface Tras { id: string; numero: number; itemId: string; itemNombre: string; codigo: string; unidad: string; cantidad: number; origenId: string; origen: string; destinoId: string; destino: string; estado: string; motivo: string; nota: string; creadoPor: string; resueltoPor: string; createdAt: string; resueltoAt: string | null }

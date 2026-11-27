@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { parseBody } from '@/lib/schemas';
 import { DepositoSchema } from '@/lib/depositos';
+import { resolverEncargado } from '@/lib/depositos-mov';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,8 @@ export async function POST(request: NextRequest) {
   if (p.error) return p.error;
   const dup = await prisma.deposito.findFirst({ where: { nombre: { equals: p.data.nombre, mode: 'insensitive' } } });
   if (dup) return NextResponse.json({ error: 'Ya existe un depósito con ese nombre' }, { status: 409 });
-  const d = await prisma.deposito.create({ data: { nombre: p.data.nombre, direccion: p.data.direccion ?? '', responsable: p.data.responsable ?? '', notas: p.data.notas ?? '' } });
+  const enc = await resolverEncargado(p.data.responsableId);
+  if ('error' in enc) return NextResponse.json({ error: enc.error }, { status: 400 });
+  const d = await prisma.deposito.create({ data: { nombre: p.data.nombre, direccion: p.data.direccion ?? '', ...enc, notas: p.data.notas ?? '' } });
   return NextResponse.json(d, { status: 201 });
 }

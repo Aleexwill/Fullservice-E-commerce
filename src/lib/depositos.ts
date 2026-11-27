@@ -8,7 +8,7 @@ const num = (max = 1_000_000_000) => z.number().finite().min(0).max(max);
 export const DepositoSchema = z.object({
   nombre: z.string().trim().min(2, 'El nombre es muy corto').max(80),
   direccion: z.string().trim().max(200).optional(),
-  responsable: z.string().trim().max(80).optional(),
+  responsableId: z.string().max(60).nullable().optional(), // usuario encargado (recibe los avisos)
   notas: z.string().trim().max(1000).optional(),
   activo: z.boolean().optional(),
 });

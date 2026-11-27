@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 interface NotificationItem {
   id: string;
-  type: 'pedido' | 'presupuesto' | 'lead' | 'aprobacion' | 'ticket';
+  type: 'pedido' | 'presupuesto' | 'lead' | 'aprobacion' | 'ticket' | 'traslado';
   title: string;
   subtitle: string;
   href: string;
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const session = await requireAuth();
     if (session instanceof Response) return session;
     // La ruta ya no la restringe el middleware: cada sección se entrega según el permiso (leads/pedidos como antes, tickets nuevo).
-    const tiene = async (perm: 'canManageLeads' | 'canUseTickets'): Promise<boolean> => {
+    const tiene = async (perm: 'canManageLeads' | 'canUseTickets' | 'canManageInventory' | 'canManageConfig'): Promise<boolean> => {
       if (session.role in ROLE_PERMISSIONS) return ROLE_PERMISSIONS[session.role as keyof typeof ROLE_PERMISSIONS][perm];
       const r = await prisma.customRole.findUnique({ where: { name: session.role } }).catch(() => null);
       return !!(r?.permissions as Record<string, boolean> | undefined)?.[perm];
@@ -67,6 +67,28 @@ export async function GET(request: NextRequest) {
       } catch (err) { console.error('notificaciones de tickets:', err); }
     }
 
+    // Traslados entre depósitos: el encargado del depósito de destino recibe los pendientes (si no hay encargado, quienes administran la
+    // configuración); quien envió el traslado recibe el aviso cuando se recibe o se cancela.
+    let trasladoItems: NotificationItem[] = [];
+    if (await tiene('canManageInventory')) {
+      try {
+        const yoId = session.userId ?? session.username;
+        const admin = await tiene('canManageConfig');
+        const desde = new Date(Date.now() - 7 * 86_400_000);
+        const ts = await prisma.traslado.findMany({
+          where: { OR: [
+            { estado: 'EN_TRANSITO', destino: admin ? { OR: [{ responsableId: yoId }, { responsableId: null }] } : { responsableId: yoId } },
+            { estado: { in: ['RECIBIDO', 'CANCELADO'] }, creadoPorId: yoId, resueltoAt: { gte: desde } },
+          ] },
+          orderBy: { createdAt: 'desc' }, take: LIMIT,
+          include: { origen: { select: { nombre: true } }, destino: { select: { nombre: true } } },
+        });
+        trasladoItems = ts.map((t) => t.estado === 'EN_TRANSITO'
+          ? { id: `traslado-${t.id}`, type: 'traslado' as const, title: `Traslado #${t.numero} por recibir`, subtitle: `${Number(t.cantidad)} ${t.unidad} de ${t.itemNombre} · ${t.origen.nombre} → ${t.destino.nombre}`, href: '/admin/depositos?tab=traslados', createdAt: t.createdAt.toISOString(), urgent: true }
+          : { id: `traslado-res-${t.id}`, type: 'traslado' as const, title: `Traslado #${t.numero} ${t.estado === 'RECIBIDO' ? 'recibido' : 'cancelado'}`, subtitle: `${t.itemNombre} · ${t.destino.nombre}${t.resueltoPor ? ` · ${t.resueltoPor}` : ''}`, href: '/admin/depositos?tab=traslados', createdAt: (t.resueltoAt ?? t.createdAt).toISOString(), urgent: false });
+      } catch (err) { console.error('notificaciones de traslados:', err); }
+    }
+
     const [orders, presupuestos, leads, pendingApproval] = await Promise.all([
       verComercial ? prisma.order.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }) : Promise.resolve([]),
       verComercial ? prisma.presupuesto.findMany({ orderBy: { createdAt: 'desc' }, take: LIMIT }) : Promise.resolve([]),
@@ -97,6 +119,7 @@ export async function GET(request: NextRequest) {
     const items: NotificationItem[] = [
       ...approvalItems,
       ...ticketItems,
+      ...trasladoItems,
       ...orders.map((o) => {
         const customer = o.customer as { name?: string } | null;
         return {
