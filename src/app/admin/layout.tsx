@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
-  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Users, Inbox, History, Briefcase, CalendarClock, Banknote, SlidersHorizontal, Sparkles, Database, LifeBuoy, Server,
+  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Users, Inbox, History, Briefcase, CalendarClock, Banknote, SlidersHorizontal, Sparkles, Database, LifeBuoy, Server, Warehouse,
   Image as ImageIcon, Tag, Wallet, CalendarDays, ClipboardCheck, GitBranch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/agenda', label: 'Agenda de trabajo', icon: CalendarDays, permission: 'canManagePresupuestos' },
     { href: '/admin/informes-tecnicos', label: 'Informes técnicos', icon: ClipboardCheck, permission: 'canManagePresupuestos' },
     { href: '/admin/inventario', label: 'Lista de precios', icon: ClipboardList, permission: 'canManageInventory' },
+    { href: '/admin/depositos', label: 'Depósitos e inventario', icon: Warehouse, permission: 'canManageInventory' },
     { href: '/admin/reportes/servicios', label: 'Reporte servicios', icon: BarChart3, permission: 'canViewReports' },
   ]},
   { label: 'Sitio Web', items: [

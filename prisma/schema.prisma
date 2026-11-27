@@ -962,3 +962,42 @@ model TiConfig {
   data      Json     @default("{}")
   updatedAt DateTime @updatedAt
 }
+
+// ------------------------------------------------------------
+// Depósitos e inventario con fotos
+// ------------------------------------------------------------
+
+model Deposito {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  direccion   String   @default("")
+  responsable String   @default("")
+  notas       String   @default("")
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       ItemInventario[]
+}
+
+model ItemInventario {
+  id          String   @id @default(cuid())
+  depositoId  String
+  deposito    Deposito @relation(fields: [depositoId], references: [id], onDelete: Restrict)
+  codigo      String   @default("")
+  nombre      String
+  descripcion String   @default("")
+  categoria   String   @default("")
+  unidad      String   @default("un")
+  cantidad    Decimal  @default(0) @db.Decimal(14, 3)
+  stockMinimo Decimal  @default(0) @db.Decimal(14, 3)
+  ubicacion   String   @default("") // estante, pasillo, caja…
+  fotos       Json     @default("[]") // [url, …] hasta 5
+  notas       String   @default("")
+  activo      Boolean  @default(true)
+  creadoPor   String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([depositoId, nombre])
+  @@index([nombre])
+}

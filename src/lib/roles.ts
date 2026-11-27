@@ -117,6 +117,7 @@ export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/reportes', requiredPermission: 'canViewReports' },
   { path: '/admin/analytics', requiredPermission: 'canViewAnalytics' },
   { path: '/admin/inventario', requiredPermission: 'canManageInventory' },
+  { path: '/admin/depositos', requiredPermission: 'canManageInventory' },
   { path: '/admin/leads', requiredPermission: 'canManageLeads' },
   { path: '/admin/clientes', requiredPermission: 'canManageClients' },
 ];
@@ -142,6 +143,7 @@ export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/clientes-logo', requiredPermission: 'canManageContent' },
   { path: '/api/productos', requiredPermission: 'canManageProducts' },
   { path: '/api/materiales', requiredPermission: 'canManageInventory' },
+  { path: '/api/depositos', requiredPermission: 'canManageInventory' },
   { path: '/api/leads', requiredPermission: 'canManageLeads' },
   { path: '/api/clientes', requiredPermission: 'canManageClients' },
   { path: '/api/pedidos', requiredPermission: 'canManageOrders' },
