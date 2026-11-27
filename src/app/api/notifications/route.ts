@@ -77,14 +77,14 @@ export async function GET(request: NextRequest) {
         const desde = new Date(Date.now() - 7 * 86_400_000);
         const ts = await prisma.traslado.findMany({
           where: { OR: [
-            { estado: 'EN_TRANSITO', destino: admin ? { OR: [{ responsableId: yoId }, { responsableId: null }] } : { responsableId: yoId } },
+            { estado: 'EN_TRANSITO', OR: [{ receptorId: yoId }, { destino: admin ? { OR: [{ responsableId: yoId }, { responsableId: null }] } : { responsableId: yoId } }] },
             { estado: { in: ['RECIBIDO', 'CANCELADO'] }, creadoPorId: yoId, resueltoAt: { gte: desde } },
           ] },
           orderBy: { createdAt: 'desc' }, take: LIMIT,
           include: { origen: { select: { nombre: true } }, destino: { select: { nombre: true } } },
         });
         trasladoItems = ts.map((t) => t.estado === 'EN_TRANSITO'
-          ? { id: `traslado-${t.id}`, type: 'traslado' as const, title: `Traslado #${t.numero} por recibir`, subtitle: `${Number(t.cantidad)} ${t.unidad} de ${t.itemNombre} · ${t.origen.nombre} → ${t.destino.nombre}`, href: '/admin/depositos?tab=traslados', createdAt: t.createdAt.toISOString(), urgent: true }
+          ? { id: `traslado-${t.id}`, type: 'traslado' as const, title: t.receptorId === yoId ? `Traslado #${t.numero}: te designaron para recibirlo` : `Traslado #${t.numero} por recibir`, subtitle: `${Number(t.cantidad)} ${t.unidad} de ${t.itemNombre} · ${t.origen.nombre} → ${t.destino.nombre}`, href: '/admin/depositos?tab=traslados', createdAt: t.createdAt.toISOString(), urgent: true }
           : { id: `traslado-res-${t.id}`, type: 'traslado' as const, title: `Traslado #${t.numero} ${t.estado === 'RECIBIDO' ? 'recibido' : 'cancelado'}`, subtitle: `${t.itemNombre} · ${t.destino.nombre}${t.resueltoPor ? ` · ${t.resueltoPor}` : ''}`, href: '/admin/depositos?tab=traslados', createdAt: (t.resueltoAt ?? t.createdAt).toISOString(), urgent: false });
       } catch (err) { console.error('notificaciones de traslados:', err); }
     }

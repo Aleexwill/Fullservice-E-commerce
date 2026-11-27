@@ -31,6 +31,7 @@ function Pagina() {
   const [estadoT, setEstadoT] = useState('EN_TRANSITO');
   const [enTransito, setEnTransito] = useState(0);
   const [resolver, setResolver] = useState<{ t: Tras; accion: 'recibir' | 'cancelar' } | null>(null);
+  const [designar, setDesignar] = useState<Tras | null>(null);
   // historial
   const [fh, setFh] = useState({ itemId: '', itemNombre: '', q: '', tipo: '', desde: '', hasta: '' });
   const [movs, setMovs] = useState<Mov[] | null>(null);
@@ -163,10 +164,16 @@ function Pagina() {
                   <div className="min-w-0"><p className="text-body-sm font-medium text-arctic">#{t.numero} · {t.itemNombre}{t.codigo && <span className="text-steel-500"> · {t.codigo}</span>}</p>
                     <p className="mt-1 flex flex-wrap items-center gap-1 text-body-sm text-steel-100">{t.origen}<ArrowRight className="h-4 w-4 text-steel-500" aria-label="hacia" />{t.destino} <b className="ml-2 text-arctic">{nf(t.cantidad)} {t.unidad}</b></p>
                     <p className="mt-1 text-caption text-steel-500">Enviado por {t.creadoPor} · {fecha(t.createdAt)}{t.motivo && ` · ${t.motivo}`}</p>
+                    {t.estado === 'EN_TRANSITO' && <p className="text-caption text-steel-400">Recibe: <b className="text-steel-100">{t.receptor || t.encargado || 'la administración (el depósito no tiene encargado)'}</b>{t.receptor && t.encargado && ` en lugar de ${t.encargado}`}{t.receptor && t.designadoPor && ` · designado por ${t.designadoPor}`}</p>}
                     {t.estado !== 'EN_TRANSITO' && <p className="text-caption text-steel-500">{t.estado === 'RECIBIDO' ? 'Recibido' : 'Cancelado'} por {t.resueltoPor} · {t.resueltoAt && fecha(t.resueltoAt)}{t.nota && ` · ${t.nota}`}</p>}</div>
                   <span className={`rounded-full px-2 py-0.5 text-caption ${t.estado === 'EN_TRANSITO' ? 'bg-orange-muted text-orange-bright' : t.estado === 'RECIBIDO' ? 'bg-success-light/20 text-success-bright' : 'bg-steel-700/60 text-steel-400'}`}>{t.estado === 'EN_TRANSITO' ? 'En tránsito' : t.estado === 'RECIBIDO' ? 'Recibido' : 'Cancelado'}</span>
                 </div>
-                {t.estado === 'EN_TRANSITO' && <div className="mt-3 flex gap-2"><button onClick={() => setResolver({ t, accion: 'recibir' })} className="btn-primary min-h-[44px] flex-1 sm:flex-none">Confirmar recepción</button><button onClick={() => setResolver({ t, accion: 'cancelar' })} className="btn-ghost min-h-[44px]">Cancelar / rechazar</button></div>}
+                {t.estado === 'EN_TRANSITO' && <div className="mt-3 flex flex-wrap gap-2">
+                  {t.puede.recibir && <button onClick={() => setResolver({ t, accion: 'recibir' })} className="btn-primary min-h-[44px] flex-1 sm:flex-none">Confirmar recepción</button>}
+                  {t.puede.designar && <button onClick={() => setDesignar(t)} className="btn-secondary min-h-[44px]">{t.receptor ? 'Cambiar quién recibe' : 'Designar a otra persona'}</button>}
+                  {t.puede.cancelar && <button onClick={() => setResolver({ t, accion: 'cancelar' })} className="btn-ghost min-h-[44px]">Cancelar / rechazar</button>}
+                  {!t.puede.recibir && !t.puede.designar && <p className="w-full text-caption text-steel-500">Solo {t.receptor || t.encargado || 'la administración'} puede confirmar la recepción.</p>}
+                </div>}
               </li>))}</ul>)}
         </section>)}
 
@@ -198,6 +205,7 @@ function Pagina() {
       {mov && <FormMovimiento item={mov.item} tipo={mov.tipo} onClose={() => setMov(null)} onSaved={() => { setMov(null); recargar(); }} />}
       {tras && <FormTraslado item={tras} deps={deps} onClose={() => setTras(null)} onSaved={() => { setTras(null); setTab('traslados'); setEstadoT('EN_TRANSITO'); recargar(); }} />}
       {escaneando && <Escaner onClose={() => setEscaneando(false)} onResult={escaneado} />}
+      {designar && <Designar t={designar} onClose={() => setDesignar(null)} onSaved={() => { setDesignar(null); recargar(); }} />}
       {resolver && <Resolver r={resolver} onClose={() => setResolver(null)} onOk={confirmarResolver} />}
       {ver && (
         <Modal titulo={ver.nombre} onClose={() => setVer(null)} ancho>
@@ -217,6 +225,26 @@ function Pagina() {
           <div className="mt-4 flex flex-wrap gap-2"><button onClick={() => verHistorialDe(ver)} className="btn-secondary min-h-[44px]">Ver historial</button><button onClick={() => { setFi({ id: ver.id, depositoId: ver.depositoId, nombre: ver.nombre, codigo: ver.codigo, descripcion: ver.descripcion, categoria: ver.categoria, unidad: ver.unidad, cantidad: ver.cantidad, stockMinimo: ver.stockMinimo, ubicacion: ver.ubicacion, fotos: ver.fotos, notas: ver.notas }); setVer(null); }} className="btn-ghost min-h-[44px]">Editar datos</button><button onClick={() => borrarItem(ver)} className="btn-ghost min-h-[44px] text-danger-bright">Eliminar</button></div>
         </Modal>)}
     </div>
+  );
+}
+
+function Designar({ t, onClose, onSaved }: { t: Tras; onClose: () => void; onSaved: () => void }) {
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  const [uid, setUid] = useState(t.receptorId ?? '');
+  const [err, setErr] = useState('');
+  useEffect(() => { fetch('/api/depositos/usuarios').then(r => r.json()).then(j => Array.isArray(j) && setUsers(j)).catch(() => {}); }, []);
+  async function guardar(receptorId: string | null) {
+    try { await api(`/api/depositos/traslados/${t.id}`, 'POST', { accion: 'designar', receptorId }); onSaved(); } catch (x) { setErr((x as Error).message); }
+  }
+  return (
+    <Modal titulo="Designar quién recibe" onClose={onClose}>
+      <p className="mb-3 text-body-sm text-steel-100">#{t.numero} · {t.itemNombre}: <b>{nf(t.cantidad)} {t.unidad}</b> a {t.destino}.</p>
+      <p className="mb-3 text-caption text-steel-400">Si {t.encargado || 'el encargado'} no puede recibirlo, elegí a otra persona. Le llega un aviso en la campana y solo ella (o {t.encargado || 'el encargado'}) podrá confirmar la recepción. Queda registrado quién la designó.</p>
+      <label htmlFor="ds-u" className={L}>Persona que recibe</label>
+      <select id="ds-u" value={uid} onChange={e => setUid(e.target.value)} className={IN}><option value="">Elegí una persona…</option>{users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
+      {err && <p role="alert" className="mt-2 text-caption text-danger-bright">{err}</p>}
+      <div className="mt-4 flex flex-wrap gap-2"><button disabled={!uid} onClick={() => guardar(uid)} className="btn-primary min-h-[44px] flex-1 sm:flex-none">Designar</button>{t.receptorId && <button onClick={() => guardar(null)} className="btn-secondary min-h-[44px]">Quitar designación</button>}<button onClick={onClose} className="btn-ghost min-h-[44px]">Volver</button></div>
+    </Modal>
   );
 }
 

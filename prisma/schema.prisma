@@ -1052,6 +1052,9 @@ model Traslado {
   nota           String    @default("") // nota de recepción o de cancelación
   creadoPor      String
   creadoPorId    String    @default("")
+  receptorId     String?   // persona designada para recibir en lugar del encargado
+  receptor       String    @default("")
+  designadoPor   String    @default("")
   resueltoPor    String    @default("")
   resueltoAt     DateTime?
   createdAt      DateTime  @default(now())

@@ -71,10 +71,44 @@ async function bloquearTraslado(tx: Tx, id: string) {
   return t;
 }
 
-/** El destino confirma que llegó: el stock entra al depósito de destino (si el artículo no existe allí, se crea con sus datos y fotos). */
-export async function recibirTraslado(id: string, nota: string | undefined, usuario: string) {
+export interface Actor { id: string; nombre: string; admin: boolean }
+
+/** Quién puede actuar sobre un traslado en tránsito. Recibir: el encargado del destino o la persona que designó; sin encargado ni designado, la administración. */
+export function permisosTraslado(t: { receptorId: string | null; creadoPorId: string }, destinoResponsableId: string | null, a: Actor) {
+  const esEncargado = !!destinoResponsableId && destinoResponsableId === a.id;
+  const esReceptor = !!t.receptorId && t.receptorId === a.id;
+  const sinNadie = !destinoResponsableId && !t.receptorId;
+  const recibir = esEncargado || esReceptor || (sinNadie && a.admin);
+  return { recibir, designar: esEncargado || a.admin, cancelar: recibir || a.admin || t.creadoPorId === a.id };
+}
+
+async function cargarConPermisos(tx: Tx, id: string, a: Actor) {
+  const t = await bloquearTraslado(tx, id);
+  const dest = await tx.deposito.findUnique({ where: { id: t.destinoId }, select: { responsableId: true, responsable: true } });
+  return { t, dest, p: permisosTraslado(t, dest?.responsableId ?? null, a) };
+}
+
+/** El encargado (o la administración) designa a otra persona que recibirá este traslado; null quita la designación. */
+export async function designarReceptor(id: string, receptorId: string | null | undefined, a: Actor) {
   return prisma.$transaction(async tx => {
-    const t = await bloquearTraslado(tx, id);
+    const { p } = await cargarConPermisos(tx, id, a);
+    if (!p.designar) throw new ErrorNegocio('Solo el encargado del depósito de destino o la administración pueden designar a quien recibe', 403);
+    let nombre = '';
+    if (receptorId) {
+      const u = await tx.user.findFirst({ where: { id: receptorId, isActive: true }, select: { name: true } });
+      if (!u) throw new ErrorNegocio('El usuario no existe o está inactivo');
+      nombre = u.name;
+    }
+    await tx.traslado.update({ where: { id }, data: { receptorId: receptorId || null, receptor: nombre, designadoPor: receptorId ? a.nombre : '' } });
+  });
+}
+
+/** El destino confirma que llegó: el stock entra al depósito de destino (si el artículo no existe allí, se crea con sus datos y fotos). */
+export async function recibirTraslado(id: string, nota: string | undefined, a: Actor) {
+  const usuario = a.nombre;
+  return prisma.$transaction(async tx => {
+    const { t, p } = await cargarConPermisos(tx, id, a);
+    if (!p.recibir) throw new ErrorNegocio('Solo el encargado del depósito de destino, o la persona que él o la administración designen, puede confirmar la recepción', 403);
     const orig = await tx.itemInventario.findUnique({ where: { id: t.itemId } });
     const cantidad = Number(t.cantidad);
     const cand = await tx.itemInventario.findMany({ where: { depositoId: t.destinoId, OR: [...(t.codigo ? [{ codigo: { equals: t.codigo, mode: 'insensitive' as const } }] : []), { nombre: { equals: t.itemNombre, mode: 'insensitive' as const } }] }, select: { id: true } });
@@ -92,9 +126,11 @@ export async function recibirTraslado(id: string, nota: string | undefined, usua
 }
 
 /** Se anula el traslado (lo cancela el origen o lo rechaza el destino): el stock vuelve al depósito de origen. */
-export async function cancelarTraslado(id: string, nota: string | undefined, usuario: string) {
+export async function cancelarTraslado(id: string, nota: string | undefined, a: Actor) {
+  const usuario = a.nombre;
   return prisma.$transaction(async tx => {
-    const t = await bloquearTraslado(tx, id);
+    const { t, p } = await cargarConPermisos(tx, id, a);
+    if (!p.cancelar) throw new ErrorNegocio('Solo quien envió el traslado, quien puede recibirlo o la administración pueden cancelarlo', 403);
     const it = await bloquearItem(tx, t.itemId); // no se puede borrar un artículo con traslados en tránsito
     const saldo = r3(it.cantidad + Number(t.cantidad));
     await setCantidad(tx, it.id, saldo);

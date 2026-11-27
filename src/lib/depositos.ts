@@ -38,7 +38,7 @@ export const MovimientoSchema = z.discriminatedUnion('tipo', [
   z.object({ tipo: z.literal('AJUSTE'), itemId: z.string().min(1), conteo: z.number().finite().min(0).max(1_000_000_000).transform(n => Math.round(n * 1000) / 1000), motivo: z.string().trim().min(3, 'Indicá el motivo del ajuste').max(200), foto: foto.optional() }),
 ]);
 export const TrasladoSchema = z.object({ itemId: z.string().min(1), destinoId: z.string().min(1, 'Elegí el depósito de destino'), cantidad: cant, motivo: z.string().trim().max(200).optional() });
-export const AccionTrasladoSchema = z.object({ accion: z.enum(['recibir', 'cancelar']), nota: z.string().trim().max(300).optional() });
+export const AccionTrasladoSchema = z.object({ accion: z.enum(['recibir', 'cancelar', 'designar']), nota: z.string().trim().max(300).optional(), receptorId: z.string().max(60).nullable().optional() });
 
 interface ItemRow { id: string; depositoId: string; codigo: string; nombre: string; descripcion: string; categoria: string; unidad: string; cantidad: unknown; stockMinimo: unknown; ubicacion: string; fotos: unknown; notas: string; activo: boolean; updatedAt: Date; deposito?: { nombre: string } }
 

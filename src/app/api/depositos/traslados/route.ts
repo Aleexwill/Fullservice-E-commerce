@@ -4,7 +4,8 @@ import { requireRole } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { parseBody } from '@/lib/schemas';
 import { TrasladoSchema } from '@/lib/depositos';
-import { crearTraslado, respuestaError } from '@/lib/depositos-mov';
+import { crearTraslado, permisosTraslado, respuestaError } from '@/lib/depositos-mov';
+import { esTI } from '@/lib/ti/tickets';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,11 +17,13 @@ export async function GET(request: NextRequest) {
   const where: Prisma.TrasladoWhereInput = {};
   const estado = sp.get('estado'); if (estado && ['EN_TRANSITO', 'RECIBIDO', 'CANCELADO'].includes(estado)) where.estado = estado;
   const dep = sp.get('depositoId'); if (dep) where.OR = [{ origenId: dep }, { destinoId: dep }];
-  const rows = await prisma.traslado.findMany({ where, include: { origen: { select: { nombre: true } }, destino: { select: { nombre: true } } }, orderBy: { createdAt: 'desc' }, take: 200 });
+  const rows = await prisma.traslado.findMany({ where, include: { origen: { select: { nombre: true } }, destino: { select: { nombre: true, responsableId: true, responsable: true } } }, orderBy: { createdAt: 'desc' }, take: 200 });
+  const actor = { id: a.userId ?? a.username, nombre: a.displayName ?? a.username, admin: await esTI(a) };
   return NextResponse.json(rows.map(t => ({
     id: t.id, numero: t.numero, itemId: t.itemId, itemNombre: t.itemNombre, codigo: t.codigo, unidad: t.unidad, cantidad: Number(t.cantidad),
     origenId: t.origenId, origen: t.origen.nombre, destinoId: t.destinoId, destino: t.destino.nombre, estado: t.estado, motivo: t.motivo, nota: t.nota,
-    creadoPor: t.creadoPor, resueltoPor: t.resueltoPor, createdAt: t.createdAt.toISOString(), resueltoAt: t.resueltoAt?.toISOString() ?? null,
+    creadoPor: t.creadoPor, encargado: t.destino.responsable, receptorId: t.receptorId, receptor: t.receptor, designadoPor: t.designadoPor,
+    puede: t.estado === 'EN_TRANSITO' ? permisosTraslado(t, t.destino.responsableId, actor) : { recibir: false, designar: false, cancelar: false }, resueltoPor: t.resueltoPor, createdAt: t.createdAt.toISOString(), resueltoAt: t.resueltoAt?.toISOString() ?? null,
   })));
 }
 
