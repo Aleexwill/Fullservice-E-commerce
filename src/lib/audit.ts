@@ -57,6 +57,27 @@ export const AUDIT_DEFAULTS: Record<string, AuditField[]> = {
     { key: 'phone',   label: 'Teléfono',tracked: false },
     { key: 'address', label: 'Dirección',tracked: false },
   ],
+  Funcionario: [
+    { key: 'nombre',       label: 'Nombre',            tracked: true },
+    { key: 'documento',    label: 'Documento',         tracked: true },
+    { key: 'cargo',        label: 'Cargo',             tracked: true },
+    { key: 'userId',       label: 'Usuario enlazado',  tracked: true },
+    { key: 'fechaIngreso', label: 'Fecha de ingreso',  tracked: true },
+    { key: 'fechaEgreso',  label: 'Fecha de egreso',   tracked: true },
+    { key: 'isActive',     label: 'Activo',            tracked: true },
+    { key: 'rostro',       label: 'Huella facial',     tracked: true },
+    { key: 'area',         label: 'Área',              tracked: true },
+    { key: 'tipoContrato', label: 'Tipo de contrato',  tracked: true },
+    { key: 'salario',      label: 'Salario',           tracked: true },
+    { key: 'cuentaBancaria', label: 'Cuenta bancaria', tracked: true },
+    { key: 'ipsNumero',    label: 'Nº de IPS',         tracked: true },
+  ],
+  ConfigIA: [
+    { key: 'config', label: 'Configuración', tracked: true },
+  ],
+  Planilla: [
+    { key: 'estado', label: 'Estado', tracked: true },
+  ],
   Lead: [
     { key: 'status',         label: 'Etapa',           tracked: true  },
     { key: 'priority',       label: 'Prioridad',       tracked: true  },

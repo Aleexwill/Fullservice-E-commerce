@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth';
-import { getGeminiModel, generateWithRetry } from '@/lib/gemini';
+import { getGeminiModel, GEMINI_MODEL_ID } from '@/lib/gemini';
+import { autorizarIA, generarConGemini } from '@/lib/ia/uso';
 
 const SYSTEM = 'Sos un corrector de textos técnicos de construcción en español paraguayo. Corregís ortografía, gramática y puntuación, y mejorás la redacción para que suene profesional en un presupuesto de obra. No inventás datos, precios, materiales ni plazos que no estén en el texto. No agregás comentarios ni comillas: devolvés únicamente el texto corregido, sin explicaciones.';
 
@@ -13,6 +14,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'GEMINI_API_KEY no configurada' }, { status: 503 });
   }
 
+  const bloqueo = await autorizarIA('corregir-texto', auth);
+  if (bloqueo) return bloqueo;
+
   const { texto } = await req.json();
   if (!texto?.trim()) {
     return NextResponse.json({ error: 'Texto requerido' }, { status: 400 });
@@ -20,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const model = getGeminiModel(apiKey, SYSTEM);
-    const text = await generateWithRetry(model, texto.trim());
+    const text = await generarConGemini({ funcion: 'corregir-texto', modelo: GEMINI_MODEL_ID, session: auth }, model, texto.trim());
     const resultado = text.trim().replace(/^["'"]|["'"]$/g, '');
     return NextResponse.json({ resultado });
   } catch (err: any) {

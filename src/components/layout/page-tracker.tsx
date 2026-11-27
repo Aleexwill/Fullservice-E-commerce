@@ -8,7 +8,7 @@ export function PageTracker() {
 
   useEffect(() => {
     // Don't track admin pages
-    if (pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
+    if (pathname.startsWith('/admin') || pathname.startsWith('/marcacion') || pathname.startsWith('/api')) return;
 
     fetch('/api/analytics', {
       method: 'POST',

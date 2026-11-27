@@ -530,3 +530,536 @@ model Category {
   @@unique([scope, slug])
   @@index([scope, isActive, order])
 }
+
+// ============================================================
+// MARCACIÓN EN TERRENO (PWA /marcacion)
+// Jornada del día por trabajador, marcas con GPS/rostro y
+// verificación de equipo de seguridad (EPP) aprobada por un encargado.
+// ============================================================
+
+model Sitio {
+  id        String   @id @default(cuid())
+  nombre    String
+  tipo      String   @default("OBRA") // OFICINA | OBRA
+  lat       Float
+  lng       Float
+  radioM    Int      @default(100)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tipo, isActive])
+}
+
+model Jornada {
+  id          String   @id @default(cuid())
+  userKey     String   // User.id, o el username del admin de .env
+  userName    String
+  fecha       String   // YYYY-MM-DD (America/Asuncion)
+  // EN_OFICINA | EN_TRASLADO_IDA | EN_LUGAR | TRABAJANDO | EN_TRASLADO_VUELTA | EN_OFICINA_FIN | CERRADA
+  estado      String   @default("EN_OFICINA")
+  sitioId     String?
+  sitioNombre String   @default("")
+  otRef       String   @default("")
+  enAlmuerzo  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  marcas      Marca[]
+  epps        VerificacionEpp[]
+
+  @@unique([userKey, fecha])
+  @@index([fecha])
+  @@index([estado])
+}
+
+model Marca {
+  id           String   @id @default(cuid())
+  jornadaId    String
+  jornada      Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  // INGRESO | TRASLADO_IDA | LLEGADA_LUGAR | SALIDA_LUGAR | LLEGADA_OFICINA | SALIDA | INICIO_ALMUERZO | FIN_ALMUERZO
+  tipo         String
+  metodo       String   @default("GPS") // ROSTRO | GPS
+  lat          Float
+  lng          Float
+  precisionM   Float?
+  distanciaM   Int?
+  fueraDeRango Boolean  @default(false)
+  sitioNombre  String   @default("")
+  rostroEstado String?  // VERIFICADO | DUDOSO | SIN_PLANTILLA (solo en ingreso/salida). No se guarda ninguna imagen.
+  rostroScore  Float?   // distancia entre la huella de la marca y la enrolada (menor = más parecido)
+  createdAt    DateTime @default(now())
+
+  @@index([jornadaId, createdAt])
+}
+
+model VerificacionEpp {
+  id          String    @id @default(cuid())
+  jornadaId   String
+  jornada     Jornada   @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  fotoUrl     String
+  declarado   Json      @default("{}") // {casco: true, ...} lo que dice el trabajador
+  revisado    Json      @default("{}") // lo que confirma el encargado
+  estado      String    @default("PENDIENTE") // PENDIENTE | APROBADA | RECHAZADA
+  motivo      String    @default("")
+  revisorId   String?
+  revisorName String    @default("")
+  revisadoAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([estado, createdAt])
+  @@index([jornadaId])
+}
+
+// Parámetros de asistencia: una sola fila ('default') con horarios por día, tolerancia, almuerzo, etc.
+model MarcacionConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+// Excepciones por persona: si marca asistencia (null = según su rol) y horario propio (null = el general).
+model HorarioUsuario {
+  id        String   @id @default(cuid())
+  userKey   String   @unique
+  marca     Boolean?
+  dias      Json?
+  updatedAt DateTime @updatedAt
+}
+
+model Feriado {
+  id        String   @id @default(cuid())
+  fecha     String   @unique // YYYY-MM-DD
+  nombre    String
+  createdAt DateTime @default(now())
+}
+
+// Vacaciones, permisos, reposos y licencias. Las faltas sin aviso no se cargan: el reporte las detecta.
+model Ausencia {
+  id           String    @id @default(cuid())
+  userKey      String
+  userName     String
+  tipo         String    // VACACIONES | PERMISO | REPOSO_MEDICO | LICENCIA
+  desde        String    // YYYY-MM-DD
+  hasta        String    // YYYY-MM-DD (inclusive)
+  motivo       String    @default("")
+  estado       String    @default("PENDIENTE") // PENDIENTE | APROBADA | RECHAZADA | CANCELADA
+  creadaPor    String    @default("")
+  revisorName  String    @default("")
+  revisorMotivo String   @default("")
+  revisadoAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userKey, desde])
+  @@index([estado, desde])
+}
+
+// ============================================================
+// FUNCIONARIOS (personal con fecha de ingreso → antigüedad)
+// Se enlaza de forma opcional al usuario del sistema por User.id.
+// ============================================================
+
+model Funcionario {
+  id           String   @id @default(cuid())
+  userId       String?  @unique // User.id (sin FK: un funcionario puede no tener usuario y viceversa)
+  nombre       String
+  documento    String?  @unique // CI
+  cargo        String   @default("")
+  telefono     String   @default("")
+  email        String   @default("")
+  fechaIngreso String   // YYYY-MM-DD
+  fechaEgreso  String?  // YYYY-MM-DD
+  isActive     Boolean  @default(true)
+  notas        String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Legajo (RRHH)
+  area              String   @default("")
+  tipoContrato      String   @default("INDEFINIDO") // INDEFINIDO | PLAZO_FIJO | PRUEBA | JORNAL
+  fechaNacimiento   String?  // YYYY-MM-DD
+  estadoCivil       String   @default("")
+  hijosMenores      Int      @default(0)
+  direccion         String   @default("")
+  ciudad            String   @default("")
+  ipsNumero         String   @default("")
+  banco             String   @default("")
+  cuentaBancaria    String   @default("")
+  emergenciaNombre  String   @default("")
+  emergenciaParentesco String @default("")
+  emergenciaTelefono String  @default("")
+
+  cargos         CargoHistorial[]
+  salarios       SalarioFuncionario[]
+  documentos     DocumentoFuncionario[]
+  eppEntregas    EntregaEpp[]
+  capacitaciones Capacitacion[]
+
+  @@index([isActive])
+}
+
+// Huella facial de referencia (enrolamiento). Solo guarda números, nunca imágenes.
+// Se compara contra la huella de cada ingreso/salida. Se borra al dar de baja al funcionario.
+model RostroPlantilla {
+  id           String   @id @default(cuid())
+  userKey      String   @unique // User.id
+  vectores     Json     // number[][] de 128 valores, 3 a 5 capturas
+  enroladoPor  String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// RRHH: historial, documentos, EPP, capacitaciones
+// ------------------------------------------------------------
+
+model CargoHistorial {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  cargo         String
+  area          String      @default("")
+  desde         String // YYYY-MM-DD
+  hasta         String?
+  notas         String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId, desde])
+}
+
+// Historial salarial: vale el último registro con vigenteDesde <= fin del período.
+model SalarioFuncionario {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  vigenteDesde  String // YYYY-MM-DD
+  tipo          String      @default("MENSUAL") // MENSUAL | JORNAL
+  monto         Int // guaraníes: sueldo mensual o valor del jornal
+  notas         String      @default("")
+  creadoPor     String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId, vigenteDesde])
+}
+
+model DocumentoFuncionario {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  tipo          String // CONTRATO | CI | CERTIFICADO | SALUD | ANTECEDENTES | OTRO
+  nombre        String
+  url           String // Vercel Blob (o data URL en desarrollo)
+  vence         String? // YYYY-MM-DD
+  notas         String      @default("")
+  subidoPor     String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId])
+  @@index([vence])
+}
+
+model EntregaEpp {
+  id            String      @id @default(cuid())
+  funcionarioId String
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  item          String // casco, chaleco, botas, guantes, lentes u otro del catálogo
+  cantidad      Int         @default(1)
+  talle         String      @default("")
+  fechaEntrega  String // YYYY-MM-DD
+  vence         String? // fecha de reposición (entrega + vida útil del catálogo)
+  observacion   String      @default("")
+  entregadoPor  String      @default("")
+  createdAt     DateTime    @default(now())
+
+  @@index([funcionarioId, fechaEntrega])
+  @@index([vence])
+}
+
+model Capacitacion {
+  id             String      @id @default(cuid())
+  funcionarioId  String
+  funcionario    Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  nombre         String
+  fecha          String // YYYY-MM-DD
+  horas          Int         @default(0)
+  entidad        String      @default("")
+  vence          String? // YYYY-MM-DD (certificaciones con vigencia)
+  certificadoUrl String?
+  notas          String      @default("")
+  createdAt      DateTime    @default(now())
+
+  @@index([funcionarioId, fecha])
+  @@index([vence])
+}
+
+// Parámetros de RRHH (una fila 'default'): catálogo de EPP, alertas y reglas de planilla.
+model RrhhConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// RRHH: planilla de sueldos
+// ------------------------------------------------------------
+
+model Planilla {
+  id         String    @id @default(cuid())
+  periodo    String // YYYY-MM
+  tipo       String    @default("MENSUAL") // MENSUAL | AGUINALDO
+  estado     String    @default("BORRADOR") // BORRADOR | CERRADA
+  reglas     Json      @default("{}") // reglas usadas al calcular (queda fijo al cerrar)
+  cerradaPor String    @default("")
+  cerradaAt  DateTime?
+  creadaPor  String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  recibos    Recibo[]
+
+  @@unique([periodo, tipo])
+}
+
+model Recibo {
+  id                String   @id @default(cuid())
+  planillaId        String
+  planilla          Planilla @relation(fields: [planillaId], references: [id], onDelete: Cascade)
+  funcionarioId     String
+  nombre            String
+  documento         String   @default("")
+  cargo             String   @default("")
+  detalle           Json     @default("[]") // [{tipo: HABER|DESCUENTO, concepto, monto, imponible, nota}]
+  asistencia        Json     @default("{}") // resumen del mes usado para calcular
+  totalHaberes      Int      @default(0)
+  totalDescuentos   Int      @default(0)
+  neto              Int      @default(0)
+  aporteIpsPatronal Int      @default(0)
+  advertencias      Json     @default("[]")
+  createdAt         DateTime @default(now())
+
+  @@unique([planillaId, funcionarioId])
+}
+
+// Conceptos manuales del período (bonificaciones, anticipos, préstamos, premios, descuentos).
+model ConceptoPlanilla {
+  id            String   @id @default(cuid())
+  funcionarioId String
+  periodo       String // YYYY-MM (para aguinaldo: YYYY-12)
+  planilla      String   @default("MENSUAL") // MENSUAL | AGUINALDO
+  tipo          String // HABER | DESCUENTO
+  nombre        String
+  monto         Int
+  imponible     Boolean  @default(false) // suma a la base de aporte IPS
+  notas         String   @default("")
+  creadoPor     String   @default("")
+  createdAt     DateTime @default(now())
+
+  @@index([periodo, funcionarioId])
+}
+
+// ------------------------------------------------------------
+// Uso de IA: registro de cada llamada (solo metadatos, nunca el texto) y configuración de límites
+// ------------------------------------------------------------
+
+model UsoIA {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  funcion        String   // corregir-texto | mejorar-titulo | mejorar-descripcion | presupuesto-analizar | presupuesto-ajustar | prueba
+  proveedor      String   // gemini | anthropic | openai
+  modelo         String
+  userId         String?
+  userName       String   @default("")
+  tokensEntrada  Int      @default(0)
+  tokensSalida   Int      @default(0)
+  ms             Int      @default(0)
+  estado         String   @default("OK") // OK | ERROR | BLOQUEADA
+  error          String   @default("")
+
+  @@index([createdAt])
+  @@index([funcion, createdAt])
+  @@index([userName, createdAt])
+  @@index([estado, createdAt])
+}
+
+model IaConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// TI: tickets de incidencias y mejoras, puntos de crecimiento de la base de datos y parámetros
+// ------------------------------------------------------------
+
+model Ticket {
+  id            String    @id @default(cuid())
+  numero        Int       @unique @default(autoincrement())
+  tipo          String    // ERROR | CORRECCION | MEJORA
+  titulo        String
+  descripcion   String
+  modulo        String    @default("")
+  pantalla      String    @default("") // ruta donde ocurrió
+  pasos         String    @default("")
+  esperado      String    @default("")
+  prioridad     String    @default("MEDIA") // BAJA | MEDIA | ALTA | CRITICA
+  estado        String    @default("NUEVO") // NUEVO | EN_ANALISIS | ESPERANDO_INFO | EN_CURSO | EN_PRUEBA | RESUELTO | CERRADO | RECHAZADO
+  solicitanteId String
+  solicitante   String
+  asignadoId    String?
+  asignado      String    @default("")
+  adjuntos      Json      @default("[]") // [{url, nombre}]
+  navegador     String    @default("")
+  resolucion    String    @default("")
+  resueltoAt    DateTime?
+  cerradoAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  comentarios   TicketComentario[]
+  eventos       TicketEvento[]
+
+  @@index([estado, prioridad])
+  @@index([solicitanteId])
+  @@index([createdAt])
+}
+
+model TicketComentario {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  autorId   String
+  autor     String
+  texto     String
+  interno   Boolean  @default(false) // nota interna: solo la ve TI
+  adjuntos  Json     @default("[]")
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketEvento {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tipo      String   // CREADO | ESTADO | PRIORIDAD | ASIGNADO | COMENTARIO | COMENTARIO_INTERNO | REABIERTO | CONFIRMADO | CANCELADO | AUTOCERRADO
+  detalle   String   @default("")
+  autorId   String   @default("")
+  autor     String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+  @@index([createdAt])
+}
+
+// Un punto por día con el tamaño de la base de datos, para ver el crecimiento.
+model DbSnapshot {
+  id         String   @id @default(cuid())
+  fecha      String   @unique // YYYY-MM-DD (Asunción)
+  totalBytes BigInt
+  tablas     Json     // [{tabla, bytes, filas}]
+  createdAt  DateTime @default(now())
+}
+
+model TiConfig {
+  id        String   @id @default("default")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// Depósitos e inventario con fotos
+// ------------------------------------------------------------
+
+model Deposito {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  direccion   String   @default("")
+  responsable String   @default("")
+  responsableId String? // usuario del sistema encargado: recibe los avisos de traslados
+  notas       String   @default("")
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       ItemInventario[]
+  trasladosOrigen  Traslado[] @relation("TrasladoOrigen")
+  trasladosDestino Traslado[] @relation("TrasladoDestino")
+}
+
+model ItemInventario {
+  id          String   @id @default(cuid())
+  depositoId  String
+  deposito    Deposito @relation(fields: [depositoId], references: [id], onDelete: Restrict)
+  codigo      String   @default("")
+  nombre      String
+  descripcion String   @default("")
+  categoria   String   @default("")
+  unidad      String   @default("un")
+  cantidad    Decimal  @default(0) @db.Decimal(14, 3)
+  stockMinimo Decimal  @default(0) @db.Decimal(14, 3)
+  ubicacion   String   @default("") // estante, pasillo, caja…
+  fotos       Json     @default("[]") // [url, …] hasta 5
+  notas       String   @default("")
+  activo      Boolean  @default(true)
+  creadoPor   String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([depositoId, nombre])
+  @@index([nombre])
+}
+
+// ------------------------------------------------------------
+// Historial de movimientos y traslados entre depósitos
+// ------------------------------------------------------------
+
+// Registro inmutable de cada cambio de stock. Guarda copias de los nombres para que el historial sobreviva si se borra el artículo.
+model MovimientoInventario {
+  id             String   @id @default(cuid())
+  itemId         String
+  itemNombre     String
+  codigo         String   @default("")
+  unidad         String   @default("un")
+  depositoId     String
+  depositoNombre String
+  tipo           String   // ENTRADA | SALIDA | AJUSTE | TRASLADO_SALIDA | TRASLADO_ENTRADA | TRASLADO_ANULADO
+  delta          Decimal  @db.Decimal(14, 3) // + entra, − sale
+  saldo          Decimal  @db.Decimal(14, 3) // cantidad resultante en ese depósito
+  motivo         String   @default("")
+  referencia     String   @default("") // remito, factura, obra…
+  destinatario   String   @default("") // a quién o a qué trabajo se entregó
+  foto           String   @default("")
+  trasladoId     String?
+  usuario        String
+  createdAt      DateTime @default(now())
+
+  @@index([itemId, createdAt])
+  @@index([depositoId, createdAt])
+  @@index([createdAt])
+  @@index([trasladoId])
+}
+
+model Traslado {
+  id             String    @id @default(cuid())
+  numero         Int       @unique @default(autoincrement())
+  itemId         String
+  itemNombre     String
+  codigo         String    @default("")
+  unidad         String    @default("un")
+  cantidad       Decimal   @db.Decimal(14, 3)
+  origenId       String
+  origen         Deposito  @relation("TrasladoOrigen", fields: [origenId], references: [id], onDelete: Restrict)
+  destinoId      String
+  destino        Deposito  @relation("TrasladoDestino", fields: [destinoId], references: [id], onDelete: Restrict)
+  estado         String    @default("EN_TRANSITO") // EN_TRANSITO | RECIBIDO | CANCELADO
+  motivo         String    @default("")
+  nota           String    @default("") // nota de recepción o de cancelación
+  creadoPor      String
+  creadoPorId    String    @default("")
+  receptorId     String?   // persona designada para recibir en lugar del encargado
+  receptor       String    @default("")
+  designadoPor   String    @default("")
+  resueltoPor    String    @default("")
+  resueltoAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([estado, createdAt])
+  @@index([origenId])
+  @@index([destinoId])
+}

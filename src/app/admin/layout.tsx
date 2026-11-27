@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, Package, ShoppingCart, UserCheck, FileText, Settings, LogOut,
   ChevronRight, FolderOpen, Wrench, PenSquare, BarChart3, Eye, ClipboardList,
-  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Inbox, History,
+  TrendingUp, Calculator, Layers, Megaphone, Menu, X, UserCog, Users, Inbox, History, Briefcase, CalendarClock, Banknote, SlidersHorizontal, Sparkles, Database, LifeBuoy, Server, Warehouse,
   Image as ImageIcon, Tag, Wallet, CalendarDays, ClipboardCheck, GitBranch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ const navGroups: NavGroup[] = [
     { href: '/admin/agenda', label: 'Agenda de trabajo', icon: CalendarDays, permission: 'canManagePresupuestos' },
     { href: '/admin/informes-tecnicos', label: 'Informes técnicos', icon: ClipboardCheck, permission: 'canManagePresupuestos' },
     { href: '/admin/inventario', label: 'Lista de precios', icon: ClipboardList, permission: 'canManageInventory' },
+    { href: '/admin/depositos', label: 'Depósitos e inventario', icon: Warehouse, permission: 'canManageInventory' },
     { href: '/admin/reportes/servicios', label: 'Reporte servicios', icon: BarChart3, permission: 'canViewReports' },
   ]},
   { label: 'Sitio Web', items: [
@@ -55,12 +56,26 @@ const navGroups: NavGroup[] = [
     { href: '/admin/leads', label: 'Leads', icon: Inbox, permission: 'canManageLeads' },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, permission: 'canViewAnalytics' },
   ]},
+  { label: 'RRHH', items: [
+    { href: '/admin/rrhh', label: 'Panel RRHH', icon: Briefcase, exact: true, permission: 'canManageRRHH' },
+    { href: '/admin/funcionarios', label: 'Funcionarios', icon: Users, permission: 'canManageRRHH' },
+    { href: '/admin/rrhh/vencimientos', label: 'Vencimientos', icon: CalendarClock, permission: 'canManageRRHH' },
+    { href: '/admin/rrhh/planilla', label: 'Planilla de sueldos', icon: Banknote, permission: 'canManageRRHH' },
+    { href: '/admin/rrhh/parametros', label: 'Parámetros RRHH', icon: SlidersHorizontal, permission: 'canManageRRHH' },
+    { href: '/marcacion/reportes', label: 'Asistencia y marcación', icon: ClipboardCheck, permission: 'canViewReports' },
+  ]},
+  { label: 'TI', items: [
+    { href: '/admin/ti', label: 'Panel TI', icon: Server, exact: true, permission: 'canManageConfig' },
+    { href: '/admin/ti/tickets', label: 'Tickets', icon: LifeBuoy, permission: 'canUseTickets' },
+    { href: '/admin/ti/base-de-datos', label: 'Base de datos', icon: Database, permission: 'canManageConfig' },
+    { href: '/admin/ia', label: 'Uso de IA', icon: Sparkles, permission: 'canManageConfig' },
+    { href: '/admin/config', label: 'Configuración', icon: Settings, permission: 'canManageConfig' },
+  ] },
   { label: 'Sistema', items: [
     { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, permission: 'canManageUsers' },
     { href: '/admin/sistema/logs', label: 'Log de cambios', icon: History, permission: 'canManageUsers' },
     { href: '/admin/reportes', label: 'Reporte general', icon: FileText, exact: true, permission: 'canViewReports' },
     { href: '/admin/configuracion/flujo-aprobacion', label: 'Flujo de Aprobación', icon: GitBranch, permission: 'canManageConfig' },
-    { href: '/admin/config', label: 'Configuración', icon: Settings, permission: 'canManageConfig' },
   ]},
 ];
 
@@ -264,7 +279,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
       <aside id="admin-sidebar" ref={sidebarRef} aria-label="Navegación admin" className={cn(
-        'fixed left-0 top-0 z-50 flex h-full w-[220px] flex-col border-r border-steel-900/40 bg-carbon-light transition-transform duration-200',
+        'fixed left-0 top-0 z-50 flex h-full w-[220px] flex-col print:hidden border-r border-steel-900/40 bg-carbon-light transition-transform duration-200',
         'lg:translate-x-0',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
@@ -277,8 +292,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </button>
         <SidebarContent />
       </aside>
-      <main className="min-h-screen flex-1 lg:ml-[220px]">
-        <div className="sticky top-0 z-40 flex h-[52px] items-center gap-3 border-b border-steel-900/40 bg-carbon-light/95 px-4 backdrop-blur-sm">
+      <main className="min-h-screen min-w-0 flex-1 lg:ml-[220px] print:ml-0">
+        <div className="sticky top-0 z-40 flex h-[52px] print:hidden items-center gap-3 border-b border-steel-900/40 bg-carbon-light/95 px-4 backdrop-blur-sm">
           <button
             ref={openBtnRef}
             onClick={() => setSidebarOpen(true)}
@@ -300,6 +315,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
         {children}
+        {userPerms?.canUseTickets && !pathname.startsWith('/admin/ti/tickets') && (
+          <Link
+            href={`/admin/ti/tickets/nuevo?desde=${encodeURIComponent(pathname)}`}
+            className="fixed bottom-4 right-4 z-30 inline-flex items-center gap-2 rounded-full bg-steel-800 px-4 py-2 font-body text-caption text-steel-100 shadow-lg ring-1 ring-steel-600 transition-colors hover:bg-steel-700 hover:text-arctic print:hidden"
+          >
+            <LifeBuoy className="h-4 w-4" />¿Algo no funciona?
+          </Link>
+        )}
       </main>
     </div>
     </ToastProvider>

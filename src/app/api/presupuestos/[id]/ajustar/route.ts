@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth';
-import { getGeminiModel, generateWithRetry } from '@/lib/gemini';
+import { getGeminiModel, GEMINI_MODEL_ID } from '@/lib/gemini';
+import { autorizarIA, generarConGemini } from '@/lib/ia/uso';
 
 const SYSTEM_PROMPT = `Eres un asistente experto en presupuestos de construcción, herrería y mantenimiento para Full Service & Clean en Paraguay.
 El admin te envía el estado actual de un presupuesto (rubros, materiales, mano de obra, márgenes, etc.) y una instrucción en lenguaje natural.
@@ -61,6 +62,9 @@ export async function POST(
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return NextResponse.json({ error: 'Sin clave Gemini' }, { status: 500 });
 
+    const bloqueo = await autorizarIA('presupuesto-ajustar', auth);
+    if (bloqueo) return bloqueo;
+
     const model = getGeminiModel(apiKey, SYSTEM_PROMPT);
 
     // Build context: current state + conversation history + new message
@@ -75,7 +79,7 @@ export async function POST(
       `\nINSTRUCCIÓN DEL ADMIN: ${mensaje.trim()}`,
     ].filter(Boolean).join('\n');
 
-    const text = await generateWithRetry(model, [{ text: prompt }]);
+    const text = await generarConGemini({ funcion: 'presupuesto-ajustar', modelo: GEMINI_MODEL_ID, session: auth }, model, [{ text: prompt }]);
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return NextResponse.json({ error: 'Respuesta inesperada del modelo' }, { status: 500 });

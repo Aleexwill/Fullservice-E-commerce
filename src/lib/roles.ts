@@ -24,6 +24,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
   canManageInventory: boolean;
   canViewReports: boolean;
   canViewAnalytics: boolean;
+  canManageRRHH: boolean;      // legajos, sueldos y planilla (datos sensibles)
+  canUseTickets: boolean;      // crear tickets de incidencias y mejoras y ver los propios (TI los gestiona con canManageConfig)
 }> = {
   admin: {
     canManageUsers: true, canManageConfig: true, canManageContent: true,
@@ -31,6 +33,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: true, canManageClients: true, canManageInventory: true,
     canViewReports: true, canViewAnalytics: true,
+    canManageRRHH: true,
+    canUseTickets: true,
   },
   gerencia: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -38,6 +42,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: true,
+    canManageRRHH: false,
+    canUseTickets: true,
   },
   administracion: {
     canManageUsers: true, canManageConfig: true, canManageContent: false,
@@ -45,6 +51,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: false, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: true,
+    canUseTickets: true,
   },
   planner: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -52,6 +60,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: true,
     canManageLeads: false, canManageClients: false, canManageInventory: true,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: false,
+    canUseTickets: true,
   },
   vendedor: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -59,6 +69,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: false,
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: false,
+    canUseTickets: false,
   },
   tecnico: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -66,6 +78,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: false,
     canManageLeads: false, canManageClients: false, canManageInventory: true,
     canViewReports: false, canViewAnalytics: false,
+    canManageRRHH: false,
+    canUseTickets: false,
   },
   comercial: {
     canManageUsers: false, canManageConfig: false, canManageContent: false,
@@ -73,6 +87,8 @@ export const ROLE_PERMISSIONS: Record<Role, {
     canAprobarPresupuestos: false,
     canManageLeads: true, canManageClients: true, canManageInventory: false,
     canViewReports: true, canViewAnalytics: false,
+    canManageRRHH: false,
+    canUseTickets: false,
   },
 };
 
@@ -85,6 +101,11 @@ type RouteRestriction = { path: string; requiredPermission: keyof typeof ROLE_PE
 // Rutas admin restringidas por rol (prefijo)
 export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/usuarios', requiredPermission: 'canManageUsers' },
+  { path: '/admin/funcionarios', requiredPermission: 'canManageRRHH' },
+  { path: '/admin/rrhh', requiredPermission: 'canManageRRHH' },
+  { path: '/admin/ia', requiredPermission: 'canManageConfig' },
+  { path: '/admin/ti/tickets', requiredPermission: 'canUseTickets' },
+  { path: '/admin/ti', requiredPermission: 'canManageConfig' },
   { path: '/admin/config', requiredPermission: 'canManageConfig' },
   { path: '/admin/configuracion', requiredPermission: 'canManageConfig' },
   { path: '/admin/contenido', requiredPermission: 'canManageContent' },
@@ -96,6 +117,7 @@ export const RESTRICTED_ROUTES: RouteRestriction[] = [
   { path: '/admin/reportes', requiredPermission: 'canViewReports' },
   { path: '/admin/analytics', requiredPermission: 'canViewAnalytics' },
   { path: '/admin/inventario', requiredPermission: 'canManageInventory' },
+  { path: '/admin/depositos', requiredPermission: 'canManageInventory' },
   { path: '/admin/leads', requiredPermission: 'canManageLeads' },
   { path: '/admin/clientes', requiredPermission: 'canManageClients' },
 ];
@@ -104,6 +126,11 @@ export const RESTRICTED_ROUTES: RouteRestriction[] = [
 // Se aplica solo a métodos que modifican datos (no GET públicos ya filtrados en isPublicApi)
 export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/usuarios', requiredPermission: 'canManageUsers' },
+  { path: '/api/funcionarios', requiredPermission: 'canManageRRHH' },
+  { path: '/api/rrhh', requiredPermission: 'canManageRRHH' },
+  { path: '/api/ia', requiredPermission: 'canManageConfig' },
+  { path: '/api/ti/tickets', requiredPermission: 'canUseTickets' },
+  { path: '/api/ti', requiredPermission: 'canManageConfig' },
   { path: '/api/roles', requiredPermission: 'canManageUsers' },
   { path: '/api/config', requiredPermission: 'canManageConfig' },
   { path: '/api/approval-flows', requiredPermission: 'canManageConfig' },
@@ -116,6 +143,7 @@ export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/clientes-logo', requiredPermission: 'canManageContent' },
   { path: '/api/productos', requiredPermission: 'canManageProducts' },
   { path: '/api/materiales', requiredPermission: 'canManageInventory' },
+  { path: '/api/depositos', requiredPermission: 'canManageInventory' },
   { path: '/api/leads', requiredPermission: 'canManageLeads' },
   { path: '/api/clientes', requiredPermission: 'canManageClients' },
   { path: '/api/pedidos', requiredPermission: 'canManageOrders' },
@@ -125,5 +153,4 @@ export const RESTRICTED_API_ROUTES: RouteRestriction[] = [
   { path: '/api/admin', requiredPermission: 'canManageConfig' },
   { path: '/api/upload', requiredPermission: 'canManageContent' },
   { path: '/api/ai', requiredPermission: 'canManagePresupuestos' },
-  { path: '/api/notifications', requiredPermission: 'canManageLeads' },
 ];

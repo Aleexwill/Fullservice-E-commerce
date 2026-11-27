@@ -53,6 +53,25 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // PWA de marcación en terreno: toda la sección exige sesión, salvo el login y los archivos de la PWA.
+  if (pathname.startsWith('/marcacion')) {
+    // Páginas y archivos públicos de la PWA: login, service worker, manifest, íconos, logo y modelos de reconocimiento
+    // (el navegador los pide sin sesión, por ejemplo los íconos del manifest al instalar)
+    if (pathname === '/marcacion/login' || /^\/marcacion\/(sw\.js|manifest\.webmanifest|isotipo\.png|apple-touch-icon\.png|icon-[\w-]+\.png|models\/[\w.-]+)$/.test(pathname)) {
+      return NextResponse.next();
+    }
+    const session = await getSession(token);
+    if (!session) {
+      const loginUrl = new URL('/marcacion/login', request.url);
+      if (pathname !== '/marcacion') loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    if (session.mustChangePassword) {
+      return NextResponse.redirect(new URL('/admin/cambiar-password', request.url));
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login') return NextResponse.next();
     if (pathname.startsWith('/admin/invitacion/')) return NextResponse.next();
@@ -80,5 +99,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/:path*'],
+  matcher: ['/admin/:path*', '/marcacion/:path*', '/api/:path*'],
 };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth';
-import { getGeminiModel, generateWithRetry } from '@/lib/gemini';
+import { getGeminiModel, GEMINI_MODEL_ID } from '@/lib/gemini';
+import { autorizarIA, generarConGemini } from '@/lib/ia/uso';
 
 const SYSTEM_PROMPT = `Eres un asistente experto en elaborar presupuestos para Full Service & Clean, empresa de mantenimiento, limpieza y construcción civil en Paraguay.
 
@@ -68,6 +69,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'GEMINI_API_KEY no configurada' }, { status: 503 });
   }
 
+  const bloqueo = await autorizarIA('presupuesto-analizar', auth);
+  if (bloqueo) return bloqueo;
+
   const model = getGeminiModel(apiKey, SYSTEM_PROMPT);
 
   const body = await req.json();
@@ -99,7 +103,7 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const text = await generateWithRetry(model, parts);
+    const text = await generarConGemini({ funcion: 'presupuesto-analizar', modelo: GEMINI_MODEL_ID, session: auth }, model, parts);
 
     // Extraer JSON de la respuesta (por si viene con markdown)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
